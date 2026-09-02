@@ -1,0 +1,426 @@
+---
+title: "Análisis de datasets seleccionados del ISTAC"
+author: "Luis Alvarez"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: readable
+    number_sections: true
+    self_contained: true
+---
+
+<style>
+h1.title { font-size: 24px; }
+h1 { font-size: 20px; }
+h2 { font-size: 18px; }
+h3 { font-size: 16px; }
+body { font-size: 14px;}
+p { font-size: 14px; margin-bottom: 10px;
+}
+/* Todas las cajas con scroll llevan la misma separación por debajo, para que no
+   queden pegadas al texto que viene después (evita tener que poner <br> a mano
+   detrás de cada una) */
+.tabla-scroll, .caja-scroll, .tabla-scroll-xy { margin-bottom: 28px; }
+/* Tablas anchas: envolver el chunk en <div class="tabla-scroll"> ... </div> para verlas completas con scroll horizontal */
+.tabla-scroll { overflow-x: auto; }
+.tabla-scroll table { width: auto; min-width: 100%; }
+.tabla-scroll table td, .tabla-scroll table th { white-space: nowrap; }
+/* Textos y listados largos: envolver en <div class="caja-scroll"> ... </div>
+   para acotar su altura y recorrerlos con scroll vertical, en vez de ocupar
+   páginas enteras del documento */
+.caja-scroll { max-height: 250px; overflow-y: auto; padding: 10px 14px;
+               border: 1px solid #ddd; background-color: #fafafa; }
+/* Tablas que pueden ser anchas Y largas (p. ej. una fila por indicador): scroll
+   en los dos ejes, con la fila de cabecera fija arriba mientras se recorre.
+   Alternativa ligera a DT::datatable: HTML puro, sin JavaScript ni dependencias */
+.tabla-scroll-xy { overflow: auto; max-height: 450px; border: 1px solid #ddd; }
+.tabla-scroll-xy table { width: auto; min-width: 100%; margin-bottom: 0; }
+.tabla-scroll-xy table td, .tabla-scroll-xy table th { white-space: nowrap; }
+.tabla-scroll-xy thead th { position: sticky; top: 0; z-index: 1;
+                            background-color: #fff; box-shadow: inset 0 -1px 0 #ddd; }
+/* Celdas de cumple/no cumple de la tabla de validación de requisitos */
+.val-ok, .val-no { display: block; text-align: center; font-weight: bold;
+                   color: #fff; padding: 2px 6px; border-radius: 3px; }
+.val-ok { background-color: #28a745; }
+.val-no { background-color: #dc3545; }
+</style>
+
+```{r,echo=FALSE}
+# OPCIONES POR DEFECTO AL COMPILAR LOS CHUNKS
+knitr::opts_chunk$set(
+  warning = FALSE,
+  message = FALSE,
+  cache = FALSE,
+  echo = FALSE,
+  # las figuras se escriben fuera del proyecto (el html es self_contained y las
+  # incrusta en base64), para que knitr no deje la carpeta auxiliar
+  # "ISTAC_DatasetSelection_files" junto al html
+  fig.path = paste0(tempdir(), "/ISTAC_DatasetSelection_files/")
+)
+```
+
+```{r, echo=FALSE}
+library(istacr)
+library(openxlsx)
+library(tidyverse)
+
+# asociamos funciones a determinadas librerías para evitar posibles errores
+select <- dplyr::select
+mutate <- dplyr::mutate
+filter <- dplyr::filter
+group_by <- dplyr::group_by
+summarise <- dplyr::summarise
+summarize <- dplyr::summarize
+rename <- dplyr::rename
+```
+
+Este documento analiza en detalle los **indicadores** del ISTAC ya elegidos a partir de la tabla que genera **ISTAC_TableDatasetGeneration.Rmd** ([ISTAC_datasets.xlsx](ISTAC_datasets.xlsx)), y comprueba si cumplen los requisitos para ser el dataset principal del proyecto personal de **AEDV**.
+
+A diferencia del INE o de Eurostat, aquí no se analiza un único dataset sino un **conjunto de indicadores** que se descargan y se combinan en una sola tabla: cada indicador es un atributo que se sigue en el tiempo para cada región de Canarias.
+
+Para analizar otros indicadores basta con cambiar sus códigos en el chunk de abajo y volver a compilar.
+
+```{r,echo=TRUE}
+# CÓDIGOS DE LOS INDICADORES QUE VAMOS A ANALIZAR
+IDS <- c("MATRICULA_VEHICULOS", "MATRICULA_VEHICULOS_TURISMOS", "PARQUE_VEHICULOS",
+          "PARQUE_VEHICULOS_HABITANTE", "PARQUE_VEHICULOS_TURISMOS", "PARQUE_VEHICULOS_TURISMOS_HABITANTE")
+
+# nombre base de los ficheros que se guardan en disco
+filename <- "ISTAC_Selected"
+```
+
+# Descarga, limpieza y guardado de los datos
+
+```{r,echo=FALSE}
+# FUNCIÓN PARA DESCARGAR UN DATASET A PARTIR DE SU IDENTIFICADOR
+istac.data.download <- function(id, max_intentos = 3, tiempo_espera_seg = 1) {
+  for (intento in 1:max_intentos) {
+    resultado <- tryCatch({
+      istacr::get_indicators_code_data(id)$dataframe
+    }, error = function(e) NULL)
+
+    if (!is.null(resultado)) return(resultado)
+    if (intento < max_intentos) Sys.sleep(tiempo_espera_seg)
+  }
+  return(NULL)
+}
+```
+
+```{r,echo=TRUE}
+ISTAC_datasets <- read.xlsx("ISTAC_datasets.xlsx") |>
+  as_tibble()
+
+istac.regions <- read_csv("ISTAC_AREAS_GEOGRAFICAS.csv", show_col_types = FALSE) |>
+  as_tibble()
+```
+
+> **Nota:** la columna `description` de los metadatos se genera más abajo mediante consulta a IA a partir de fuentes oficiales del ISTAC. No proviene directamente de la API del ISTAC. Si se cambian los indicadores seleccionados habrá que rehacer la consulta a la IA pidiendo que se adapten las descripciones a los nuevos indicadores.
+
+```{r,echo=TRUE}
+# DESCRIPCIONES GENERADAS POR IA para los indicadores de vehículos (el ejemplo
+# por defecto es TURISTAS_*, que no tiene descripción propia todavía: sale
+# "BUSCAR DESCRIPCIÓN" más abajo hasta que se redacte)
+desc_ia <- tibble(
+  id = c(
+    "MATRICULA_VEHICULOS",
+    "MATRICULA_VEHICULOS_TURISMOS",
+    "PARQUE_VEHICULOS",
+    "PARQUE_VEHICULOS_HABITANTE",
+    "PARQUE_VEHICULOS_TURISMOS",
+    "PARQUE_VEHICULOS_TURISMOS_HABITANTE"
+  ),
+  description = c(
+    "Número de vehículos ordinarios nuevos matriculados en circulación en cada municipio e isla de Canarias en un período. Excluye vehículos usados y rematriculaciones.",
+    "Número de turismos (automóviles para transporte de pasajeros) nuevos matriculados en circulación. Desglose del indicador MATRICULA_VEHICULOS restringido a vehículos de tipo turismo.",
+    "Número total de vehículos en circulación en un municipio o isla de Canarias en un momento dado. Cifra acumulada de todos los vehículos actualmente registrados en uso.",
+    "Número de vehículos en circulación por cada 1.000 habitantes. Mide la intensidad de motorización y permite comparar el nivel de motorización entre territorios.",
+    "Número total de turismos en circulación en un municipio o isla de Canarias. Desglose del parque total de vehículos restringido a automóviles de pasajeros.",
+    "Número de turismos en circulación por cada 1.000 habitantes. Permite analizar los patrones de motorización por tipo de vehículo y comparar entre territorios."
+  )
+)
+```
+
+Descargamos cada indicador y los combinamos en una única tabla, añadiendo la columna `INDICATOR` para saber de cuál procede cada fila.
+
+```{r,results='hide',echo=TRUE}
+data <- tibble()
+for(id in IDS){
+  tb <- istac.data.download(id)
+  if(is.null(tb)) next
+
+  tb <- tb |>
+    as_tibble() |>
+    rename(VALUE = OBSERVACIONES) |>
+    mutate(
+      INDICATOR = id,
+      VALUE     = as.numeric(VALUE)
+    ) |>
+    # MEASURE distingue el dato absoluto de variaciones/tasas derivadas del
+    # mismo indicador (p. ej. INTERPERIOD_PERCENTAGE_RATE): nos quedamos solo
+    # con el valor absoluto, que es la magnitud propia del indicador
+    filter(!is.na(VALUE), MEASURE == "ABSOLUTE") |>
+    select(-MEASURE) |>
+    left_join(istac.regions, by = "GEOGRAPHICAL") |>
+    select(GEOGRAPHICAL, NAME, INDICATOR, TIME, VALUE)
+
+  data <- bind_rows(data, tb)
+}
+data <- arrange(data, GEOGRAPHICAL, TIME)
+```
+
+A diferencia del INE, Eurostat o el Banco Mundial, aquí no hace falta comprobar columnas con un solo valor: la API del ISTAC ya distingue el dato absoluto de sus variantes calculadas (`MEASURE`) y devuelve, por indicador, solo las columnas estructurales (`GEOGRAPHICAL`, `NAME`, `INDICATOR`, `TIME`, `VALUE`).
+
+Guardamos los datos **lo primero de todo**, nada más limpiarlos, en formato `rds` (el formato nativo de `R`: conserva los tipos de las columnas y ocupa mucho menos que un Excel).
+
+```{r,echo=TRUE}
+saveRDS(data, file = paste0(filename, ".rds"))
+
+cat("Fichero guardado:", paste0(filename, ".rds"),
+    sprintf("(%.1f MB)\n", file.info(paste0(filename, ".rds"))$size / 1024^2))
+```
+
+Guardamos también los metadatos de los indicadores recogidos en el catálogo de la asignatura (**ISTAC_datasets.xlsx**, generado por **ISTAC_TableDatasetGeneration.Rmd**): las filas correspondientes a los indicadores seleccionados, una por indicador, con la descripción generada por IA añadida.
+
+```{r,echo=TRUE}
+metadatos <- ISTAC_datasets |>
+  filter(id %in% IDS) |>
+  left_join(desc_ia, by = "id") |>
+  mutate(description = if_else(is.na(description), "BUSCAR DESCRIPCIÓN", description))
+
+if(nrow(metadatos) == 0)
+  stop("Ninguno de los indicadores seleccionados aparece en el catálogo del ISTAC. ",
+       "Comprueba los códigos o vuelve a generar el catálogo con ISTAC_TableDatasetGeneration.Rmd")
+
+if(nrow(metadatos) < length(IDS))
+  warning("Solo se han encontrado en el catálogo ", nrow(metadatos), " de los ",
+          length(IDS), " indicadores seleccionados: ",
+          paste(setdiff(IDS, metadatos$id), collapse = ", "))
+
+write.xlsx(metadatos, file = paste0(filename, "_metadatos.xlsx"), overwrite = TRUE)
+```
+
+Una vez guardados en disco los metadatos (fichero xlsx) y los datos (fichero RDS), iniciamos el proceso de análisis. A partir de aquí el documento se compila **solo** con los ficheros ya guardados en disco; no se usa ningún objeto de las secciones anteriores. Es a propósito: es la parte que el alumno incluye en la memoria del proyecto personal, así que tiene que poder ejecutarse sola (lo único que se usa de lo definido anteriormente es `filename`).
+
+# Análisis del dataset
+
+```{r,echo=TRUE}
+# se repite aquí (idéntico al de la sección anterior) para poder nombrar los
+# ficheros sin depender de ningún chunk anterior
+filename <- "ISTAC_Selected"
+```
+
+```{r,echo=TRUE}
+metadatos <- read.xlsx(paste0(filename, "_metadatos.xlsx"))
+```
+
+**metadatos**
+
+<div class="tabla-scroll-xy">
+
+```{r}
+metadatos |>
+  knitr::kable()
+```
+
+</div>
+
+```{r,echo=TRUE}
+data <- readRDS(paste0(filename, ".rds"))
+```
+
+**data**
+
+<div class="tabla-scroll">
+
+```{r}
+data
+```
+
+</div>
+
+## Información sobre las columnas de la tabla descargada
+
+Se presentan las diferentes dimensiones, cada una con sus valores posibles y el nº de observaciones.
+
+```{r, results='asis'}
+# results='asis' para poder envolver la salida de cada columna en HTML propio
+# (la caja con scroll vertical). Sin 'asis' el <div>/<pre> se imprimirían como
+# texto literal en vez de interpretarse.
+imprime_caja <- function(m, texto, scroll = FALSE){
+  cat("\n**", texto, "**\n\n", sep = "")
+  if(scroll) cat('<div class="caja-scroll">\n\n')
+  cat("```\n")
+  print(m)
+  cat("```\n")
+  if(scroll) cat("\n</div>\n")
+  cat("\n")
+}
+
+for(col in colnames(data)){
+  if(is.numeric(data[[col]])) next
+
+  # nº de opciones (valores distintos) de la columna, siempre en la cabecera
+  n_opciones <- n_distinct(data[[col]])
+
+  tb <- data |>
+    group_by(!!sym(col)) |>
+    summarise(N.observ = dplyr::n(), .groups = "drop") |>
+    arrange(desc(N.observ)) |>
+    mutate(!!col := substr(as.character(!!sym(col)), 1, 55))
+
+  texto <- paste0("COLUMNA: ", col, " (", n_opciones, " opciones)")
+
+  # cualquier columna puede tener muchas opciones (p. ej. TIME en series
+  # mensuales): se muestran TODAS, en una caja con scroll vertical en vez de
+  # alargar la página
+  imprime_caja(tb |> as.matrix() |> noquote(), texto, scroll = TRUE)
+}
+```
+
+## Regiones y número de observaciones
+
+<div class="caja-scroll">
+
+```{r}
+# el nº de regiones depende del nivel del indicador (7 islas, pero más de 80
+# municipios): se muestran TODAS, en una caja con scroll vertical en vez de
+# alargar la página
+data |>
+  group_by(GEOGRAPHICAL, NAME) |>
+  summarise(N.Observ = dplyr::n(), .groups = "drop") |>
+  arrange(NAME) |>
+  as.data.frame() |>
+  print(row.names = FALSE)
+```
+
+</div>
+
+## Validación de requisitos AEDV
+
+Esta sección resume, de un vistazo, si los indicadores sirven como dataset principal del proyecto. Se comprueban los **tres criterios** de la asignatura sobre **cada indicador** (cada uno es un atributo que se sigue en el tiempo para cada región):
+
+* **Cobertura geográfica**: el umbral depende del nivel de desglose que indica `area` en el catálogo: **80** para municipios (`MUNI`), **6** para islas (`ISLA`), **15** para comunidades autónomas (`CCAA`) y **40** para provincias (`PROV`). Los indicadores a nivel de Canarias entera (`CANA`) no pueden cumplir este criterio, al ser una única región.
+
+* **Datos actualizados**: el último dato debe ser de **2024** o posterior.
+
+* **Tamaño de las series temporales**: el **percentil 25 (P25)** del nº de fechas por región debe superar el umbral de su frecuencia: **10** para datos anuales, **20** para semestrales, **40** para trimestrales, **60** para mensuales, **200** para semanales y **1096** para diarios (tres años). Usar el P25 equivale a exigir que el **75 % de las regiones** alcance ese tamaño.
+
+La frecuencia se detecta automáticamente desde el formato de `TIME` (`"2020"` → anual, `"2020-01"` → mensual, `"2020-Q1"` → trimestral, `"2020-W01"` → semanal, `"2020-01-01"` → diario). **Si el indicador mezcla frecuencias, aparecerá una fila por cada frecuencia detectada.**
+
+```{r}
+# --- DETECCIÓN DE LA FRECUENCIA ----------------------------------------------
+classify_time <- function(t) {
+  dplyr::case_when(
+    # El ISTAC entrega el TIME con guion: "2020-01-01" (día), "2020-W01"
+    # (semana), "2020-Q1" (trimestre), "2020-01" (mes), "2020-S1" (semestre),
+    # "2020" (año). El guion es opcional en los patrones para admitir también
+    # la forma sin él.
+    stringr::str_detect(t, "^[0-9]{4}-[0-9]{2}-[0-9]{2}$|^[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}$") ~ "D",
+    stringr::str_detect(t, "^[0-9]{4}-?W[0-9]{1,2}$") ~ "W",
+    stringr::str_detect(t, "^[0-9]{4}M[0-9]{2}$|^[0-9]{4}-[0-9]{2}$") ~ "M",
+    stringr::str_detect(t, "^[0-9]{4}-?[QT][0-9]$") ~ "Q",
+    stringr::str_detect(t, "^[0-9]{4}-?S[1-2]$") ~ "S",
+    stringr::str_detect(t, "^[0-9]{4}$")           ~ "Y",
+    TRUE                                            ~ "otro"
+  )
+}
+```
+
+```{r}
+# --- TAMAÑO DE LAS SERIES POR INDICADOR Y FRECUENCIA -------------------------
+umbral_freq <- c(Y = 10L, S = 20L, Q = 40L, M = 60L, W = 200L, D = 1096L, otro = NA_integer_)
+ANYO_MINIMO <- 2024
+
+tb <- data |>
+  mutate(freq_obs = classify_time(TIME)) |>
+  group_by(INDICATOR, GEOGRAPHICAL, freq_obs) |>
+  summarise(
+    n_periodos = n_distinct(TIME),
+    date_min   = min(TIME),
+    date_max   = max(TIME),
+    .groups    = "drop"
+  ) |>
+  group_by(INDICATOR, freq_obs) |>
+  summarise(
+    n_regiones = n_distinct(GEOGRAPHICAL),
+    date_start = min(date_min),
+    date_end   = max(date_max),
+    P0   = as.integer(min(n_periodos)),
+    P25  = as.integer(quantile(n_periodos, 0.25)),
+    P50  = as.integer(quantile(n_periodos, 0.50)),
+    P75  = as.integer(quantile(n_periodos, 0.75)),
+    P100 = as.integer(max(n_periodos)),
+    .groups = "drop"
+  ) |>
+  left_join(metadatos |> select(id, subject, area), by = c("INDICATOR" = "id")) |>
+  relocate(subject, area, .after = INDICATOR)
+```
+
+```{r}
+# --- APLICACIÓN DE LOS TRES CRITERIOS ----------------------------------------
+umbral_cob <- c(MUNI = 80L, ISLA = 6L, CCAA = 15L, PROV = 40L, CANA = NA_integer_)
+
+tb_val <- tb |>
+  mutate(
+    umbral   = unname(umbral_freq[freq_obs]),
+    year_end = as.integer(substr(date_end, 1, 4)),
+    ok_cob   = !is.na(umbral_cob[area]) & n_regiones > unname(umbral_cob[area]),
+    ok_fecha = year_end >= ANYO_MINIMO,
+    ok_temp  = !is.na(umbral) & P25 >= umbral,
+    ok_total = ok_cob & ok_fecha & ok_temp,
+    etiqueta = paste0(INDICATOR, " [", freq_obs, "]")
+  )
+
+n_total   <- n_distinct(tb_val$INDICATOR)
+n_validos <- tb_val |>
+  group_by(INDICATOR) |>
+  summarise(valido = any(ok_total), .groups = "drop") |>
+  pull(valido) |> sum()
+```
+
+**Indicadores**: nº de regiones, rango de fechas y percentiles del tamaño de la serie temporal (periodos por región).
+
+<div class="tabla-scroll-xy">
+
+```{r}
+# kable en vez de DT::datatable: aquí solo hace falta poder recorrer la tabla,
+# no filtrarla ni ordenarla. El contenedor .tabla-scroll-xy le da el scroll en
+# los dos ejes, con la cabecera fija arriba.
+tb_val |>
+  select(INDICATOR, subject, area, freq_obs, n_regiones, date_start, date_end,
+         P0, P25, P50, P75, P100) |>
+  knitr::kable()
+```
+
+</div>
+
+<div class="tabla-scroll-xy">
+
+```{r}
+# Tabla de validación en HTML (antes era un heatmap de ggplot, pero al ser una
+# IMAGEN su altura crecía con el nº de indicadores/frecuencias). Como tabla se
+# muestran TODAS las filas y se recorren con el scroll del contenedor, con la
+# cabecera fija arriba. Las clases val-ok/val-no dan el color a cada celda.
+marca <- function(x)
+  ifelse(x, '<span class="val-ok">&#10004;</span>', '<span class="val-no">&#10008;</span>')
+
+tb_val |>
+  transmute(
+    Indicador                       = etiqueta,
+    `Cobertura geográfica`          = marca(ok_cob),
+    `Datos actualizados (≥ 2024)`   = marca(ok_fecha),
+    `Tamaño series (P25 ≥ umbral)`  = marca(ok_temp),
+    `CUMPLE LOS 3`                  = marca(ok_total)
+  ) |>
+  # escape = FALSE para que el <span> de cada celda se interprete como HTML y
+  # no se imprima literalmente
+  knitr::kable(escape = FALSE, align = c("l", rep("c", 4)))
+```
+
+</div>
+
+De los **`r n_total`** indicadores seleccionados, **`r n_validos`** cumplen los tres criterios de validación (cobertura geográfica, datos actualizados y tamaño de las series temporales).
+
+El requisito de disponer de al menos 4 atributos válidos `r if(n_validos >= 4) "**se cumple ✓**" else paste0("**no se cumple ✗** — con la selección actual faltan ", 4 - n_validos, " indicador(es) válido(s) para alcanzar el mínimo de 4")`.
+
+> Para el requisito del nº de atributos hay que tener en cuenta que no cuentan como atributos distintos variantes calculadas a partir de un único atributo, como tener el valor de un indicador y su crecimiento anual, o el mismo indicador por meses o por años. Sin embargo, un indicador por habitante sí es un atributo distinto porque introduce otro atributo, que es la población. Estas cuestiones no se tienen en cuenta automáticamente en la conclusión y hay que valorarlas examinando los resultados.

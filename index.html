@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto Personal — AEDV</title>
+<style>
+  :root { --texto:#1c1e21; --suave:#5c6670; --linea:#dfe3e8; --fondo:#ffffff; --caja:#f6f8fa; --enlace:#0b5cad; }
+  @media (prefers-color-scheme: dark) {
+    :root { --texto:#e6e6e6; --suave:#a5adb6; --linea:#30363d; --fondo:#14161a; --caja:#1c1f24; --enlace:#6fb3f2; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:0 1.2rem 4rem; background:var(--fondo); color:var(--texto);
+         font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+         line-height:1.6; }
+  .contenedor { max-width: 52rem; margin: 0 auto; }
+  header { border-bottom:1px solid var(--linea); padding:2.5rem 0 1.5rem; margin-bottom:2rem; }
+  h1 { font-size:1.9rem; margin:0 0 .4rem; line-height:1.25; }
+  .subtitulo { color:var(--suave); margin:0; }
+  h2 { font-size:1.25rem; margin:2.5rem 0 .8rem; padding-bottom:.35rem; border-bottom:1px solid var(--linea); }
+  h3 { font-size:1rem; margin:1.6rem 0 .4rem; }
+  a { color:var(--enlace); }
+  ul { padding-left:1.2rem; margin:.4rem 0; }
+  li { margin:.28rem 0; }
+  .desc { color:var(--suave); }
+  .aviso { background:var(--caja); border:1px solid var(--linea); border-radius:6px; padding:1rem 1.2rem; margin:1.5rem 0; }
+  .aviso p:first-child { margin-top:0; }
+  .aviso p:last-child { margin-bottom:0; }
+  code { background:var(--caja); border:1px solid var(--linea); border-radius:4px; padding:.08em .35em; font-size:.9em; }
+  footer { margin-top:3rem; padding-top:1rem; border-top:1px solid var(--linea); color:var(--suave); font-size:.9rem; }
+</style>
+</head>
+<body>
+<div class="contenedor">
+
+<header>
+  <h1>Proyecto Personal — Análisis Exploratorio de Datos y Visualización</h1>
+  <p class="subtitulo">Grado en Ciencias de Datos · Universidad de Las Palmas de Gran Canaria · Luis Álvarez</p>
+</header>
+
+<div class="aviso">
+  <p><strong>Empieza por la <a href="README.html">guía de trabajo del proyecto personal</a></strong>: explica las tres
+  entregas, el flujo de trabajo paso a paso y la rúbrica de evaluación.</p>
+  <p>Para trabajar necesitas los ficheros en tu ordenador:
+  <a href="https://github.com/lalvarezmat/AEDV-proyecto-personal/archive/refs/heads/main.zip">descargar todo en un ZIP</a>
+  (~50 MB) o clonar el repositorio con
+  <code>git clone https://github.com/lalvarezmat/AEDV-proyecto-personal.git</code>.</p>
+</div>
+
+<h2>Documentos principales</h2>
+<ul>
+  <li><a href="README.html">Guía de trabajo del proyecto personal</a> — <span class="desc">entregas, seguimiento, flujo paso a paso y rúbrica comentada</span></li>
+  <li><a href="ModeloMemoriaProyectoPersonalAEDV.html">Modelo de memoria (vista previa)</a> —
+      <span class="desc">plantilla que se copia y se rellena:
+      <a href="ModeloMemoriaProyectoPersonalAEDV.Rmd">ModeloMemoriaProyectoPersonalAEDV.Rmd</a></span></li>
+  <li><a href="RubricaEvaluaci%C3%B3nProyectoPersonal.xlsx">Rúbrica de evaluación (xlsx)</a> — <span class="desc">27 criterios en 7 áreas, por entrega</span></li>
+  <li><a href="estilos.css">estilos.css</a> — <span class="desc">estilos de la memoria; se necesita junto al Rmd, no se modifica</span></li>
+</ul>
+
+<h2>Selección de datasets</h2>
+<p><a href="Selecci%C3%B3nDatasetsProyecto/README.html">Guía para la elección del tema y de los datos</a> —
+criterios AEDV que deben cumplir los datasets del proyecto.</p>
+
+<p>Para cada fuente hay dos documentos: <em>TableDatasetGeneration</em> construye el catálogo completo recorriendo la API,
+y <em>DatasetSelection</em> filtra, valida y analiza el dataset elegido.</p>
+
+<h3>INE — Instituto Nacional de Estadística</h3>
+<ul>
+  <li><a href="Selecci%C3%B3nDatasetsProyecto/INE/INE_TableDatasetGeneration.html">Generación del catálogo</a> ·
+      <a href="Selecci%C3%B3nDatasetsProyecto/INE/INE_DatasetSelection.html">Selección y validación</a></li>
+  <li>Catálogos: <a href="Selecci%C3%B3nDatasetsProyecto/INE/INE.datasets.xlsx">INE.datasets.xlsx</a> (filtrado) ·
+      <a href="Selecci%C3%B3nDatasetsProyecto/INE/INE.datasets.raw.xlsx">INE.datasets.raw.xlsx</a> (completo)</li>
+</ul>
+
+<h3>ISTAC — Instituto Canario de Estadística</h3>
+<ul>
+  <li><a href="Selecci%C3%B3nDatasetsProyecto/ISTAC/ISTAC_TableDatasetGeneration.html">Generación del catálogo</a> ·
+      <a href="Selecci%C3%B3nDatasetsProyecto/ISTAC/ISTAC_DatasetSelection.html">Selección y validación</a></li>
+  <li>Catálogo: <a href="Selecci%C3%B3nDatasetsProyecto/ISTAC/ISTAC_datasets.xlsx">ISTAC_datasets.xlsx</a></li>
+</ul>
+
+<h3>Eurostat</h3>
+<ul>
+  <li><a href="Selecci%C3%B3nDatasetsProyecto/EUROSTAT/EUROSTAT_TableDatasetGeneration.html">Generación del catálogo</a> ·
+      <a href="Selecci%C3%B3nDatasetsProyecto/EUROSTAT/EUROSTAT_DatasetSelection.html">Selección y validación</a></li>
+  <li>Catálogos: <a href="Selecci%C3%B3nDatasetsProyecto/EUROSTAT/Eurostat.datasets.xlsx">Eurostat.datasets.xlsx</a> (filtrado) ·
+      <a href="Selecci%C3%B3nDatasetsProyecto/EUROSTAT/Eurostat.datasets.raw.xlsx">Eurostat.datasets.raw.xlsx</a> (completo) ·
+      <a href="Selecci%C3%B3nDatasetsProyecto/EUROSTAT/Eurostat.topics.xlsx">Eurostat.topics.xlsx</a></li>
+</ul>
+
+<h3>Banco Mundial</h3>
+<ul>
+  <li><a href="Selecci%C3%B3nDatasetsProyecto/WORLD_BANK/WORLD_BANK_TableDatasetGeneration.html">Generación del catálogo</a> ·
+      <a href="Selecci%C3%B3nDatasetsProyecto/WORLD_BANK/WORLD_BANK_DatasetSelection.html">Selección y validación</a></li>
+  <li>Catálogos: <a href="Selecci%C3%B3nDatasetsProyecto/WORLD_BANK/wb.datasets.xlsx">wb.datasets.xlsx</a> (filtrado) ·
+      <a href="Selecci%C3%B3nDatasetsProyecto/WORLD_BANK/wb.datasets.raw.xlsx">wb.datasets.raw.xlsx</a> (completo)</li>
+</ul>
+
+<h3>EDGAR — emisiones de gases de efecto invernadero</h3>
+<ul>
+  <li><a href="Selecci%C3%B3nDatasetsProyecto/EDGAR_GHG/EDGAR_GHG.html">Documento de la fuente</a></li>
+  <li>Datos: <a href="Selecci%C3%B3nDatasetsProyecto/EDGAR_GHG/EDGAR_GHG.rds">EDGAR_GHG.rds</a> ·
+      <a href="Selecci%C3%B3nDatasetsProyecto/EDGAR_GHG/EDGAR_GHG_metadatos.xlsx">metadatos</a></li>
+</ul>
+
+<h3>Clima de Canarias (por municipio)</h3>
+<ul>
+  <li><a href="Selecci%C3%B3nDatasetsProyecto/CLIMA_CANARIAS/CLIMA_CANARIAS_DatasetSelection.html">Selección y validación</a> ·
+      <a href="Selecci%C3%B3nDatasetsProyecto/CLIMA_CANARIAS/CLIMA_CANARIAS_TableDatasetGeneration.html">Generación de los datos</a></li>
+  <li>Datos: <a href="Selecci%C3%B3nDatasetsProyecto/CLIMA_CANARIAS/observaciones_canarias_1990_2022.rds">observaciones 1990–2022</a> ·
+      <a href="Selecci%C3%B3nDatasetsProyecto/CLIMA_CANARIAS/proyecciones_canarias.rds">proyecciones CMIP6</a> ·
+      <a href="Selecci%C3%B3nDatasetsProyecto/CLIMA_CANARIAS/CLIMA_CANARIAS_metadatos.xlsx">metadatos</a></li>
+</ul>
+
+<h3>Clima de España (por provincia)</h3>
+<ul>
+  <li><a href="Selecci%C3%B3nDatasetsProyecto/CLIMA_SPAIN/CLIMA_SPAIN_DatasetSelection.html">Selección y validación</a> ·
+      <a href="Selecci%C3%B3nDatasetsProyecto/CLIMA_SPAIN/CLIMA_SPAIN_TableDatasetGeneration.html">Generación de los datos</a></li>
+  <li>Datos: <a href="Selecci%C3%B3nDatasetsProyecto/CLIMA_SPAIN/observaciones_spain.rds">observaciones</a> ·
+      <a href="Selecci%C3%B3nDatasetsProyecto/CLIMA_SPAIN/proyecciones_spain.rds">proyecciones CMIP6</a> ·
+      <a href="Selecci%C3%B3nDatasetsProyecto/CLIMA_SPAIN/CLIMA_SPAIN_metadatos.xlsx">metadatos</a></li>
+</ul>
+
+<footer>
+  Material docente de la asignatura Análisis Exploratorio de Datos y Visualización (AEDV).
+  El libro de texto de la asignatura está en
+  <a href="https://lalvarezmat.github.io/AEDV-libro/">lalvarezmat.github.io/AEDV-libro</a>.
+</footer>
+
+</div>
+</body>
+</html>

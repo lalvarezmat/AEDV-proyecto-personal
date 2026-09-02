@@ -1,0 +1,14 @@
+# Ruido de Windows / Google Drive
+desktop.ini
+Thumbs.db
+
+# Sesiones y temporales de R / Excel
+.Rhistory
+.RData
+.Rproj.user/
+~$*
+
+# Ficheros de trabajo que no son material del alumno
+*.log
+*.temporal.xlsx
+.claude/

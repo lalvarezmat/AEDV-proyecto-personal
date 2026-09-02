@@ -1,0 +1,236 @@
+---
+title: "Exploración de los datasets del ISTAC usando la librería `istacr`"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: readable
+    number_sections: true
+---
+
+<!--
+# TRUCOS ÚTILES AL EDITAR UN FICHERO Rmarkdown: 
+(1) TECLAS: CTRL-MAY-1 : EDICIÓN DE CÓDIGO OCUPA/NO OCUPA TODA LA VENTANA
+(2) TECLAS: CTRL-ALT-C : EJECUTA UN CHUNK CUANDO EL CURSOR DEL RATÓN ESTA DENTRO DEL CHUNK (OTRA FORMA ES HACER CLICK EN EL BOTÓN TRIANGULAR VERDE EN LA ESQUINA SUPERIOR DERECHA DEL CHUNK)
+(3) ACTIVAR "knit on Save" PARA COMPILAR AUTOMÁTICAMENTE AL GUARDAR EL ARCHIVO (CTRL-S)
+PARA CREAR UN CHUNK NUEVO USAR BOTÓN VERDE CON UNA "C" EN LA PARTE SUPERIOR DERECHA DE LA VENTANA
+(4) PARA EJECUTAR UNA PORCIÓN DE CÓDIGO O VISUALIZAR EL VALOR DE UNA TABLA/VARIABLE SELECCIONAR EL CÓDIGO CON EL RATÓN Y HACER CTRL-ENTER -->
+
+<!-- A continuación se fijan algunas cuestiones básicas de estilo de formateado del texto. Opcionalmente, se puede usar un archivo CSS para definir en más detalle el formateado del texto --> 
+
+<style>
+h1.title { font-size: 24px; }
+h1 { font-size: 20px; }
+h2 { font-size: 18px; }
+h3 { font-size: 16px; }
+body { font-size: 14px;}
+p { font-size: 14px; margin-bottom: 10px;
+}
+/* Tablas anchas: envolver el chunk en <div class="tabla-scroll"> ... </div> para verlas completas con scroll horizontal */
+.tabla-scroll { overflow-x: auto; }
+.tabla-scroll table { width: auto; min-width: 100%; }
+.tabla-scroll table td, .tabla-scroll table th { white-space: nowrap; }
+</style>
+
+
+
+```{r,echo=FALSE}
+# OPCIONES POR DEFECTO AL COMPILAR LOS CHUNKS 
+knitr::opts_chunk$set(
+  warning = FALSE,
+  message = FALSE,
+  echo=TRUE,
+  cache=FALSE
+)
+```
+
+```{r, echo=FALSE}
+library(DT)
+library(istacr)
+library(openxlsx)
+library(DT)
+library(leaflet)
+library(sf)
+library(tidyverse)
+library(ggplot2)
+
+# asociamos funciones a determinadas librerías para evitar posibles errores 
+select <- dplyr::select
+mutate <- dplyr::mutate
+filter <- dplyr::filter
+group_by <- dplyr::group_by
+summarise <- dplyr::summarise
+summarize <- dplyr::summarize
+rename <- dplyr::rename
+selectInput <- shiny::selectInput
+```
+En este documento se estudia cómo explorar los datasets del **ISTAC** usando la librería `istacr`.
+
+
+# Lectura de la información básica de todos los datasets disponibles a través de `istacr` 
+
+Leemos los datos básicos de los datasets existentes y recopilamos en el tibble **ISTAC_datasets** la información básica
+
+```{r}
+# LECTURA INFORMACIÓN BÁSICA DATASETS ACCESIBLES A TRAVÉS DE istacr
+ISTAC_INDICATORS <- istacr::get_indicators(limit=1000)
+
+# RECOPILACIÓN INFORMACIÓN BÁSICA EN EL TIBBLE ISTAC_datasets
+ISTAC_datasets <- tibble(
+  id=as.character(),
+  title=as.character(),
+  description=as.character(),
+  notes=as.character(),
+  subject=as.character()
+)
+
+for(k in 1:length(ISTAC_INDICATORS$items$id)){
+  ISTAC_datasets <- ISTAC_datasets |> 
+    add_row(
+      id=ISTAC_INDICATORS$items$id[k],
+      title=ISTAC_INDICATORS$items$title$es[k],
+      description=ISTAC_INDICATORS$items$conceptDescription$es[k],
+      notes=ISTAC_INDICATORS$items$notes$es[k],
+      subject=ISTAC_INDICATORS$items$subjectTitle$es[k]
+    )
+}
+
+ISTAC_datasets <- ISTAC_datasets |> 
+  arrange(subject,id)
+
+```
+
+
+
+Añadimos el nº observaciones (filas) de cada dataset, el número de regiones distintas utilizadas, la frecuencia de los datos (`Y` anual, `S` semestral, `Q` trimestral, `M` mensual, `W` semanal, `D` diaria, y `?` si el formato de fecha no se reconoce), el periodo en años que cubre y detectamos si los datasets tienen datos de municipios de las islas.
+
+```{r}
+deteccion_area_geografica <- function(u){
+  if(any(c("38005","35012","38027") %in% u)) return("MUNI")
+  if(any(c("ES705","ES706","ES708") %in% u)) return("ISLA")
+  if(any(c("ES11","ES51","ES30")   %in% u)) return("CCAA")
+  if(any(c("ES213","ES425","ES701") %in% u)) return("PROV")
+  if(length(u) == 1 && "ES70" %in% u)       return("CANA")
+  return("OTRO")
+}
+
+# Detecta la frecuencia de una serie a partir del FORMATO de sus fechas.
+# Muchos datasets mezclan el agregado anual ("1999") con el detalle
+# ("1999-Q1"), así que se descartan los valores de 4 caracteres y se devuelve
+# la granularidad más fina que aparezca.
+# Se compara con patrones explícitos en vez de restar dígitos de la fecha:
+# "2026-Q1"/"2026-Q2" y "2026-01"/"2026-02" son indistinguibles si uno se fija
+# solo en el carácter de la posición 7 (en ambos casos pasa de 1 a 2), y por eso
+# las series trimestrales se etiquetaban como mensuales.
+deteccion_frecuencia <- function(fechas){
+  d <- unique(fechas[!is.na(fechas)])
+  if(!length(d)) return(NA_character_)
+  d <- d[nchar(d) > 4]
+  if(!length(d)) return("Y")                        # solo agregados anuales
+  if(any(grepl("^\\d{4}-\\d{2}-\\d{2}$", d)))     return("D")
+  if(any(grepl("^\\d{4}-W\\d{1,2}$", d)))         return("W")
+  if(any(grepl("^\\d{4}-M?(0[1-9]|1[0-2])$", d))) return("M")
+  if(any(grepl("^\\d{4}-Q[1-4]$", d)))            return("Q")
+  if(any(grepl("^\\d{4}-S[1-2]$", d)))            return("S")
+  return("?")                                       # formato no previsto: se marca, no se adivina
+}
+
+# --- CONTROL DE CUELGUES ----------------------------------------------------
+# El recorrido son cientos de llamadas a la API del ISTAC y puede quedarse
+# esperando indefinidamente en una de ellas. Dos medidas:
+#
+# 1) Se acota el tiempo de cada llamada, para que una petición colgada termine
+#    en error en vez de bloquear el documento entero.
+# 2) Se deja constancia del avance en un fichero .log con marca de tiempo. Al
+#    compilar con quiet=TRUE no se ve NADA por consola -los print(id) van al
+#    documento, que no existe hasta el final-, así que sin este log no hay forma
+#    de saber si el proceso avanza o está colgado. El fichero se puede abrir
+#    mientras compila: la última línea dice por qué dataset va y cuánto tardó.
+#
+# NOTA: no se capturan los errores para saltarse el dataset. Si uno falla, el
+# documento se detiene y se relanza la compilación: se prefiere ir despacio a
+# perder datasets del catálogo sin enterarse.
+options(timeout = 60)
+if(requireNamespace("httr", quietly = TRUE)){
+  httr::set_config(httr::timeout(60))
+}
+
+LOG <- "ISTAC_TableDatasetGeneration.log"
+cat(format(Sys.time()), "- inicio del recorrido\n", file = LOG)
+log_avance <- function(k, n, id, seg, nota = ""){
+  cat(sprintf("%s  %4d/%4d  %-38s %6.1f s%s%s\n",
+              format(Sys.time()), k, n, as.character(id), seg,
+              if(seg > 30) "   <-- LENTO" else "",
+              if(nzchar(nota)) paste0("  ", nota) else ""),
+      file = LOG, append = TRUE)
+}
+
+cat("ISTAC_datasets tiene", nrow(ISTAC_datasets), "filas\n")
+
+GEOGRAPHICAL_LISTADO  <- as.character()
+n.obs <- as.numeric()
+n.reg <- as.numeric()
+freq <- as.character()
+initDate <- as.character()
+lastDate <- as.character()
+area <- as.character()
+for(id in ISTAC_datasets$id){
+  #print(id)
+  t.inicio <- Sys.time()
+  tb <- istacr::get_indicators_code_data(id)$dataframe
+  if (! "ABSOLUTE" %in% tb$MEASURE) stop("El campo 'ABSOLUTE' no existe en el tibble")
+  n.obs <- c(n.obs,nrow(tb))
+  AREAid <- unique(tb$GEOGRAPHICAL)
+  n.reg <- c(n.reg,length(AREAid))
+  area <- c(area, deteccion_area_geografica(AREAid))
+  dates <- tb  |> pull(TIME) |> unique() |> sort()
+  #initDate <- c(initDate,paste0(substr(dates[1],1,4),"-",substr(dates[length(dates)],1,4)))
+  initDate <- c(initDate,min(dates))
+  lastDate <- c(lastDate,max(dates))
+  freq <- c(freq,deteccion_frecuencia(dates))
+  log_avance(which(ISTAC_datasets$id == id)[1], nrow(ISTAC_datasets), id,
+             as.numeric(difftime(Sys.time(), t.inicio, units = "secs")),
+             paste0("freq=", tail(freq,1), " n.obs=", tail(n.obs,1)))
+
+}
+
+# GEOGRAPHICAL_LISTADO |> 
+#   as_tibble() |>
+#   write_csv("ISTAC_AREAS_GEOGRAFICAS_LISTADO.csv")
+
+ISTAC_datasets <- ISTAC_datasets |>
+  mutate(freq = freq) |> 
+  relocate(freq,.after=title) |> 
+  mutate(initDate = initDate) |> 
+  relocate(initDate,.after=title) |> 
+  mutate(lastDate = lastDate) |> 
+  relocate(lastDate,.after=initDate) |>
+  mutate(n.obs = n.obs) |> 
+  relocate(n.obs,.after=title) |> 
+  mutate(n.reg = n.reg) |> 
+  relocate(n.reg,.after=title) |> 
+  mutate(area = area) |>
+  relocate(area,.after=title)
+```
+
+
+
+
+<!-- Imprimimos información básica de cada dataset y la guardamos en disco como una hoja Excel. -->
+
+```{verbatim}
+ISTAC_datasets |> 
+  select(id,subject,n.reg,n.obs,area,freq,initDate,lastDate) |>
+  mutate(`Nº` = row_number(), .before = 1) |>
+  knitr::kable()
+```
+
+Escribimos los datasets detectados en una hoja excel
+
+```{r}
+ISTAC_datasets |> 
+  select(id,subject,n.reg,n.obs,area,freq,initDate,lastDate) |>
+   mutate(`Nº` = row_number(), .before = 1) |>
+   write.xlsx("ISTAC_datasets.xlsx")
+```
+
+

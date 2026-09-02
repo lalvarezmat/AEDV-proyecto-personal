@@ -1,0 +1,404 @@
+---
+title: "Proyecto Personal AEDV — Guía de trabajo"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    css: estilos.css
+    theme: readable
+    toc: true
+    toc_float: true
+    number_sections: true
+---
+
+<style>
+h1.title { font-size: 26px; }
+h1 { font-size: 20px; }
+h2 { font-size: 18px; }
+h3 { font-size: 16px; }
+body { font-size: 14px; }
+p { font-size: 14px; margin-bottom: 10px; }
+</style>
+
+# ¿Qué contiene esta carpeta?
+
+Esta carpeta contiene todo lo que necesitas para desarrollar el **Proyecto Personal** de la asignatura AEDV (Análisis Exploratorio de Datos y Visualización).
+
+| Fichero / Carpeta | Para qué sirve |
+|---|---|
+| `README.html` | **Empieza aquí** — esta guía en formato legible |
+| `ModeloMemoriaProyectoPersonalAEDV.html` | Vista previa de la plantilla de memoria |
+| `ModeloMemoriaProyectoPersonalAEDV.Rmd` | Plantilla que abres en RStudio para escribir tu proyecto |
+| `RubricaEvaluaciónProyectoPersonal.xlsx` | Criterios de evaluación de las tres entregas |
+| `SelecciónDatasetsProyecto/` | Herramientas para elegir y validar tus datos |
+| `SelecciónDatasetsProyecto/README.html` | guía para la elección del tema del proyecto |
+| `estilos.css` | Estilos visuales — no modificar |
+
+<div class="nota">
+<strong class="bloque-titulo">Antes de hacer cualquier otra cosa</strong>
+
+Configura la Google Sheet de seguimiento: descarga la [plantilla](https://docs.google.com/spreadsheets/d/1w07FWlS3cwTad0mZa_Tanl-LL32IPEQXUqNPXmslpSs/edit?gid=0#gid=0), haz una copia en tu Google Drive y pega la URL en el chunk `seguimiento-lectura` del `ModeloMemoriaProyectoPersonalAEDV.Rmd`. Solo se tarda 5 minutos y es obligatorio. De hecho, el tiempo que dedicas a leer este documento ya habría que contabilizarlo como tiempo de dedicación al proyecto. El detalle completo está en el **Paso 0** más abajo.
+</div>
+
+---
+
+# Qué tienes que entregar
+
+El proyecto personal se desarrolla en **tres entregas progresivas**:
+
+<div class="resultado">
+<strong class="bloque-titulo">Las tres entregas del proyecto</strong>
+
+**Entrega 1 — Validación del tema y datasets**
+
+Acredita que el tema elegido es viable y que los datos seleccionados cumplen los criterios de AEDV. Hay que entregar el modelo de memoria con una primera versión de las secciones **3.3 Comprensión del negocio**, **3.4 Comprensión de los datos** y **Anexo II. Seguimiento temporal de actividades del proyecto** cumplimentadas con una discusión de la adecuación de los datasets elegidos a los requisitos de AEDV tal y como lo hacen los scripts de selección de datasets del ISTAC, INE o World Bank. Hay que dedicar especial atención a explicar bien el significado de todas las unidades, variables (con sus opciones posibles). 
+
+**Entrega 2 — Entrega intermedia**
+
+Corresponde a los contenidos del primer parcial del curso. Incluye la memoria con una primera versión que desarrolle los contenidos vistos en clase durante el primer parcial. Además de las secciones de la memoria ya mencionadas en la primera entrega, es obligatorio tener cumplimentadas una primera versión de las secciones: **3.5 Preparación de los datos**, **3.6 Modelado** (modelado de series temporales con ARIMA y STL+ARIMA) y **3.7 Evaluación** (discutir la calidad del ajuste de estos modelos).
+
+**Entrega 3 — Entrega final**
+
+Memoria completa con todas las secciones cumplimentadas y el cuadro de mandos interactivo desplegado en el servidor Shiny del DIS. El enlace al dashboard debe estar activo y ser accesible desde la red de la ULPGC o VPN en el momento de la corrección.
+
+</div>
+
+> La **Google Sheet de seguimiento de actividades** se revisa en las tres entregas. Debe estar activa desde el primer día: cada sesión de trabajo debe registrarse en el momento, y la memoria la lee automáticamente para generar el Anexo II. Sin ella el documento puede no compilar correctamente. De hecho, si estás leyendo este documento ya estás trabajando en el proyecto personal y deberías tener una sesión de trabajo abierta.
+
+---
+
+# Flujo de trabajo paso a paso
+
+## Paso 0 — Configura la Google Sheet de seguimiento ANTES de empezar
+
+<div class="nota">
+<strong class="bloque-titulo">Hazlo antes que nada — solo se tarda 5 minutos</strong>
+
+El tiempo dedicado al proyecto es un requisito evaluable. Debes registrar **cada sesión de trabajo en el momento en que la realizas**, no reconstruirla después. Las fechas son verificables y deben ser coherentes con las entregas.
+</div>
+
+**Configuración (una sola vez):**
+
+1. Descarga la [plantilla de seguimiento](https://docs.google.com/spreadsheets/d/1w07FWlS3cwTad0mZa_Tanl-LL32IPEQXUqNPXmslpSs/edit?gid=0#gid=0).
+2. Ábrela en el navegador y haz una **copia en tu Google Drive** (Archivo → Hacer una copia).
+3. Comparte la hoja en **modo lectura pública**: Archivo → Compartir → Cualquier persona con el enlace puede ver → Copiar enlace.
+4. En `ModeloMemoriaProyectoPersonalAEDV.Rmd`, localiza el chunk `seguimiento-lectura` y **sustituye la URL** por la tuya:
+
+```r
+SeguimientoActividadesProyecto <- read_sheet(
+  'https://docs.google.com/spreadsheets/d/TU_ENLACE_AQUI/...'
+)
+```
+
+**Uso en cada sesión de trabajo — solo dos acciones:**
+
+<div class="metodo">
+<strong class="bloque-titulo">Cómo funciona el registro automático</strong>
+ 
+- **Al empezar**: en una fila nueva selecciona la **actividad** en la que vas a trabajar. En ese momento la hoja registra automáticamente la hora de inicio y la fecha — no tienes que escribirlas tú.
+- **Al terminar**: escribe una **nota breve** de lo realizado. En ese momento la hoja calcula automáticamente los minutos transcurridos desde el inicio — tampoco tienes que escribirlos tú.
+
+No necesitas introducir a mano ni la hora de inicio ni la duración.
+</div>
+
+La columna `ACTIVITY` debe coincidir exactamente con los valores del vector `actividades` definido en el chunk `seguimiento-por-actividad` de la memoria (`"Introducción"`, `"Comprensión del negocio"`, etc.).
+
+---
+
+## Paso 1 — Elige tus datasets
+
+Antes de escribir una sola línea de código, necesitas tener claros los datos que vas a usar.
+
+**Abre y lee** el documento `SelecciónDatasetsProyecto/README.Rmd` (o su versión compilada `.html`). Ese documento explica cómo explorar seis fuentes de datos públicas — INE, ISTAC, EUROSTAT, Banco Mundial, EDGAR GHG y AEMET — y cómo comprobar que los datasets elegidos cumplen los requisitos de AEDV.
+
+<div class="metodo">
+<strong class="bloque-titulo">Requisitos que deben cumplir tus datasets</strong>
+
+* **Cobertura geográfica** adecuada al nivel del dato:
+  - Banco Mundial: al menos 100 países.
+  - ISTAC (Canarias): al menos 80 municipios o 6 islas.
+  - INE (España): al menos 500 municipios, 40 provincias, o 15 CCAA.
+  - EUROSTAT (Europa): al menos 25 países (NUTS 0), 90 regiones NUTS 1, 200 NUTS 2 o 500 NUTS 3.
+
+* **Datos actualizados**: último dato de 2024 o posterior.
+
+* **Tamaño de las series temporales**: P25 ≥ 10 años (anuales), ≥ 20 semestres, ≥ 40 trimestres, ≥ 60 meses, ≥ 200 semanas o ≥ 1096 días (tres años), según la frecuencia del dato; esto garantiza que el 75 % de las regiones tiene series suficientemente largas.
+
+* **España y/o Canarias bien representadas**: no basta con que el dataset sea grande en conjunto — el proyecto tiene que poder analizar **nuestro entorno**. Se comprueba, *además*, que la serie de España o de Canarias alcance por su cuenta el umbral del criterio anterior:
+  - INE: alguna región **canaria** (la comunidad `Canarias`, sus dos provincias o municipios con código `35xxx`/`38xxx`).
+  - EUROSTAT: **España** (`ES`) **o** alguna región de Canarias (`ES7`, `ES70`, o las islas `ES703`–`ES709`); basta una de las dos.
+  - Banco Mundial: **España** (`ESP`), porque sus datos son por países y no bajan a nivel regional.
+  - ISTAC: no se comprueba aparte, porque todos sus datos son ya de Canarias.
+
+* **Mínimo de 4 atributos** válidos (que cumplan los criterios anteriores de tamaño de series temporales y representación de España/Canarias). INE y EUROSTAT suelen tener más de 4 en un solo dataset; ISTAC y Banco Mundial tienen uno por dataset, así que necesitas varios.
+</div>
+
+**Flujo concreto:**
+
+1. Abre el catálogo Excel de la fuente que te interese: `SelecciónDatasetsProyecto/INE/INE.datasets.xlsx`, `SelecciónDatasetsProyecto/ISTAC/ISTAC_datasets.xlsx`, `SelecciónDatasetsProyecto/EUROSTAT/Eurostat.datasets.xlsx` o `SelecciónDatasetsProyecto/WORLD_BANK/wb.datasets.xlsx`.
+
+2. Busca datasets de tu tema — puedes subirle el Excel a una IA y pedirle que te liste los identificadores relacionados con tu tema.
+
+3. Copia los identificadores en el fichero `*_DatasetSelection.Rmd` de la fuente correspondiente:
+   - INE: `Dataset.Id <- 76136`
+   - EUROSTAT: `dataset.name <- "nama_10r_2hhinc"`
+   - ISTAC/WB: `IDS <- c("ID1", "ID2", ...)`
+
+4. Haz Knit (`Ctrl+Shift+K`) y revisa la tabla de validación: verde = cumple el criterio, rojo = no cumple.
+
+5. Los datos quedan guardados automáticamente en disco (`.rds`), también se guardan algunos metadatos en formato excel (`.xlsx`) listos para importar en tu memoria.
+
+> **Antes de confirmar un dataset**, verifica en el Campus Virtual que ningún otro alumno lo haya elegido ya. Si hay solapamiento, consulta con el profesor.
+
+> **Uso de la IA**: un uso adecuado de los agentes IA puede facilitar mucho la exploración de los datasets y la búsqueda del tema del proyecto personal. 
+
+---
+
+## Paso 2 — Configura tu memoria
+
+Abre `ModeloMemoriaProyectoPersonalAEDV.Rmd` en RStudio y personaliza la cabecera:
+
+```r
+title: "Mi título de Proyecto Personal"   # ← tu título
+author: "Mi nombre y apellidos"           # ← tu nombre
+```
+
+Activa **"Knit on Save"** (checkbox en la barra de herramientas) para ver los cambios en el HTML cada vez que guardes con `Ctrl+S`.
+
+<div class="nota">
+<strong class="bloque-titulo">Atajos de teclado esenciales en RStudio</strong>
+
+| Atajo | Acción |
+|-------|--------|
+| `Ctrl+Shift+K` | Compilar (Knit) el documento completo |
+| `Ctrl+Alt+C` | Ejecutar el chunk donde está el cursor |
+| `Ctrl+Enter` | Ejecutar la línea / código seleccionado |
+| `Ctrl+Alt+I` | Insertar un nuevo chunk de código R |
+| `Ctrl+Shift+1` | El editor ocupa / deja de ocupar toda la ventana |
+</div>
+
+---
+
+## Paso 3 — Desarrolla el proyecto siguiendo la metodología CRISP-DM
+
+La memoria sigue la metodología de desarrollo **CRISP-DM** (Cross Industry Standard Process for Data Mining). Cada sección tiene instrucciones detalladas en comentarios HTML (`<!-- ... -->`) que **no aparecen en el documento compilado** pero te guían sobre qué escribir. La memoria se organiza a través de las siguientes secciones: 
+
+- **Introducción** — Estado actual · Motivación · Objetivos
+- **Aportaciones del trabajo** — Principales aportaciones · Alineamiento con ODS
+- **Desarrollo**
+  - Herramientas empleadas
+  - Metodología (descripción general de CRISP-DM)
+  - Comprensión del negocio — fuentes de datos consultadas
+  - Comprensión de los datos — estructura, variables, problemas
+  - Preparación de los datos — limpieza, transformaciones, joins
+  - Modelado — modelos aplicados y resultados
+  - Evaluación — métricas, validación, limitaciones
+  - Despliegue — memoria + descripción del dashboard
+- **Conclusiones y trabajo futuro**
+- **Bibliografía**
+- **Anexo I.** Agentes de IA utilizados
+- **Anexo II.** Seguimiento temporal (Google Sheet)
+
+> **Nota importante:** los resultados NO van en una sección aparte; se presentan de forma distribuida en las fases de Modelado, Evaluación y Despliegue. Esto es coherente con CRISP-DM.
+
+### Cómo importar los datos en la memoria
+
+* Mueve a la carpeta donde está `ModeloMemoriaProyectoPersonalAEDV.Rmd` los ficheros `.rds` y `.xlsx` con la información de los datasets obtenidos en  el **Paso 1**. 
+
+
+*  Copia en la sección **Comprensión de los datos** de la memoria el código que aparece en el `*_DatasetSelection.Rmd` a partir de la sección **Análisis del dataset**. Con esto importarás los datos a la memoria para empezar a trabajar con ellos y además se incorporará el análisis de validación que aparece en dicho documento
+
+Si combinamos varios datasets de diferentes fuentes repetiremos esta operación dentro del modelo de memoria. Para los datasets auxiliares podemos eliminar la parte de validación para no alargar en exceso la memoria. 
+
+
+## Paso 4 — Construye y despliega el cuadro de mandos
+
+> **Recuerda:** registra en la Google Sheet el tiempo que dedicas a cada sesión de desarrollo del dashboard.
+
+El dashboard es **el elemento más importante de la fase de Despliegue**. Crea un fichero `Dashboard.Rmd` (Shiny Document) en tu carpeta personal en el servidor del DIS.
+
+**Para acceder al servidor Shiny:**
+- Desde el campus: `http://10.22.143.222:3838`
+- Desde fuera: necesitas **VPN** → descárgala desde `https://vpn.ulpgc.es`
+
+**Para publicar tu dashboard:**
+1. Sube tu `Dashboard.Rmd` al servidor con RStudio → Publish (o vía SFTP).
+2. La URL de acceso tendrá la forma: `http://10.22.143.222:3838/sample-apps/aXXXX/Dashboard.Rmd`
+   (sustituye `aXXXX` por tu número de usuario de la ULPGC).
+3. Pega esa URL en el enlace al inicio de tu memoria (`ModeloMemoriaProyectoPersonalAEDV.Rmd`, línea `[Cuadro de mandos](...)`).
+
+---
+
+# Errores frecuentes a evitar
+
+<div class="discusion">
+<strong class="bloque-titulo">Errores comunes en el proyecto</strong>
+
+* **Elegir un dataset sin validarlo** con los 5 criterios → datasets demasiado cortos, sin cobertura suficiente o sin datos de España/Canarias llevan a análisis pobres.
+* **Dashboard sin desplegar el día de la entrega** → es un requisito obligatorio; despliégalo con tiempo suficiente.
+* **Google Sheet sin actualizar** → las sesiones de trabajo deben registrarse en tiempo real, no reconstruirse al final.
+* **Usar la IA sin referenciar** → Utilizar la IA no es negativo en la evaluación del proyecto, de hecho, usarla bien se considera positivo en la evaluación. Hay que explicar cómo se ha usado, incluyendo los agentes de IA usados y las principales interacciones para abordar los diferentes aspectos planteados en el desarrollo del proyecto.
+</div>
+
+<div class="discusion">
+<strong class="bloque-titulo">Haciendo las entregas mal no se puede superar la asignatura</strong>
+
+Para superar la asignatura en un curso académico, todas las entregas deben realizarse durante el periodo lectivo, siguiendo el calendario previsto y con un mínimo de calidad. En caso contrario el alumno deberá repetir la asignatura el curso siguiente. No se permitirá la entrega de proyectos en las convocatorias ordinaria, extraordinaria o especial cuyas entregas parciales no hayan sido supervisadas y validadas por el profesor durante el periodo lectivo.
+</div>
+
+---
+
+
+# Rúbrica de evaluación (`RubricaEvaluaciónProyectoPersonal.xlsx`)
+
+La evaluación del proyecto personal se estructura en torno a 27 criterios agrupados en siete áreas. Cada criterio se valora como **No Satisfactorio**, **Satisfactorio** o **Sobresaliente**. La columna E1/E2/E3 indica en qué entregas se tiene en cuenta cada criterio.
+
+| # | Criterio | E1 | E2 | E3 |
+|---|---------|:--:|:--:|:--:|
+| | ***Alcance y calidad global*** | | | |
+| 1 | Alcance y calidad del trabajo realizado | ✓ | ✓ | ✓ |
+| | ***Entrega y formato técnico*** | | | |
+| 2 | Entrega memoria html + Rmd compilable, datos en RDS | ✓ | ✓ | ✓ |
+| 3 | Enlace al Dashboard en el servidor Shiny del DIS | | | ✓ |
+| 4 | Nombre de archivos correcto (NombreApellido1) | ✓ | ✓ | ✓ |
+| | ***Texto y estructura de la memoria*** | | | |
+| 5 | Texto atractivo, bien formateado, sin rastros de R | ✓ | ✓ | ✓ |
+| 6 | Texto coherente con hilo conductor común | ✓ | ✓ | ✓ |
+| 7 | Todas las secciones completadas siguiendo CRISP-DM | | | ✓ |
+| 8 | Cada cosa en la sección que le corresponde | ✓ | ✓ | ✓ |
+| 9 | Aportaciones y conclusiones coherentes con el trabajo | | | ✓ |
+| | ***Comprensión y preparación de los datos*** | | | |
+| 10 | Información, origen y fiabilidad de los datasets | ✓ | ✓ | ✓ |
+| 11 | Descripción detallada del procesado inicial de datos | | ✓ | ✓ |
+| 12 | Conceptos manejados claros desde el principio | ✓ | ✓ | ✓ |
+| 13 | Elección correcta de atributos para PCA | | | ✓ |
+| | ***Visualizaciones en la memoria*** | | | |
+| 14 | Primeras gráficas ilustran los conceptos de forma general | | ✓ | ✓ |
+| 15 | Gráficas de calidad profesional, sin solapamientos y autocontenidas | | ✓ | ✓ |
+| 16 | Todas las gráficas dinámicas con identificación | | | ✓ |
+| 17 | No repetir la misma gráfica con datos distintos | | ✓ | ✓ |
+| 18 | Tipos requeridos: disco, barra, HeatMap, caja | | ✓ | ✓ |
+| | ***Dashboard*** | | | |
+| 19 | Dashboard bien diseñado, cubre todas las variables | | | ✓ |
+| 20 | Dashboard: series temporales con `facet_wrap` | | | ✓ |
+| 21 | Dashboard: modelos ARIMA | | | ✓ |
+| 22 | Dashboard: mapas coropléticos | | | ✓ |
+| 23 | Dashboard: comparación de atributos con Yeo-Johnson | | | ✓ |
+| 24 | Dashboard: matriz de correlación y PCA | | | ✓ |
+| 25 | Dashboard: variables fijadas dinámicamente con Inputs | | | ✓ |
+| | ***Seguimiento y dedicación*** | | | |
+| 26 | Uso de Google Sheet para control de dedicación | ✓ | ✓ | ✓ |
+| 27 | Coherencia entre horas dedicadas y trabajo realizado | ✓ | ✓ | ✓ |
+
+---
+
+## Alcance y calidad global
+
+<div class="resultado">
+<strong class="bloque-titulo">Criterio determinante</strong>
+
+**Alcance y calidad del trabajo realizado** — Es el criterio con más peso en la evaluación. No se trata solo de cumplir los requisitos técnicos, sino de demostrar capacidad de análisis, pensamiento crítico y dominio del tema. Un proyecto técnicamente correcto pero superficial no alcanza la calificación máxima.
+</div>
+
+Un proyecto de calidad sobresaliente integra los datos con una narrativa coherente, extrae conclusiones no triviales, aplica correctamente la metodología CRISP-DM y presenta los resultados de forma clara y profesional tanto en la memoria como en el dashboard.
+
+---
+
+## Entrega y formato técnico
+
+Estos criterios son de carácter binario: o se cumplen o no se cumplen. Un fallo en cualquiera de ellos puede impedir la corrección del trabajo.
+
+- **Entrega memoria en HTML y código en Rmd compilable, con datos en RDS.** Se entrega el `.html` compilado más el `.Rmd` con los datos en formato `.rds` y metadatos (si hay) en formato `,xlsx`. El código debe funcionar en cualquier ordenador sin modificaciones: rutas relativas, sin dependencias externas y solo librerías del curso. Esto se verifica desde la Entrega 1; un `.Rmd` que no compila equivale a no entregado.
+
+- **Enlace al Dashboard en el servidor Shiny del DIS** *(solo Entrega 3).* El enlace debe aparecer al inicio de la memoria y estar operativo en el momento de la corrección. Un dashboard caído o inaccesible sin VPN equivale a no entregado.
+
+- **Nombre de archivos correcto.** El `.Rmd` y el `.html` entregados deben empezar por `NombreApellido1`. Esto facilita la gestión de entregas.
+
+---
+
+## Texto y estructura de la memoria
+
+La memoria no es un cuaderno de laboratorio: es un documento académico que debe leerse con fluidez de principio a fin.
+
+- **Texto atractivo, bien formateado, sin rastros de R.** El documento HTML no debe mostrar mensajes de carga de librerías, advertencias ni salidas de consola. El parámetro `message=FALSE, warning=FALSE` debe estar activo en los chunks que los generen. No se debe incluir `toc: true` en el cuerpo del texto — eso ya está configurado en la cabecera YAML. El uso de negritas, secciones bien delimitadas y párrafos cortos mejora la legibilidad. Usar bloques coloreados para enfatizar aspectos relevantes también ayuda mucho a la lectura. 
+
+- **Texto coherente con hilo conductor común.** Cada sección debe conectar con la anterior. La introducción plantea preguntas que el análisis responde; las conclusiones cierran esas preguntas. Evita secciones que parezcan escritas de forma independiente y pegadas sin relación entre sí.
+
+- **Todas las secciones completadas correctamente siguiendo la metodología CRISP-DM** *(solo Entrega 3).* El modelo de memoria tiene secciones fijas que deben aparecer todas y estar desarrolladas, y cada una debe contener lo que le corresponde según la fase CRISP-DM que representa. Una sección con solo el título o con el texto de ejemplo sin sustituir se considera no completada.
+
+- **Cada cosa en su sección.** Los resultados no van en una sección propia: se presentan dentro de Modelado, Evaluación y Despliegue, según el momento CRISP-DM al que correspondan. Las tablas de estructura de datos van en Comprensión de los datos, no en Preparación.
+
+- **Aportaciones y conclusiones coherentes con el trabajo.** Las conclusiones deben derivarse directamente del análisis realizado, no ser genéricas. Las aportaciones deben ser específicas al dominio estudiado y al dataset elegido.
+
+---
+
+## Comprensión y preparación de los datos
+
+<div class="metodo">
+<strong class="bloque-titulo">Lo que se valora en esta área</strong>
+
+El evaluador comprueba que el alumno entiende los datos que está usando, no solo que los ha cargado correctamente.
+</div>
+
+- **Información, origen y fiabilidad de los datasets.** La sección "Comprensión de los datos" debe incluir: fuente y descripción del dataset, quién lo publica y con qué garantías de fiabilidad, cobertura geográfica y temporal, número de observaciones y variables, tipos de datos, y una exploración inicial (distribuciones, valores ausentes, outliers). No basta con decir "el dataset tiene X filas y Y columnas".
+
+- **Descripción detallada del procesado inicial de datos.** Cada transformación aplicada — filtros, joins, cambios de formato, imputación de nulos, normalización — debe estar explicada y justificada. El lector debe poder reproducir el proceso de preparación leyendo este apartado.
+
+- **Conceptos claros desde el principio.** Si el proyecto trabaja con conceptos especializados (tasas de natalidad, índice de Gini, emisiones per cápita...), estos deben definirse la primera vez que aparecen. No se puede asumir que el lector los conoce.
+
+- **Elección correcta de atributos para el PCA** *(solo Entrega 3).* Para el análisis de componentes principales deben seleccionarse al menos cuatro atributos de interés e independientes por área geográfica. Las demás variables libres deben fijarse o filtrarse correctamente, de modo que el PCA se calcule sobre un conjunto bien definido y comparable entre áreas.
+
+---
+
+## Visualizaciones en la memoria
+
+Las gráficas son el elemento más visible de la memoria. Una mala gráfica comunica más descuido que páginas de texto.
+
+- **Las primeras gráficas ilustran los conceptos de forma general y clara.** No se debe empezar el análisis con gráficas muy detalladas o de subconjuntos específicos. Las primeras visualizaciones deben dar una visión global del fenómeno estudiado antes de entrar en detalles.
+
+- **Calidad profesional: sin textos solapados ni códigos visibles, y autocontenidas.** Los ejes deben tener etiquetas legibles, sin textos solapados ni cortados, las leyendas no deben solaparse con los datos y los títulos deben ser informativos. La única excepción admitida para etiquetas de código son los grupos de edad. El tamaño de fuente debe ser legible: usa `theme_minimal()` o similar y ajústalo si hay muchas categorías. Además, cada gráfica debe ser **autocontenida**: entenderse sin ambigüedad con la sola información que aparece en ella; si hace falta, añade un `fig.cap` en el chunk para explicarla mejor.
+
+    <div class="discusion">
+    <strong class="bloque-titulo">Requisito para que el proyecto sea APTO</strong>
+
+    **Todos** los gráficos del proyecto deben cumplir estos requisitos de calidad. Basta con que algunos no los cumplan para que el proyecto no se considere apto.
+    </div>
+
+- **Todas las gráficas dinámicas.** Todas las visualizaciones de la memoria deben ser interactivas (Plotly o similar). Una gráfica estática de ggplot sin convertir con `ggplotly()` o `renderPlotly()` no cumple este criterio. El título, subtítulo o `fig.cap` deben identificar claramente qué muestra la gráfica.
+
+- **No repetir la misma gráfica cambiando los datos.** Si una gráfica de serie temporal funciona bien para un atributo, no la repitas para otros cinco atributos consecutivos con el mismo código. Usa `facet_wrap` o presenta un selector interactivo en el dashboard.
+
+- **Gráficas de disco, barra, HeatMap y diagramas de caja en la memoria.** La memoria debe incluir al menos estos cuatro tipos de gráficas. Cada tipo tiene un propósito: los diagramas de caja para distribuciones y comparación entre grupos, los HeatMaps para correlaciones o evolución temporal cruzada, los de disco para proporciones, y los de barra para comparaciones categóricas.
+
+---
+
+## Dashboard
+
+El dashboard es el entregable técnico más exigente. Debe estar desplegado y accesible el día de la entrega.
+
+- **Bien diseñado e ilustra los datos en su máxima generalidad.** El dashboard no es un subconjunto de la memoria: debe permitir explorar todas las variables originales del dataset, no solo las que se analizaron en la memoria. El diseño visual debe ser limpio, con paneles bien organizados y controles intuitivos.
+
+- **Series temporales con `facet_wrap` y selección múltiple de atributos.** Debe existir un panel de exploración profunda de series temporales que reparta los datos en gráficas individuales con `facet_wrap` (por ejemplo, una por región) y que además permita **dibujar varios atributos dentro de cada gráfica individual**. Esto permite al usuario hacer comparaciones rápidas entre variables.
+
+- **Modelos ARIMA.** El dashboard debe incluir al menos un panel con modelado ARIMA interactivo: el usuario selecciona la serie y el modelo hace la predicción. Se valora que se muestren los parámetros del modelo y el intervalo de confianza de la predicción.
+
+- **Mapas coropléticos.** Las variables deben poder visualizarse sobre un mapa. Para datos de Canarias usa `sf` con los límites municipales o insulares; para datos del Banco Mundial usa mapas de países. El mapa debe ser interactivo (tooltip al pasar el ratón) y permitir cambiar la variable representada.
+
+- **Comparación de atributos con Yeo-Johnson.** El dashboard debe incluir un panel que permita comparar distribuciones de atributos aplicando la transformación Yeo-Johnson para normalizar variables asimétricas. Esto facilita comparar variables con escalas muy distintas.
+
+- **Matriz de correlación y PCA.** Debe haber un panel de análisis multivariante que incluya la matriz de correlación entre atributos y un biplot de PCA. Ambos deben ser interactivos y responder a la selección de variables o años.
+
+- **Variables fijadas dinámicamente con Inputs.** Todas las variables del dashboard deben controlarse mediante Inputs interactivos (selectores, sliders, etc.). No se deben fijar valores a mano en el código: el usuario ha de poder cambiar la variable, el año o la región desde la interfaz.
+
+---
+
+## Seguimiento y dedicación
+
+<div class="nota">
+<strong class="bloque-titulo">Estos criterios se verifican, no se declaran</strong>
+
+Las fechas de la Google Sheet son verificables. Un registro reconstruido al final, con todas las sesiones en los últimos días antes de la entrega, no es creíble y se valora como No Satisfactorio.
+</div>
+
+- **Uso de Google Sheet para el control de dedicación.** La hoja debe estar activa desde el principio del proyecto, con entradas regulares que reflejen el progreso real. La memoria la lee automáticamente para generar el Anexo II — si la hoja no está bien configurada, el documento no compila.
+
+- **Coherencia entre horas registradas y trabajo realizado.** Un proyecto muy elaborado con pocas horas registradas, o muchas horas con un resultado pobre, genera inconsistencias que el evaluador detecta. El registro de actividades debe ser acorde al nivel de desarrollo de cada fase CRISP-DM.

@@ -1,0 +1,1119 @@
+---
+title: "Mi título de Proyecto Personal"
+author: "Mi nombre y apellidos"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    css: estilos.css # fichero de estilos CSS para el formateo HTML 
+    theme: readable  # tema de referencia para el formateado del texto
+    number_sections: true
+
+# Para este documento no usar la opción "toc: true" para generar una tabla de secciones a la izquierda porque en este documento los títulos de secciones están pre-fijados y esta opción quita espacio de lectura
+---
+
+<!-- 
+================================================================================
+IMPORTANTE: CADA VEZ QUE TE PONGAS A TRABAJAR EN EL PROYECTO ABRE UNA SESIÓN DE 
+TRABAJO EN LA GOOGLE SHEET (VER FINAL DE ESTE DOCUMENTO) PARA HACERLE UN 
+SEGUIMIENTO AL TIEMPO DEDICADO AL PROYECTO (NO OLVIDES CERRAR LA SESIÓN DE 
+TRABAJO EN GOOGLE SHEET CUANDO TERMINES)
+================================================================================
+--> 
+
+<!--
+================================================================================
+ATAJOS DE TECLADO ESENCIALES:
+  CTRL-SHIFT-1      → El panel de edición ocupa / deja de ocupar toda la ventana
+  CTRL-ALT-C        → Ejecuta el chunk donde está el cursor (también con el triángulo verde ▶)
+  CTRL-S            → Guarda el fichero (activa "Knit on Save" para compilar automáticamente)
+  CTRL-ENTER        → Ejecuta el código seleccionado con el ratón o la línea actual
+  CTRL-SHIFT-K      → Compila (Knit) el documento completo
+  CTRL-ALT-I        → Inserta un nuevo chunk de código R
+-->
+
+```{r setup, echo=FALSE}
+# ============================================================
+# OPCIONES GLOBALES DE COMPILACIÓN DE CHUNKS
+# Estas opciones se aplican a TODOS los chunks del documento
+# salvo que se definan en cada chunk individualmente.
+# ============================================================
+knitr::opts_chunk$set(
+  warning = FALSE,   # No muestra advertencias de R en el documento compilado
+  message = FALSE,   # No muestra mensajes de carga de librerías
+  echo    = FALSE,   # No muestra el código R en el documento compilado
+                     # (cambia a echo=TRUE en chunks concretos si quieres mostrar código)
+  cache   = FALSE    # FALSE: recompila todos los chunks en cada Knit (recomendado al terminar)
+                     # TRUE: solo recompila chunks modificados (útil durante el desarrollo
+                     #        cuando hay chunks lentos). Si hay errores inexplicables,
+                     #        borra la carpeta con extensión "_cache" y recompila todo.
+)
+```
+
+```{r global, include=FALSE}
+# ============================================================
+# CARGA DE LIBRERÍAS
+# ============================================================
+# Si alguna librería no está instalada, instálala con:
+#   install.packages("nombre_libreria")
+# Para instalar varias a la vez puedes usar:
+#   install.packages(c("DT","googlesheets4","kableExtra",...))
+
+library(DT)            # Tablas interactivas con búsqueda, ordenación y paginación
+library(googlesheets4) # Lectura de hojas de cálculo de Google Sheets
+library(kableExtra)    # Formateo avanzado de tablas estáticas (kable); alternativa moderna: gt (ver cap. 3 del libro)
+library(zoo)           # Series temporales irregulares y funciones de ventana deslizante
+library(MASS)          # Métodos estadísticos clásicos (regresión robusta, discriminante, etc.)
+library(highcharter)   # Gráficos interactivos basados en Highcharts (alternativa a plotly)
+library(fpp3)          # Forecasting: tsibble, fable y feasts para series temporales
+library(RColorBrewer)  # Paletas de colores para gráficos
+library(openxlsx)      # Lectura y escritura de ficheros Excel (.xlsx) 
+library(leaflet)       # Mapas interactivos basados en Leaflet.js
+library(sf)            # Datos geoespaciales vectoriales (simple features): lectura de GeoJSON
+library(skimr)         # Resumen exploratorio completo de una tabla en una llamada (skim)
+library(janitor)       # Limpieza de nombres de columnas (clean_names)
+library(naniar)        # Visualización de valores faltantes (gg_miss_var)
+library(plotly)        # Convierte gráficos ggplot2 en interactivos con ggplotly()
+library(ggplot2)       # Sistema de visualización declarativa (gramática de gráficos)
+library(tidyverse)     # Ecosistema de paquetes para ciencia de datos (dplyr, tidyr, etc.)
+
+# ============================================================
+# RESOLUCIÓN DE CONFLICTOS ENTRE LIBRERÍAS
+# Cuando varias librerías definen funciones con el mismo nombre,
+# R usa la última cargada. Para garantizar que siempre se use
+# la versión correcta, se pueden asignar explícitamente las más usadas.
+# ============================================================
+filter    <- dplyr::filter    # Filtra filas según condiciones lógicas
+select    <- dplyr::select    # Selecciona o descarta columnas por nombre
+mutate    <- dplyr::mutate    # Crea nuevas columnas o modifica las existentes
+arrange   <- dplyr::arrange   # Ordena filas por una o más columnas
+group_by  <- dplyr::group_by  # Agrupa el tibble para operaciones por grupo
+summarise <- dplyr::summarise # Calcula resúmenes por grupo (media, suma, conteo, etc.)
+summarize <- dplyr::summarize # Alias americano de summarise
+rename    <- dplyr::rename    # Renombra columnas (nuevo_nombre = viejo_nombre)
+distinct  <- dplyr::distinct  # Elimina filas duplicadas según las columnas indicadas
+slice     <- dplyr::slice     # Selecciona filas por posición numérica
+relocate  <- dplyr::relocate  # Reordena columnas dentro del tibble
+selectInput <- shiny::selectInput  # Widget de selección desplegable para el Dashboard
+
+# ============================================================
+# TEMA POR DEFECTO PARA TODOS LOS GRÁFICOS ggplot2
+# theme_bw() usa fondo blanco con rejilla gris, adecuado para memorias.
+# Alternativas: theme_minimal(), theme_classic(), theme_light()
+# base_size controla el tamaño base de la fuente en todos los elementos del gráfico.
+# ============================================================
+theme_set(theme_bw(base_size = 12))
+```
+
+
+<!--
+================================================================================
+ENLACE AL CUADRO DE MANDOS
+================================================================================
+INSTRUCCIONES:
+  1. Sube tu fichero Dashboard.Rmd al servidor Shiny del DIS.
+  2. Sustituye en la dirección del enlace "a2405" por tu número de usuario de la ULPGC.
+  3. Sustituye "Dashboard3.Rmd" por el nombre exacto de tu fichero de dashboard.
+  4. El cuadro de mandos SOLO es accesible desde la red de la ULPGC o usando VPN.
+     Fuera del campus, descarga el cliente VPN desde: https://vpn.ulpgc.es
+
+REQUISITO: Todo proyecto personal debe incluir un cuadro de mandos funcional
+desplegado en el servidor del DIS. El enlace debe apuntar a una versión
+operativa en el momento de la entrega final.
+================================================================================
+-->
+
+[Cuadro de mandos](http://10.22.143.222:3838/sample-apps/a2405/Dashboard3.Rmd)
+
+
+<!--
+IMAGEN DE PORTADA:
+Sustituye la URL por una imagen representativa de tu tema de proyecto.
+Puede ser una imagen propia, de dominio público o con licencia Creative Commons.
+El atributo width controla el tamaño relativo respecto al ancho del documento.
+-->
+
+<center>
+<img src="https://ctim.es/Delmond.png" width="60%" />
+</center>
+
+Para formatear el texto se usa el fichero *estilos.css* que está incluido en las instrucciones de la cabecera de este documento. En el fichero *estilos.css* se incorporan algunas herramientas útiles para destacar bloques de texto como por ejemplo: 
+
+<div class="nota">
+<strong class="bloque-titulo">MiTítulo bloque nota</strong>
+Se usa para resaltar un comentario
+</div>
+
+<div class="metodo">
+<strong class="bloque-titulo">MiTítulo bloque metodo</strong>
+Se usa para resaltar métodos/algoritmos/fórmulas 
+</div>
+
+<div class="discusion">
+<strong class="bloque-titulo">MiTítulo bloque de discusion </strong>
+Se usa para resaltar una discusión/comparación/resultados previos
+</div>
+
+<div class="resultado">
+<strong class="bloque-titulo">MiTítulo bloque resultado</strong>
+Se usa para resaltar resultados de nuestro proyecto
+</div>
+
+NOTA: BORRAR O PONER ENTRE COMENTARIOS ESTOS EJEMPLOS DE FORMATEO UNA VEZ ENTENDIDOS LOS EJEMPLO 
+
+
+
+# Introducción
+
+<!--
+================================================================================
+SECCIÓN: INTRODUCCIÓN
+================================================================================
+PROPÓSITO: Situar al lector en el tema del proyecto antes de entrar en detalles.
+Esta sección debe responder a tres preguntas: ¿de qué va el proyecto?, ¿por qué
+es relevante abordarlo ahora? y ¿qué se pretende conseguir?
+
+ESTRUCTURA RECOMENDADA:
+  - Párrafo inicial: presenta el tema en términos generales y su importancia actual.
+  - Estado actual: qué se sabe ya sobre el tema, qué estudios o datos existen.
+  - Motivación: por qué tú en particular te has interesado en este tema.
+  - Objetivos: qué quieres conseguir con este trabajo.
+
+
+
+ERRORES FRECUENTES A EVITAR:
+  - Escribir una introducción demasiado genérica que valdría para cualquier proyecto.
+  - Poner texto generado por la IA sin adaptarlo ni contrastarlo con fuentes primarias.
+  - Enumerar los objetivos sin explicar el contexto que los justifica.
+================================================================================
+-->
+
+
+## Estado actual
+
+<!--
+PROPÓSITO: Demostrar que conoces el estado del arte del tema que abordas.
+
+CONTENIDO ESPERADO:
+  - Definición y explicación de los conceptos clave del tema (2-3 conceptos mínimo).
+  - Referencia a estudios, informes o datasets previos relevantes con sus resultados
+    más destacados. 
+  - Identificación de gaps o limitaciones en el conocimiento actual que justifiquen
+    la necesidad de tu estudio.
+  - Datos cuantitativos que avalen la relevancia del tema (estadísticas recientes,
+    cifras de impacto, cobertura geográfica, etc.).
+-->
+
+## Motivación
+
+<!--
+PROPÓSITO: Justificar de forma personal y directa la elección de este tema.
+
+CONTENIDO ESPERADO:
+  - Interés personal: ¿qué conexión tienes tú con este tema? (experiencia directa,
+    vinculación familiar o profesional, inquietud intelectual, etc.)
+  - Interés social o profesional: ¿qué utilidad práctica tiene el análisis que
+    propones? ¿a quién puede beneficiar y de qué forma?
+  - Oportunidad: ¿por qué es especialmente oportuno abordar este tema ahora?
+    (datos recién disponibles, cambio regulatorio, evento reciente, etc.)
+
+CONSEJO: La motivación es el apartado más personal del trabajo. Redactalo en
+primera persona y con autenticidad. Una motivación bien argumentada hace más
+convincente el resto del proyecto.
+
+
+-->
+
+## Objetivos
+
+<!--
+PROPÓSITO: Declarar con claridad qué quieres lograr con este proyecto.
+
+CÓMO REDACTAR OBJETIVOS DE CALIDAD:
+  - Formula entre 3 y 5 objetivos específicos, medibles y alcanzables.
+  - Comienza cada objetivo con un verbo en infinitivo que indique una acción
+    concreta: analizar, identificar, comparar, modelar, visualizar, predecir...
+  - Distingue entre el objetivo general (la meta global del proyecto) y los
+    objetivos específicos (los pasos concretos para alcanzarla).
+  - Asegúrate de que cada objetivo tiene un reflejo directo en la sección de
+    Conclusiones, donde reportarás si se ha conseguido o no.
+
+EJEMPLO DE ESTRUCTURA:
+  Objetivo general: Analizar la evolución temporal de X en Y durante el período Z.
+  Objetivos específicos:
+    1. Identificar las principales variables que influyen en X.
+    2. Comparar el comportamiento de X entre los grupos A y B.
+    3. Construir un modelo predictivo de X para el horizonte temporal T.
+    4. Diseñar un cuadro de mandos interactivo que permita explorar los resultados.
+-->
+
+
+# Aportaciones del trabajo
+
+<!--
+================================================================================
+SECCIÓN: APORTACIONES DEL TRABAJO
+================================================================================
+CUÁNDO ESCRIBIR ESTA SECCIÓN:
+Esta sección se redacta normalmente AL FINAL del proyecto, una vez completadas
+las fases de Modelado, Evaluación y Despliegue, porque solo entonces conoces
+con precisión cuáles son tus resultados y aportaciones reales.
+
+En las entregas intermedias puedes dejarla en borrador con las aportaciones
+esperadas, actualizándola progresivamente.
+
+RELACIÓN CON EL CICLO CRISP-DM:
+Esta sección NO es una fase de CRISP-DM. Es una síntesis transversal que se
+sitúa fuera del ciclo y que se redacta una vez completado el Despliegue.
+Su función es comunicar el valor global del trabajo al lector que no dispone
+de tiempo para leer el Desarrollo completo. Por eso debe ser autónoma y
+comprensible sin necesidad de haber leído las fases anteriores.
+================================================================================
+-->
+
+## Principales aportaciones
+
+<!--
+PROPÓSITO: Sintetizar el valor añadido de tu trabajo en el contexto del área de estudio.
+
+CONTENIDO ESPERADO:
+  - Resultados más relevantes del análisis y su significado en el contexto del tema.
+  - Nuevas perspectivas, patrones o relaciones identificadas que no eran evidentes
+    antes del análisis.
+  - Actualización del conocimiento existente: ¿en qué medida tus resultados
+    confirman, matizan o contradicen estudios previos?
+  - Descripción del cuadro de mandos como aportación práctica del proyecto:
+    qué permite explorar, a qué audiencia va dirigido y qué valor aporta.
+
+ALINEAMIENTO CON OBJETIVOS:
+  Cada aportación debe poder vincularse explícitamente con al menos uno de los
+  objetivos declarados en la Introducción. Si un objetivo no tiene reflejo aquí,
+  revisa si fue realmente alcanzado o si debe trasladarse a Trabajo futuro.
+
+
+-->
+
+
+## Alineamiento con los objetivos de desarrollo sostenible
+
+<!--
+PROPÓSITO: Reflexionar sobre el impacto del proyecto en el marco de los 17 ODS
+de la Agenda 2030 de Naciones Unidas.
+
+INSTRUCCIONES PARA RELLENAR LA TABLA:
+  La tabla está definida directamente en el chunk de R como un tibble editable.
+
+  Para cada ODS, pon una "X" en UNA SOLA de estas cuatro columnas:
+    No_procede | Bajo | Medio | Alto
+  y deja las otras tres con "".
+
+  Ejemplo: si el ODS 13 tiene relación Alta con tu proyecto:
+    "ODS 13. Acción por el clima",  "", "", "", "X"
+
+CONSEJO PARA IDENTIFICAR RELACIONES:
+  Puedes usar como punto de partida la consulta a un asistente de IA:
+    "Relaciona [mi tema de proyecto] con los 17 ODS de la Agenda 2030"
+  Revisa y perfecciona el resultado con tu criterio propio.
+
+MUY IMPORTANTE: No te limites a mostrar la tabla. Añade debajo de ella un párrafo
+argumentando las relaciones que has marcado como Medio o Alto, explicando
+concretamente cómo tu proyecto contribuye a esos ODS. Sin ese texto explicativo,
+la tabla no tiene valor académico.
+
+REFERENCIA OFICIAL DE LOS ODS: https://sdgs.un.org/goals
+-->
+
+```{r ods, cache=FALSE}
+# ============================================================
+# TABLA ODS — EDICIÓN DIRECTA
+# Para cada ODS marca con "X" UNA SOLA columna:
+#   No_procede | Bajo | Medio | Alto
+# Deja las demás columnas vacías ("").
+# No es necesario ningún fichero externo.
+# ============================================================
+tb <- tribble(
+  ~ODS,                                                                          ~No_procede, ~Bajo, ~Medio, ~Alto,
+  "ODS 1.  Fin de la pobreza",                                                   "X",         "",    "",     "",
+  "ODS 2.  Hambre cero",                                                         "",         "X",    "",     "",
+  "ODS 3.  Salud y bienestar",                                                   "",         "",    "X",     "",
+  "ODS 4.  Educación de calidad",                                                "",         "",    "",     "X",
+  "ODS 5.  Igualdad de género",                                                  "X",         "",    "",     "",
+  "ODS 6.  Agua limpia y saneamiento",                                           "X",         "",    "",     "",
+  "ODS 7.  Energía asequible y no contaminante",                                 "X",         "",    "",     "",
+  "ODS 8.  Trabajo decente y crecimiento económico",                             "X",         "",    "",     "",
+  "ODS 9.  Industria, innovación e infraestructura",                             "X",         "",    "",     "",
+  "ODS 10. Reducción de las desigualdades",                                      "X",         "",    "",     "",
+  "ODS 11. Ciudades y comunidades sostenibles",                                  "X",         "",    "",     "",
+  "ODS 12. Producción y consumo responsables",                                   "X",         "",    "",     "",
+  "ODS 13. Acción por el clima",                                                 "X",         "",    "",     "",
+  "ODS 14. Vida submarina",                                                      "X",         "",    "",     "",
+  "ODS 15. Vida de ecosistemas terrestres",                                      "X",         "",    "",     "",
+  "ODS 16. Paz, justicia e instituciones sólidas",                               "X",         "",    "",     "",
+  "ODS 17. Alianzas para lograr los objetivos",                                  "X",         "",    "",     ""
+)
+
+colnames(tb) <- c("ODS", "No procede", "Bajo", "Medio", "Alto")
+
+kable(
+  tb,
+  caption = "Grado de relación del proyecto con los objetivos de desarrollo sostenible (ODS)",
+  format = "html",
+  table.attr = 'style="width:600px; margin-left: auto; margin-right: auto;"'
+) |>
+  column_spec(2, extra_css = "text-align: center;") |>
+  column_spec(3, extra_css = "text-align: center;") |>
+  column_spec(4, extra_css = "text-align: center;") |>
+  column_spec(5, extra_css = "text-align: center;")
+```
+
+<!--
+TEXTO OBLIGATORIO TRAS LA TABLA:
+Añade aquí (fuera de este comentario) un párrafo de 100-200 palabras que argumente
+las relaciones marcadas como Medio o Alto en la tabla anterior.
+-->
+
+
+# Desarrollo
+
+
+## Herramientas empleadas
+
+<!--
+PROPÓSITO: Justificar la elección de las herramientas tecnológicas usadas en el proyecto.
+
+CONTENIDO ESPERADO:
+  - R y RStudio: menciona la versión de R utilizada (obtenida con R.version.string),
+    destacando su potencia para análisis estadístico, visualización y generación
+    de informes reproducibles con R Markdown.
+  - Librerías principales: describe brevemente las más relevantes para tu proyecto
+    (no es necesario listarlas todas, solo las que tienen un papel central).
+    Agrupa las librerías por función: manipulación de datos, visualización, modelado,
+    generación del informe.
+  - Servidor Shiny del DIS: menciona que el cuadro de mandos está desplegado en el
+    servidor Shiny de la ULPGC (10.22.143.222:3838), accesible por red universitaria
+    o VPN, y que este despliegue permite compartir los resultados con cualquier usuario
+    sin necesidad de instalar R.
+  - Si has usado otras herramientas complementarias (Google Sheets, QGIS, APIs externas,
+    etc.), menciónalas y justifica su uso.
+
+
+-->
+
+**Ejemplo Texto con cita bibliográfica**: Las principales herramientas usadas en este proyecto se describen en profundidad en [[Al26](https://luisalvarezmat-aedv.share.connect.posit.cloud/)].
+
+## Metodología
+
+<!--
+NOTA: Esta sección describe la metodología de desarrollo CRISP-DM que se usará para organizar el trabajo del proyecto.
+-->
+
+> En esta sección solo se describen los diferentes apartados de la metodología, **NO SE DESARROLLAN LOS DIFERENTES APARTADOS**, solo se añade, si es necesario, un pequeño párrafo a cada apartado para indicar las especificidades de tu proyecto en el contexto de cada apartado. El desarrollo de cada uno de los apartados se hace después en las secciones correspondientes.
+
+Utilizaremos la metodología de desarrollo CRISP-DM (Cross Industry Standard Process for Data Mining), un marco ampliamente utilizado para proyectos de Ciencias de Datos. En la siguiente figura se presenta un diagrama con las diferentes fases de esta metodología que a continuación describimos con más detalle:
+
+<center>
+<img src="https://ctim.es/AEDV/1200px-CRISP-DM_Process_Diagram1.5x.png" width="40%" />
+<p style="font-size: 14px; color: gray;"><em>Figura 2. Diagrama de la metodología de desarrollo CRISP-DM.</em></p>
+</center>
+
+* **Comprensión del negocio**. Se plantean los objetivos del proyecto y se realiza la búsqueda y evaluación de fuentes de información y datos.
+
+* **Comprensión de los datos**. Se analiza la estructura y organización de los datos obtenidos. Se identifican posibles problemas como datos faltantes, outliers o inconsistencias.
+
+* **Preparación de los datos**. Se realizan limpieza, transformación, combinación y selección o creación de variables relevantes para el análisis.
+
+* **Modelado**. Se seleccionan y aplican los modelos adecuados para analizar los datos.
+
+* **Evaluación**. Se evalúa si el modelo responde a las preguntas de investigación y se compara con otros métodos cuando procede.
+
+* **Despliegue**. Se comunica el trabajo mediante esta memoria y se diseña un cuadro de mandos para presentar los resultados de forma eficaz y atractiva.
+
+<!--
+NOTA SOBRE LA PRESENTACIÓN DE RESULTADOS:
+De acuerdo con la metodología CRISP-DM, los resultados se presentan, discuten
+y validan de forma distribuida a lo largo de las fases de Modelado, Evaluación
+y Despliegue. Por tanto, en esta memoria no existe una sección separada de
+"Resultados". Esta decisión es intencionada y coherente con la metodología.
+-->
+
+Es importante observar que esta metodología es **iterativa**: los resultados obtenidos en fases avanzadas pueden requerir revisar y ajustar fases anteriores. A continuación se describe en detalle cómo se ha abordado cada fase.
+
+
+## Comprensión del negocio
+
+<!--
+================================================================================
+FASE CRISP-DM 1: COMPRENSIÓN DEL NEGOCIO
+================================================================================
+PROPÓSITO: Describir el proceso de búsqueda, evaluación y selección de fuentes
+de datos e información. NO repetir los objetivos del proyecto (ya están en la
+Introducción) ni describir los datos en detalle (eso va en la fase siguiente).
+
+CONTENIDO ESPERADO:
+
+1. BÚSQUEDA DE DATOS Y FUENTES CONSULTADAS
+   - ¿Dónde buscaste los datos? (portales open data, APIs, scraping, encuestas, etc.)
+   - Enumera todas las fuentes consultadas, aunque no las hayas usado finalmente.
+   - Para cada fuente usada, indica: nombre, organismo responsable, URL, formato
+     del fichero descargado (CSV, Excel, JSON, shapefile...) y fecha de descarga.
+   - Si los datos provienen de una API, describe brevemente cómo se accede a ella.
+
+2. DIFICULTADES E INCIDENCIAS EN LA OBTENCIÓN DE DATOS
+   - Fuentes que encontraste pero no pudiste usar (acceso restringido, formato
+     incompatible, datos insuficientes, cobertura temporal inadecuada, etc.).
+   - Limitaciones de las fuentes seleccionadas (actualización infrecuente, posibles
+     sesgos en la recogida, cobertura geográfica parcial, etc.).
+
+3. ANÁLISIS DE LA FIABILIDAD Y CALIDAD ESPERADA DE LAS FUENTES
+   - ¿Quién produce los datos? ¿Es un organismo oficial, una empresa privada,
+     una comunidad de voluntarios (como OpenStreetMap)?
+   - ¿Con qué frecuencia se actualizan?
+   - ¿Hay documentación metodológica disponible? ¿Cómo se recogen los datos?
+   - ¿Has encontrado discrepancias entre fuentes distintas sobre el mismo fenómeno?
+
+4. REVISIÓN BIBLIOGRÁFICA (si procede)
+   - Menciona brevemente los artículos, informes o libros más relevantes consultados
+     para entender el contexto del problema.
+
+IMPORTANTE: En esta fase NO se describe la estructura de los datos (eso es
+Comprensión de los datos) ni se procesa ningún dato. Tampoco se incluyen gráficas.
+
+
+================================================================================
+-->
+
+
+## Comprensión de los datos
+
+<!--
+================================================================================
+FASE CRISP-DM 2: COMPRENSIÓN DE LOS DATOS
+================================================================================
+PROPÓSITO: Describir objetivamente la estructura y contenido de los datos tal
+como se obtienen, SIN procesarlos ni valorarlos. Es la fase del "diagnóstico":
+se expone lo que hay, no lo que se debería hacer con ello.
+
+CONTENIDO ESPERADO (aborda cada punto que sea aplicable a tu dataset):
+
+1. DESCRIPCIÓN DE LAS VARIABLES
+   - Variables categóricas: nombre, descripción, todos los valores posibles
+     y su significado. Por ejemplo: COMUNIDAD_AUTONOMA puede tomar 17 valores,
+     uno por cada comunidad.
+   - Variables numéricas (observaciones): nombre, descripción, unidad de medida,
+     rango esperado.
+   - Variables de fecha/tiempo: formato, granularidad (diaria, mensual, anual).
+
+2. ESTRUCTURA DE LOS DATOS: ¿SON TIDY?
+   - Datos "tidy" (ordenados): una fila = una observación + sus variables categóricas.
+     Ejemplo: cada fila es una medición de temperatura en una estación y fecha concretas.
+   - Datos "no tidy": varias observaciones por fila. Habitualmente los valores de
+     una variable categórica aparecen como nombres de columnas.
+     Ejemplo: columnas "2018", "2019", "2020"... con una observación en cada celda.
+
+3. TAMAÑO Y COBERTURA DEL DATASET
+   - Número total de filas y columnas del dataset original.
+   - Intervalo temporal cubierto (fecha inicio – fecha fin) y granularidad temporal.
+   - Cobertura geográfica (países, regiones, municipios...).
+   - Número de observaciones por variable categórica relevante (frecuencias).
+
+4. ATRIBUTOS COMBINADOS
+   - Identifica las combinaciones de variables categóricas que aparecen en el dataset
+     y cuántas observaciones tiene cada combinación.
+   - Ejemplo: si tienes PAIS x AÑO x SECTOR, ¿están todas las combinaciones presentes
+     o hay combinaciones sin datos?
+
+5. ANÁLISIS FOCALIZADO (si procede)
+   - Si tu proyecto se centra en una región, período o grupo específico, describe
+     aquí cómo son los datos para ese subconjunto en particular.
+
+6. PROBLEMAS IDENTIFICADOS
+   - Valores ausentes (NA): ¿en qué variables? ¿cuántos? ¿patrón aleatorio o sistemático?
+   - Outliers detectados visualmente: valores extremos que destacan a primera vista.
+   - Inconsistencias: cambios de nombre, unidades distintas en diferentes períodos,
+     filas duplicadas, codificaciones diferentes para el mismo valor.
+   - IMPORTANTE: solo se identifican, NO se decide cómo tratarlos (eso va en Preparación).
+   - HERRAMIENTAS ÚTILES para este diagnóstico (ver capítulo 2 del libro):
+       skim(tabla)          -> resumen completo: tipos, NA y distribución por columna
+       gg_miss_var(tabla)   -> gráfico de valores faltantes por variable
+       clean_names(tabla)   -> normaliza nombres de columnas problemáticos
+
+REGLA DE ORO: "Solo se expone, no se opina". Evita frases como "estos datos son
+de buena calidad" o "habría que eliminar los outliers". Reserva las valoraciones
+y decisiones para la fase de Preparación.
+
+SOBRE LAS GRÁFICAS EN ESTA FASE:
+En general no se incluyen gráficas elaboradas, pues requieren procesado previo.
+Se permiten visualizaciones muy básicas de frecuencias: histogramas simples,
+tablas de conteo o gráficas de barras de frecuencias absolutas sin transformaciones.
+
+
+================================================================================
+-->
+
+<div class="nota">
+<strong class="bloque-titulo">Inclusión datasets </strong>
+
+Usando los Rmd **\_DatasetSelection** de las carpetas de ISTAC, INE, WORLD_BANK y EUROSTAT seleccionamos los datasets y los incorporamos aquí en la memoria según se explica en los ficheros `README.Rmd` de la carpeta `ProyectoPersonal` y la subcarpeta `SelecciónDatasetsProyecto`. Es **muy importante** tener en cuenta lo siguiente: 
+
+*  La información automática que se genera hay que perfeccionarla añadiendo texto explicativo. 
+
+* Debe quedar claro que la colección de datos utilizada cumple con los requisitos de AEDV
+
+* Es especialmente **importante e indispensable** que todos los conceptos que aparecen en los datasets utilizados estén perfectamente explicados:  contenido del dataset, que se se mide, significado de las variables categóricas y significado de todas las opciones de las variables categóricas especialmente cuando son conceptos técnicos. 
+
+NOTA: ESTA NOTA SE BORRA O SE  PONE ENTRE COMENTARIOS UNA VEZ CUMPLIMENTADO EL APARTADO. 
+</div>
+
+
+## Preparación de los datos
+
+<!--
+================================================================================
+FASE CRISP-DM 3: PREPARACIÓN DE LOS DATOS
+================================================================================
+PROPÓSITO: Transformar los datos brutos de la fase anterior en un dataset limpio,
+coherente y listo para el modelado, tomando decisiones justificadas en cada paso.
+
+CONTENIDO ESPERADO:
+
+1. DECISIONES DE SELECCIÓN Y FILTRADO
+   - ¿Qué variables categóricas o sus opciones se han eliminado? ¿Por qué?
+     (irrelevantes para los objetivos, insuficientes observaciones, calidad dudosa...)
+   - ¿Qué intervalo temporal se ha seleccionado para el estudio? Justifica la elección.
+   - ¿Se han filtrado regiones, grupos o categorías específicos? ¿Por qué?
+
+2. DEFINICIÓN DE LOS ATRIBUTOS COMBINADOS DEL ESTUDIO
+   - Expón con claridad y de forma justificada los atributos combinados (cruce de
+     variables categóricas) que vas a usar en el análisis.
+   - Indica cuántas combinaciones quedan tras el filtrado y si hay combinaciones
+     sin datos que haya que tener en cuenta.
+
+3. LIMPIEZA DE DATOS
+   - Tratamiento de valores ausentes (NA): ¿se imputan?, ¿se eliminan las filas?,
+     ¿se usa interpolación (na.approx, na.locf de zoo)?
+   - Tratamiento de outliers: ¿se mantienen?, ¿se capan (winsorizing)?,
+     ¿se eliminan con criterio estadístico (ej. ±3 desviaciones típicas)?
+   - Corrección de inconsistencias identificadas en la fase anterior.
+
+4. TRANSFORMACIÓN DE DATOS
+   - Pivotado de tablas si los datos no eran tidy (pivot_longer, pivot_wider).
+   - Cambios de tipo (character → factor, character → Date con as.Date o ymd).
+   - Normalización o escalado de variables si procede.
+   - Transformaciones matemáticas (logaritmo, raíz cuadrada, Yeo-Johnson...).
+
+5. CREACIÓN DE NUEVAS VARIABLES (feature engineering)
+   - Variables derivadas calculadas a partir de las originales.
+     Ejemplo: tasa de variación interanual, ratio entre dos variables, acumulados móviles.
+   - Variables temporales extraídas de fechas (año, mes, trimestre, día de la semana).
+
+6. COMBINACIÓN DE TABLAS
+   - Si usas varias fuentes de datos, describe cómo se han unido (join).
+   - Indica la clave de unión y el tipo de join (left, inner, full).
+   - Señala si hubo pérdida de observaciones en el join y por qué.
+
+SOBRE LAS GRÁFICAS EN ESTA FASE:
+Aquí SÍ se incluyen gráficas que ilustran los datos ya procesados, pero SIN
+aplicar todavía los modelos de la fase siguiente.
+Tipos de gráficas apropiadas: barras, líneas temporales, circulares, mapas de
+calor (heatmaps), mapas coropléticos (leaflet), scatter plots exploratorios.
+
+NOTA SOBRE ITERATIVIDAD (CRISP-DM):
+Si durante el Modelado o la Evaluación detectas que necesitas una variable
+adicional, un filtrado distinto o una transformación que no hiciste inicialmente,
+vuelve a esta sección y documenta el cambio con una nota explícita del tipo:
+  "Tras el modelado inicial se detectó que [...], por lo que se añadió/modificó
+   el siguiente paso de preparación: [...]"
+Esto hace visible la naturaleza iterativa de CRISP-DM y demuestra madurez
+metodológica. No lo ocultes: es parte del proceso esperado.
+
+================================================================================
+-->
+
+
+
+
+## Modelado
+
+<!--
+================================================================================
+FASE CRISP-DM 4: MODELADO
+================================================================================
+PROPÓSITO: Aplicar las técnicas analíticas y modelos estadísticos adecuados
+para responder a las preguntas de investigación planteadas en los objetivos.
+
+CONTENIDO ESPERADO:
+
+1. JUSTIFICACIÓN DE LOS MODELOS ELEGIDOS
+   - ¿Por qué has elegido estos modelos y no otros?
+   - ¿Qué supuestos deben cumplirse para que el modelo sea válido?
+     (normalidad, homocedasticidad, ausencia de autocorrelación, etc.)
+   - ¿Has verificado previamente que esos supuestos se cumplen en tus datos?
+
+2. DESCRIPCIÓN Y APLICACIÓN DE CADA MODELO
+   Dependiendo de tu proyecto, los modelos más habituales son:
+
+   ANÁLISIS DESCRIPTIVO Y EXPLORATORIO:
+   - Matriz de correlación (corrplot, ggcorrplot): identifica relaciones lineales
+     entre variables numéricas.
+   - PCA (prcomp): reduce dimensionalidad y visualiza la variabilidad principal.
+
+   MODELOS DE REGRESIÓN:
+   - Regresión lineal simple o múltiple (lm): modela la relación entre una variable
+     dependiente continua y una o más variables independientes.
+   - Transformación de Yeo-Johnson (bestNormalize): puede mejorar ajuste entre variables. 
+
+   SERIES TEMPORALES:
+   - Descomposición (STL, classical_decomposition de fpp3): separa tendencia,
+     estacionalidad y residuo.
+   - Modelos ARIMA para modelado y predicción de series temporales.
+
+
+3. PRESENTACIÓN DE RESULTADOS DEL MODELO
+   - Muestra los parámetros del modelo ajustado con su interpretación.
+   - Incluye gráficas que ilustren el ajuste del modelo a los datos.
+   - Para modelos predictivos, muestra las predicciones junto con los datos reales.
+
+NOTA SOBRE ITERATIVIDAD (CRISP-DM):
+Si durante el modelado detectas que los datos necesitan una transformación
+adicional, una variable nueva o un filtrado diferente al realizado en la fase
+de Preparación, documenta aquí el hallazgo y el motivo del retorno:
+  "El diagnóstico de residuos reveló heterocedasticidad, por lo que se aplicó
+   transformación logarítmica a la variable Y (ver Preparación, apartado 4)."
+Referenciar explícitamente la sección de Preparación donde se realizó el
+ajuste hace visible la iteración y mantiene la coherencia del documento.
+
+
+================================================================================
+-->
+
+
+
+
+## Evaluación
+
+<!--
+================================================================================
+FASE CRISP-DM 5: EVALUACIÓN
+================================================================================
+PROPÓSITO: Valorar de forma crítica si los modelos desarrollados responden
+adecuadamente a las preguntas de investigación y si los resultados son fiables.
+
+CONTENIDO ESPERADO:
+
+1. MÉTRICAS DE EVALUACIÓN
+   Según el tipo de modelo:
+   - Regresión: R², R² ajustado, RMSE, MAE.
+   - Series temporales: desviación estandar de los residuos, AIC/AICc/BIC, RMSE, MAE, MAPE, MASE sobre el conjunto de test.
+   - Para todos: análisis de residuos (distribución, autocorrelación, homocedasticidad).
+
+2. VALIDACIÓN DEL MODELO
+   - ¿Has separado los datos en train/test? ¿Qué proporción?
+   - ¿Has usado validación cruzada? ¿Cuántos plieques?
+   - ¿has comparado los métodos ARIMA y STL+ARIMA en series temporales?
+   - ¿Has comparado tu modelo con un modelo de referencia (baseline)?
+   - ¿Has usado transformación de variables como Yeo-Johnson?
+
+3. DISCUSIÓN CRÍTICA DE RESULTADOS
+   - ¿La transformación de variables con Yeo-Johnson mejora los resultados?
+   - ¿El modelo responde satisfactoriamente a las preguntas de investigación?
+   - ¿Hay patrones en los residuos que sugieran que el modelo no captura algo?
+   - ¿Los resultados son coherentes con lo esperado según la bibliografía?
+   - ¿Qué limitaciones tiene el modelo? (sobreajuste, datos insuficientes,
+     variables confundidoras no controladas, etc.)
+
+4. COMPARACIÓN CON MÉTODOS ALTERNATIVOS (si procede)
+   - Si has probado varios modelos, compara sus métricas en una tabla.
+   - Justifica cuál es el modelo final seleccionado y por qué.
+
+CONSEJO: La evaluación honesta, incluyendo las limitaciones, es un signo de
+madurez académica. No intentes ocultar resultados insatisfactorios; en cambio,
+analiza sus causas y propón mejoras en la sección de Trabajo futuro.
+
+DISTINCIÓN CON LA SECCIÓN DE CONCLUSIONES:
+El foco de esta sección es TÉCNICO: métricas numéricas, análisis de residuos,
+validación estadística, comparación de modelos. Las preguntas clave son:
+  ¿Funciona bien el modelo? ¿Es fiable? ¿Cuáles son sus limitaciones técnicas?
+En Conclusiones el foco es INTERPRETATIVO: qué significan los resultados en el
+contexto del problema real, si se han alcanzado los objetivos, qué implicaciones
+tienen los hallazgos. No repitas aquí el contenido de Conclusiones ni viceversa.
+
+
+================================================================================
+-->
+
+
+
+## Despliegue
+
+<!--
+================================================================================
+FASE CRISP-DM 6: DESPLIEGUE
+================================================================================
+PROPÓSITO: Comunicar los resultados del proyecto de forma accesible y útil,
+tanto a través de esta memoria como mediante el cuadro de mandos interactivo.
+
+CONTENIDO ESPERADO:
+
+1. ESTA MEMORIA
+   - Explica brevemente las decisiones de diseño tomadas al redactar la memoria:
+     estructura, nivel de detalle, público objetivo, decisiones de visualización.
+   - Menciona si se ha optado por un CSS personalizado, numeración de secciones,
+     o cualquier otro elemento de formato relevante.
+
+2. CUADRO DE MANDOS (Dashboard)
+   ESTE ES EL ELEMENTO MÁS IMPORTANTE DE ESTA SECCIÓN.
+   Debes describir con detalle:
+
+   a) MOTIVACIÓN DEL DISEÑO:
+      - ¿A qué audiencia va dirigido el dashboard? (expertos, público general,
+        decisores, estudiantes...)
+      - ¿Qué preguntas debe poder responder el usuario al interactuar con él?
+      - ¿Por qué has elegido esa estructura (pestañas, sidebar, valueBoxes...)?
+
+   b) DESCRIPCIÓN DE LOS APARTADOS:
+      Por cada pestaña o panel del dashboard, describe:
+      - Qué visualización contiene y qué muestra.
+      - Qué widgets de interacción incluye (selectInput, sliderInput, dateRangeInput...)
+        y qué permite controlar cada uno.
+      - Qué insight principal se obtiene de ese panel.
+
+   c) DECISIONES TÉCNICAS:
+      - Librerías usadas específicamente en el dashboard (highcharter, leaflet, DT...).
+      - Si hay cálculos pesados, ¿se han precalculado o se calculan en tiempo real?
+      - ¿Cómo se ha gestionado la reactividad (reactive(), eventReactive(), observe())?
+
+   RECUERDA: El cuadro de mandos debe estar desplegado y accesible en el servidor
+   del DIS en el momento de cada entrega. Incluye siempre el enlace actualizado
+   al inicio de este documento.
+
+
+================================================================================
+-->
+
+
+# Conclusiones y trabajo futuro
+
+## Conclusiones
+
+<!--
+================================================================================
+SECCIÓN: CONCLUSIONES
+================================================================================
+PROPÓSITO: Sintetizar de forma clara y honesta los hallazgos más relevantes
+del proyecto, conectándolos directamente con los objetivos planteados.
+
+ESTRUCTURA RECOMENDADA:
+
+1. REVISIÓN DE OBJETIVOS
+   Para cada objetivo definido en la Introducción, indica:
+   - ¿Se ha alcanzado? ¿Parcialmente? ¿No se ha podido alcanzar?
+   - ¿Cuál es el resultado concreto obtenido para ese objetivo?
+   Esta correspondencia explícita objetivo→resultado es el núcleo de las conclusiones.
+
+2. HALLAZGOS MÁS RELEVANTES
+   - Los 3-5 resultados más importantes del análisis, explicados en términos
+     comprensibles para alguien que no haya leído el resto del documento.
+   - Evita repetir detalles técnicos del modelado; céntrate en el significado
+     e implicaciones de los resultados.
+
+3. LIMITACIONES DEL TRABAJO
+   - Reconoce honestamente las restricciones del estudio:
+     tamaño de muestra, período temporal limitado, variables no disponibles,
+     supuestos del modelo no verificables, posibles sesgos en los datos, etc.
+   - Un reconocimiento honesto de las limitaciones aumenta la credibilidad
+     del trabajo, no la disminuye.
+
+ERRORES FRECUENTES A EVITAR:
+  - Introducir resultados nuevos que no aparecen en el Desarrollo.
+  - Escribir generalidades que no se derivan de tu análisis concreto.
+  - Copiar texto generado por IA sin contrastarlo con tus resultados reales.
+  - Omitir las limitaciones o presentarlas de forma superficial.
+  - Repetir el contenido técnico de Evaluación (métricas, residuos, validación):
+    aquí el foco es el SIGNIFICADO de los resultados, no su validación técnica.
+
+DISTINCIÓN CON LA SECCIÓN DE EVALUACIÓN:
+Evaluación responde a: ¿funciona bien el modelo estadísticamente?
+Conclusiones responde a: ¿qué nos dice el modelo sobre el problema real?
+    Ejemplo: Evaluación → "El RMSE del modelo ARIMA es 2.3 sobre el conjunto test."
+             Conclusiones → "La evolución de X muestra una tendencia creciente
+                             que confirma la hipótesis planteada en el objetivo 2."
+
+
+================================================================================
+-->
+
+
+
+
+## Trabajo futuro
+
+<!--
+================================================================================
+SECCIÓN: TRABAJO FUTURO
+================================================================================
+PROPÓSITO: Identificar las líneas de mejora y extensión del proyecto que no
+han podido abordarse en el alcance actual.
+
+CONTENIDO ESPERADO:
+
+1. ASPECTOS PENDIENTES DEL ALCANCE ACTUAL
+   - Partes del análisis que quedaron incompletas o que podrían profundizarse.
+   - Variables o fuentes de datos que sería valioso incorporar.
+
+2. EXTENSIONES NATURALES DEL PROYECTO
+   - Nuevas preguntas de investigación que han surgido a partir de los resultados.
+   - Modelos más avanzados que podrían aplicarse con más tiempo o datos.
+   - Extensión geográfica o temporal del análisis.
+
+3. APLICACIONES PRÁCTICAS
+   - ¿Cómo podría usarse este trabajo en un contexto real?
+   - ¿Qué organismo o actor podría beneficiarse de los resultados?
+
+CONSEJO: Cada punto de trabajo futuro debe conectar con una limitación concreta
+identificada en las Conclusiones o con un resultado del análisis que abre una
+nueva pregunta. Evita propuestas genéricas desconectadas del trabajo realizado.
+
+
+================================================================================
+-->
+
+
+
+# Bibliografía {-}
+
+<!--
+================================================================================
+SECCIÓN: BIBLIOGRAFÍA
+================================================================================
+INSTRUCCIONES:
+Incluye aquí todas las fuentes citadas en el documento. Usa un formato
+consistente. 
+
+MÍNIMO RECOMENDADO: 5 referencias de calidad (artículos, informes oficiales,
+libros o documentación técnica relevante). Evita citar únicamente páginas web
+genéricas o entradas de Wikipedia.
+
+IMPORTANTE: TODAS LAS REFERENCIAS DEBEN EMPEZAR POR UN IDENTIFICADOR ENTRE CORCHETES
+CON LAS INICIALES DEL PRIMER APELLIDO DEL AUTOR (O ENTIDAD) Y EL AÑO. TODAS LAS 
+REFERENCIAS BIBLIOGRÁFICAS DEBEN APARECER EN ALGÚN LUGAR DEL TEXTO IDENTIFICADAS 
+CON SU INDICADOR. Si la referencia es un enlace web hay que añadir las fechas de consulta
+================================================================================
+-->
+
+[[Al26](https://luisalvarezmat-aedv.share.connect.posit.cloud/)] Álvarez Luis. *Análisis Exploratorio de Datos y Visualización*, posit.cloud, 2026. (diversas consultas entre el Enero Septiembre y Diciembre d 2026)
+
+
+# Anexo I. Agentes de IA utilizados y organización del trabajo con la IA {-}
+
+<!--
+================================================================================
+ANEXO: AGENTES DE IA Y ORGANIZACIÓN DEL TRABAJO
+================================================================================
+PROPÓSITO: Describir la aportación de los agentes IA al desarrollo del proyecto. 
+-->
+
+## Herramientas y agentes IA utilizados {-}
+
+<!-- Completa la tabla con las herramientas que hayas usado realmente. -->
+
+| Agente | Coste | Uso principal |
+|---|---|---|
+| Claude (Sonnet 4.5) | Gratuito | Depuración de código R y redacción de la memoria |
+| ChatGPT (GPT-4o) | Gratuito | Consultas conceptuales y explicación de errores |
+| GitHub Copilot | Licencia estudiante | Autocompletado de código en RStudio |
+| Gemini | Gratuito | Búsqueda de información sobre el dominio del proyecto |
+
+*Sustituye estas filas por las herramientas que hayas usado realmente. En "Uso principal" basta una frase breve por agente.*
+
+## Organización del trabajo con la IA en AEDV {-}
+
+### Reflexión sobre el uso de la IA {-}
+
+<!--
+Redacta unos párrafos que expliquen CÓMO has trabajado realmente con la IA en la asignatura AEDV,
+no solo en el proyecto personal sino en cualquier aspecto del desarrollo de la asignatura. Apóyate en estas preguntas:
+
+- ORGANIZACIÓN. ¿Has creado "proyectos" o contextos persistentes en el agente?
+  ¿Cuántos y con qué criterio (por fase CRISP-DM, por tipo de tarea, uno solo)?
+  ¿Adjuntaste datasets, código o la memoria para que el agente los tuviera a mano?
+  ¿Cómo separabas o retomabas las conversaciones cuando se hacían muy largas?
+
+- FLUJO DE TRABAJO. ¿Cuándo recurrías a la IA: antes, durante o después de
+  trabajar en R? ¿Cuál era tu proceso habitual (pregunta abierta → revisión →
+  adaptación, o algún otro)?
+
+- VERIFICACIÓN Y CRITERIO PROPIO. ¿Cómo comprobabas que el código o el resultado
+  eran correctos? ¿Qué decidiste NO delegar y hacer por ti mismo, y por qué?
+  Esta es la parte más importante: demuestra que entiendes lo que entregas.
+
+- VALORACIÓN. ¿Qué te aportó organizarte así frente a conversaciones sueltas?
+  ¿Qué dificultades encontraste? ¿Qué cambiarías si empezaras de nuevo?
+-->
+
+*Escribe aquí tu reflexión.*
+
+### Productividad por fase {-}
+
+<!--
+Rellena una fila por fase en la que hayas usado la IA. En "Comentario" resume en
+una o dos frases para qué te sirvió (y para qué no). En "Productividad" indica un
+factor multiplicativo ESTIMADO de cuánto crees que aumentó tu productividad en esa
+fase respecto a haberla hecho sin ninguna IA: ×1 = igual que sin IA, ×2 = el doble
+de rápido/productivo, ×0,8 = te ralentizó. Es una estimación subjetiva y honesta,
+no un dato medido; justifica los valores extremos en el comentario.
+-->
+
+| Fase o tema | Comentario | Productividad |
+|---|---|:--:|
+| Familiarización con la asignatura | Aclarar conceptos y dudas del temario | ×4 |
+| Realización de ejercicios | Explicación de errores y pistas, sin copiar la solución | ×1,5 |
+| Selección del tema del proyecto | Exploración de ideas y validación de datasets | ×1,5 |
+| Procesado de datos (`dplyr`) | Filtros, `join`s y reestructuración de las tablas | ×2 |
+| Gráficas estáticas con `ggplot2` | Ajuste de estética, escalas y `facet_wrap` | ×3 |
+| Series temporales (`fpp3`) | Descomposición y modelos ARIMA | ×2,5 |
+| Análisis de atributos | Correlación, PCA y transformación Yeo-Johnson | ×2,5 |
+| Visualización dinámica | Conversión a `plotly`/`leaflet` y ajuste de tooltips | ×3 |
+| Desarrollo del dashboard | Estructura de `shiny`/`flexdashboard` y reactividad | ×4 |
+| Redacción de la memoria | Redacción ODS | ×10 |
+| Redacción de la memoria | Redacción de estado del arte | ×5 |
+| Redacción de la memoria | Revisión de estilo y coherencia del texto | ×2 |
+
+*El listado de fases/temas y los factores son orientativos, sustituyelos en base a tu experiencia real.*
+
+
+
+****
+
+<br> 
+
+# Anexo II. Seguimiento temporal de actividades del proyecto {-}
+
+<!--
+================================================================================
+ANEXO: SEGUIMIENTO TEMPORAL DE ACTIVIDADES
+================================================================================
+INSTRUCCIONES PARA CONFIGURAR EL SEGUIMIENTO:
+
+PASO 1 - OBTENER LA GOOGLE SHEET:
+  Descarga la plantilla de seguimiento desde el Campus Virtual. Abre la plantilla 
+  en el navegador dándote de alta en una cuenta tuya de Google. Realiza 
+  una copia local del archivo (menú superior Archivo -> "Hacer una copia"). 
+  
+
+PASO 2 - COMPARTIR EN MODO LECTURA:
+  En Google Sheets: Archivo → Compartir → Compartir con otras personas
+  → Cambiar a "Cualquier persona con el enlace puede ver" → Copiar enlace.
+
+PASO 3 - ACTUALIZAR EL ENLACE:
+  Sustituye la URL del read_sheet() de abajo por el enlace compartido que
+  acabas de copiar.
+
+OBLIGACIONES DE REGISTRO:
+  ✓ ES OBLIGATORIO tener este apartado actualizado en CADA entrega del proyecto.
+  ✓ Registra cada sesión de trabajo EN EL MOMENTO de realizarla, no después.
+  ✓ En una entrega NO pueden aparecer sesiones con fechas anteriores a la
+    entrega anterior. Cada entrega es un corte temporal verificable.
+
+ESTRUCTURA DE LA GOOGLE SHEET (columnas esperadas):
+  - ACTIVITY : categoría de la actividad (debe coincidir con los valores del
+               vector "actividades" definido en el chunk de abajo)
+  - START     : fecha de inicio de la sesión (formato YYYY-MM-DD)
+  - MINUTES   : duración de la sesión en minutos
+  - NOTES     : descripción breve de lo realizado (opcional pero recomendable)
+================================================================================
+-->
+
+```{r seguimiento-lectura, cache=FALSE}
+gs4_deauth()
+SeguimientoActividadesProyecto <- read_sheet(
+  'https://docs.google.com/spreadsheets/d/1w07FWlS3cwTad0mZa_Tanl-LL32IPEQXUqNPXmslpSs/edit?usp=sharing'
+) |>
+  as_tibble()
+```
+
+**TOTAL HORAS TRABAJADAS EN EL PROYECTO:** `r round(sum(SeguimientoActividadesProyecto$MINUTES / 60), digits = 2)`
+
+## Horas trabajadas por actividad {-}
+
+
+
+```{r seguimiento-por-actividad, cache=FALSE}
+# Vector con el orden canónico de las actividades (debe coincidir exactamente
+# con los valores registrados en la columna ACTIVITY de la Google Sheet)
+actividades <- c(
+  "Introducción",
+  "Aportaciones del trabajo",
+  "Comprensión del negocio",
+  "Comprensión de los datos",
+  "Preparación de los datos",
+  "Modelado",
+  "Evaluación",
+  "Despliegue",
+  "Conclusiones y Trabajo Futuro",
+  "Otros"
+)
+
+p <- SeguimientoActividadesProyecto |>
+  group_by(ACTIVITY) |>
+  summarise(
+    HORAS = round(sum(MINUTES) / 60, digits = 1)
+  ) |>
+  mutate(ACTIVITY = factor(ACTIVITY, levels = actividades)) |>
+  ggplot(aes(ACTIVITY, HORAS)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = HORAS), size = 3, colour = "blue", nudge_y = 0.2) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(
+    x     = "",
+    y     = "HORAS TRABAJADAS",
+    title = ""
+  )
+
+ggplotly(p)
+```
+
+
+## Horas trabajadas por semana {-}
+
+
+
+```{r seguimiento-por-semana, cache=FALSE}
+p <- SeguimientoActividadesProyecto |>
+  mutate(
+    semana_inicio = floor_date(as.Date(START), unit = "week", week_start = 1)
+  ) |>
+  group_by(semana_inicio) |>
+  summarise(
+    HORAS = round(sum(MINUTES) / 60, digits = 1)
+  ) |>
+  arrange(semana_inicio) |>
+  mutate(
+    etiqueta = format(semana_inicio, "%d %b")  # ej. "03 feb", "10 feb"
+  ) |>
+  mutate(etiqueta = factor(etiqueta, levels = etiqueta)) |>  # preserva orden cronológico en el eje X
+  ggplot(aes(etiqueta, HORAS)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = HORAS), size = 3, colour = "blue", nudge_y = 0.2) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(
+    x     = "FECHA INICIO SEMANA",
+    y     = "HORAS TRABAJADAS",
+    title = ""
+  )
+
+ggplotly(p)
+```
+
+
+## Desglose detallado por sesión de trabajo {-}
+
+
+```{r seguimiento-tabla, cache=FALSE}
+SeguimientoActividadesProyecto |>
+  datatable(
+    options = list(
+      scrollX = TRUE,    # Scroll horizontal si la tabla es muy ancha
+      scrollY = "400px", # Scroll vertical con altura fija
+      paging  = FALSE    # Sin paginación: todas las filas visibles con scroll
+    )
+  )
+```

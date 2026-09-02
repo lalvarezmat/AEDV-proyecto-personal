@@ -1,0 +1,185 @@
+GEOGRAPHICAL,NAME
+38005,Arico
+ES705,Gran Canaria
+35012,Mogán
+38018,La Guancha
+38053,Villa de Mazo
+ES703,El Hierro
+38020,Güímar
+38024,Los Llanos de Aridane
+38036,San Sebastián de La Gomera
+38011,Candelaria
+38032,El Rosario
+35002,Agüimes
+35023,Santa María de Guía de Gran Canaria
+35007,Betancuria
+35027,Teror
+38006,Arona
+35013,Moya
+38031,Los Realejos
+38035,San Miguel de Abona
+38039,Santa Úrsula
+38029,Puntagorda
+ES706,La Gomera
+35031,Valsequillo de Gran Canaria
+38012,Fasnia
+ES708,Lanzarote
+35015,Pájara
+35022,Santa Lucía de Tirajana
+35014,La Oliva
+38027,El Paso
+ES709,Tenerife
+ES707,La Palma
+38022,Icod de los Vinos
+38037,Santa Cruz de La Palma
+38013_1912,"La Frontera (delimitación histórica, pre-2007)"
+35017,Puerto del Rosario
+35006,Arucas
+ES704,Fuerteventura
+38007,Barlovento
+38017,Granadilla de Abona
+38026,La Orotava
+35005,Artenara
+38033,San Andrés y Sauces
+38030,Puntallana
+35016,Las Palmas de Gran Canaria
+35034,Yaiza
+38038,Santa Cruz de Tenerife
+38050,Vallehermoso
+35025,Tejeda
+38001,Adeje
+35019,San Bartolomé de Tirajana
+ES70,Canarias
+38047,Tijarafe
+35020,La Aldea de San Nicolás
+38019,Guía de Isora
+38015,Garachico
+38009,Breña Baja
+35018,San Bartolomé
+35010,Haría
+38028,Puerto de la Cruz
+38025,La Matanza de Acentejo
+38901,El Pinar de El Hierro
+38023,San Cristóbal de La Laguna
+38040,Santiago del Teide
+35029,Tinajo
+38014,Fuencaliente de la Palma
+38042,Los Silos
+38043,Tacoronte
+38045,Tazacorte
+38002,Agulo
+38021,Hermigua
+38013,La Frontera
+38016,Garafía
+38041,El Sauzal
+35004,Arrecife
+35009,Gáldar
+35024,Teguise
+35026,Telde
+38034,San Juan de la Rambla
+38003,Alajeró
+35003,Antigua
+38048,Valverde
+38049,Valle Gran Rey
+35011,Ingenio
+35021,Santa Brígida
+38046,Tegueste
+38008,Breña Alta
+35028,Tías
+35033,Vega de San Mateo
+38004,Arafo
+38052,Vilaflor de Chasna
+35032,Valleseco
+35001,Agaete
+38010,Buenavista del Norte
+35030,Tuineje
+38051,La Victoria de Acentejo
+38044,El Tanque
+35008,Firgas
+ES42,Castilla-La Mancha
+ES12,Principado de Asturias
+ES22,Comunidad Foral de Navarra
+ES43,Extremadura
+ES61,Andalucía
+ES21,País Vasco
+ES23,La Rioja
+ES51,Cataluña
+ES62,Región de Murcia
+ES30,Comunidad de Madrid
+ES24,Aragón
+ES52,Comunitat Valenciana
+ES53,Illes Balears
+ES41,Castilla y León
+ES13,Cantabria
+ES,España
+ES11,Galicia
+ES630_ES640,Ceuta y Melilla
+ES63_ES64,Ceuta y Melilla
+GEO_OTROS,Otros lugares geográficos
+ES63,Ciudad Autónoma de Ceuta
+ES64,Ciudad Autónoma de Melilla
+GCOM_GRAN_CANARIA_NORTE,Gran Canaria - Norte
+GCOM_GRAN_CANARIA_AREA_METROPOLITANA,Gran Canaria - Área Metropolitana
+GCOM_TENERIFE_AREA_METROPOLITANA,Tenerife - Área Metropolitana
+GCOM_GRAN_CANARIA_SUR,Gran Canaria - Sur
+GCOM_TENERIFE_SUR,Tenerife - Sur
+GCOM_TENERIFE_NORTE,Tenerife - Norte
+ES213,Vizcaya
+ES425,Toledo
+ES522,Castellón
+ES513,Lleida
+ES617,Málaga
+ES411,Ávila
+ES417,Soria
+ES614,Granada
+ES514,Tarragona
+ES241,Huesca
+ES618,Sevilla
+ES616,Jaén
+ES424,Guadalajara
+ES432,Cáceres
+ES521,Alicante
+ES511,Barcelona
+ES211,Álava
+ES416,Segovia
+ES701,Las Palmas (provincia)
+ES615,Huelva
+ES412,Burgos
+ES414,Palencia
+ES423,Cuenca
+ES243,Zaragoza
+ES422,Ciudad Real
+ES413,León
+ES114,Pontevedra
+ES512,Girona
+ES212,Guipúzcoa
+ES418,Valladolid
+ES702,Santa Cruz de Tenerife (provincia)
+ES612,Cádiz
+ES415,Salamanca
+ES111,A Coruña
+ES419,Zamora
+ES112,Lugo
+ES611,Almería
+ES523,Valencia
+ES613,Córdoba
+ES242,Teruel
+ES113,Ourense
+ES421,Albacete
+ES431,Badajoz
+ES630,Ceuta
+ES640,Melilla
+_U,Desconocido / No consta
+GCOM_FUERTEVENTURA,Fuerteventura (gran comarca)
+GCOM_LANZAROTE,Lanzarote (gran comarca)
+GCOM_LA_PALMA,La Palma (gran comarca)
+GCOM_HIERRO,El Hierro (gran comarca)
+GCOM_GOMERA,La Gomera (gran comarca)
+ES708_ES704,Lanzarote y Fuerteventura
+ES702_S1,Santa Cruz de Tenerife (agrupación S1)
+_T,Total
+PN_CALDERA_TABURIENTE,P. N. de la Caldera de Taburiente (La Palma)
+PN_TIMANFAYA,P. N. de Timanfaya (Lanzarote)
+PN_TEIDE,P. N. del Teide (Tenerife)
+PN_GARAJONAY,P. N. de Garajonay (La Gomera)
+ES70_O,Canarias (otros)

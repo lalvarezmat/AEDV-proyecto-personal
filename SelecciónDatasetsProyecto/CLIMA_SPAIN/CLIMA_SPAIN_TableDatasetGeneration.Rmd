@@ -1,0 +1,327 @@
+---
+title: "CLIMA_SPAIN_TableDatasetGeneration"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: readable
+    toc: true
+    toc_float: true
+    number_sections: true
+---
+
+<style>
+h1.title { font-size: 24px; }
+h1 { font-size: 20px; }
+h2 { font-size: 18px; }
+h3 { font-size: 16px; }
+body { font-size: 14px;}
+p { font-size: 14px; margin-bottom: 10px;
+}
+/* Tablas anchas: envolver el chunk en <div class="tabla-scroll"> ... </div> para verlas completas con scroll horizontal */
+.tabla-scroll { overflow-x: auto; }
+.tabla-scroll table { width: auto; min-width: 100%; }
+.tabla-scroll table td, .tabla-scroll table th { white-space: nowrap; }
+</style>
+
+Este documento descarga los datos climáticos de **toda España** de AdapteCCa /
+AEMET y genera dos datasets (`.rds`) **por provincia**:
+
+- `observaciones_spain.rds` — serie observada mensual por provincia (14
+  variables; Península/Baleares 1951–2022 con 2022 incompleto, Canarias
+  1990–2022; fecha `yyyy-mm`).
+- `proyecciones_spain.rds` — proyecciones por mes y provincia (14 variables × 4
+  escenarios SSP × **12 modelos** (11 GCMs + ensemble) × 4 horizontes: base
+  histórica de referencia 1971–2000 + 3 horizontes futuros, sin año).
+
+España se compone de **dos rejillas** distintas de AdapteCCa que se combinan por
+provincia: **Península, Baleares, Ceuta y Melilla** (~5 km) y **Canarias**
+(~2,5 km). Cada provincia tiene datos en una sola de las dos.
+
+```{r,echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = TRUE, cache = FALSE)
+```
+
+```{r, echo=FALSE}
+library(tidyverse)
+library(DT)
+select <- dplyr::select; mutate <- dplyr::mutate; filter <- dplyr::filter
+group_by <- dplyr::group_by; summarise <- dplyr::summarise; rename <- dplyr::rename
+```
+
+# 1. Paquetes y geometría de las provincias
+
+```{r}
+if (!require(terra)) install.packages('terra')
+if (!require(sf)) install.packages('sf')
+if (!require(mapSpain)) install.packages('mapSpain')
+if (!require(ncdf4)) install.packages('ncdf4')
+library(terra)
+library(sf)
+library(mapSpain)
+library(ncdf4)
+
+# Provincias de España (IGN/GISCO vía mapSpain). moveCAN = FALSE deja Canarias en
+# sus coordenadas REALES (imprescindible para que solape con el ráster atlántico).
+provincias <- mapSpain::esp_get_prov(epsg = 4326, moveCAN = FALSE)
+provincias_vect <- terra::vect(provincias)
+
+# Nombre de CCAA por código autonómico (no viene directo en esp_get_prov)
+ccaa_lookup <- mapSpain::esp_codelist |> distinct(codauto, ine.ccaa.name)
+
+base_prov <- provincias |>
+  sf::st_drop_geometry() |>
+  left_join(ccaa_lookup, by = "codauto") |>
+  transmute(provincia = ine.prov.name, cpro = cpro, ccaa = ine.ccaa.name)
+```
+
+# 2. Descarga reproducible de los datos (THREDDS de AdapteCCa)
+
+Descarga **todo lo necesario** y **se salta lo ya descargado**. Los `.nc` van a
+`ruta_base`, organizados en subcarpetas por dominio (`peninsula/`, `canarias/`),
+porque **los ficheros de ambos dominios se llaman igual**. Es una descarga
+**grande (~10 GB)** la primera vez; luego es instantánea. Solo los `.rds` de
+resultado se guardan en el proyecto.
+
+```{r}
+thredds     <- "https://escenarios.adaptecca.es/thredds/fileServer"
+thredds_cat <- "https://escenarios.adaptecca.es/thredds/catalog"
+ruta_base   <- "C:/Users/lalva/Downloads/clima_es"   # subcarpetas: peninsula/, canarias/
+dominios    <- c("peninsula", "canarias")
+
+# Variable -> método de downscaling (temperatura = ESD-RegBA, precip = deepESD).
+metodo_var <- c(
+  tasmax = "ESD-RegBA", tasmin = "ESD-RegBA", tmean = "ESD-RegBA",
+  tasmaxmax = "ESD-RegBA", tasminmin = "ESD-RegBA", tasminNa20 = "ESD-RegBA",
+  tasminNb0 = "ESD-RegBA", tasmaxNap90 = "ESD-RegBA", tasminNap90 = "ESD-RegBA",
+  tasmaxhwdmax = "ESD-RegBA",
+  pr = "deepESD", prNa1 = "deepESD", prmax24 = "deepESD", prmax5days = "deepESD")
+categoria_var  <- ifelse(metodo_var == "deepESD", "Precipitacion", "Temperatura")
+escenarios_ghg <- c("ssp126", "ssp245", "ssp370", "ssp585")
+vars           <- names(metodo_var)
+
+# --- Utilidades de descarga ROBUSTA ---
+# En Windows download.file() por libcurl falla por la revocación de certificados
+# (schannel) -> se usa el curl del sistema con --ssl-no-revoke.
+
+# Lee una URL de texto (p.ej. catalog.xml) con curl.
+.leer_url <- function(url) {
+  tmp <- tempfile()
+  st <- suppressWarnings(try(download.file(url, tmp, method = "curl",
+          extra = "-L --ssl-no-revoke -s --fail", quiet = TRUE), silent = TRUE))
+  if (inherits(st, "try-error") || !file.exists(tmp) || file.info(tmp)$size == 0)
+    return(character(0))
+  readLines(tmp, warn = FALSE)
+}
+
+# ¿Es un NetCDF válido (existe, tamaño razonable y abre)?
+.nc_valido <- function(p) {
+  if (!file.exists(p) || file.info(p)$size < 1e4) return(FALSE)
+  tryCatch({ nc <- ncdf4::nc_open(p); ncdf4::nc_close(nc); TRUE }, error = function(e) FALSE)
+}
+
+# Descarga si falta/inválido; valida y reintenta; si falla, ERROR claro.
+# (Un .nc a 0 bytes = descarga fallida, no un fichero válido.)
+descargar_nc <- function(url, destino) {
+  if (.nc_valido(destino)) return(invisible(FALSE))
+  dir.create(dirname(destino), showWarnings = FALSE, recursive = TRUE)
+  suppressWarnings(download.file(url, destino, method = "curl",
+    extra = "-L --ssl-no-revoke -s --fail --retry 3 --retry-delay 2", mode = "wb", quiet = TRUE))
+  if (!.nc_valido(destino)) {
+    if (file.exists(destino)) file.remove(destino)
+    stop("Descarga fallida o fichero inválido:\n  ", url)
+  }
+  invisible(TRUE)
+}
+
+# AdapteCCa nombra las observaciones de forma INCONSISTENTE (canarias usa
+# '1970-2022'; península a veces '197101-202212'; algunas variables tienen
+# ambos). Por eso se DESCUBRE el nombre real desde el catálogo THREDDS.
+nombre_obs <- function(dom, var) {
+  url <- file.path(thredds_cat, dom, "Observaciones_en_rejilla/Dato_anual",
+                   categoria_var[[var]], var, "catalog.xml")
+  xml <- .leer_url(url)
+  nc <- unique(unlist(regmatches(xml, gregexpr("[A-Za-z0-9_.+-]+_yearly\\.nc", xml))))
+  if (length(nc) == 0) stop("No encuentro observaciones para ", var, " (", dom, ")")
+  nc[order(nchar(nc))][1]   # si hay varios, el de nombre más corto (evita re-descargas)
+}
+
+# Tabla (dominio, variable) -> nombre real del fichero de observaciones
+obs_lookup <- do.call(rbind, lapply(dominios, function(d)
+  data.frame(dom = d, var = vars,
+             fichero = vapply(vars, function(v) nombre_obs(d, v), ""),
+             stringsAsFactors = FALSE)))
+obs_file <- function(dom, var) obs_lookup$fichero[obs_lookup$dom == dom & obs_lookup$var == var]
+
+for (dom in dominios) {
+  # Observaciones (nombre descubierto del catálogo)
+  for (v in vars) {
+    f <- obs_file(dom, v)
+    descargar_nc(
+      file.path(thredds, dom, "Observaciones_en_rejilla/Dato_anual", categoria_var[[v]], v, f),
+      file.path(ruta_base, dom, f))
+  }
+  # Proyecciones (nombre consistente)
+  for (v in vars) for (s in escenarios_ghg) {
+    f <- sprintf("climatology_CMIP6_%s_%s_%s.nc", metodo_var[[v]], v, s)
+    descargar_nc(
+      file.path(thredds, dom, "Proyecciones_CMIP6_en_rejilla/Climatologia", categoria_var[[v]], v, f),
+      file.path(ruta_base, dom, f))
+  }
+}
+
+# Verificación final (todos los .nc presentes y válidos)
+chk <- function(dom) c(
+  obs  = sum(vapply(vars, function(v) .nc_valido(file.path(ruta_base, dom, obs_file(dom, v))), logical(1))),
+  proy = sum(vapply(as.vector(outer(vars, escenarios_ghg,
+            function(v, s) sprintf("climatology_CMIP6_%s_%s_%s.nc", metodo_var[v], v, s))),
+            function(f) .nc_valido(file.path(ruta_base, dom, f)), logical(1))))
+cat("Peninsula -> obs:", chk("peninsula")["obs"], "/14 | proy:", chk("peninsula")["proy"], "/56\n")
+cat("Canarias  -> obs:", chk("canarias")["obs"],  "/14 | proy:", chk("canarias")["proy"],  "/56\n")
+```
+
+# 3. Funciones auxiliares
+
+```{r}
+# Meses en orden de calendario (en los .nc vienen en inglés y alfabéticos).
+meses_en <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun",
+              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+# Matriz [lon, lat] -> SpatRaster orientado (norte arriba, EPSG:4326).
+build_raster <- function(mat, lon, lat) {
+  o_lon <- order(lon); o_lat <- order(lat, decreasing = TRUE)
+  mat <- mat[o_lon, o_lat, drop = FALSE]
+  terra::rast(t(mat), extent = terra::ext(min(lon), max(lon), min(lat), max(lat)),
+              crs = "EPSG:4326")
+}
+
+# Normaliza la unidad leída del fichero a una etiqueta legible.
+normaliza_unidad <- function(u) dplyr::case_when(
+  u %in% c("degC")                    ~ "°C",
+  u %in% c("days", "day", "num_days") ~ "días",
+  u %in% c("1")                       ~ "días",
+  TRUE                                ~ u)
+```
+
+# 4. RDS de observaciones por provincia
+
+Para cada variable se procesan **las dos rejillas** (Península y Canarias) y se
+apilan: cada provincia recibe valor de la rejilla que la cubre (la otra devuelve
+`NaN`, que se descarta). Las rodajas año-mes totalmente vacías (relleno del eje)
+se saltan.
+
+```{r}
+# Procesa un fichero de serie anual (un dominio) -> tabla larga por provincia.
+proc_obs <- function(var, dom) {
+  archivo <- file.path(ruta_base, dom, obs_file(dom, var))
+  nc <- nc_open(archivo)
+  dn <- vapply(nc$var[[var]]$dim, function(d) d$name, character(1))
+  a  <- ncvar_get(nc, var); lo <- ncvar_get(nc, "lon"); la <- ncvar_get(nc, "lat")
+  tf <- ncvar_get(nc, "time_filter"); tv <- ncvar_get(nc, "time")
+  tu <- ncatt_get(nc, "time", "units")$value; ud <- ncatt_get(nc, var, "units")$value
+  nc_close(nc)
+
+  a  <- aperm(a, match(c("lon", "lat", "time_filter", "time"), dn))
+  im <- match(meses_en, tf)
+  yy <- as.integer(format(as.Date(tv, origin = as.Date(sub(".*since\\s*", "", tu))), "%Y"))
+
+  capas <- list(); nm <- character()
+  for (mi in seq_along(im)) for (ti in seq_along(yy)) {
+    sl <- a[, , im[mi], ti]
+    if (all(is.na(sl))) next                      # salta rodajas de relleno
+    capas[[length(capas) + 1]] <- build_raster(sl, lo, la)
+    nm <- c(nm, sprintf("M%02d_A%d", mi, yy[ti]))
+  }
+  r <- terra::rast(capas); names(r) <- nm
+
+  ex <- terra::extract(r, provincias_vect, fun = mean, na.rm = TRUE,
+                       ID = FALSE, touches = TRUE)
+  base_prov |>
+    bind_cols(ex) |>
+    pivot_longer(cols = matches("^M[0-9]+_A[0-9]+$"),
+                 names_to = c("mes", "anio"), names_pattern = "M([0-9]+)_A([0-9]+)",
+                 values_to = "value") |>
+    mutate(variable = var, unidad = normaliza_unidad(ud))
+}
+
+serie_var <- function(var) bind_rows(proc_obs(var, "peninsula"), proc_obs(var, "canarias"))
+
+tabla_obs <- bind_rows(lapply(vars, serie_var)) |>
+  filter(!is.na(value)) |>                        # descarta provincias fuera de rejilla
+  transmute(fecha = paste(anio, mes, sep = "-"),   # yyyy-mm
+            provincia, cpro, variable, unidad, value = round(value, 2)) |>
+  arrange(provincia, variable, fecha)
+
+saveRDS(tabla_obs, "observaciones_spain.rds")
+cat("observaciones_spain.rds ->", nrow(tabla_obs), "filas x", ncol(tabla_obs), "columnas\n")
+DT::datatable(head(tabla_obs, 500), filter = "top",
+              caption = "Muestra (primeras 500 filas). Completa en el .rds.",
+              options = list(pageLength = 12))
+```
+
+# 5. RDS de proyecciones por provincia y modelo (12 modelos × 4 horizontes × 4 SSP)
+
+```{r}
+horizontes <- c("reference", "near_future", "medium_future", "far_future")
+
+# Etiqueta legible del miembro: "ACCESS-CM2_r1i1p1f1_..." -> "ACCESS-CM2";
+# "average" -> "ensemble".
+limpia_modelo <- function(x) ifelse(x == "average", "ensemble", sub("_.*$", "", x))
+
+# Procesa un fichero de proyección (variable, escenario, dominio) por provincia.
+# Extrae TODOS los miembros (11 GCMs + 'average').
+proc_proy <- function(var, esc, dom) {
+  archivo <- file.path(ruta_base, dom,
+    sprintf("climatology_CMIP6_%s_%s_%s.nc", metodo_var[[var]], var, esc))
+  nc <- nc_open(archivo)
+  dn <- vapply(nc$var[[var]]$dim, function(d) d$name, character(1))
+  a  <- ncvar_get(nc, var); lo <- ncvar_get(nc, "lon"); la <- ncvar_get(nc, "lat")
+  tf <- ncvar_get(nc, "time_filter"); pe <- ncvar_get(nc, "period")
+  me <- ncvar_get(nc, "member"); ud <- ncatt_get(nc, var, "units")$value
+  nc_close(nc)
+
+  a <- aperm(a, match(c("lon", "lat", "time_filter", "period", "member"), dn))
+  im <- match(meses_en, tf); iperiod <- match(horizontes, pe)
+  stopifnot(!anyNA(im), !anyNA(iperiod), length(me) >= 1)
+
+  # Capas: todos los miembros x 4 periodos x 12 meses -> "B<miembro>_H<periodo>_M<mes>"
+  capas <- list(); nm <- character()
+  for (mb in seq_along(me)) for (hi in seq_along(iperiod)) for (mi in seq_along(im)) {
+    capas[[length(capas) + 1]] <- build_raster(a[, , im[mi], iperiod[hi], mb], lo, la)
+    nm <- c(nm, sprintf("B%02d_H%d_M%02d", mb, hi, mi))
+  }
+  r <- terra::rast(capas); names(r) <- nm
+
+  ex <- terra::extract(r, provincias_vect, fun = mean, na.rm = TRUE,
+                       ID = FALSE, touches = TRUE)
+  base_prov |>
+    bind_cols(ex) |>
+    pivot_longer(cols = matches("^B[0-9]+_H[0-9]+_M[0-9]+$"),
+                 names_to = c("mb", "hi", "mes"),
+                 names_pattern = "B([0-9]+)_H([0-9]+)_M([0-9]+)",
+                 values_to = "value") |>
+    mutate(variable = var, unidad = normaliza_unidad(ud), escenario = esc,
+           modelo = limpia_modelo(me[as.integer(mb)]),
+           horizonte = horizontes[as.integer(hi)])
+}
+
+combos <- expand.grid(var = vars, esc = escenarios_ghg, stringsAsFactors = FALSE)
+tabla_proy <- bind_rows(lapply(seq_len(nrow(combos)), function(i)
+  bind_rows(proc_proy(combos$var[i], combos$esc[i], "peninsula"),
+            proc_proy(combos$var[i], combos$esc[i], "canarias")))) |>
+  filter(!is.na(value)) |>
+  mutate(mes = as.integer(mes),
+         horizonte = factor(horizonte, levels = horizontes)) |>
+  transmute(provincia, cpro, variable, unidad, escenario, modelo, horizonte, mes,
+            value = round(value, 2)) |>
+  arrange(provincia, variable, escenario, modelo, horizonte, mes)
+
+saveRDS(tabla_proy, "proyecciones_spain.rds")
+cat("proyecciones_spain.rds ->", nrow(tabla_proy), "filas x", ncol(tabla_proy), "columnas\n")
+DT::datatable(head(tabla_proy, 500), filter = "top",
+              caption = "Muestra (primeras 500 filas). Completa en el .rds.",
+              options = list(pageLength = 12))
+```
+
+```{r}
+knitr::knit_exit()
+```

@@ -1,0 +1,757 @@
+---
+title: "Análisis de variables climáticas seleccionadas (Canarias)"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: readable
+    toc: true
+    toc_float: true
+    number_sections: true
+---
+
+<style>
+h1.title { font-size: 24px; }
+h1 { font-size: 20px; }
+h2 { font-size: 18px; }
+h3 { font-size: 16px; }
+body { font-size: 14px;}
+p { font-size: 14px; margin-bottom: 10px;
+}
+/* Todas las cajas con scroll llevan la misma separación por debajo, para que no
+   queden pegadas al texto que viene después (evita tener que poner <br> a mano
+   detrás de cada una) */
+.tabla-scroll, .caja-scroll, .tabla-scroll-xy { margin-bottom: 28px; }
+/* Tablas anchas: envolver el chunk en <div class="tabla-scroll"> ... </div> para verlas completas con scroll horizontal */
+.tabla-scroll { overflow-x: auto; }
+.tabla-scroll table { width: auto; min-width: 100%; }
+.tabla-scroll table td, .tabla-scroll table th { white-space: nowrap; }
+/* Textos y listados largos: envolver en <div class="caja-scroll"> ... </div>
+   para acotar su altura y recorrerlos con scroll vertical, en vez de ocupar
+   páginas enteras del documento */
+.caja-scroll { max-height: 250px; overflow-y: auto; padding: 10px 14px;
+               border: 1px solid #ddd; background-color: #fafafa; }
+/* Tablas que pueden ser anchas Y largas (p. ej. una fila por municipio): scroll
+   en los dos ejes, con la fila de cabecera fija arriba mientras se recorre.
+   Alternativa ligera a DT::datatable: HTML puro, sin JavaScript ni dependencias */
+.tabla-scroll-xy { overflow: auto; max-height: 450px; border: 1px solid #ddd; }
+.tabla-scroll-xy table { width: auto; min-width: 100%; margin-bottom: 0; }
+.tabla-scroll-xy table td, .tabla-scroll-xy table th { white-space: nowrap; }
+.tabla-scroll-xy thead th { position: sticky; top: 0; z-index: 1;
+                            background-color: #fff; box-shadow: inset 0 -1px 0 #ddd; }
+/* Solo en las tablas marcadas ADEMÁS con .con-desc: la última columna es texto
+   largo y se deja repartir en varias líneas, en vez de forzar una sola que haría
+   la tabla desmesuradamente ancha. Va con clase propia para no ensanchar las
+   tablas cuya última columna es un número */
+.tabla-scroll-xy.con-desc table td:last-child,
+.tabla-scroll.con-desc table td:last-child { white-space: normal; min-width: 420px; }
+/* Celdas de cumple/no cumple de la tabla de validación de requisitos */
+.val-ok, .val-no { display: block; text-align: center; font-weight: bold;
+                   color: #fff; padding: 2px 6px; border-radius: 3px; }
+.val-ok { background-color: #28a745; }
+.val-no { background-color: #dc3545; }
+</style>
+
+```{r,echo=FALSE}
+# OPCIONES POR DEFECTO AL COMPILAR LOS CHUNKS
+knitr::opts_chunk$set(
+  warning = FALSE,
+  message = FALSE,
+  echo=FALSE,
+  cache=FALSE
+)
+```
+
+```{r, echo=FALSE}
+library(openxlsx)
+library(tidyverse)
+library(sf)
+library(mapSpain)
+library(leaflet)
+
+# asociamos funciones a determinadas librerías para evitar posibles errores
+select <- dplyr::select
+mutate <- dplyr::mutate
+filter <- dplyr::filter
+group_by <- dplyr::group_by
+summarise <- dplyr::summarise
+summarize <- dplyr::summarize
+rename <- dplyr::rename
+```
+
+Análisis y validación, como dataset para el proyecto personal de **AEDV**, de las
+variables climáticas de Canarias generadas en
+[CLIMA_CANARIAS_TableDatasetGeneration.Rmd](CLIMA_CANARIAS_TableDatasetGeneration.Rmd).
+Aquí, los **datasets a evaluar son las variables climáticas**: cada variable es
+un atributo medido por municipio y mes. La fuente es el fichero de **histórico
+observado** `observaciones_canarias_1990_2022.rds` (rejilla AEMET ~2,5 km,
+1990–2022). También se analiza el fichero `proyecciones_canarias.rds` de
+**proyecciones** hacia el futuro.
+
+Igual que el resto de documentos de selección de datasets de la asignatura, este
+tiene **dos partes independientes**:
+
+1. **Selección de variables y guardado de metadatos** — elige las variables a
+   analizar y deja en disco su ficha (`CLIMA_CANARIAS_metadatos.xlsx`). Los datos
+   en sí (los dos `.rds`) los genera `CLIMA_CANARIAS_TableDatasetGeneration.Rmd`,
+   que es el que descarga los NetCDF de AdapteCCa.
+2. **Análisis del dataset** — parte de esos ficheros del disco y no usa nada de la
+   sección anterior, de modo que **se puede copiar tal cual en la memoria del
+   proyecto**.
+
+```{r,echo=TRUE}
+# nombre base de los ficheros de metadatos y ficheros de datos ya generados
+filename  <- "CLIMA_CANARIAS"
+f_obs     <- "observaciones_canarias_1990_2022.rds"
+f_proy    <- "proyecciones_canarias.rds"
+```
+
+# Selección de variables y guardado de metadatos
+
+<!-- Esta sección NO va en la memoria del proyecto: solo construye el fichero de
+     metadatos que consume la sección siguiente -->
+
+Las variables a analizar se seleccionan por su código (`variable`):
+
+```{r,echo=TRUE}
+VARS <- c("tasmax", "tasmin", "tmean", "tasmaxmax", "tasminmin",
+          "tasminNa20", "tasminNb0", "tasmaxNap90", "tasminNap90",
+          "tasmaxhwdmax", "pr", "prNa1", "prmax24", "prmax5days")
+```
+
+A diferencia del INE, el ISTAC, EUROSTAT o el Banco Mundial, AdapteCCa **no tiene
+un catálogo previo** del que extraer la ficha del dataset: aquí los metadatos se
+construyen en este mismo documento y se guardan en `CLIMA_CANARIAS_metadatos.xlsx`,
+con **cuatro hojas**:
+
+- `dataset` — la ficha general (fuente, rejilla, cobertura, tamaño de los dos ficheros).
+- `variables` — el significado de cada variable climática, con su categoría y su unidad.
+- `horizontes` — el periodo de 30 años que representa cada horizonte de las proyecciones.
+- `escenarios` — las 4 trayectorias de emisión SSP, con su forzamiento y su calentamiento estimado.
+
+Las tres últimas son las **explicaciones de los indicadores**, que es lo que en las
+otras fuentes viene ya dado en el catálogo (`Indicator_desc` en el Banco Mundial,
+`Descripcion` del `topic` en EUROSTAT).
+
+> **Nota:** las descripciones han sido redactadas a partir de la documentación de
+> AdapteCCa (variables/índices del visor) y del 6º Informe del IPCC. **No provienen
+> literalmente de la API.** Si se cambian las variables seleccionadas, habrá que
+> revisar/ampliar las descripciones.
+
+```{r,echo=TRUE}
+# DESCRIPCIÓN DE CADA VARIABLE CLIMÁTICA (columna `variable` de los dos rds)
+desc_var <- tibble::tribble(
+  ~variable,       ~categoria,       ~description,
+  "tasmax",        "Temperatura",    "Media mensual de la temperatura máxima diaria a 2 m.",
+  "tasmin",        "Temperatura",    "Media mensual de la temperatura mínima diaria a 2 m.",
+  "tmean",         "Temperatura",    "Media mensual de la temperatura media diaria a 2 m.",
+  "tasmaxmax",     "Temperatura",    "Máximo mensual de la temperatura máxima diaria (extremo cálido del mes).",
+  "tasminmin",     "Temperatura",    "Mínimo mensual de la temperatura mínima diaria (extremo frío del mes).",
+  "tasminNa20",    "Temperatura",    "Nº de días al mes con temperatura mínima > 20 °C (noches tropicales).",
+  "tasminNb0",     "Temperatura",    "Nº de días al mes con temperatura mínima < 0 °C (días de helada).",
+  "tasmaxNap90",   "Temperatura",    "Nº de días al mes con temperatura máxima por encima del percentil 90 (días cálidos).",
+  "tasminNap90",   "Temperatura",    "Nº de días al mes con temperatura mínima por encima del percentil 90 (noches cálidas).",
+  "tasmaxhwdmax",  "Temperatura",    "Duración máxima de ola de calor: días consecutivos con Tmáx > percentil 90.",
+  "pr",            "Precipitación",  "Media mensual de la precipitación diaria acumulada.",
+  "prNa1",         "Precipitación",  "Nº de días al mes con precipitación > 1 mm (días de lluvia).",
+  "prmax24",       "Precipitación",  "Máxima precipitación mensual acumulada en 1 día (RX1day).",
+  "prmax5days",    "Precipitación",  "Máxima precipitación mensual acumulada en 5 días (RX5day)."
+)
+```
+
+```{r,echo=TRUE}
+# PERIODO DE 30 AÑOS QUE REPRESENTA CADA HORIZONTE (AdapteCCa / Escenarios-PNACC)
+desc_horizonte <- tibble::tribble(
+  ~horizonte,      ~periodo,     ~denominacion,
+  "reference",     "1971-2000",  "base histórica",
+  "near_future",   "2011-2040",  "futuro cercano",
+  "medium_future", "2041-2070",  "futuro medio",
+  "far_future",    "2071-2100",  "futuro lejano"
+)
+```
+
+```{r,echo=TRUE}
+# LAS 4 TRAYECTORIAS DE EMISIÓN SSP (CMIP6 / IPCC-AR6).
+# Nombres de columna sin espacios ni tildes para que sobrevivan al viaje por el
+# xlsx; las etiquetas legibles se ponen al imprimir la tabla, más abajo.
+desc_escenario <- tibble::tribble(
+  ~escenario, ~SSP,       ~relato,                              ~forzamiento_2100, ~emisiones,  ~calentamiento_2100_AR6, ~description,
+  "ssp126",   "SSP1-2.6", "Sostenibilidad",                     "~2,6 W/m²",       "Bajas",     "~1,8 °C (1,3–2,4)",     "CO₂ neto cero hacia ~2050. Compatible con limitar el calentamiento bien por debajo de 2 °C (Acuerdo de París).",
+  "ssp245",   "SSP2-4.5", "Camino intermedio",                  "~4,5 W/m²",       "Medias",    "~2,7 °C (2,1–3,5)",     "Emisiones intermedias; las políticas climáticas avanzan a ritmo moderado. Escenario 'central' de referencia.",
+  "ssp370",   "SSP3-7.0", "Rivalidad regional",                 "~7,0 W/m²",       "Altas",     "~3,6 °C (2,8–4,6)",     "Mundo fragmentado, poca cooperación climática; las emisiones de GHG casi se duplican hacia 2100.",
+  "ssp585",   "SSP5-8.5", "Desarrollo por combustibles fósiles","~8,5 W/m²",       "Muy altas", "~4,4 °C (3,3–5,7)",     "Crecimiento intensivo en combustibles fósiles. Límite superior plausible de emisiones."
+)
+```
+
+La ficha general y la unidad de cada variable se calculan a partir de los `.rds`
+ya guardados en disco, para que describan exactamente lo que hay en ellos y no lo
+que se esperaba generar.
+
+```{r,echo=TRUE}
+hist_all <- readRDS(f_obs) |> as_tibble()
+proy_all <- readRDS(f_proy) |> as_tibble()
+
+# la unidad no se escribe a mano: se lee de los propios datos
+unidades <- hist_all |> distinct(variable, unidad)
+
+variables_sel <- desc_var |>
+  filter(variable %in% VARS) |>
+  left_join(unidades, by = "variable") |>
+  mutate(area = "MUNI", frecuencia = "Mensual") |>
+  relocate(unidad, area, frecuencia, .after = categoria)
+
+ficha <- tibble(
+  Campo = c("Fuente", "Coleccion", "Ambito", "Rejilla", "Metodos.downscaling", "URL",
+            "Fecha.de.generacion",
+            "Fichero.observaciones", "Obs.N.filas", "Obs.N.variables",
+            "Obs.N.municipios", "Obs.Freq", "Obs.Ini", "Obs.Fin", "Obs.N.periodos",
+            "Fichero.proyecciones", "Proy.N.filas", "Proy.N.escenarios",
+            "Proy.N.modelos", "Proy.N.horizontes", "Proy.N.meses"),
+  Valor = c(
+    "Visor AdapteCCa (OECC/MITECO, AEMET, CSIC y Fundación Biodiversidad)",
+    "Escenarios-PNACC 2024",
+    "Canarias, municipios",
+    "ROCIO+_CAN (~2,5 km)",
+    "ESD-RegBA (temperatura) y deepESD (precipitación)",
+    "https://escenarios.adaptecca.es/",
+    as.character(Sys.Date()),
+    f_obs,
+    as.character(nrow(hist_all)),
+    as.character(n_distinct(hist_all$variable)),
+    as.character(n_distinct(hist_all$municipio)),
+    "M (mensual)",
+    as.character(min(hist_all$fecha)),
+    as.character(max(hist_all$fecha)),
+    as.character(n_distinct(hist_all$fecha)),
+    f_proy,
+    as.character(nrow(proy_all)),
+    as.character(n_distinct(proy_all$escenario)),
+    as.character(n_distinct(proy_all$modelo)),
+    as.character(n_distinct(proy_all$horizonte)),
+    as.character(n_distinct(proy_all$mes))
+  )
+)
+
+# comprobación: toda variable seleccionada tiene que existir en los datos y tener
+# descripción, y todo horizonte/escenario de las proyecciones estar documentado
+faltan_desc <- setdiff(VARS, desc_var$variable)
+faltan_dato <- setdiff(VARS, unique(hist_all$variable))
+faltan_hor  <- setdiff(unique(proy_all$horizonte), desc_horizonte$horizonte)
+faltan_esc  <- setdiff(unique(proy_all$escenario), desc_escenario$escenario)
+if(length(faltan_desc) > 0) warning("Variables sin descripción: ", paste(faltan_desc, collapse = ", "))
+if(length(faltan_dato) > 0) warning("Variables que no están en el rds: ", paste(faltan_dato, collapse = ", "))
+if(length(faltan_hor)  > 0) warning("Horizontes sin descripción: ", paste(faltan_hor, collapse = ", "))
+if(length(faltan_esc)  > 0) warning("Escenarios sin descripción: ", paste(faltan_esc, collapse = ", "))
+
+# las cuatro hojas en un solo xlsx: openxlsx toma el nombre de cada hoja del
+# nombre del elemento de la lista
+write.xlsx(list(dataset    = ficha,
+                variables  = variables_sel,
+                horizontes = desc_horizonte,
+                escenarios = desc_escenario),
+           file = paste0(filename, "_metadatos.xlsx"), overwrite = TRUE)
+
+cat("Fichero guardado:", paste0(filename, "_metadatos.xlsx"),
+    "- hojas: dataset, variables, horizontes, escenarios\n")
+cat("Variables seleccionadas:", nrow(variables_sel), "de", length(VARS), "\n")
+cat("Elementos sin descripción:", length(faltan_desc), "variables,",
+    length(faltan_hor), "horizontes,", length(faltan_esc), "escenarios\n")
+```
+
+Una vez guardados en disco los metadatos (fichero xlsx) y estando ya los datos
+(los dos ficheros RDS), iniciamos el proceso de análisis. A partir de aquí el
+documento se compila **solo** con los ficheros ya guardados en disco; no se usa
+ningún objeto de la sección anterior. Es a propósito: es la parte que el alumno
+incluye en la memoria del proyecto personal, así que tiene que poder ejecutarse
+sola (lo único que se repite de lo definido antes son los nombres de fichero).
+
+# Análisis del dataset
+
+```{r,echo=TRUE}
+# se repiten aquí (idénticos a los de la sección anterior) para poder nombrar los
+# ficheros sin depender de ningún chunk anterior
+filename <- "CLIMA_CANARIAS"
+f_obs    <- "observaciones_canarias_1990_2022.rds"
+f_proy   <- "proyecciones_canarias.rds"
+```
+
+```{r,echo=TRUE}
+# las explicaciones de los indicadores viven en las hojas `variables`,
+# `horizontes` y `escenarios` del fichero de metadatos; la ficha general en `dataset`
+ficha          <- read.xlsx(paste0(filename, "_metadatos.xlsx"), sheet = "dataset")
+variables_sel  <- read.xlsx(paste0(filename, "_metadatos.xlsx"), sheet = "variables")
+desc_horizonte <- read.xlsx(paste0(filename, "_metadatos.xlsx"), sheet = "horizontes")
+desc_escenario <- read.xlsx(paste0(filename, "_metadatos.xlsx"), sheet = "escenarios")
+
+# las variables a analizar salen de los propios metadatos: así esta sección no
+# depende del vector VARS definido en la sección anterior
+VARS <- variables_sel$variable
+```
+
+**metadatos**
+
+<div class="tabla-scroll">
+
+```{r}
+knitr::kable(ficha)
+```
+
+</div>
+
+## Origen de los datos: AdapteCCa
+
+Todos los datos provienen del **Visor de Escenarios de Cambio Climático de
+AdapteCCa**, la plataforma oficial sobre adaptación al cambio climático en España.
+Pertenecen a la colección **Escenarios-PNACC** (Plan Nacional de Adaptación al
+Cambio Climático) y los elabora el Grupo de Trabajo de Escenarios: la **Oficina
+Española de Cambio Climático (OECC/MITECO)**, la **AEMET**, el **CSIC** y la
+**Fundación Biodiversidad**, con desarrollo técnico de la **Universidad de
+Cantabria (IFCA, CSIC-UC)** y **Predictia**. Los datos se distribuyen en formato
+NetCDF mediante un servicio **THREDDS**.
+
+Para Canarias, AdapteCCa ofrece —por primera vez en su última actualización—
+datos **en rejilla de alta resolución (~2,5 km)**, tanto observados como
+proyectados, sobre la malla observacional **ROCIO+_CAN** de AEMET (antes solo
+había datos puntuales por estación). Hay dos productos bien distintos:
+
+### Observaciones: el clima registrado (1990–2022)
+
+Es el clima **realmente medido**, sin ningún modelo climático de por medio:
+
+- Parte de las **observaciones diarias de las estaciones de AEMET** en Canarias.
+- Esos registros se **interpolan a una rejilla regular de ~2,5 km**
+  (producto AEMET-2.5KM / ROCIO+_CAN), que cubre todo el archipiélago, también
+  donde no hay estaciones.
+- De la rejilla diaria se calculan los **agregados mensuales** que usamos (medias
+  de temperatura, totales de precipitación, conteos de días, máximos…).
+- La serie en rejilla disponible cubre **1990–2022**.
+
+Es, por tanto, dato observado y espacializado: sirve como **línea base** real
+contra la que comparar el futuro.
+
+### Proyecciones: el clima simulado (siglo XXI)
+
+Es el clima **simulado** para el futuro, y su obtención tiene dos pasos:
+
+1. **Modelos climáticos globales CMIP6** — los mismos que sustentan el 6º Informe
+   del IPCC (AR6). Simulan el clima del planeta para distintos escenarios de
+   emisiones, pero con una resolución demasiado gruesa (~100 km) para unas islas
+   pequeñas.
+2. **Regionalización (downscaling) estadística** — se "baja" esa información a la
+   rejilla de ~2,5 km con técnicas de *machine learning* que aprenden la relación
+   entre el clima global y las observaciones de AEMET. Se usan **dos métodos**
+   según la variable:
+   - **ESD-RegBA** (desarrollado por AEMET) → variables de **temperatura**.
+   - **deepESD** (desarrollado por el CSIC, basado en *deep learning*) →
+     **precipitación** (y evapotranspiración).
+
+El resultado son **climatologías** (medias de 30 años, no series con fecha) para
+los **4 escenarios de emisión SSP** × **4 horizontes**: la base histórica de
+referencia (**1971–2000**) y los 3 horizontes futuros (2011–2040, 2041–2070,
+2071–2100), calibradas con las observaciones de AEMET. El detalle de escenarios y
+horizontes está en la parte final del documento.
+
+## Variables (datasets) seleccionadas
+
+<div class="tabla-scroll-xy con-desc">
+
+```{r}
+# kable en vez de DT::datatable: aquí solo hace falta poder recorrer la tabla, no
+# filtrarla ni ordenarla. El contenedor .tabla-scroll-xy le da el scroll en los
+# dos ejes, con la cabecera fija arriba, y .con-desc deja que la última columna
+# (la descripción) reparta en varias líneas
+variables_sel |>
+  knitr::kable(col.names = c("variable", "categoría", "unidad", "área",
+                             "frecuencia", "descripción"))
+```
+
+</div>
+
+## Datos: serie histórica observada
+
+```{r,echo=TRUE}
+# Carga del histórico observado (dataset ya generado)
+hist <- readRDS(f_obs) |>
+  as_tibble() |>
+  filter(variable %in% VARS)
+
+# Estructura comparable a la del análisis del ISTAC:
+#   variable (= indicador/atributo) · municipio (= región) · fecha (= TIME) · value
+data <- hist |>
+  transmute(VARIABLE = variable,
+            MUNICIPIO = municipio,
+            UNIDAD = unidad,
+            TIME = fecha,
+            VALUE = value) |>
+  arrange(VARIABLE, MUNICIPIO, TIME)
+```
+
+**data**
+
+```{r}
+data
+```
+
+Muestra de las primeras 20 filas del histórico observado por municipio, variable y mes:
+
+<div class="tabla-scroll">
+
+```{r}
+data |> slice(1:20) |> knitr::kable()
+```
+
+</div>
+
+## Análisis de series temporales por variable
+
+> Para que una variable **cumpla el criterio de rango temporal**, el valor de
+> **P25** debe superar el umbral mínimo según la frecuencia: **≥ 10** para datos
+> anuales (`Y`), **≥ 40** para trimestrales (`Q`) y **≥ 60** para mensuales
+> (`M`). El percentil 25 (P25) es el tamaño de serie que supera el 75 % de los
+> municipios: si P25 ≥ umbral, al menos el 75 % de los municipios cumple el rango
+> temporal mínimo, que es el requisito de AEDV.
+
+```{r}
+classify_time <- function(t) {
+  dplyr::case_when(
+    stringr::str_detect(t, "^[0-9]{4}M[0-9]{2}$|^[0-9]{4}-[0-9]{2}$") ~ "M",
+    stringr::str_detect(t, "^[0-9]{4}[QT][0-9]$") ~ "Q",
+    stringr::str_detect(t, "^[0-9]{4}$")          ~ "Y",
+    TRUE                                          ~ "otro"
+  )
+}
+
+tb_series <- data |>
+  mutate(freq_obs = classify_time(TIME)) |>
+  group_by(VARIABLE, MUNICIPIO, freq_obs) |>
+  summarise(
+    n_periodos = n_distinct(TIME),
+    date_min   = min(TIME),
+    date_max   = max(TIME),
+    .groups    = "drop"
+  ) |>
+  group_by(VARIABLE, freq_obs) |>
+  summarise(
+    n_regiones = n_distinct(MUNICIPIO),
+    date_start = min(date_min),
+    date_end   = max(date_max),
+    P0   = as.integer(min(n_periodos)),
+    P25  = as.integer(quantile(n_periodos, 0.25)),
+    P50  = as.integer(quantile(n_periodos, 0.50)),
+    P75  = as.integer(quantile(n_periodos, 0.75)),
+    P100 = as.integer(max(n_periodos)),
+    .groups = "drop"
+  ) |>
+  left_join(variables_sel |> select(variable, categoria),
+            by = c("VARIABLE" = "variable")) |>
+  relocate(categoria, .after = VARIABLE) |>
+  relocate(freq_obs, .after = categoria)
+```
+
+**Por variable**: nº de municipios, rango de fechas y percentiles del tamaño de
+serie temporal (periodos por municipio).
+
+<div class="tabla-scroll-xy">
+
+```{r}
+knitr::kable(tb_series)
+```
+
+</div>
+
+## Municipios y número de observaciones
+
+<div class="tabla-scroll-xy">
+
+```{r}
+# son 88 municipios: se muestran TODOS y se recorren con el scroll del
+# contenedor, con la cabecera fija arriba
+data |>
+  group_by(MUNICIPIO) |>
+  summarise(n_obs = n(), .groups = "drop") |>
+  arrange(MUNICIPIO) |>
+  knitr::kable()
+```
+
+</div>
+
+## Validación de requisitos AEDV
+
+```{r}
+umbral_freq <- c(Y = 10L, Q = 40L, M = 60L, otro = NA_integer_)
+anio_min    <- 2024L   # requisito AEDV "datos actualizados" (último dato ≥ anio_min)
+
+tb_val <- tb_series |>
+  mutate(
+    umbral   = umbral_freq[freq_obs],
+    year_end = as.integer(substr(date_end, 1, 4)),
+    ok_cob   = n_regiones > 80,                 # nivel municipio (MUNI)
+    ok_fecha = year_end >= anio_min,
+    ok_temp  = !is.na(umbral) & P25 >= umbral,
+    ok_total = ok_cob & ok_fecha & ok_temp,
+    etiqueta = paste0(VARIABLE, " [", freq_obs, "]")
+  )
+```
+
+**Validación de requisitos AEDV** — umbrales: > 80 municipios, último dato ≥
+`r anio_min`, P25 ≥ 60 meses.
+
+<div class="tabla-scroll-xy">
+
+```{r}
+# Tabla de validación en HTML (antes era un heatmap de ggplot, pero al ser una
+# IMAGEN su altura crecía con el nº de variables). Como tabla se muestran TODAS
+# las filas y se recorren con el scroll del contenedor, con la cabecera fija
+# arriba. Las clases val-ok/val-no dan el color a cada celda.
+marca <- function(x)
+  ifelse(x, '<span class="val-ok">&#10004;</span>', '<span class="val-no">&#10008;</span>')
+
+tb_val |>
+  transmute(
+    Variable                        = etiqueta,
+    `Cobertura geográfica`          = marca(ok_cob),
+    `Datos actualizados (≥ 2024)`   = marca(ok_fecha),
+    `Tamaño series (P25 ≥ umbral)`  = marca(ok_temp),
+    `CUMPLE LOS 3`                  = marca(ok_total)
+  ) |>
+  # escape = FALSE para que el <span> de cada celda se interprete como HTML y
+  # no se imprima literalmente
+  knitr::kable(escape = FALSE, align = c("l", rep("c", 4)))
+```
+
+</div>
+
+```{r}
+n_total   <- n_distinct(tb_val$VARIABLE)
+n_cob     <- sum(tb_val$ok_cob)
+n_temp    <- sum(tb_val$ok_temp)
+n_fecha   <- sum(tb_val$ok_fecha)
+n_validos <- tb_val |>
+  group_by(VARIABLE) |>
+  summarise(valido = any(ok_total), .groups = "drop") |>
+  pull(valido) |> sum()
+```
+
+De las **`r n_total`** variables seleccionadas: **`r n_cob`** cumplen la
+**cobertura geográfica** (> 80 municipios), **`r n_temp`** el **tamaño de serie
+temporal** (P25 ≥ 60 meses) y **`r n_fecha`** la **actualización** (último dato ≥
+`r anio_min`).
+
+> **Limitación de la fuente (importante para la conclusión):** el producto
+> observado en rejilla de AdapteCCa llega hasta **2022** (es una colección por
+> versión —Escenarios-PNACC 2024—, no una serie que se actualice cada año). Por
+> eso, con el umbral estricto `anio_min = 2024` el criterio de "datos
+> actualizados" **no se cumple** para ninguna variable; sin embargo, dado que la cobertura y
+> la longitud temporal son excelentes (88 municipios, 396 meses por municipio,
+> 1990–2022), podremos usar este dataset para el proyecto personal de AEDV.
+
+
+## Mapas coropléticos interactivos
+
+Mapas **interactivos** (`leaflet`: zoom, *hover* con el valor y leyenda) a nivel
+de municipio, **sin mapa base**, con la geometría de `mapSpain`. Unen los datos
+por el **nombre del municipio**.
+
+```{r}
+munic_map <- mapSpain::esp_get_munic(region = "Canarias", moveCAN = FALSE, epsg = 4326)
+
+# Helper: coroplético interactivo con leaflet
+mapa_lf <- function(sf_obj, valor, etiqueta_col, unidad) {
+  v   <- sf_obj[[valor]]
+  pal <- leaflet::colorNumeric("YlOrRd", domain = v, na.color = "transparent")
+  etq <- sprintf("<b>%s</b><br/>%.1f %s", sf_obj[[etiqueta_col]], v, unidad)
+  leaflet::leaflet(sf_obj) |>
+    leaflet::addPolygons(
+      fillColor = pal(v), fillOpacity = 0.8, weight = 1, color = "white",
+      label = lapply(etq, htmltools::HTML),
+      highlightOptions = leaflet::highlightOptions(weight = 2, color = "#444",
+                                                   bringToFront = TRUE)) |>
+    leaflet::addLegend(pal = pal, values = v, title = unidad, position = "bottomright")
+}
+```
+
+**Tmáx media de julio observada por municipio (histórico):**
+
+```{r}
+mapa_obs <- data |>
+  filter(VARIABLE == "tasmax", stringr::str_detect(TIME, "-07$")) |>
+  group_by(MUNICIPIO) |>
+  summarise(tasmax_jul = round(mean(VALUE, na.rm = TRUE), 1), .groups = "drop")
+
+munic_map |>
+  left_join(mapa_obs, by = c("name" = "MUNICIPIO")) |>
+  mapa_lf("tasmax_jul", "name", "°C")
+```
+
+```{r,echo=TRUE}
+# el dataset de proyecciones se lee UNA sola vez y se reutiliza en todo lo que sigue
+proy <- readRDS(f_proy) |> as_tibble()
+```
+
+**Tmáx media de julio proyectada — SSP5-8.5, futuro lejano (2071–2100):**
+
+```{r}
+mapa_proy <- proy |>
+  filter(variable == "tasmax", escenario == "ssp585", modelo == "ensemble",
+         horizonte == "far_future", mes == 7) |>
+  group_by(municipio) |>
+  summarise(tasmax_jul = round(mean(value, na.rm = TRUE), 1), .groups = "drop")
+
+munic_map |>
+  left_join(mapa_proy, by = c("name" = "municipio")) |>
+  mapa_lf("tasmax_jul", "name", "°C")
+```
+
+**Proyecciones por modelo (dispersión inter-modelo):** el mapa anterior usa el
+`ensemble` (la media de los 11 GCMs), pero el dataset guarda **cada modelo por
+separado**. Para el mismo caso (tasmax de julio, SSP5-8.5, futuro lejano),
+promediando a toda Canarias, el valor varía notablemente según el modelo; el
+`ensemble` (rojo) es la media del conjunto.
+
+```{r}
+spread_modelos <- proy |>
+  filter(variable == "tasmax", escenario == "ssp585",
+         horizonte == "far_future", mes == 7) |>
+  group_by(modelo) |>
+  summarise(tasmax_jul = round(mean(value, na.rm = TRUE), 1), .groups = "drop") |>
+  mutate(es_ensemble = modelo == "ensemble")
+
+ggplot(spread_modelos, aes(reorder(modelo, tasmax_jul), tasmax_jul,
+                           fill = es_ensemble)) +
+  geom_col() +
+  geom_text(aes(label = tasmax_jul), hjust = -0.15, size = 3) +
+  coord_flip() +
+  scale_fill_manual(values = c(`FALSE` = "grey70", `TRUE` = "firebrick"),
+                    guide = "none") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.08))) +
+  labs(title = "Tmáx media de julio — SSP5-8.5, futuro lejano (2071–2100)",
+       subtitle = "Media de Canarias por modelo (rojo = ensemble)",
+       x = NULL, y = "°C") +
+  theme_minimal()
+```
+
+Series temporales por horizonte de cada modelo (tasmax, SSP5-8.5), promediadas a
+toda Canarias: cada línea gris es un GCM y la roja el `ensemble`.
+
+```{r, fig.width = 9, fig.height = 4}
+evol_modelos <- proy |>
+  filter(variable == "tasmax", escenario == "ssp585", mes == 7) |>
+  group_by(modelo, horizonte) |>
+  summarise(tasmax_jul = mean(value, na.rm = TRUE), .groups = "drop") |>
+  mutate(es_ensemble = modelo == "ensemble")
+
+ggplot(evol_modelos, aes(horizonte, tasmax_jul, group = modelo,
+                         color = es_ensemble, linewidth = es_ensemble)) +
+  geom_line() +
+  scale_color_manual(values = c(`FALSE` = "grey70", `TRUE` = "firebrick"),
+                     labels = c("GCM individual", "ensemble"), name = NULL) +
+  scale_linewidth_manual(values = c(`FALSE` = 0.4, `TRUE` = 1.3), guide = "none") +
+  labs(title = "Tmáx de julio por horizonte y modelo (SSP5-8.5) — media de Canarias",
+       x = NULL, y = "°C") +
+  theme_minimal()
+```
+
+## Proyecciones (proyecciones_canarias.rds)
+
+El segundo dataset, `proyecciones_canarias.rds`, es el **complemento prospectivo**
+del histórico: las mismas 14 variables, pero proyectadas al futuro con modelos
+CMIP6 regionalizados. Se diferencia del histórico en su estructura temporal:
+
+- **No tiene serie anual ni fechas**: son **climatologías** (un valor por mes),
+  así que la dimensión temporal son los 12 meses, no años. Cada valor es la
+  **media climatológica de 30 años** del horizonte correspondiente.
+- Añade tres dimensiones: **`escenario`** (4 trayectorias de emisión
+  SSP: `ssp126`, `ssp245`, `ssp370`, `ssp585`), **`modelo`** (los 11 GCMs de CMIP6
+  individuales más `ensemble`, la media del conjunto) y **`horizonte`** (4 ventanas
+  climáticas de 30 años: la base histórica de referencia y 3 horizontes futuros).
+- Columnas: `municipio · variable · unidad · escenario · modelo · horizonte · mes · value`.
+
+Los **horizontes** corresponden a estos periodos de 30 años, según la definición
+de AdapteCCa / Escenarios-PNACC:
+
+<div class="tabla-scroll">
+
+```{r}
+desc_horizonte |>
+  knitr::kable(col.names = c("horizonte", "periodo (años)", "denominación"))
+```
+
+</div>
+
+La **línea base de referencia** del modelo es el periodo histórico **1971–2000**
+(código interno `reference`). **Sí** se incluye en este rds, junto a los 3
+horizontes futuros, lo que permite calcular directamente las anomalías
+futuro − referencia. Al proceder del forzamiento histórico común de CMIP6, su
+valor es prácticamente idéntico en los 4 escenarios SSP (se repite en cada uno
+por simetría de la estructura).
+
+Los **escenarios** son trayectorias **SSP** (*Shared Socioeconomic Pathways*) del
+IPCC-AR6: cada una combina un relato socioeconómico (SSP1–5) con un nivel de
+**forzamiento radiativo** en 2100 —el número del código, p. ej. `2.6` = 2,6 W/m²—
+que resume el volumen de emisiones de gases de efecto invernadero (GHG). Van de
+menos a más emisiones: `ssp126` (bajas) → `ssp245` (medias) → `ssp370` (altas) →
+`ssp585` (muy altas). A mayor escenario, mayor calentamiento proyectado. El
+detalle de cada uno está en la **tabla final** de este documento.
+
+Por eso los criterios AEDV de *series temporales* y *actualización* no aplican
+igual (no es una serie observada): su papel es **proyectar/comparar** frente a la
+línea base histórica ya validada. A continuación, un resumen de su contenido:
+
+<div class="tabla-scroll">
+
+```{r}
+# el periodo de cada horizonte sale de los metadatos, no se vuelve a escribir aquí
+periodo_horizonte <- setNames(desc_horizonte$periodo, desc_horizonte$horizonte)
+
+resumen_proy <- tibble(
+  Concepto = c("Variables", "Escenarios (SSP)", "Modelos (GCM + ensemble)",
+               "Horizontes (periodo)", "Municipios", "Meses", "Filas totales"),
+  Valor = c(
+    as.character(n_distinct(proy$variable)),
+    paste(sort(unique(as.character(proy$escenario))), collapse = ", "),
+    as.character(n_distinct(proy$modelo)),
+    paste(sprintf("%s (%s)", names(periodo_horizonte), periodo_horizonte),
+          collapse = "; "),
+    as.character(n_distinct(proy$municipio)),
+    as.character(n_distinct(proy$mes)),
+    format(nrow(proy), big.mark = ".", decimal.mark = ",")
+  )
+)
+
+knitr::kable(resumen_proy)
+```
+
+</div>
+
+## Escenarios de emisión (GHG / SSP)
+
+Detalle de las 4 trayectorias SSP presentes en el dataset de proyecciones.
+
+**Qué significa la columna "Calentamiento 2100 (AR6)".** Es el aumento estimado de
+la **temperatura media GLOBAL** del planeta a finales de siglo (media del periodo
+**2081–2100**) respecto al **clima preindustrial** (referencia **1850–1900**),
+según el **6º Informe de Evaluación del IPCC (AR6, Grupo de Trabajo I, 2021)**. Es
+una cifra de referencia que sitúa la severidad de cada escenario; **no** es el
+calentamiento concreto de Canarias —ese se obtiene de los datos regionalizados de
+este mismo dataset y suele diferir del valor global.
+
+**Cómo se obtiene.** El IPCC parte del conjunto de modelos climáticos globales
+**CMIP6** y, combinándolos con el calentamiento ya observado, el paleoclima y el
+conocimiento de los procesos físicos, *acota* la dispersión de los modelos para
+dar, en cada escenario:
+
+- una **mejor estimación** (el valor central), y
+- un **rango "muy probable"** (entre paréntesis) que, en el lenguaje calibrado del
+  IPCC, cubre del **percentil 5 al 95** (≈ 90 % de probabilidad).
+
+Así, `ssp585` → *~4,4 °C (3,3–5,7)* se lee: la mejor estimación es **+4,4 °C** y es
+muy probable que el calentamiento global en 2100 quede **entre +3,3 y +5,7 °C**.
+
+<div class="tabla-scroll-xy con-desc">
+
+```{r}
+desc_escenario |>
+  knitr::kable(col.names = c("Escenario", "SSP", "Relato", "Forzamiento 2100",
+                             "Emisiones", "Calentamiento 2100 (AR6)", "Descripción"))
+```
+
+</div>

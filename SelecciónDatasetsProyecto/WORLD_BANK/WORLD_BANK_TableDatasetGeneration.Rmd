@@ -1,0 +1,295 @@
+---
+title: "Exploración de Datasets del Banco Mundial"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: readable
+    number_sections: true
+---
+
+<!--
+# TRUCOS ÚTILES AL EDITAR UN FICHERO Rmarkdown: 
+(1) TECLAS: CTRL-MAY-1 : EDICIÓN DE CÓDIGO OCUPA/NO OCUPA TODA LA VENTANA
+(2) TECLAS: CTRL-ALT-C : EJECUTA UN CHUNK CUANDO EL CURSOR DEL RATÓN ESTA DENTRO DEL CHUNK (OTRA FORMA ES HACER CLICK EN EL BOTÓN TRIANGULAR VERDE EN LA ESQUINA SUPERIOR DERECHA DEL CHUNK)
+(3) ACTIVAR "knit on Save" PARA COMPILAR AUTOMÁTICAMENTE AL GUARDAR EL ARCHIVO (CTRL-S)
+PARA CREAR UN CHUNK NUEVO USAR BOTÓN VERDE CON UNA "C" EN LA PARTE SUPERIOR DERECHA DE LA VENTANA
+(4) PARA EJECUTAR UNA PORCIÓN DE CÓDIGO O VISUALIZAR EL VALOR DE UNA TABLA/VARIABLE SELECCIONAR EL CÓDIGO CON EL RATÓN Y HACER CTRL-ENTER -->
+
+<!-- A continuación se fijan algunas cuestiones básicas de estilo de formateado del texto. Opcionalmente, se puede usar un archivo CSS para definir en más detalle el formateado del texto --> 
+
+<style>
+h1.title { font-size: 24px; }
+h1 { font-size: 20px; }
+h2 { font-size: 18px; }
+h3 { font-size: 16px; }
+body { font-size: 14px;}
+p { font-size: 14px; margin-bottom: 10px;
+}
+/* Tablas anchas: envolver el chunk en <div class="tabla-scroll"> ... </div> para verlas completas con scroll horizontal */
+.tabla-scroll { overflow-x: auto; }
+.tabla-scroll table { width: auto; min-width: 100%; }
+.tabla-scroll table td, .tabla-scroll table th { white-space: nowrap; }
+</style>
+
+
+
+```{r,echo=FALSE}
+# OPCIONES POR DEFECTO AL COMPILAR LOS CHUNKS 
+knitr::opts_chunk$set(
+  warning = FALSE,
+  message = FALSE,
+  echo=TRUE,
+  cache=FALSE
+)
+```
+
+```{r, echo=FALSE}
+library(openxlsx)
+library(wbstats)
+library(DT)
+library(tidyverse)
+
+# asociamos funciones a determinadas librerías para evitar posibles errores 
+select <- dplyr::select
+mutate <- dplyr::mutate
+filter <- dplyr::filter
+group_by <- dplyr::group_by
+summarise <- dplyr::summarise
+summarize <- dplyr::summarize
+rename <- dplyr::rename
+selectInput <- shiny::selectInput
+```
+
+
+<!-- EXPLORACIÓN DATASETS BANCO MUNDIAL. ESTA OPERACIÓN SE REALIZA PARA ACTUALIZAR LOS DATOS  
+DE "wb.datasets.xlsx" --> 
+
+
+**Lectura listado datasets del Banco Mundial (wb.datasets)**
+```{r}
+# LECTURA DATOS BÁSICOS DATASETS DISPONIBLES DEL WORLD BANK 
+# Cargar la caché actual del paquete
+# (Opcional: puedes actualizarla a la versión más reciente en línea con new_cache <- wb_cache())
+new_cache <- wb_cache()
+wb.datasets <- wb_cachelist$indicators |> as_tibble() |>
+  as_tibble() |> 
+  mutate(topics=unlist(lapply(topics, function(df) ifelse(is.null(df$value),NA,df$value)))) |>
+  mutate(topics=sub(" $", "", topics)) |>
+  select(Topic=topics,Id=indicator_id,Indicator=indicator,Indicator_desc=indicator_desc)
+
+wb.datasets
+```
+
+**Opciones del campo `Topic` de wb.datasets** 
+```{r}
+unique(wb.datasets$Topic)
+
+```
+
+
+DESCARGAMOS TODOS LOS DATASETS PARA OBTENER INFORMACIÓN ADICIONAL 
+
+```{r}
+
+# FUNCIÓN PARA DESCARGAR UN DATASET A PARTIR DE SU INDICADOR 
+wb.data.download <- function(codigo_indicador, paises = "all", inicio = 1900, fin = 2100, max_intentos = 3, tiempo_espera_seg = 1) {
+  
+  for (intento in 1:max_intentos) {
+    datos <- tryCatch({
+      # Intento de descarga
+      resultado <- wb_data(indicator = codigo_indicador, country = paises, start_date = inicio, end_date = fin)
+      return(resultado) # Si tiene éxito, sale de la función y devuelve los datos
+      
+    }, error = function(e) {
+      # Si hay un error:
+      return(NULL) # Devuelve NULL temporalmente para permanecer en el bucle
+    })
+    
+    # Si 'datos' no es NULL, significa que la descarga fue exitosa y ya se retornó dentro del tryCatch.
+    
+    # Si 'datos' es NULL (hubo un error) y no es el último intento, espera un momento.
+    if (is.null(datos) && intento < max_intentos) {
+      Sys.sleep(tiempo_espera_seg) # Pausa la ejecución
+    }
+  }
+  
+  # Si el bucle termina sin éxito después de todos los intentos:
+  return(NULL)
+}
+
+# --- CONTROL DE CUELGUES ----------------------------------------------------
+# El recorrido son miles de llamadas a la API y puede quedarse esperando
+# indefinidamente en una de ellas. Dos medidas:
+#
+# 1) Se acota el tiempo de cualquier descarga, para que una llamada colgada
+#    termine en error (que la lógica de reintentos ya sabe manejar) en vez de
+#    bloquear el documento entero.
+# 2) Se deja constancia del avance en un fichero .log con marca de tiempo. Al
+#    compilar con quiet=TRUE no se ve NADA por consola -los print() van al
+#    documento, que no existe hasta el final-, así que sin este log no hay forma
+#    de saber si el proceso avanza o está colgado. El fichero se puede abrir
+#    mientras compila: la última línea dice por qué dataset va y cuánto tardó.
+options(timeout = 60)                                    # conexiones de R base
+if(requireNamespace("httr", quietly = TRUE)){
+  httr::set_config(httr::timeout(60))                    # llamadas de wbstats
+}
+
+LOG <- "WORLD_BANK_TableDatasetGeneration.log"
+cat(format(Sys.time()), "- inicio del recorrido\n", file = LOG)
+log_avance <- function(k, n, id, seg){
+  cat(sprintf("%s  %5d/%5d  %-28s %6.1f s%s\n",
+              format(Sys.time()), k, n, id, seg,
+              if(seg > 30) "   <-- LENTO" else ""),
+      file = LOG, append = TRUE)
+}
+
+K <- as.numeric()
+N.reg <- as.numeric()
+DIM <- as.character()
+dateStart <- as.character()
+dateEnd <- as.character()
+Ndates <- as.numeric()
+Ncountries <- as.numeric()
+last_updated <- as.character()
+
+for(k in 1:nrow(wb.datasets)){
+#for(k in 1:100){
+  Id <- wb.datasets$Id[k]
+  #print(paste(k,Id))
+  t.inicio <- Sys.time()
+  data <- wb.data.download(Id)
+  log_avance(k, nrow(wb.datasets), Id,
+             as.numeric(difftime(Sys.time(), t.inicio, units = "secs")))
+  # if (!"iso3c" %in% names(data)) stop("El campo 'iso3c' no existe en el tibble")
+  # if (!"country" %in% names(data)) stop("El campo 'country' no existe en el tibble")
+  # if (!"date" %in% names(data)) stop("El campo 'date' no existe en el tibble")
+  for(col in colnames(data)){
+    if(is.numeric(data[[col]])){
+      data <- data |> filter(! is.na(!!sym(col)))
+    }
+  }
+  if(is.null(data)){
+    N.reg <- c(N.reg,0)
+    DIM <- c(DIM,"*")
+    K <- c(K,k)
+    dateStart <- c(dateStart, NA)
+    dateEnd <- c(dateEnd, NA)
+    Ndates <- c(Ndates,0)
+    Ncountries <- c(Ncountries,0)
+    last_updated <- c(last_updated, NA)
+    next
+  }
+  N.reg <- c(N.reg,nrow(data))
+  K <- c(K,k)
+  dim <- ""
+  dateStart <- c(dateStart, NA)
+  dateEnd <- c(dateEnd, NA)
+  Ndates <- c(Ndates,0)
+  Ncountries <- c(Ncountries,0)
+  last_updated <- c(last_updated, NA)
+  for(col in colnames(data)){
+    if(is.numeric(data[[col]]) & col!="date") next
+    if(col=="date"){
+      dateStart[length(dateStart)] <- min(data[[col]])
+      dateEnd[length(dateStart)] <- max(data[[col]])
+      Ndates[length(dateStart)] <- length(unique(data[[col]]))
+      next
+    }
+    if(col=="country"){
+      Ncountries[length(dateStart)] <- length(unique(data[[col]]))
+      next
+    }
+    if(col=="last_updated"){
+      last_updated[length(dateStart)] <-  as.character(data[[col]][1])
+      next
+    }
+    
+    N <- length(unique(data[[col]]))
+    dim <- paste0(dim,substr(col,1,20)," ",N, " - ")
+  }
+  #print(paste(nrow(data),dim))
+  DIM <- c(DIM,substr(dim,1,nchar(dim)-3))
+  if(k %% 100 == 0){
+    tibble(
+      Nº = K,
+      Ncountries = Ncountries,
+      N.reg = N.reg,
+      dateStart=dateStart,
+      dateEnd=dateEnd,
+      Ndates=Ndates,
+      last_updated=last_updated,
+      DIM = DIM
+    ) |> write.xlsx("wb.datasets.temporal.xlsx")
+    
+  }
+  
+  
+}
+
+tibble(
+      Nº = K,
+      Ncountries = Ncountries,
+      N.reg = N.reg,
+      dateStart=dateStart,
+      dateEnd=dateEnd,
+      Ndates=Ndates,
+      last_updated=last_updated,
+      DIM = DIM
+    ) |> write.xlsx("wb.datasets.temporal.xlsx")
+
+# El recorrido ha llegado al final, así que el guardado parcial ya no sirve para
+# nada: se borra para no dejar en la carpeta un fichero a medias que se pueda
+# confundir con el catálogo bueno. Si el recorrido se interrumpe, este borrado no
+# se ejecuta y el .temporal sobrevive, que es justo para lo que está.
+if(file.exists("wb.datasets.temporal.xlsx")) file.remove("wb.datasets.temporal.xlsx")
+
+
+```
+
+
+```{r}
+wb.datasets <- wb.datasets |> 
+  cbind(
+  tibble(
+        Nº = K,
+        Ncountries = Ncountries,
+        N.reg = N.reg,
+        dateStart=dateStart,
+        dateEnd=dateEnd,
+        Ndates=Ndates,
+        last_updated=last_updated,
+        DIM = DIM
+      )
+  ) |>
+  relocate(Nº) |>
+  relocate(Ndates,.after=Indicator)|>
+  relocate(dateEnd,.after=Indicator)|>
+  relocate(dateStart,.after=Indicator)|>
+  relocate(N.reg,.after=Indicator)|>
+  relocate(Ncountries,.after=Indicator)|>
+  rename(N.obs=N.reg)|>
+  rename(ANOTHER.DIMENSIONS=DIM)
+```
+
+
+
+**Escritura metadatos de los datasets antes de filtrar en wb.datasets.raw.xlsx** 
+```{r}
+wb.datasets |>
+  write.xlsx("wb.datasets.raw.xlsx")
+```
+
+
+**Escritura metadatos de los datasets filtrados en wb.datasets.xlsx** 
+
+```{r}
+wb.datasets.filtered <- wb.datasets |>
+  filter(Ncountries>=100,Ndates>=10) |>
+  filter(as.numeric(substr(dateEnd,1,4))>=2022) 
+
+wb.datasets.filtered|>
+  mutate(Nº=1:nrow(wb.datasets.filtered)) |> 
+  write.xlsx("wb.datasets.xlsx")
+```
+
+

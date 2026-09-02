@@ -1,0 +1,434 @@
+---
+title: "Selección de datasets para el proyecto de AEDV"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    css: ../estilos.css
+    theme: readable
+    toc: true
+    toc_float: true
+    number_sections: true
+---
+
+# Cómo usar esta carpeta para seleccionar el tema de tu proyecto
+
+Esta carpeta contiene herramientas para explorar y descargar datasets de seis fuentes de datos públicas: **EDGAR** (emisiones de gases de efecto invernadero a nivel mundial), **INE** (estadísticas españolas), **ISTAC** (estadísticas de Canarias), **EUROSTAT** (estadísticas europeas por regiones), **Banco Mundial** (indicadores globales) y **CLIMA** (variables climáticas de AdapteCCa/AEMET para España y Canarias). El objetivo es que encuentres uno o varios datasets que te resulten interesantes y que sean adecuados para el proyecto de la asignatura.
+
+> Cuando empieces a trabajar con un dataset, el primer paso es verificar en el Campus Virtual que ningún otro alumno ha elegido ya ese tema. En ese caso apunta al final de la lista el título y código identificativo del dataset. En caso de solape con otros alumnos consultar con el profesor. Si después de analizar el dataset no te convence recuerda eliminarlo del Campus Virtual; cuando apuntes otro, lo harás al final de la lista.
+
+## El flujo de trabajo en dos pasos
+
+Cada fuente de datos sigue el mismo esquema:
+
+```
+Paso 1 — Catálogo Excel con información básica de los datasets 
+         ↓
+Paso 2 — Exploración del dataset concreto
+```
+
+Los catálogos ya están generados y disponibles como archivos Excel en cada subcarpeta. **No necesitas ejecutar los archivos `*_TableDatasetGeneration.Rmd`** salvo que quieras actualizar el catálogo con datos más recientes; pero ten cuenta que la compilación puede durar bastantes horas y puede fallar si falla la conexión a internet.
+
+<div class="nota">
+<strong class="bloque-titulo">Los catálogos son una fotografía, no una fuente permanente</strong>
+
+Cada archivo Excel es una **radiografía de los datasets existentes en el instante en que se generó**, no un espejo permanente de lo que ofrece cada fuente (INE, ISTAC, EUROSTAT, Banco Mundial): los organismos añaden, retiran y renombran datasets con el tiempo. En raras ocasiones puede suceder que al actualizar el catálogo el `Id` de algún dataset cambie, o que un dataset que aparecía deje de estar disponible.
+
+Por eso es importante **no depender del catálogo Excel para tu proyecto**: una vez elijas tus datasets, lo que cuenta son las copias locales (`.rds` con los datos y `_metadatos.xlsx` con su ficha) que se guardan en tu carpeta al validarlos. Esto ya ocurre automáticamente: al compilar el `*_DatasetSelection.Rmd` correspondiente, lo **primero** que hace el documento es descargar los datos y guardarlos en disco; a partir de ahí, tanto el análisis del propio documento como tu proyecto trabajan siempre sobre esa copia, sin volver a depender de que el dataset siga disponible tal cual en la fuente original.
+</div>
+
+
+| Fuente | Catálogo | Cobertura |
+|--------|----------|-----------|
+| INE | `INE/INE.datasets.xlsx` | España: municipios, provincias, CCAA |
+| ISTAC | `ISTAC/ISTAC_datasets.xlsx` | Canarias: municipios, islas, CCAA |
+| EUROSTAT | `EUROSTAT/Eurostat.datasets.xlsx` | Europa: países y regiones NUTS 0, 1, 2 y 3 |
+| Banco Mundial | `WORLD_BANK/wb.datasets.xlsx` | Mundial: ≥100 países, ≥10 años |
+| EDGAR | *(dataset único, solo sirve para un alumno)* | Mundial: emisiones GHG 1970–2024 |
+| CLIMA (AdapteCCa) | *(proyecto propio, sin catálogo Excel; 14 variables climáticas)* | España (provincias) y Canarias (municipios): clima mensual 1951/1990–2022 + proyecciones CMIP6 |
+
+Los datasets que usamos en AEDV siempre tienen una variable (columna) con un dato temporal que puede estar en años, cuatrimestres, meses o semanas, una variable con datos de áreas geográficas que pueden ser países, CCAA, provincias o municipios, una o varias variables categóricas que identifican qué se está midiendo y una variable numérica con el valor observado de lo que se mide.
+
+> En el contexto de la asignatura AEDV, una variable (o campo) es cualquier columna de la tabla, una dimensión es cualquier variable no numérica y un indicador (o atributo) es una variable no numérica distinta de la variable temporal y de la variable geográfica. Por ejemplo: "Población" es un atributo asociado a un área geográfica en una fecha determinada.
+
+<div class="metodo">
+<strong class="bloque-titulo">Requisitos selección datasets para AEDV</strong>
+
+* **Cobertura geográfica**: el dataset debe cubrir ampliamente las áreas geográficas de su nivel:
+    - **Países** (Banco Mundial): más de 100 países.
+    - **Canarias** (ISTAC): más de 80 municipios, más de 6 islas o más de 15 comunidades autónomas, según el nivel del dato.
+    - **España** (INE): más de 500 municipios, más de 40 provincias o más de 15 comunidades autónomas.
+    - **Europa** (EUROSTAT): al menos 25 países (NUTS 0), 90 grandes regiones (NUTS 1), 200 regiones (NUTS 2) o 500 provincias (NUTS 3). Basta con cumplirlo en **uno** de los cuatro niveles.
+
+* **Datos actualizados**: debe tener datos recientes (último dato de 2024 o posterior). Salvo en los datasets del CLIMA que permitimos datos actualizados en años anteriores a 2024. 
+
+* **Tamaño de las series temporales**: Para cada atributo (o combinación de atributos) que se mide, en el dataset aparece, para cada región geográfica, una serie temporal que mide su evolución a lo largo del tiempo. Nos interesan los atributos que para el 75% de las regiones geográficas el tamaño de esas series alcanza un mínimo: al menos 10 años (datos anuales), 20 semestres (semestrales), 40 trimestres (trimestrales), 60 meses (mensuales), 200 semanas (semanales) o 1096 días (diarios, es decir tres años). Eso lo medimos comprobando que el **percentil 25 (P25)** de la distribución de tamaños de esas series supera el umbral mínimo: si P25 ≥ umbral, el 75% de las regiones ya lo supera.
+
+* **España y/o Canarias bien representadas**: no basta con que el dataset sea grande en conjunto; el proyecto tiene que poder analizar **nuestro entorno**. Por eso se comprueba, *además*, que la serie temporal de España o de Canarias alcance por su cuenta el mismo umbral del criterio anterior. Qué se exige depende del tipo de dataset:
+
+    - **INE**: alguna región **canaria** con serie suficiente. Según el nivel de desglose, Canarias aparece como la comunidad (`Canarias`), como sus dos provincias (`35 Palmas, Las` y `38 Santa Cruz de Tenerife`) o como municipios con código `35xxx`/`38xxx`.
+    - **EUROSTAT**: **España** (`ES`) **o** alguna región de **Canarias** (`ES7`, `ES70`, o las islas `ES703`–`ES709`). Basta con que se cumpla en una de las dos.
+    - **Banco Mundial**: **España** (`ESP`), ya que sus datos son por países y no bajan a nivel regional.
+    - **ISTAC**: no se comprueba aparte, porque **todos** sus datos son ya de Canarias.
+
+* **Mínimo de 4 atributos**: Tenemos que seleccionar un nº de datasets suficientes para manejar al menos 4 atributos (o combinaciones de atributos) diferentes que cumplan el criterio anterior sobre el tamaño de las series temporales asociadas. Las variaciones que se derivan de un mismo atributo no cuentan como atributos diferentes, es decir si manejamos el dato de población, el dato de la variación anual de la población no cuenta como atributo diferente. Los datasets del INE y de EUROSTAT contienen, con frecuencia, más de 4 atributos y por tanto un solo dataset puede ser suficiente para hacer el proyecto. Los datasets del World Bank y del ISTAC solo contienen un atributo y por tanto hay que manejar varios datasets.
+
+
+</div>
+
+## Explorar un dataset en detalle
+
+Abre el archivo `*_DatasetSelection.Rmd` de la fuente correspondiente y localiza la línea donde se especifican los datasets a analizar:
+
+**INE** — cambia el valor de `Dataset.Id` por el identificador del dataset:
+```r
+Dataset.Id <- 76136   # ← pon aquí el Id de tu dataset
+```
+
+**EUROSTAT** — cambia el valor de `dataset.name` por el código del dataset (columna `code` del catálogo):
+```r
+dataset.name <- "demo_r_pjanaggr3"   # ← pon aquí el code de tu dataset
+```
+
+**ISTAC y Banco Mundial** — cambia el vector `IDS` con los identificadores de los datasets de tu catálogo. El formato del identificador depende de la fuente:
+```r
+# ISTAC — identificadores en mayúsculas (columna `id` del catálogo):
+IDS <- c("MATRICULA_VEHICULOS", "PARQUE_VEHICULOS")
+
+# Banco Mundial — códigos de la API (columna `Id` del catálogo):
+IDS <- c("SP.POP.TOTL", "SP.POP.TOTL.FE.IN")
+```
+
+A continuación haz **Knit** (`Ctrl+Shift+K`). Todos los `*_DatasetSelection.Rmd` siguen la misma estructura, en dos partes:
+
+**1. Descarga, limpieza y guardado.** Descarga los datos, elimina las columnas que no aportan nada (las que tienen siempre el mismo valor) y **guarda en disco dos ficheros**, antes de analizar nada:
+
+| Fichero | Contenido |
+|---------|-----------|
+| `<nombre>.rds` | Los datos ya limpios, en el formato nativo de R |
+| `<nombre>_metadatos.xlsx` | La ficha del dataset (su fila del catálogo), para tenerla a mano sin volver al Excel grande |
+
+El `<nombre>` es el **código del dataset** en INE (`76136.rds`) y EUROSTAT (`demo_r_pjanaggr3.rds`), y un nombre fijo en las fuentes que combinan varios indicadores: `ISTAC_Selected` y `WB_Selected`.
+
+**2. Análisis del dataset.** Vuelve a **leer esos dos ficheros del disco** y a partir de ahí hace todo el análisis:
+
+- La ficha de metadatos y, en EUROSTAT, la descripción completa del tema al que pertenece el dataset.
+- Las dimensiones del dataset, cada una con sus valores posibles y su nº de observaciones.
+- Análisis del tamaño de las series temporales (nº de regiones/países, rango de fechas y percentiles).
+- Listado de regiones o países con datos y nº de observaciones, comprobando la presencia de España/Canarias.
+- **Una tabla de validación** que marca en verde/rojo si cada atributo (o combinación de atributos) cumple los criterios AEDV: cobertura geográfica, datos actualizados, tamaño de las series temporales y representación de España/Canarias.
+- **Un veredicto final** que cuenta cuántos atributos válidos hay e indica si se alcanza el mínimo de 4.
+
+<div class="metodo">
+<strong class="bloque-titulo">Cómo se aprovecha esto en la memoria del proyecto</strong>
+
+Que el guardado vaya **primero** y el análisis **después** no es casualidad: está pensado para que puedas reutilizar el trabajo directamente.
+
+1. Compila el `*_DatasetSelection.Rmd` con tus datasets y comprueba que cumplen los requisitos.
+2. **Copia el `.rds` y el `_metadatos.xlsx` a la carpeta de tu proyecto**, junto a tu memoria.
+3. A partir de ahí puedes hacer **copy/paste del código de la sección "Análisis del dataset"** directamente en tu memoria: esa parte está escrita para no depender de nada de la sección anterior — arranca leyendo los dos ficheros del disco, así que funciona tal cual en tu documento sin volver a descargar nada de internet.
+
+Es decir: la primera parte (descarga) **no** va en la memoria; la segunda (análisis) sí puede ir, entera o por trozos, y como punto de partida para tu propio análisis.
+
+Ten en cuenta que ese código usa las clases CSS del curso (`tabla-scroll`, `caja-scroll`, `tabla-scroll-xy` y las celdas verde/rojo de la tabla de validación). Ya están todas en el fichero `estilos.css` que acompaña al modelo de memoria, así que **si tu memoria lo referencia** (`css: estilos.css` en la cabecera) las tablas se verán igual que aquí.
+</div>
+
+> **Cómo buscar datasets por tema.** Lo habitual es localizar datasets concretos de un tema que te interese ayudándote de una IA (ChatGPT, Claude, etc.) sobre los catálogos Excel: súbele el `.xlsx` de la fuente (`ISTAC_datasets.xlsx`, `wb.datasets.xlsx`, `Eurostat.datasets.xlsx` o `INE.datasets.xlsx`) y pídele que te liste los identificadores relacionados con tu tema. Para afinar, fíjate además en las columnas que anticipan si cumplirán los requisitos: en **ISTAC**, `area` (nivel geográfico: `MUNI`, `ISLA`, `CCAA`…) y `freq` (frecuencia); en **Banco Mundial**, `Ncountries` y `dateEnd`; en **INE**, `Codigo` (desglose geográfico) y `Periodicidad`; en **EUROSTAT**, `topic` (familia temática), `NUTS0`–`NUTS3` (cobertura por nivel), `N.atrib.combinados` y las columnas `ESPAÑA`/`CANARIAS`. Copia los identificadores resultantes en `IDS` (o en `Dataset.Id` para el INE y `dataset.name` para EUROSTAT).
+
+
+# Descripción de los catálogos de datasets
+
+## INE — `INE/INE.datasets.xlsx` (1.678 datasets)
+
+Este archivo contiene los datasets del Instituto Nacional de Estadística accesibles a través de la librería `ineapir`, filtrados para incluir únicamente los que tienen datos a nivel de municipio, provincia o comunidad autónoma y han sido actualizados en 2024 o después.
+
+### Descripción de columnas de INE.datasets.xlsx
+
+| Columna | Descripción |
+|---------|-------------|
+| `Id` | Identificador numérico del dataset. Es el valor que hay que poner en `Dataset.Id` en `INE_DatasetSelection.Rmd` para descargar el dataset. |
+| `Codigo` | Código interno del INE. Contiene información sobre el desglose geográfico: `CCAA` (comunidades autónomas), `PROV` (provincias), `MUN` (municipios). |
+| `OPER` | Código de la operación estadística (nivel superior de clasificación del INE). |
+| `OPER.Nombre` | Nombre de la operación estadística a la que pertenece el dataset. Permite agrupar datasets del mismo ámbito temático. |
+| `Nombre` | Nombre descriptivo del dataset. |
+| `Publicacion` | Nombre de la publicación oficial del INE asociada. |
+| `Periodicidad` | Frecuencia de actualización: Anual, Trimestral, Mensual, Cuatrienal o Semanal. |
+| `Start` | Año de inicio de la serie temporal. |
+| `LastUpdate` | Fecha de última actualización. Al estar filtrado, todos los datasets tienen datos recientes. |
+| `N.obs` | Número de filas del dataset. Da una idea del tamaño y riqueza del dataset. |
+| `Freq` | Frecuencia temporal detectada a partir del formato de las fechas: `Y` (anual), `S` (semestral), `Q` (trimestral), `M` (mensual), `W` (semanal). `?` si el formato no se ha podido reconocer. |
+| `N.periodos` | Número de fechas distintas de la serie. |
+| `DIM` | Dimensiones (variables o columnas) del dataset con el número de valores distintos de cada una. Por ejemplo: `Periodo 231 - Sexo 3 - CCAA 19` indica 231 periodos, 3 sexos y 19 comunidades. |
+
+### Organización por temas
+
+El INE no trae una columna de tema, pero sí la operación estadística de la que procede cada dataset (`OPER.Nombre`, 65 valores distintos). Agrupándolas, el catálogo se reparte así (los recuentos suman los 1.678 datasets):
+
+| Tema | Nº datasets | Operaciones estadísticas que lo componen (`OPER.Nombre`) |
+|------|:-----------:|---------------------|
+| **Mercado laboral** | 264 | Encuesta de Población Activa (EPA); Flujos de la Población Activa |
+| **Demografía y población** | 251 | Indicadores Demográficos Básicos; Estadística Continua de Población |
+| **Turismo** | 203 | Ocupación hotelera, en apartamentos turísticos, campings, turismo rural y albergues; turismo de residentes; viviendas turísticas; movimientos en fronteras (15 operaciones) |
+| **Salarios y costes laborales** | 142 | Encuesta de Estructura Salarial (cuatrienal y anual); Encuesta de Coste Laboral (trimestral y anual); Índice de Precios del Trabajo |
+| **Nacimientos y defunciones** | 125 | MNP Nacimientos y Defunciones; defunciones semanales (EDeS); defunciones por causa de muerte; tablas de mortalidad |
+| **Matrimonios y familia** | 102 | MNP Estadística de Matrimonios |
+| **Migración** | 87 | Migraciones y Cambios de Residencia; Adquisiciones de Nacionalidad Española |
+| **Vivienda e hipotecas** | 80 | Hipotecas; ejecuciones hipotecarias; precios de vivienda y de alquiler; transmisión de derechos de la propiedad |
+| **Empresas, industria y comercio** | 77 | Sociedades Mercantiles; DIRCE; estadística estructural de empresas; producción industrial; comercio al por menor (11 operaciones) |
+| **Condiciones de vida y renta** | 68 | Encuesta de Condiciones de Vida (ECV); Presupuestos Familiares (EPF); Atlas de distribución de renta de los hogares |
+| **Divorcios y separaciones** | 57 | Nulidades, Separaciones y Divorcios |
+| **Padrón municipal** | 53 | Cifras Oficiales de Población de los Municipios Españoles |
+| **Delincuencia y justicia** | 51 | Población Condenada Adulta; Población Condenada Menor de Edad |
+| **Precios (IPC e industriales)** | 43 | Índice de Precios de Consumo (IPC); Índices de Precios Industriales; precios de materiales y energía |
+| **Violencia de género** | 28 | Estadística de Violencia Doméstica y Violencia de Género |
+| **Gasto turístico** | 22 | Gasto de los visitantes extranjeros por destino; Encuesta de Gasto Turístico |
+| **Indicadores urbanos** | 21 | Indicadores Urbanos (Urban Audit) |
+| **Transporte** | 4 | Estadística de Transporte de Personas |
+
+> **Cuidado al filtrar por `OPER.Nombre`.** La Encuesta Cuatrienal de Estructura Salarial aparece con **dos nombres casi idénticos** —`Encuesta Cuatrienal de Estructura Salarial` y `Encuesta Cuatrienal de Estructural Salarial`—, con 54 datasets cada uno. Es una errata del propio INE, no del catálogo: si filtras por el nombre exacto te dejas fuera la mitad de la operación.
+
+---
+
+## ISTAC — `ISTAC/ISTAC_datasets.xlsx` (400 datasets)
+
+Contiene todos los datasets estadísticos de Canarias accesibles a través de la librería `istacr`. Es el catálogo completo sin filtrar, por lo que incluye datasets de todo tipo de frecuencias y coberturas geográficas.
+
+### Descripción de columnas
+
+| Columna | Descripción |
+|---------|-------------|
+| `Nº` | Número de fila de referencia en el catálogo. |
+| `id` | Identificador del indicador en el sistema ISTAC. Nombre corto en mayúsculas (ej. `POBLACION`, `ACCIDENTES_TRABAJO_BAJA`). **Es el valor que hay que incluir en el vector `IDS`** en `ISTAC_DatasetSelection.Rmd`. |
+| `subject` | Tema al que pertenece el dataset. Permite filtrar por área de interés. |
+| `n.reg` | Número de regiones distintas con datos. El valor nos da una pista de la cobertura geográfica, por ejemplo, un valor alrededor de 97, sugiere que son municipios de las islas, un valor alrededor de 20, que son CCAA, un valor alrededor de 7 que los datos son por islas, un valor alrededor de 40 pueden ser provincias españolas. |
+| `n.obs` | Número total de observaciones (filas) del dataset. |
+| `area` | Tipo de área geográfica detectada automáticamente: `MUNI` (municipios), `ISLA` (islas), `CCAA` (comunidades autónomas), `PROV` (provincias), `CANA` (Canarias como conjunto) u `OTRO`. |
+| `freq` | Frecuencia temporal: `Y` (anual), `S` (semestral), `Q` (trimestral), `M` (mensual), `W` (semanal), `D` (diaria). |
+| `initDate` | Año o fecha de inicio de la serie temporal. |
+| `lastDate` | Año o fecha del último dato disponible. |
+
+### Organización por temas
+
+La columna `subject` trae el tema tal y como lo nombra el ISTAC. Son **61 temas distintos**, así que aquí van los 22 con 5 datasets o más; el resto está repartido en temas de 1 a 4 datasets. **Los nombres de esta tabla son literalmente los valores de la columna**, para que puedas filtrar por ellos en Excel.
+
+| Tema (valor de `subject`) | Nº datasets | Ejemplos de `id` |
+|------|:-----------:|---------|
+| **Empleo** | 57 | `ACCIDENTES_TRABAJO_BAJA`, `PARO_REGISTRADO`, contratos por isla y municipio |
+| **Hostelería y turismo** | 22 | `ALOJATUR_ABIERTOS`, `ALOJATUR_ESTANCIAS_MEDIAS` — pernoctaciones y viajeros por isla (mensual) |
+| **Población y hogares** | 22 | `POBLACION`, `POBLACION_00A14` — por municipio, isla, sexo y grupo de edad |
+| **Presupuestos y tributos** | 20 | `PRESUPUESTO_AYUNTAMIENTOS_LIQUIDADO_GASTO_HABITANTE` y variantes por municipio |
+| **Movimiento natural** | 18 | `DEFUNCIONES`, `DEFUNCIONES_EDAD_MEDIA`, nacimientos y matrimonios por municipio |
+| **Transporte, movilidad y comunicaciones** | 16 | `MATRICULA_VEHICULOS`, `PARQUE_VEHICULOS`, tráfico aéreo interinsular |
+| **Empresas y centros de trabajo** | 14 | `DIRCE_EMPRESAS`, `EMPRESAS_SEGURIDAD_SOCIAL` |
+| **Sistema de salud y atención sanitaria** | 13 | `GASTO_FARMACEUTICO`, `GASTO_FARMACEUTICO_MEDIO_ENVASE` (mensual) |
+| **Igualdad y diversidad de género** | 11 | `REPRESENTACION_FEMENINA_ALCALDIAS_PC` y otros indicadores por isla |
+| **Calidad de vida y usos del tiempo** | 10 | `JUEGOS_AZAR_APUESTAS_PRESENCIALES`, `JUEGOS_AZAR_BINGO` |
+| **Industria** | 10 | `EIAP_PRODUCCION_PROPIA`, `EMPRESAS_INDUSTRIA_PERSONAL_OCUPADO` |
+| **Justicia y seguridad ciudadana** | 9 | `POBLACION_RECLUSA`, `POBLACION_RECLUSA_HOMBRES` |
+| **Condiciones de vida** | 8 | `DESIGUALDAD_INDICE_GINI`, `DESIGUALDAD_P80_P20` |
+| **Educación y aprendizaje permanente** | 8 | `ALUMNADO_NO_UNIVERSITARIO_CONCERTADOS_REGIMEN_GENERAL` |
+| **Turismo, comercio, transporte y otros servicios** | 8 | `EMPRESAS_SERVICIOS_PERSONAL_OCUPADO` |
+| **Agricultura** | 7 | `SUPERFICIE_CULTIVO`, `SUPERFICIE_CULTIVO_HERBACEOS` |
+| **Comercio** | 7 | `EMPRESAS_COMERCIO_PERSONAL_OCUPADO` |
+| **Pensiones, prestaciones y ayudas de protección social** | 7 | `PENSIONES_CONTRIBUTIVAS`, `DESEMPLEO_PRESTACIONES` |
+| **Comercio exterior e internacionalización de la economía** | 6 | `COMERCIO_EXTERIOR_DEFICIT_COMERCIAL` |
+| **Construcción** | 6 | `CEMENTO_VENTAS`, `LICITACION_OFICIAL` |
+| **Agricultura y ganadería** | 5 | `PRECIOS_AGRICOLAS_MEDIO_PONDERADO_AGUACATE` |
+| **Empleos y relación con la actividad económica** | 5 | `AFILIACIONES_MEDIAS`, `AFILIACIONES_MEDIAS_HOMBRES` |
+| *Otros 39 temas con menos de 5 datasets* | 111 | `PIB_PM`, `IPC`, `ENERGIA_ELECTRICA_DISPONIBLE`, `GANADO_BOVINO`, `HIPOTECAS_CONSTITUIDAS`, `IPV`… |
+
+> **El mismo asunto aparece bajo varios `subject`.** El ISTAC no tiene una clasificación única: la salud está repartida entre `Sistema de salud y atención sanitaria` (13), `Estado de salud y morbilidad` (3), `Salud` (3) y `Salud y protección ambiental` (3); la agricultura, entre `Agricultura` (7), `Agricultura y ganadería` (5), `Ganadería` (4) y `Agricultura, ganadería y pesca` (3). Busca por palabra clave en la columna `id`, no solo por `subject`.
+
+---
+
+## Banco Mundial — `WORLD_BANK/wb.datasets.xlsx` (2.468 datasets)
+
+Contiene indicadores del Banco Mundial filtrados para incluir solo los que tienen datos de al menos 100 países, al menos 10 años de datos, y cuya última observación es de 2022 o posterior. **Nota:** algunos indicadores tienen el último dato en 2022 o 2023; para cumplir el requisito de AEDV de datos posteriores a 2024, verifica la columna `dateEnd` antes de elegir. Las series arrancan desde 1960 en muchos casos.
+
+### Descripción de columnas
+
+| Columna | Descripción |
+|---------|-------------|
+| `Nº` | Número de fila de referencia en el catálogo. |
+| `Topic` | Tema del indicador (en inglés). Permite agrupar por área de interés. |
+| `Id` | Código del indicador en la API del Banco Mundial (ej. `SP.POP.TOTL`). **Es el valor que hay que incluir en el vector `IDS`** en `WORLD_BANK_DatasetSelection.Rmd`. |
+| `Indicator` | Nombre del indicador en inglés. |
+| `Ncountries` | Número de países con datos (entre 100 y 265). |
+| `N.obs` | Número total de observaciones (filas). |
+| `dateStart` | Año del primer dato disponible. |
+| `dateEnd` | Año del último dato disponible. |
+| `Ndates` | Número de años distintos con datos (entre 11 y 143). |
+| `Indicator_desc` | Descripción detallada de cómo se mide el indicador y qué incluye. Muy útil para entender qué se está analizando exactamente antes de elegirlo. |
+| `last_updated` | Fecha de la última actualización del indicador en el Banco Mundial. |
+| `ANOTHER.DIMENSIONS` | Otras dimensiones disponibles en el dataset además de país y año. |
+
+### Organización por temas
+
+| Tema (valor de `Topic`) | Nº datasets | Ejemplos de indicadores |
+|------|:-----------:|------------------------|
+| *(sin `Topic`)* | **928** | Ver el aviso de debajo: proyecciones, protección social, deuda y población |
+| **Social Protection & Labor** | 598 | Tasa de desempleo, cobertura de pensiones, subsidios de desempleo por país |
+| **Economy & Growth** | 204 | PIB per cápita, comercio exterior (% PIB), inflación, formación bruta de capital |
+| **Health** | 178 | Esperanza de vida, mortalidad infantil, gasto sanitario, prevalencia de enfermedades |
+| **Education** | 125 | Tasa de alfabetización, ratio alumnos/profesor, gasto en educación (% PIB) |
+| **Private Sector** | 81 | Facilidad para hacer negocios, densidad de nuevas empresas por país |
+| **Public Sector** | 71 | Gasto público, deuda, ingresos fiscales por país |
+| **Aid Effectiveness** | 54 | Flujos de ayuda bilateral por país donante y receptor |
+| **Financial Sector** | 37 | Capitalización bursátil, crédito privado, acceso a servicios financieros |
+| **External Debt** | 34 | Deuda externa total, uso del crédito del FMI |
+| **Agriculture & Rural Development** | 32 | Consumo de fertilizantes, tierra agrícola, valor añadido agrícola (% PIB) |
+| **Gender** | 29 | Tasa de alfabetización femenina, participación laboral por sexo, paridad educativa |
+| **Energy & Mining** | 28 | Intensidad energética, acceso a electricidad, energías renovables (% consumo) |
+| **Infrastructure** | 23 | Acceso a agua potable, uso de internet, infraestructura de transporte |
+| **Poverty** | 21 | Población en chabolas, índice de pobreza multidimensional |
+| **Climate Change** | 12 | Emisiones CO₂ per cápita, población en zonas costeras en riesgo |
+| **Environment** | 5 | Recursos hídricos renovables, superficie forestal |
+| **Urban Development** | 5 | Población urbana, crecimiento de las ciudades |
+| **Science & Technology** | 3 | Gasto en I+D (% PIB), investigadores por millón de habitantes |
+
+<div class="discusion">
+<strong class="bloque-titulo">Los 928 indicadores sin `Topic`: no aparecen al filtrar por tema</strong>
+
+**Más de un tercio del catálogo (928 de 2.468) tiene la columna `Topic` vacía.** No son datos defectuosos —todos cumplen ya el filtro de ≥100 países y ≥10 años—, simplemente el Banco Mundial no les asignó tema. Si buscas por `Topic` en Excel, o le pides a una IA que filtre por esa columna, **te los pierdes todos**. Se distinguen por el prefijo del `Id`:
+
+| Prefijo | Nº | Qué son |
+|---|:--:|---|
+| `PRJ.*` | 308 | **Proyecciones** de población y nivel educativo hasta 2100 |
+| `per_*` | 234 | Protección social y equidad (base ASPIRE): cobertura y adecuación de prestaciones |
+| `DT.*` | 170 | Deuda externa detallada por acreedor, plazo y tipo |
+| `SP.*` | 73 | Población por edad, sexo y ámbito urbano/rural |
+| `BI.*` | 54 | Empleo público (*Worldwide Bureaucracy Indicators*): plantilla, salarios y composición |
+
+**Trampa con `dateEnd`:** los 308 indicadores `PRJ.*` tienen `dateEnd = 2100`. Si ordenas el catálogo por esa columna para encontrar «lo más actualizado», salen los primeros — y son **proyecciones, no observaciones**. Para el proyecto necesitas datos observados: comprueba el prefijo del `Id` antes de fiarte de la fecha.
+</div>
+
+---
+
+## EUROSTAT — `EUROSTAT/Eurostat.datasets.xlsx` (1.763 datasets)
+
+Contiene los datasets de la oficina estadística de la Unión Europea, filtrados para incluir solo los que tienen el último dato en 2024 o después, series lo bastante largas, cobertura suficiente en algún nivel NUTS, al menos 5 atributos combinados y datos de España.
+
+Su interés para el proyecto es que EUROSTAT organiza la geografía en **cuatro niveles NUTS anidados**, lo que permite comparar España con el resto de Europa y, a la vez, bajar al detalle regional:
+
+| Nivel | Qué es | Código de Canarias |
+|-------|--------|--------------------|
+| NUTS 0 | Países (39 registrados) | `ES` (España) |
+| NUTS 1 | Grandes regiones (115) | `ES7` |
+| NUTS 2 | Comunidades autónomas o equivalente (299) | `ES70` |
+| NUTS 3 | Provincias o equivalente (1.345). **En Canarias es por islas**, no por provincias | `ES705` (Gran Canaria), `ES709` (Tenerife)… |
+
+Que Canarias aparezca en los tres niveles con códigos distintos (`ES7`, `ES70` y las islas `ES703`–`ES709`) es lo que hace a EUROSTAT especialmente útil desde aquí: en muchos datasets se puede trabajar **isla a isla**.
+
+### Descripción de columnas
+
+| Columna | Descripción |
+|---------|-------------|
+| `code` | Código del dataset. **Es el valor que hay que poner en `dataset.name`** en `EUROSTAT_DatasetSelection.Rmd`. |
+| `title` | Título del dataset en inglés. |
+| `topic` | Nombre corto (p. ej. `POPULATION_DEMOGRAPHY_REGIONAL`) que identifica la **familia** de datos a la que pertenece el dataset. Sirve para localizar de un vistazo todos los datasets del mismo ámbito y para recuperar su descripción completa (ver el aviso de abajo). Alrededor de un 20 % de los datasets no tienen `topic` porque EUROSTAT no publica ficha para ellos. |
+| `Freq` | Frecuencia temporal: `Y` (anual), `S` (semestral), `Q` (trimestral), `M` (mensual), `W` (semanal), `D` (diaria). |
+| `N.periodos` | Número de fechas distintas de la serie. |
+| `Ini` / `Fin` | Primera y última fecha disponibles. |
+| `N.observaciones` | Número total de observaciones (filas) del dataset. |
+| `N.regiones` | Número total de códigos geográficos distintos. |
+| `NUTS0`, `NUTS1`, `NUTS2`, `NUTS3` | De esos códigos, cuántos son regiones reales de cada nivel. **Son las columnas clave para el requisito de cobertura geográfica.** |
+| `AGREG` | Códigos que son agrupaciones de países (`EU27_2020`, `EA19`…), no una región concreta. |
+| `OTHERS` | Códigos sin región real en los mapas NUTS actuales (Reino Unido, agregados estadísticos…). |
+| `ESPAÑA` / `CANARIAS` | Si el dataset tiene datos de España y de Canarias. |
+| `N.atrib.combinados` | Número de atributos combinados posibles (producto de las opciones de las dimensiones que no son la frecuencia, la geografía ni la fecha). Es una **cota superior**: no todas las combinaciones aparecen con datos. |
+| `Dimension_N.options` | Esas mismas dimensiones con su nº de opciones, en el formato `nombre nº - nombre nº - …`. |
+| `ESMS` | Dirección de la ficha de metadatos completa en la web de EUROSTAT. |
+| `last.update.of.data`, `last.table.structure.change`, `data.start`, `data.end`, `hierarchy` | Datos del catálogo original de EUROSTAT: fechas de actualización, rango temporal y profundidad en el árbol de temas. |
+
+<div class="nota">
+<strong class="bloque-titulo">Dónde está la descripción de los datos: `Eurostat.topics.xlsx`</strong>
+
+La descripción que publica EUROSTAT de cada familia de datos ocupa varios miles de caracteres y se repite en todos los datasets de esa familia, lo que hacía el catálogo lentísimo de abrir en Excel. Por eso el catálogo solo trae el `topic` (el nombre corto), y los textos completos están en un fichero aparte, **`EUROSTAT/Eurostat.topics.xlsx`**, con dos columnas: `topic` y `Descripcion`.
+
+Para leer de qué van unos datos, busca su `topic` en ese fichero. No hace falta hacerlo a mano para el dataset que elijas: `EUROSTAT_DatasetSelection.Rmd` lo consulta solo y deja la descripción completa en tu fichero de metadatos.
+</div>
+
+<div class="nota">
+<strong class="bloque-titulo">El título de EUROSTAT suele ser críptico</strong>
+
+Los nombres de los datasets y de sus dimensiones van abreviados (`na_item`, `B6N`, `MIO_EUR`). Además de buscar su `topic` en `Eurostat.topics.xlsx`, ayuda mucho pegar el título o el `code` en una IA, o abrir el enlace de la columna `ESMS`. El propio `EUROSTAT_DatasetSelection.Rmd` traduce las abreviaturas a nombres completos al analizar el dataset.
+</div>
+
+### Organización por temas
+
+El **prefijo del `code`** (lo que va antes del primer guion bajo) identifica el ámbito temático: `ilc_` son condiciones de vida, `demo_` demografía, `tour_` turismo… Es la forma más rápida de acotar la búsqueda en el Excel. Los prefijos que se listan entre paréntesis en la tabla son **los principales de cada tema, no todos**: hay familias menores que también cuentan (`namq_` y `nasa_` en economía, `tran_` en transporte, `htec_` en industria…).
+
+| Tema | Nº datasets | Ejemplos de datasets |
+|------|:-----------:|---------------------|
+| **Mercado laboral** (`lfs*`, `earn_`, `jvs_`, `hsw_`, `lc_`) | 309 | Tasa de paro por sexo, edad y región; horas trabajadas; accidentes de trabajo; salarios y coste laboral |
+| **Condiciones de vida y pobreza** (`ilc_`) | 214 | Riesgo de pobreza por umbral, edad y sexo; desigualdad (Gini); privación material — encuesta EU-SILC |
+| **Educación** (`educ_`, `edat_`, `trng_`) | 128 | Alumnado por nivel educativo; abandono escolar temprano; formación continua |
+| **Transporte** (`road_`, `rail_`, `avia_`, `mar_`) | 116 | Pasajeros aéreos entre regiones; transporte de mercancías por carretera y ferrocarril; accidentes de tráfico |
+| **Economía y cuentas nacionales** (`nama_`, `prc_`, `gov_`, `bop_`) | 102 | PIB y renta de los hogares por región NUTS 2; precios; déficit y deuda pública; balanza de pagos |
+| **Demografía y proyecciones** (`demo_`, `proj_`, `cens_`) | 101 | Población a 1 de enero por edad, sexo y región; defunciones semanales por NUTS 3; proyecciones hasta 2100 |
+| **Migración y asilo** (`migr_`) | 97 | Solicitantes de asilo por nacionalidad, edad y sexo (datos mensuales); permisos de residencia |
+| **Industria, comercio y servicios** (`sts_`, `ext_`, `inn_`, `ei_`) | 92 | Producción industrial mensual; comercio exterior; innovación empresarial; indicadores de coyuntura |
+| **Salud** (`hlth_`) | 82 | Causas de muerte por región; esperanza de vida saludable; recursos y gasto sanitario |
+| **Turismo** (`tour_`) | 77 | Pernoctaciones y capacidad de alojamiento por región; gasto por país de destino |
+| **Energía** (`nrg_`) | 71 | Balances energéticos; precios de la electricidad y el gas; energías renovables |
+| **Medio ambiente y clima** (`env_`, `sdg_`) | 64 | Emisiones atmosféricas por actividad; residuos; indicadores de desarrollo sostenible |
+| **Agricultura y pesca** (`apro_`, `ef_`, `fish_`, `for_`) | 56 | Producción agrícola y ganadera; estructura de las explotaciones; capturas pesqueras |
+| **Sociedad digital** (`isoc_`) | 48 | Uso de internet por individuos y empresas; comercio electrónico; competencias digitales |
+| **Otros** (`naio_`, `rd_`, `urt_`, `crim_`, `cult_`…) | 206 | Tablas input-output, I+D, estadísticas urbanas, criminalidad, cultura, juventud |
+
+---
+
+## EDGAR — dataset único de emisiones de gases de efecto invernadero (solo sirve para un estudiante)
+
+EDGAR **no tiene catálogo Excel previo**: no hay nada que buscar, el dataset es uno solo. Por lo demás, `EDGAR_GHG/EDGAR_GHG.Rmd` está organizado igual que los `*_DatasetSelection.Rmd` del resto de fuentes, en dos partes: primero descarga y guarda en disco (`EDGAR_GHG.rds` con los datos y `EDGAR_GHG_metadatos.xlsx` con su ficha), y después analiza leyendo esos dos ficheros. La sección **Análisis del dataset** vuelve a ser autocontenida, así que puedes copiarla tal cual en tu memoria.
+
+El dataset ya está descargado y procesado, y **la descarga solo se ejecuta si falta el `.rds`**: compilar el documento no vuelve a bajar los varios GB de ficheros de EDGAR. Para actualizar a una versión más reciente hay que borrar `EDGAR_GHG.rds` y cambiar los nombres de fichero de las URL.
+
+Como EDGAR no publica una descripción de sus indicadores, el `EDGAR_GHG_metadatos.xlsx` la trae en **tres hojas**: `dataset` (ficha general), `ipcc` (qué es cada sector) y `Substance` (qué es cada gas, con su unidad y su potencial de calentamiento). Es el equivalente al `Indicator_desc` del Banco Mundial o al `topic` de EUROSTAT.
+
+Cubre **225 países y territorios**, **38 sectores IPCC** (más el `TOTAL`), **35 sustancias** entre gases individuales y agregados en CO₂-equivalente, y **55 años** (1970–2024), con 1,2 millones de filas.
+
+Los análisis que permite realizar son:
+
+- Evolución histórica de emisiones totales por país o región.
+- Comparación entre países en un año concreto (rankings).
+- Análisis sectorial: qué sectores emiten más en un país (energía, transporte, industria, agricultura, residuos).
+- Análisis por gas: CO₂ fósil, metano (CH₄), óxido nitroso (N₂O), gases fluorados.
+- Relación entre emisiones y otros indicadores del Banco Mundial (PIB, población, energía), combinando ambas fuentes mediante el código de país ISO.
+
+> Para usar EDGAR correctamente, filtra siempre por `Substance` antes de hacer sumas. Mezclar gases individuales con sus agregados en CO₂-equivalente (`GWP_100_AR5_*`) duplicaría o triplicaría los valores. Consulta la sección *Descripción de las variables de la tabla* en el documento compilado para más detalles.
+
+---
+
+## CLIMA — variables climáticas de AdapteCCa (dos proyectos posibles, para dos ámbitos geográficos)
+
+Al igual que EDGAR, **CLIMA no sigue el flujo de dos pasos** (no hay catálogo Excel): los "datasets" son un conjunto fijo de **14 variables climáticas** (temperatura, precipitación y varios índices derivados) medidas **por región y mes** con **dos ámbitos geográficos** a elegir:
+
+| Ámbito | Carpeta | Regiones | Fuente / rejilla |
+|--------|---------|----------|------------------|
+| **Canarias** | `CLIMA_CANARIAS/` | 88 municipios | AdapteCCa ROCIO+_CAN (~2,5 km) |
+| **España** | `CLIMA_SPAIN/` | 52 provincias | AdapteCCa ROCIO_IBEB (~5 km, Península/Baleares/Ceuta/Melilla) + ROCIO+_CAN (~2,5 km, Canarias) |
+
+Los datos provienen del **Visor de Escenarios de Cambio Climático de AdapteCCa** (colección Escenarios-PNACC: OECC/MITECO, AEMET, CSIC y Fundación Biodiversidad), distribuidos en NetCDF vía THREDDS. Cada ámbito tiene **dos documentos**:
+
+- `*_TableDatasetGeneration.Rmd` — descarga los NetCDF de AdapteCCa y **genera dos `.rds`**: las **observaciones** (histórico, serie mensual con fecha) y las **proyecciones** (CMIP6). Este fichero solo se compila (puede tardar bastante) si se quiere actualizar los datos, pero para ello tendrían que haberse publicado datos nuevos y los nombres de acceso a los ficheros cambiarían. Estos datos no se publican anualmente.
+- `*_DatasetSelection.Rmd` — explora y **valida** las variables con el mismo **heatmap de los tres criterios AEDV**, e incluye **mapas coropléticos** por región y, para las proyecciones, la **comparativa por modelo** (dispersión inter-modelo de los 11 GCMs frente al `ensemble`, por escenario y horizonte). Está organizado en dos partes, igual que los `*_DatasetSelection.Rmd` del resto de fuentes: primero elige las variables y guarda su ficha, y después analiza leyendo del disco, de modo que la sección **Análisis del dataset** es autocontenida y **puedes copiarla tal cual en tu memoria**.
+
+Como AdapteCCa no publica un catálogo de sus variables, cada ámbito genera su propio `CLIMA_<ámbito>_metadatos.xlsx` con **cuatro hojas**: `dataset` (ficha general), `variables` (qué mide cada variable, con su unidad), `horizontes` (el periodo de 30 años de cada uno) y `escenarios` (las 4 trayectorias SSP). Es el equivalente al `Indicator_desc` del Banco Mundial o al `topic` de EUROSTAT.
+
+Cada ámbito produce dos datasets:
+
+- **Observaciones** (clima medido por AEMET, serie **mensual con fecha** `yyyy-mm`): Canarias **1990–2022**, España **1951–2022** (2022 incompleto). Columnas: `fecha · región · variable · unidad · value`.
+- **Proyecciones** (CMIP6 regionalizado; **climatologías por mes, sin año**): **4 escenarios de emisión SSP** (`ssp126`, `ssp245`, `ssp370`, `ssp585`) × **12 modelos** (11 GCMs individuales + `ensemble`) × **4 horizontes**: la base histórica de referencia (1971–2000) y 3 horizontes futuros (futuro cercano 2011–2040, medio 2041–2070 y lejano 2071–2100). Columnas: `región · variable · unidad · escenario · modelo · horizonte · mes · value`.
+  - Se guardan **los resultados por modelo además del ensemble**. La columna `modelo` toma 12 valores: los 11 GCMs de CMIP6 (`ACCESS-CM2`, `CMCC-CM2-SR5`, `CNRM-ESM2-1`, `EC-Earth3-Veg`, `IITM-ESM`, `KACE-1-0-G`, `MIROC6`, `MPI-ESM1-2-HR`, `MRI-ESM2-0`, `NorESM2-MM`, `UKESM1-0-LL`) más `ensemble` (la media de los 11; campo `average` del origen). Mismos 11 modelos en temperatura *ESD-RegBA* y precipitación *deepESD*.
+
+Las 14 variables (idénticas en ambos ámbitos): temperatura (`tasmax`, `tasmin`, `tmean`, sus extremos mensuales, noches tropicales, días de helada, días/noches cálidos, ola de calor) y precipitación (`pr`, días de lluvia, máximos en 1 y 5 días).
+
+Los análisis que permite realizar son:
+
+- Evolución histórica **mensual** de cualquier variable por municipio (Canarias) o provincia (España).
+- Comparación entre regiones y rankings (climatologías).
+- **Proyecciones futuras** por escenario SSP, **modelo** (GCM individual o ensemble) y horizonte temporal, y su contraste con la línea base histórica; incluye la **incertidumbre inter-modelo** (dispersión entre los 11 GCMs).
+- **Mapas coropléticos** por región (municipios de Canarias / provincias de España).
+- **Validación AEDV** con heatmap de cobertura geográfica, actualización y tamaño de las series temporales.
+
+> **Atención al requisito de "datos actualizados".** El histórico observado de AdapteCCa llega hasta **2022** (es una colección por versión —Escenarios-PNACC 2024—, no una serie que se actualice cada año). La cobertura geográfica y la longitud de las series son excelentes, por ello, aunque la fecha del último dato es 2022 lo aceptamos como proyecto de AEDV. 

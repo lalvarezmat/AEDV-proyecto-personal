@@ -1,0 +1,535 @@
+---
+title: "Análisis de datasets seleccionados de Eurostat"
+author: "Luis Alvarez"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: readable
+    number_sections: true
+    self_contained: true
+---
+
+<style>
+h1.title { font-size: 24px; }
+h1 { font-size: 20px; }
+h2 { font-size: 18px; }
+h3 { font-size: 16px; }
+body { font-size: 14px;}
+p { font-size: 14px; margin-bottom: 10px;
+}
+/* Todas las cajas con scroll llevan la misma separación por debajo, para que no
+   queden pegadas al texto que viene después (evita tener que poner <br> a mano
+   detrás de cada una) */
+.tabla-scroll, .caja-scroll, .tabla-scroll-xy { margin-bottom: 28px; }
+/* Tablas anchas: envolver el chunk en <div class="tabla-scroll"> ... </div> para verlas completas con scroll horizontal */
+.tabla-scroll { overflow-x: auto; }
+.tabla-scroll table { width: auto; min-width: 100%; }
+.tabla-scroll table td, .tabla-scroll table th { white-space: nowrap; }
+/* Textos largos (p. ej. la descripción del dataset, de varios miles de caracteres):
+   envolver en <div class="caja-scroll"> ... </div> para acotar su altura y recorrerlos
+   con scroll vertical, en vez de ocupar páginas enteras del documento */
+.caja-scroll { max-height: 250px; overflow-y: auto; padding: 10px 14px;
+               border: 1px solid #ddd; background-color: #fafafa; }
+/* Tablas que pueden ser anchas Y largas (p. ej. una fila por combinación de
+   atributos): scroll en los dos ejes, con la fila de cabecera fija arriba
+   mientras se recorre. Alternativa ligera a DT::datatable: HTML puro, sin
+   JavaScript ni dependencias */
+.tabla-scroll-xy { overflow: auto; max-height: 450px; border: 1px solid #ddd; }
+.tabla-scroll-xy table { width: auto; min-width: 100%; margin-bottom: 0; }
+.tabla-scroll-xy table td, .tabla-scroll-xy table th { white-space: nowrap; }
+.tabla-scroll-xy thead th { position: sticky; top: 0; z-index: 1;
+                            background-color: #fff; box-shadow: inset 0 -1px 0 #ddd; }
+/* Celdas de cumple/no cumple de la tabla de validación de requisitos */
+.val-ok, .val-no { display: block; text-align: center; font-weight: bold;
+                   color: #fff; padding: 2px 6px; border-radius: 3px; }
+.val-ok { background-color: #28a745; }
+.val-no { background-color: #dc3545; }
+</style>
+
+```{r,echo=FALSE}
+# OPCIONES POR DEFECTO AL COMPILAR LOS CHUNKS
+knitr::opts_chunk$set(
+  warning = FALSE,
+  message = FALSE,
+  cache = FALSE,
+  echo = FALSE,
+  # las figuras se escriben fuera del proyecto (el html es self_contained y las
+  # incrusta en base64), para que knitr no deje la carpeta auxiliar
+  # "EUROSTAT_DatasetSelection_files" junto al html
+  fig.path = paste0(tempdir(), "/EUROSTAT_DatasetSelection_files/")
+)
+```
+
+```{r, echo=FALSE}
+library(eurostat)
+library(openxlsx)
+library(DT)
+library(tidyverse)
+
+# asociamos funciones a determinadas librerías para evitar posibles errores
+select <- dplyr::select
+mutate <- dplyr::mutate
+filter <- dplyr::filter
+group_by <- dplyr::group_by
+summarise <- dplyr::summarise
+summarize <- dplyr::summarize
+rename <- dplyr::rename
+```
+
+Este documento analiza en detalle **un** dataset de Eurostat, ya elegido a partir de las tablas que genera **EUROSTAT_TableDatasetGeneration.Rmd**, y comprueba si cumple los requisitos para ser el dataset principal del proyecto personal de **AEDV**.
+
+Para analizar otro dataset basta con cambiar su código en el chunk de abajo y volver a compilar.
+
+```{r,echo=TRUE}
+# CÓDIGO DEL DATASET QUE VAMOS A ANALIZAR
+dataset.name <- "demo_r_pjanaggr3"
+```
+
+<!--IMPORTANTE: Si cambiamos el dataset, si se tiene activada la opción cache=TRUE para los chunks, hay que borrar la carpeta que se genera con la extensión "_cache" para obligar a recompilar todos los chunks con el nuevo dataset. Al hacer `knit` se compilarán todos los chunks, aunque obviamente, los textos fuera de los chunks no se actualizarán-->
+
+# Descarga, limpieza y guardado del dataset
+
+Descargamos el dataset con la función `get_eurostat` y lo ordenamos por fechas y regiones.
+
+```{r,results='hide',echo=TRUE}
+# cargamos la tabla y la ordenamos por fechas y regiones
+data <- get_eurostat(dataset.name, time_format = "date") |>
+  as_tibble() |>
+  arrange(TIME_PERIOD,geo)
+```
+
+Antes de guardar nada en disco, eliminamos las columnas que **no aportan ninguna información**: aquellas cuyo valor es siempre el mismo en todas las filas (por ejemplo, `freq` suele valer siempre `A`, porque el dataset ya viene fijado a una única frecuencia). Se excluyen de esta comprobación `geo`, `TIME_PERIOD` y `values`, que son las tres columnas estructurales del dataset (región, fecha y dato numérico), no dimensiones susceptibles de ser constantes sin más.
+
+```{r,echo=FALSE}
+# columnas candidatas: todas menos las tres estructurales (region, fecha, valor)
+cols_candidatas <- setdiff(colnames(data), c("geo", "TIME_PERIOD", "values"))
+n_valores <- sapply(data[cols_candidatas], function(x) n_distinct(x, na.rm = TRUE))
+cols_constantes <- names(n_valores)[n_valores <= 1]
+
+if(length(cols_constantes) > 0){
+  cat("Columnas con un solo valor (se eliminan):\n")
+  for(col in cols_constantes)
+    cat(sprintf("  - %-10s = %s\n", col, as.character(unique(data[[col]])[1])))
+  data <- data |> select(-all_of(cols_constantes))
+} else {
+  cat("Ninguna columna tiene un solo valor: no se elimina ninguna.\n")
+}
+```
+
+Guardamos el dataset **lo primero de todo**, nada más limpiarlo, en formato `rds` (el formato nativo de `R`: conserva los tipos de las columnas y ocupa mucho menos que un Excel). 
+
+```{r,echo=TRUE}
+filename <- dataset.name
+
+saveRDS(data, file = paste0(filename, ".rds"))
+
+cat("Fichero guardado:", paste0(filename, ".rds"),
+    sprintf("(%.1f MB)\n", file.info(paste0(filename, ".rds"))$size / 1024^2))
+```
+
+Guardamos también los metadatos del dataset recogidos en el catálogo de la asignatura (**Eurostat.datasets.xlsx**, generado por **EUROSTAT_TableDatasetGeneration.Rmd**): la fila correspondiente a este dataset, con las columnas pasadas a filas (`Campo`/`Valor`) para que quepan en una tabla estrecha.
+
+```{r,echo=TRUE}
+# el catálogo habitual es el filtrado; si el dataset no está en él (el filtro
+# deja fuera datasets que sí sirven) se busca en el volcado completo .raw
+fila_metadatos <- openxlsx::read.xlsx("Eurostat.datasets.xlsx") |>
+  filter(code == dataset.name)
+
+if(nrow(fila_metadatos) == 0)
+  fila_metadatos <- openxlsx::read.xlsx("Eurostat.datasets.raw.xlsx") |>
+    filter(code == dataset.name)
+
+if(nrow(fila_metadatos) == 0)
+  stop("El dataset '", dataset.name, "' no aparece en el catálogo de Eurostat. ",
+       "Comprueba el código o vuelve a generar los catálogos con EUROSTAT_TableDatasetGeneration.Rmd")
+
+# el catálogo solo trae `topic` (nombre corto de la familia, para no cargar cada
+# fila con miles de caracteres repetidos); aquí recuperamos la descripción
+# completa desde Eurostat.topics.xlsx, para que quede en los metadatos del dataset
+topics_tabla <- openxlsx::read.xlsx("Eurostat.topics.xlsx") |> as_tibble()
+fila_metadatos <- fila_metadatos |>
+  left_join(topics_tabla, by = "topic")
+
+# pasamos las columnas a filas: son 26 campos, mucho más legibles en vertical
+metadatos <- tibble(
+  Campo = colnames(fila_metadatos),
+  Valor = as.character(t(fila_metadatos))
+)
+
+openxlsx::write.xlsx(metadatos, file = paste0(filename, "_metadatos.xlsx"), overwrite = TRUE)
+```
+
+
+Una vez guardados en disco los metadatos (fichero xlsx) y los datos (fichero RDS), iniciamos el proceso de análisis. A partir de aquí el documento se compila **solo** con los ficheros ya guardados en disco (el `rds` y el `xlsx` de metadatos); no se usa ningún objeto de las secciones anteriores. Es a propósito: es la parte que el alumno incluye en la memoria del proyecto personal, así que tiene que poder ejecutarse sola (lo único que se usa de lo definido anteriormente es el dataset.name)
+
+
+# Análisis del dataset
+
+
+```{r,echo=TRUE}
+# se repite aquí (idéntico al de la sección "Descarga, limpieza y guardado") para
+# poder nombrar los ficheros sin depender de ningún chunk anterior
+#dataset.name <- "demo_r_pjanaggr3"   # poner el código del dataset que interese
+filename     <- dataset.name
+```
+
+```{r,echo=TRUE}
+metadatos <- openxlsx::read.xlsx(paste0(filename, "_metadatos.xlsx"))
+```
+
+**metadatos**
+
+<div class="tabla-scroll">
+
+```{r}
+# la descripción del dataset son varios miles de caracteres: dentro de una celda
+# de la tabla se sale de la página, así que se saca aparte, como párrafo
+metadatos |>
+  filter(Campo != "Descripcion") |>
+  knitr::kable()
+```
+
+</div>
+
+**Descripción del topic al que pertenece el  dataset**
+
+<div class="caja-scroll">
+
+```{r,results='asis'}
+cat(metadatos$Valor[metadatos$Campo == "Descripcion"])
+```
+
+</div>
+
+```{r,echo=TRUE}
+data <- readRDS(paste0(filename, ".rds"))
+```
+
+**data**
+
+```{r}
+data
+```
+
+## Información sobre las columnas de la tabla descargada
+
+Se presentan las diferentes dimensiones, cada una con sus valores posibles y el nº de observaciones. 
+
+```{r}
+# CÓDIGOS NUTS DE REGIONES REALES PRESENTES EN LOS MAPAS NUTS ACTUALES
+
+NUTS0_codes <- c("EL", "ES", "FI", "FR", "HR", "HU", "IE", "IS", "AL", "AT", "BA", "BE", "BG", "CH", "CY", "CZ", "DE", "DK", "EE", "IT", "LI", "LT", "LU", "LV", "ME", "MK", "MT", "NL", "NO", "PL", "PT", "RO", "RS", "SE", "SI", "SK", "TR", "UA", "XK")
+
+NUTS1_codes <- c("DEA", "DEB", "DEC", "DED", "DEE", "DEF", "DEG", "DK0", "EE0", "EL3", "EL4", "EL5", "EL6", "ES1", "ES2", "ES3", "ES4", "ES5", "ES6", "ES7", "FI1", "AL0", "AT1", "AT2", "AT3", "BA0", "BE1", "BE2", "BE3", "BG3", "BG4", "CH0", "CY0", "CZ0", "DE1", "DE2", "DE3", "DE4", "DE5", "DE6", "DE7", "DE8", "DE9", "HR0", "HU1", "HU2", "HU3", "IE0", "IS0", "ITC", "ITF", "ITG", "ITH", "ITI", "LI0", "XK0", "LT0", "LU0", "LV0", "ME0", "MK0", "MT0", "NL1", "NL2", "NL3", "NL4", "NO0", "PL2", "PL4", "PL5", "PL6", "PL7", "PL8", "PL9", "PT1", "PT2", "PT3", "RO1", "RO2", "RO3", "RO4", "RS1", "RS2", "SE1", "SE2", "SE3", "SI0", "SK0", "TR1", "TR2", "TR3", "TR4", "TR5", "TR6", "TR7", "TR8", "TR9", "TRA", "TRB", "TRC", "FI2", "FR1", "FRB", "FRC", "FRD", "FRE", "FRF", "FRG", "FRH", "FRI", "FRJ", "FRK", "FRL", "FRM", "FRY")
+
+NUTS2_codes <- c("DE12", "DE13", "DE14", "DE21", "DE22", "DE23", "DE24", "DE25", "DE26", "DE27", "DE30", "DE40", "DE50", "DE60", "DE71", "DE72", "DE73", "DE80", "DE91", "DE92", "DE93", "DE94", "DEA1", "DEA2", "DEA3", "DEA4", "DEA5", "DEB1", "DEB2", "DEB3", "DEC0", "DED2", "DED4", "DED5", "DEE0", "DEF0", "DEG0", "DK01", "AL01", "AL02", "AL03", "AT11", "AT12", "AT13", "AT21", "AT22", "AT31", "AT32", "AT33", "AT34", "BA01", "BA02", "BA03", "BE10", "BE21","BE22", "BE23", "BE24", "BE25", "BE31", "BE32", "BE33", "BE34", "BE35", "BG31", "BG32", "BG33", "BG34", "BG41", "BG42", "CH01", "CH02", "CH03", "CH04", "CH05", "CH06", "CH07", "CY00", "CZ01", "CZ02", "CZ03", "CZ04", "CZ05", "CZ06", "CZ07", "CZ08", "DE11", "MK00", "MT00", "NL11", "NL12", "NL13", "NL21", "NL22", "NL23", "NL32", "NL34", "NL35", "NL36", "NL41", "NL42", "NO02", "NO06", "NO07", "NO08", "NO09", "NO0A", "NO0B", "PL21", "PL22", "PL41", "PL42", "PL43", "PL51", "PL52", "PL61", "PL62", "PL63", "PL71", "PL72", "PL81", "PL82", "PL84", "PL91", "PL92", "PT11", "PT15", "PT19", "PT1A", "PT1B", "PT1C", "DK02", "DK03", "DK04", "DK05", "EE00", "EL30", "EL41", "EL42", "EL43", "EL51", "EL52", "EL53", "EL54", "EL61", "EL62", "EL63", "EL64", "EL65", "ES11", "ES12", "ES13", "ES21", "ES22", "ES23", "ES24", "ES30", "ES41", "ES42", "ES43", "ES51", "ES52", "ES53", "ES61", "ES62", "ES63", "ES64", "ES70", "FI19", "FI1B", "FI1C", "FI1D", "FI20", "FR10", "FRB0", "FRC1", "FRC2", "FRD1", "FRD2", "FRE1", "FRE2", "FRF1", "FRF2", "FRF3", "FRG0", "FRH0", "FRI1", "FRI2", "FRI3", "FRJ1", "FRJ2", "FRK1", "FRK2", "FRL0", "FRM0", "FRY1", "FRY2", "FRY3", "FRY4", "FRY5", "HR02", "HR03", "HR05", "HR06", "HU11", "HU12", "HU21", "HU22", "HU23", "HU31", "HU32", "HU33", "IE04", "IE05", "IE06", "IS00", "ITC1", "ITC2", "ITC3", "ITC4", "ITF1", "ITF2", "ITF3", "ITF4", "ITF5", "ITF6", "ITG1", "ITG2", "ITH1", "ITH2", "ITH3", "ITH4", "ITH5", "ITI1", "ITI2", "ITI3", "ITI4", "LI00", "LT01", "LT02", "LU00", "LV00", "ME00", "SE33", "SI03", "SI04", "SK01", "SK02", "SK03", "SK04", "TR10", "TR21", "TR22", "TR31", "TR32", "TR33", "TR41", "TR42", "TR51", "TR52", "TR61", "TR62", "TR63", "TR71", "TR72", "TR81", "TR82", "TR83", "TR90", "TRA1", "TRA2", "TRB1", "TRB2", "TRC1", "TRC2", "TRC3", "XK00", "PT1D", "PT20", "PT30", "RO11", "RO12", "RO21", "RO22", "RO31", "RO32", "RO41", "RO42", "RS11", "RS12", "RS21", "RS22", "SE11", "SE12", "SE21", "SE22", "SE23", "SE31", "SE32")
+
+NUTS3_codes <- c("AT333", "AT334", "AT335", "AT341", "AT342", "BE100", "BE211", "BE212", "BE213", "BE223", "BE224", "BE225", "BE231", "BE232", "BE233", "BE234", "BE235", "BE236", "BE241", "BE242", "BE251", "BE252", "BE253", "BE254", "BE255", "BE256", "BE257", "BE258", "BE310", "BE323", "BE328","BE329", "BE32A", "BE32B", "BE32C", "BE32D", "BE331", "BE332", "BE334", "BE335", "BE336", "BE341", "BE342", "BE343", "BE344", "BE345", "BE351", "BE352", "BE353", "BG311", "BG312", "BG313", "BG314", "BG315", "BG321", "BG322", "BG323", "BG324", "BG325", "BG331", "BG332", "BG333", "BG334", "BG341", "BG342", "BG343", "BG344", "BG411", "BG412", "BG413", "BG414", "BG415", "BG421", "BG422", "BG423", "BG424", "BG425", "CH011", "CH012", "CH013", "CH021", "CH022", "CH023", "CH024", "CH025", "CH031", "CH032", "CH033", "CH040", "CH051", "CH052", "CH053", "CH054", "CH055", "CH056", "CH057", "CH061", "CH062", "CH063", "CH064", "CH065", "CH066", "CH070", "CY000", "CZ010", "CZ020", "CZ031", "CZ032", "CZ041", "CZ042", "CZ051", "CZ052", "CZ053", "CZ063", "CZ064", "CZ071", "CZ072", "CZ080", "DE111", "DE112", "DE113", "DE114", "DE115", "DE116", "DE117", "DE118", "DE119", "DE11A", "DE11B", "DE11C", "DE11D", "DE121", "DE122", "DE123", "DE124", "DE125", "DE126", "DE127", "DE128", "DE129", "DE12A", "DE12B", "DE12C", "DE131", "DE132", "DE133", "DE134", "DE135", "DE136", "DE137", "DE138", "DE139", "DE13A", "DE141", "DE142", "DE143", "DE144", "DE145", "DE146", "DE147", "DE148", "DE149", "DE211", "DE212", "AL011", "AL012", "AL013", "AL014", "AL015", "AL021", "AL022", "AL031", "AL032", "AL033", "AL034", "AL035", "AT111", "AT112", "AT113", "AT121", "AT122", "AT123", "AT124", "AT125", "AT126", "AT127", "AT130", "AT211", "AT212", "AT213", "AT221", "AT222", "AT223", "AT224", "AT225", "AT226", "AT311", "AT312", "AT313", "AT314", "AT315", "AT321", "AT322", "AT323", "AT331", "AT332", "DE238", "DE239")
+
+NUTS3_codes <-c(NUTS3_codes, "DE23A", "DE241", "DE242", "DE243", "DE244", "DE245", "DE246", "DE247", "DE248", "DE249", "DE24A", "DE24B", "DE24C", "DE24D", "DE251", "DE252", "DE253", "DE254", "DE255", "DE256", "DE257", "DE258", "DE259", "DE25A", "DE25B", "DE25C", "DE261", "DE262", "DE263", "DE264", "DE265", "DE266", "DE267", "DE268", "DE269", "DE26A", "DE26B", "DEA5C", "DEB11", "DEB12", "DEB13", "DEB14", "DEB15", "DEB17", "DEB18", "DEB1A", "DEB1B", "DEB1C", "DEB1D", "DEB21", "DEB22", "DEB23", "DEB24", "DEB25", "DEB31", "DEB32", "DEB33", "DEB34", "DEB35", "DEB36", "DEB37", "DEB38", "DEB39", "DEB3A", "DEB3B", "DEB3C", "DEB3D", "DEB3E", "DEB3F", "DEB3G", "DEB3H", "DEB3I", "DEB3J", "DEB3K", "DEC01", "DEC02", "DEC03", "DEC04", "DEC05", "DEC06", "DED21", "DED2C", "DED2D", "DED2E", "DED2F", "DED41", "DED42", "DED43", "DED44", "DED45", "DED51", "DED52", "DED53", "DEE01", "DEE02", "DEE03", "DEE04", "DEE05", "DEE06", "DEE07", "DEE08", "DEE09", "DEE0A", "DEE0B", "DEE0C", "DEE0D", "DEE0E", "DEF01", "DEF02", "DEF03", "DEF04", "DEF05", "DEF06", "DEF07", "DEF08", "DEF09", "DEF0A", "DEF0B", "DEF0C", "DEF0D", "DEF0E", "DEF0F", "DEG01", "DEG02", "DE26C", "DE271", "DE272", "DE273", "DE274", "DE275", "DE276", "DE277", "DE278", "DE279", "DE27A", "DE27B", "DE27C", "DE27D", "DE27E", "DE300", "DE401", "DE402", "DE403", "DE404", "DE405", "DE406", "DE407", "DE408", "DE409", "DE40A", "DE40B", "DE40C", "DE40D", "DE40E", "DE40F", "DE40G", "DE40H", "DE40I", "DE501", "DE502", "DE600", "DE711", "DE712", "DE713", "DE714", "DE715", "DE716", "DE717", "DE718", "DE719", "DE71A", "DE71B", "DE71C", "DE71D", "DE71E", "DE721", "DE722", "DE723", "DE724", "DE725", "DE731", "DE732", "DE733", "DE734", "DE735", "DE736", "DE737", "DE803", "DE804", "DE80J", "DE80K", "DE80L", "DE80M", "DE80N", "DE80O", "DE911", "DE912", "DE913", "DE914", "DE916", "DE917", "DE918", "DE91A", "DE91B", "DE91C", "DE922", "DE923", "DE925", "DE926", "DE927", "DE928", "DE929", "DE931", "DE932", "DE933", "DE934", "DE935", "DE936", "DE937", "DE938", "DE939", "DE93A", "DE93B", "DE941", "DE942", "DE943", "DE944", "DE945", "DE946", "DE947", "DE948", "DE949", "DE94A", "DE94B", "DE94C", "DE94D")
+
+NUTS3_codes <-c(NUTS3_codes, "DE94E", "DE94F", "DE94G", "DE94H", "DEA11", "DEA12", "DEA13", "DEA14", "DEA15", "DEA16", "DEA17", "DEA18", "DEA19", "DEA1A", "DEA1B", "DEA1C", "DEA1D", "DEA1E", "DEA1F", "DEA22", "DEA23", "DEA24", "DEA26", "DEA27", "DEA28", "DEA29", "DEA2A", "DEA2B", "DEA2C", "DEA2D", "DEA31", "DEA32", "DEA33", "DEA34", "DEA35", "DEA36", "DEA37", "DEA38", "DEA41", "DEA42", "DEA43", "DEA44", "DEA45", "DEA46", "DEA47", "DEA51", "DEA52", "DEA53", "DEA54", "DEA55", "DEA56", "DEA57", "DEA58", "DEA59", "DEA5A", "DEA5B", "DE213", "DE214", "DE215", "DE216", "DE217", "DE218", "DE219", "DE21A", "DE21B", "DE21C", "DE21D", "DE21E", "DE21F", "DE21G", "DE21H", "DE21I", "DE21J", "DE21K", "DE21L", "DE21M", "DE21N", "DE221", "DE222", "DE223", "DE224", "DE225", "DE226", "DE227", "DE228", "DE229", "DE22A", "DE22B", "DE22C", "DE231", "DE232", "DE233", "DE234", "DE235", "DE236", "DE237", "FRD11", "FRD12", "FRD13", "FRD21", "FRD22", "FRE11", "FRE12", "FRE21", "FRE22", "FRE23", "FRF11", "FRF12", "FRF21", "FRF22", "FRF23", "FRF24", "FRF31", "FRF32", "FRF33", "FRF34", "FRG01", "FRG02", "FRG03", "FRG04", "FRG05", "FRH01", "FRH02", "FRH03", "FRH04", "FRI11", "FRI12", "FRI13", "FRI14", "FRI15", "FRI21", "FRI22", "FRI23", "FRI31", "FRI32", "FRI33", "FRI34", "FRJ11", "FRJ12", "FRJ13", "FRJ14", "FRJ15", "FRJ21", "FRJ22", "FRJ23", "FRJ24", "FRJ25", "FRJ26", "FRJ27", "FRJ28", "FRK11", "FRK12", "FRK13", "FRK14", "FRK21", "FRK22", "FRK23", "FRK24", "FRK25", "FRK26", "FRK27", "FRK28", "FRL01", "FRL02", "FRL03", "FRL04", "FRL05", "FRL06", "FRM01", "FRM02", "FRY10", "FRY20", "DEG03", "DEG05", "DEG06", "DEG07", "DEG09", "DEG0A", "DEG0C", "DEG0D", "DEG0E", "DEG0G", "DEG0J", "DEG0K", "DEG0L", "DEG0M", "DEG0Q", "DEG0R", "DEG0S", "DEG0T", "DEG0U", "DEG0V", "DK011", "DK012", "DK013", "DK014", "DK021", "DK022", "DK031", "DK032", "DK041", "DK042", "DK050", "EE001", "EE004", "EE008", "EE009", "EE00A", "EL301", "EL302", "EL303", "EL304", "EL305", "EL306", "EL307", "EL411", "EL412", "EL413", "EL421", "EL422", "EL431", "EL432", "EL433", "EL434", "EL511", "EL512", "EL513", "EL514", "EL515", "EL521", "EL522", "EL523", "EL524", "EL525", "EL526", "EL527")
+
+NUTS3_codes <-c(NUTS3_codes, "EL531", "EL532", "EL533", "EL541", "EL542", "EL543", "EL611", "EL612", "EL613", "EL621", "EL622", "EL623", "EL624", "EL631", "EL632", "EL633", "EL641", "EL642", "EL643", "EL644", "EL645", "EL651", "EL652", "EL653", "ES111", "ES112", "ES113", "ES114", "ES120", "ES130", "ES211", "ES212", "ES213", "ES220", "ES230", "ES241", "ES242", "ES243", "ES300", "ES411", "ES412", "ES413", "ES414", "ES415", "ES416", "ES417", "ES418", "ES419", "ES421", "ES422", "ES423", "ES424", "ES425", "ES431", "ES432", "ES511", "ES512", "ES513", "ES514", "ES521", "ES522", "ES523", "ES531", "ES532", "ES533", "ES611", "ES612", "ES613", "ES614", "ES615", "ES616", "ES617", "ES618", "ES620", "ES630", "ES640", "ES703", "ES704", "ES705", "ES706", "ES707", "ES708", "ES709", "FI196", "FI198", "FI199", "FI19A", "FI19B", "FI1B1", "FI1C1", "FI1C2", "FI1C5", "FI1C6", "FI1C7", "FI1D5", "FI1D7", "FI1D8", "FI1D9", "FI1DA", "FI1DB", "FI1DC", "FI200", "FR101", "FR102", "FR103", "FR104", "FR105", "FR106", "FR107", "FR108", "FRB01", "FRB02", "FRB03", "FRB04", "FRB05", "FRB06", "FRC11", "FRC12", "FRC13", "FRC14", "FRC21", "FRC22", "FRC23", "FRC24", "HU313", "HU321", "HU322", "HU323", "HU331", "HU332", "HU333", "IE041", "IE042", "IE051", "IE052", "IE053", "IE061", "IE062", "IE063", "IS001", "IS002", "ITC11", "ITC12", "ITC13", "ITC14", "ITC15", "ITC16", "ITC17", "ITC18", "ITC20", "ITC31", "ITC32", "ITC33", "ITC34", "ITC41", "ITC42", "ITC43", "ITC44", "ITC46", "ITC47", "ITC48", "ITC49", "NL415", "NL416", "NL421", "NL422", "NL423", "NO020", "NO060", "NO071", "NO072", "NO073", "NO081", "NO083", "NO084", "NO085", "NO092", "NO093", "NO094", "NO0A1", "NO0A2", "NO0A3", "NO0B1", "NO0B2", "PL213", "PL214", "PL217", "PL218", "PL219", "PL21A", "PL224", "PL225", "PL227", "PL228", "PL229", "PL22A", "PL22B", "PL22C", "PL411", "PL414", "PL415", "PL416", "PL417", "PL418", "PL424", "PL426", "PL427", "PL428", "PL431", "PL432", "PL514", "PL515", "PL516", "PL517", "PL518", "PL523", "PL524", "PL613", "PL616", "PL617", "PL618", "PL619", "PL621", "PL622", "PL623", "PL633", "PL634", "PL636", "PL637", "PL638", "PL711", "PL712", "ITC4A", "ITC4B", "ITC4C", "ITC4D")
+
+NUTS3_codes <-c(NUTS3_codes, "ITF11", "ITF12", "ITF13", "ITF14", "ITF21", "ITF22", "ITF31", "ITF32", "ITF33", "ITF34", "ITF35", "ITF43", "ITF44", "ITF45", "ITF46", "ITF47", "ITF48", "ITF51", "ITF52", "ITF61", "ITF62", "ITF63", "ITF64", "ITF65", "ITG11", "ITG12", "ITG13", "ITG14", "ITG15", "ITG16", "ITG17", "ITG18", "ITG19", "ITG2D", "ITG2E", "ITG2F", "ITG2G", "ITG2H", "ITH10", "ITH20", "ITH31", "ITH32", "ITH33", "ITH34", "ITH35", "ITH36", "ITH37", "ITH41", "ITH42", "ITH43", "ITH44", "ITH51", "ITH52", "ITH53", "ITH54", "ITH55", "ITH56", "ITH57", "ITH58", "ITH59", "ITI11", "ITI12", "ITI13", "ITI14", "ITI15", "ITI16", "ITI17", "ITI18", "ITI19", "ITI1A", "ITI21", "ITI22", "ITI31", "ITI32", "ITI33", "ITI34", "ITI35", "ITI41", "ITI42", "ITI43", "ITI44", "ITI45", "LI000", "LT011", "LT021", "LT022", "LT023", "LT024", "LT025", "LT026", "LT027", "LT028", "LT029", "LU000", "LV005", "LV009", "LV00A", "LV00B", "LV00C", "ME000", "MK001", "MK002", "MK003", "MK004", "MK005", "MK006", "MK007", "MK008", "MT001", "MT002", "NL112", "NL114", "NL115", "NL126", "NL127", "NL128", "NL131", "NL132", "NL133", "NL211", "NL212", "NL213", "NL221", "NL224", "NL225", "NL226", "NL230", "NL321", "NL323", "NL325", "NL327", "NL328", "NL32A", "NL32B", "NL341", "NL342", "NL350", "NL361", "NL362", "NL363", "NL364", "NL365", "NL366", "NL411", "NL414", "FRY30", "FRY40", "FRY50", "HR021", "HR022", "HR023", "HR024", "HR025", "HR026", "HR027", "HR028", "HR031", "HR032", "HR033", "HR034", "HR035", "HR036", "HR037", "HR050", "HR061", "HR062", "HR063", "HR064", "HR065", "HU110", "HU120", "HU211", "HU212", "HU213", "HU221", "HU222", "HU223", "HU231", "HU232", "HU233", "HU311", "HU312", "TR412", "TR413", "TR421", "TR422", "TR423", "TR424", "TR425", "TR510", "TR521", "TR522", "TR611", "TR612", "TR613", "TR621", "TR622", "TR631", "TR632", "TR633", "TR711", "TR712", "TR713", "TR714", "TR715", "TR721")
+
+NUTS3_codes <-c(NUTS3_codes, "TR722", "TR723", "TR811", "TR812", "TR813", "TR821", "TR822", "TR823", "TR831", "TR832", "TR833", "TR834", "TR901", "TR902", "TR903", "TR904", "TR905", "TR906", "TRA11", "TRA12", "TRA13", "TRA21", "TRA22", "TRA23", "TRA24", "TRB11", "TRB12", "TRB13", "TRB14", "TRB21", "TRB22", "TRB23", "TRB24", "TRC11", "TRC12", "TRC13", "TRC21", "TRC22", "TRC31", "TRC32", "TRC33", "TRC34", "PL713", "PL714", "PL715", "PL721", "PL722", "PL811", "PL812", "PL814", "PL815", "PL821", "PL822", "PL823", "PL824", "PL841", "PL842", "PL843", "PL911", "PL912", "PL913", "PL921", "PL922", "PL923", "PL924", "PL925", "PL926", "PT111", "PT112", "PT119", "PT11A", "PT11B", "PT11C", "PT11D", "PT11E", "PT150", "PT191", "PT192", "PT193", "PT194", "PT195", "PT196", "PT1A0", "PT1B0", "PT1C1", "PT1C2", "PT1C3", "PT1C4", "PT1D1", "PT1D2", "PT1D3", "PT200", "PT300", "RO111", "RO112", "RO113", "RO114", "RO115", "RO116", "RO121", "RO122", "RO123", "RO124", "RO125", "RO126", "RO211", "RO212", "RO213", "RO214", "RO215", "RO216", "RO221", "RO222", "RO223", "RO224", "RO225", "RO226", "RO311", "RO312", "RO313", "RO314", "RO315", "RO316", "RO317", "RO321", "RO322", "RO411", "RO412", "RO413", "RO414", "RO415", "RO421", "RO422", "RO423", "RO424", "RS110", "RS121", "RS122", "RS123", "RS124", "RS125", "RS126", "RS127", "RS211", "RS212", "RS213", "RS214", "RS215", "RS216", "RS217", "RS218", "RS221", "RS222", "RS223", "RS224", "RS225", "RS226", "RS227", "RS228", "RS229", "SE110", "SE121", "SE122", "SE123", "SE124", "SE125", "SE211", "SE212", "SE213", "SE214", "SE221", "SE224", "SE231", "SE232", "SE311", "SE312", "SE313", "SE321", "SE322", "SE331", "SE332", "SI031", "SI032", "SI033", "SI034", "SI035", "SI036", "SI037", "SI038", "SI041", "SI042", "SI043", "SI044", "SK010", "SK021", "SK022", "SK023", "SK031", "SK032", "SK041", "SK042", "TR100", "TR211", "TR212", "TR213", "TR221", "TR222", "TR310", "TR321", "TR322", "TR323", "TR331", "TR332", "TR333", "TR334", "TR411", "XK001", "XK002", "XK003", "XK004", "XK005", "XK006", "XK007")
+
+# CLASIFICA UN CÓDIGO geo EN SU NIVEL NUTS. Los códigos que empiezan por EU, EA,
+# EF, CC, OE, G2 o G7 son agrupaciones de países (EU27_2020, EA19...), no una
+# región concreta. El resto se comprueba contra las listas de códigos reales de
+# arriba: el nº de caracteres por sí solo no basta, porque hay códigos con la
+# longitud correcta que ya no corresponden a ninguna región del mapa actual.
+NUTS.computation <- function(s){
+  if(substr(s,1,2) %in% c("EU","EA","EF","CC","OE","G2","G7"))  return(s)
+  if(nchar(s)==2 & s %in% NUTS0_codes) return("0")
+  if(nchar(s)==3 & s %in% NUTS1_codes) return("1")
+  if(nchar(s)==4 & s %in% NUTS2_codes) return("2")
+  if(nchar(s)==5 & s %in% NUTS3_codes) return("3")
+  return("OTHERS")
+}
+```
+
+```{r, results='asis'}
+# results='asis' para poder envolver la salida de cada columna en HTML propio
+# (concretamente, la caja con scroll vertical de TIME_PERIOD). Sin 'asis' el
+# <div>/<pre> se imprimirían como texto literal en vez de interpretarse.
+imprime_caja <- function(m, texto, scroll = FALSE){
+  cat("\n**", texto, "**\n\n", sep = "")
+  if(scroll) cat('<div class="caja-scroll">\n\n')
+  cat("```\n")
+  print(m)
+  cat("```\n")
+  if(scroll) cat("\n</div>\n")
+  cat("\n")
+}
+
+for(col in colnames(data)){
+  if(is.numeric(data[[col]])) next
+
+  # nº de opciones (valores distintos) de la columna: igual que en el INE, se
+  # muestra siempre en la cabecera, no solo cuando hay que truncar la tabla
+  n_opciones <- n_distinct(data[[col]])
+
+  if(col=="TIME_PERIOD"){
+    tb <- data |>
+      group_by(TIME_PERIOD) |>
+      summarise(N.observ=dplyr::n()) |>
+      as.matrix() |>
+      noquote()
+    # el dataset puede tener muchas fechas distintas (mensuales, semanales...):
+    # se muestran en una caja con scroll vertical en vez de alargar la página
+    imprime_caja(tb, paste0("COLUMNA: TIME_PERIOD (", n_opciones, " opciones)"), scroll = TRUE)
+    next
+  }
+ if(col=="geo"){
+    tb <- tibble(
+        NUTS=sapply(unique(data[[col]]),NUTS.computation)
+      ) |>
+        group_by(NUTS) |>
+        summarise(`Number of Regions`=dplyr::n()) |>
+        as.matrix() |>
+        noquote()
+    imprime_caja(tb, paste0("CONTABILIZACIÓN Nº REGIONES NUTS A PARTIR DE LA COLUMNA geo (",
+                            n_opciones, " opciones)"))
+    next
+ }
+  tb <-  data |>
+    left_join(get_eurostat_dic(col)|>rename(!!col := code_name),
+              by=col) |>
+    group_by(!!sym(col),full_name)|>
+    summarise(N.Observ=dplyr::n()) |>
+    relocate(N.Observ,.before = full_name)|>
+    arrange(desc(N.Observ)) |>
+    mutate(full_name=ifelse(nchar(full_name)<41,full_name,paste0(substr(full_name,1,40),"..")))
+
+  texto <- paste0("COLUMNA: ", col, " (", n_opciones, " opciones)")
+  if(nrow(tb)>50){
+    texto <- paste0(texto," — se imprimen 50")
+    tb <- head(tb,50)
+  }
+
+  imprime_caja(tb |> as.matrix() |> noquote(), texto)
+}
+```
+
+
+**Nº de observaciones en España/Canarias**
+
+```{r}
+data.geo <- data |>
+  group_by(geo)|>
+  summarise(N.Observ=dplyr::n())
+```
+
+```{r}
+LocalRegionsFullNames <- c("Spain","Canarias","Canarias","El Hierro","Fuerteventura","Gran Canaria",
+  "La Gomera","La Palma","Lanzarote","Tenerife")
+
+LocalRegionsCodes <- c("ES","ES7","ES70","ES703","ES704","ES705","ES706","ES707","ES708","ES709")
+
+LocalRegions <- tibble(
+  geo=LocalRegionsCodes,
+  full_name=LocalRegionsFullNames
+)
+
+data.geo |>
+  filter(geo %in% LocalRegionsCodes) |>
+  left_join(LocalRegions,by="geo") |>
+  relocate(full_name,.after = geo)
+```
+
+
+
+
+
+```{r}
+# --- FRECUENCIA DEL DATASET --------------------------------------------------
+# Eurostat trae la frecuencia en la columna `freq` del propio dataset, así que
+# cuando está presente no hay que deducirla del formato de las fechas como en el
+# INE o el ISTAC. Se traduce a los mismos códigos que usan los otros catálogos
+# del curso (Y anual en vez de la A de Eurostat) para compartir los umbrales.
+FREQ_EUROSTAT <- c(A = "Y", S = "S", H = "S", Q = "Q", M = "M", W = "W", D = "D")
+
+# EN LA PRÁCTICA ESTA ES LA RAMA HABITUAL: la sección de limpieza de más arriba
+# elimina `freq` en cuanto tiene un único valor, que es lo normal en un dataset
+# ya descargado con un código concreto (Eurostat no suele mezclar frecuencias
+# dentro del mismo dataset). Como get_eurostat() ha convertido TIME_PERIOD a
+# fecha, se clasifica por el salto MEDIANO entre fechas consecutivas. Los rangos
+# de tolerancia cubren la variación normal de longitud de meses/trimestres y los
+# años bisiestos.
+clasifica_por_gap <- function(fechas){
+  d <- sort(unique(fechas))
+  if(length(d) < 2) return("otro")
+  gap <- as.numeric(stats::median(diff(d)))
+  if(gap <= 1.5)               return("D")
+  if(gap >= 5   && gap <= 9)   return("W")
+  if(gap >= 27  && gap <= 32)  return("M")
+  if(gap >= 85  && gap <= 97)  return("Q")
+  if(gap >= 175 && gap <= 190) return("S")
+  if(gap >= 350 && gap <= 380) return("Y")
+  return("otro")
+}
+
+if("freq" %in% colnames(data)){
+  freq_dataset <- unname(FREQ_EUROSTAT[as.character(data$freq[1])])
+  if(is.na(freq_dataset)) freq_dataset <- clasifica_por_gap(data$TIME_PERIOD)
+} else {
+  freq_dataset <- clasifica_por_gap(data$TIME_PERIOD)
+}
+
+# --- ATRIBUTOS ---------------------------------------------------------------
+# Son las dimensiones que no son la frecuencia, ni la geografía, ni la fecha:
+# cada combinación de sus valores es un atributo que se sigue en el tiempo para
+# cada región. TIME_PERIOD se excluye a mano porque es de tipo fecha y no lo
+# descarta el filtro de columnas numéricas.
+attr_dims <- setdiff(colnames(data)[!sapply(data, is.numeric)],
+                     c("freq", "geo", "TIME_PERIOD"))
+
+# Nivel NUTS de cada código geográfico, para contar la cobertura por nivel
+niveles_geo <- tibble(geo = unique(data$geo)) |>
+  mutate(NUTS = sapply(geo, NUTS.computation))
+
+# Nº de fechas de cada serie (combinación de atributos x región)
+series <- data |>
+  left_join(niveles_geo, by = "geo") |>
+  group_by(across(all_of(c(attr_dims, "geo", "NUTS")))) |>
+  summarise(n_periodos = n_distinct(TIME_PERIOD), .groups = "drop")
+
+# Resumen por combinación de atributos. Si el dataset no tiene más dimensiones
+# que la geografía y la fecha, sale una sola fila con el dataset entero.
+resume_series <- function(df){
+  df |>
+    summarise(
+      n_regiones = n_distinct(geo),
+      NUTS0 = n_distinct(geo[NUTS == "0"]),
+      NUTS1 = n_distinct(geo[NUTS == "1"]),
+      NUTS2 = n_distinct(geo[NUTS == "2"]),
+      NUTS3 = n_distinct(geo[NUTS == "3"]),
+      P0   = as.integer(min(n_periodos)),
+      P25  = as.integer(quantile(n_periodos, 0.25)),
+      P50  = as.integer(quantile(n_periodos, 0.50)),
+      P75  = as.integer(quantile(n_periodos, 0.75)),
+      P100 = as.integer(max(n_periodos)),
+      .groups = "drop"
+    )
+}
+
+if(length(attr_dims) > 0){
+  tb <- series |> group_by(across(all_of(attr_dims))) |> resume_series() |>
+    arrange(desc(n_regiones), desc(P25))
+} else {
+  tb <- series |> resume_series()
+}
+```
+
+```{r}
+# --- APLICACIÓN DE LOS CUATRO CRITERIOS --------------------------------------
+umbral_freq <- c(Y = 10L, S = 20L, Q = 40L, M = 60L, W = 200L, D = 1096L, otro = NA_integer_)
+umbral_nuts <- c(NUTS0 = 25L, NUTS1 = 90L, NUTS2 = 200L, NUTS3 = 500L)
+
+umbral   <- unname(umbral_freq[freq_dataset])
+year_end <- max(as.integer(format(data$TIME_PERIOD, "%Y")), na.rm = TRUE)
+ok_fecha <- year_end >= 2024
+
+# Tamaño de la serie temporal en España o Canarias: por combinación de atributos,
+# basta con que ESPAÑA o alguna región de CANARIAS (LocalRegionsCodes, definido
+# más arriba) alcancen, cada una por su cuenta, el umbral de su frecuencia
+series_es_can <- series |> filter(geo %in% LocalRegionsCodes)
+
+if(length(attr_dims) > 0){
+  ok_temp_es_can_tbl <- series_es_can |>
+    group_by(across(all_of(attr_dims))) |>
+    summarise(ok_temp_es_can = !is.na(umbral) & any(n_periodos >= umbral), .groups = "drop")
+  tb_val <- tb |> left_join(ok_temp_es_can_tbl, by = attr_dims)
+} else {
+  ok_temp_es_can_tbl <- tibble(ok_temp_es_can = !is.na(umbral) & any(series_es_can$n_periodos >= umbral))
+  tb_val <- tb |> bind_cols(ok_temp_es_can_tbl)
+}
+
+tb_val <- tb_val |>
+  mutate(
+    # Basta con superar el umbral en UNO de los cuatro niveles NUTS
+    ok_cob = NUTS0 >= umbral_nuts["NUTS0"] | NUTS1 >= umbral_nuts["NUTS1"] |
+             NUTS2 >= umbral_nuts["NUTS2"] | NUTS3 >= umbral_nuts["NUTS3"],
+    ok_fecha = ok_fecha,
+    ok_temp  = !is.na(umbral) & P25 >= umbral,
+    # ninguna combinación tiene fila en series_es_can si no hay datos de España
+    # ni de Canarias: replace_na() la marca como no cumplida, no como NA
+    ok_temp_es_can = replace_na(ok_temp_es_can, FALSE),
+    ok_total = ok_cob & ok_fecha & ok_temp & ok_temp_es_can,
+    etiqueta = if(length(attr_dims) > 0)
+                 apply(across(all_of(attr_dims)), 1,
+                       function(r) paste(substr(r, 1, 20), collapse = " / "))
+               else
+                 paste0("dataset completo")
+  )
+
+n_validos <- sum(tb_val$ok_total)
+n_total   <- nrow(tb_val)
+```
+
+**Combinaciones de atributos**: cobertura por nivel NUTS y percentiles del tamaño de la serie temporal (nº de periodos por región).
+
+<div class="tabla-scroll-xy">
+
+```{r}
+# kable en vez de DT::datatable: la tabla puede tener muchas filas (una por
+# combinación de atributos) y aquí solo hace falta poder recorrerla, no filtrarla
+# ni ordenarla. El contenedor .tabla-scroll-xy le da el scroll en los dos ejes.
+tb_val |>
+  select(all_of(attr_dims), n_regiones, NUTS0, NUTS1, NUTS2, NUTS3,
+         P0, P25, P50, P75, P100) |>
+  knitr::kable()
+```
+
+</div>
+
+
+## Validación de requisitos AEDV
+
+Esta sección resume, de un vistazo, si el dataset sirve como dataset principal del proyecto. Se comprueban los **cuatro criterios** de la asignatura sobre **cada combinación de atributos** (es decir, sobre cada serie temporal que el dataset permite seguir por región):
+
+* **Cobertura geográfica**: la combinación debe tener datos de al menos **25** países (NUTS 0), **90** regiones NUTS 1, **200** NUTS 2 o **500** NUTS 3. Basta con cumplirlo en **uno** de los cuatro niveles, porque un dataset por países no tiene por qué bajar a provincias.
+
+* **Datos actualizados**: el último dato debe ser de **2024** o posterior.
+
+* **Tamaño de las series temporales**: el **percentil 25 (P25)** del nº de fechas por región debe superar el umbral de su frecuencia: **10** para datos anuales, **20** para semestrales, **40** para trimestrales, **60** para mensuales, **200** para semanales y **1096** para diarios (tres años). Usar el P25 equivale a exigir que el **75 % de las regiones** alcance ese tamaño.
+
+* **Tamaño de las series temporales en España/Canarias**: el mismo umbral de arriba debe superarse también, de forma individual, en la serie de España (`ES`) o en alguna serie de Canarias (`ES7`, `ES70`, `ES703`..`ES709`). Basta con que se cumpla en **una de las dos**.
+
+
+<div class="tabla-scroll-xy">
+
+```{r}
+# Antes esto era un heatmap de ggplot, pero al ser una IMAGEN su altura crecía
+# con el nº de combinaciones y había que recortarlo a 30 filas. Como tabla HTML
+# se pueden mostrar TODAS y recorrerlas con el scroll del contenedor, con la
+# cabecera fija arriba. Las clases val-ok/val-no dan el color a cada celda.
+marca <- function(x)
+  ifelse(x, '<span class="val-ok">&#10004;</span>', '<span class="val-no">&#10008;</span>')
+
+tb_val |>
+  transmute(
+    Atributos                              = etiqueta,
+    `Cobertura geográfica`                 = marca(ok_cob),
+    `Datos actualizados (≥ 2024)`          = marca(ok_fecha),
+    `Tamaño series (P25 ≥ umbral)`         = marca(ok_temp),
+    `Tamaño series España/Canarias`        = marca(ok_temp_es_can),
+    `CUMPLE LOS 4`                         = marca(ok_total)
+  ) |>
+  # escape = FALSE para que el <span> de cada celda se interprete como HTML y no
+  # se imprima literalmente
+  knitr::kable(escape = FALSE, align = c("l", rep("c", 5)))
+```
+
+</div>
+
+De las **`r n_total`** combinaciones de atributos analizadas, **`r n_validos`** cumplen los cuatro criterios de validación (cobertura geográfica, datos actualizados, tamaño de las series temporales y tamaño de las series temporales en España/Canarias).
+
+El requisito de disponer de al menos 4 atributos válidos `r if(n_validos >= 4) "**se cumple ✓**" else paste0("**no se cumple ✗** — con la selección actual faltan ", 4 - n_validos, " combinación(es) válida(s) para alcanzar el mínimo de 4")`.
+
+
+
+

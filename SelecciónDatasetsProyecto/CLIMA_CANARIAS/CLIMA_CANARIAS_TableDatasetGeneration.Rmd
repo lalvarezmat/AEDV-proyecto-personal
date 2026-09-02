@@ -1,0 +1,342 @@
+---
+title: "CLIMA_CANARIAS_TableDatasetGeneration"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: readable
+    toc: true
+    toc_float: true
+    number_sections: true
+---
+
+<!-- A continuación se fijan algunas cuestiones básicas de estilo de formateado del texto. Opcionalmente, se puede usar un archivo CSS para definir en más detalle el formateado del texto -->
+
+<style>
+h1.title { font-size: 24px; }
+h1 { font-size: 20px; }
+h2 { font-size: 18px; }
+h3 { font-size: 16px; }
+body { font-size: 14px;}
+p { font-size: 14px; margin-bottom: 10px;
+}
+/* Tablas anchas: envolver el chunk en <div class="tabla-scroll"> ... </div> para verlas completas con scroll horizontal */
+.tabla-scroll { overflow-x: auto; }
+.tabla-scroll table { width: auto; min-width: 100%; }
+.tabla-scroll table td, .tabla-scroll table th { white-space: nowrap; }
+</style>
+
+Este documento tiene un único objetivo: **descargar los datos climáticos de
+Canarias (AdapteCCa / AEMET)** y **generar los dos ficheros `.rds`** que sirven
+de dataset para el proyecto:
+
+- `observaciones_canarias_1990_2022.rds` — serie observada mensual por municipio
+  (14 variables, 1990–2022, con fecha `yyyy-mm`).
+- `proyecciones_canarias.rds` — proyecciones por mes y municipio (14 variables ×
+  4 escenarios SSP × **12 modelos** (11 GCMs + ensemble) × 4 horizontes: base
+  histórica de referencia 1971–2000 + 3 horizontes futuros, sin año).
+
+```{r,echo=FALSE}
+# OPCIONES POR DEFECTO AL COMPILAR LOS CHUNKS
+knitr::opts_chunk$set(
+  warning = FALSE,
+  message = FALSE,
+  echo = TRUE,
+  cache = FALSE
+)
+```
+
+```{r, echo=FALSE}
+library(tidyverse)
+library(DT)
+
+# asociamos funciones a determinadas librerías para evitar posibles errores
+select <- dplyr::select
+mutate <- dplyr::mutate
+filter <- dplyr::filter
+group_by <- dplyr::group_by
+summarise <- dplyr::summarise
+summarize <- dplyr::summarize
+rename <- dplyr::rename
+```
+
+# 1. Paquetes y geometría de los municipios canarios
+
+```{r}
+# Instalar y cargar los paquetes necesarios
+if (!require(terra)) install.packages('terra')
+if (!require(sf)) install.packages('sf')
+if (!require(mapSpain)) install.packages('mapSpain')
+if (!require(ncdf4)) install.packages('ncdf4')
+library(terra)
+library(sf)
+library(mapSpain)
+library(ncdf4)
+
+# Geometría de los municipios de Canarias (IGN/GISCO vía mapSpain).
+# IMPORTANTE: moveCAN = FALSE mantiene Canarias en sus coordenadas REALES.
+# Por defecto mapSpain usa moveCAN = TRUE y desplaza el archipiélago a un
+# recuadro junto a la península; eso NO solaparía con el ráster (que está en el
+# Atlántico) y la extracción saldría toda NA.
+municipios_canarias <- mapSpain::esp_get_munic(region = "Canarias", epsg = 4326,
+                                               moveCAN = FALSE)
+municipios_vect <- terra::vect(municipios_canarias)  # SpatVector para 'terra'
+
+# Atributos de los municipios (sin geometría), comunes a todas las tablas.
+base_muni <- municipios_canarias |>
+  sf::st_drop_geometry() |>
+  transmute(Municipio = name,
+            Provincia = ine.prov.name,
+            CCAA      = ine.ccaa.name)
+```
+
+# 2. Funciones auxiliares
+
+```{r}
+# Meses en orden de calendario: en los ficheros, 'time_filter' trae los meses en
+# inglés y en orden alfabético; aquí se reordenan a enero..diciembre.
+meses_en <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun",
+              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+# Matriz [lon, lat] -> SpatRaster bien orientado (norte arriba, EPSG:4326).
+build_raster <- function(mat, lon, lat) {
+  o_lon <- order(lon)
+  o_lat <- order(lat, decreasing = TRUE)
+  mat <- mat[o_lon, o_lat, drop = FALSE]
+  terra::rast(t(mat),
+              extent = terra::ext(min(lon), max(lon), min(lat), max(lat)),
+              crs = "EPSG:4326")
+}
+
+# Normaliza la unidad leída del fichero a una etiqueta legible.
+# (Los conteos de días vienen como "days", "num_days" o "1" según el fichero.)
+normaliza_unidad <- function(u) dplyr::case_when(
+  u %in% c("degC")                    ~ "°C",
+  u %in% c("days", "day", "num_days") ~ "días",
+  u %in% c("1")                       ~ "días",   # conteos de días (ver long_name)
+  TRUE                                ~ u
+)
+
+# Etiqueta legible del miembro del ensemble:
+# "ACCESS-CM2_r1i1p1f1_ESD-RegBA" -> "ACCESS-CM2"; "average" -> "ensemble".
+limpia_modelo <- function(x) ifelse(x == "average", "ensemble", sub("_.*$", "", x))
+```
+
+# 3. Descarga reproducible de los datos (THREDDS de AdapteCCa)
+
+Todos los datos provienen del catálogo THREDDS del visor de AdapteCCa
+(proyecciones CMIP6 regionalizadas y observaciones AEMET, rejilla ~2,5 km para
+Canarias). Este chunk **descarga todo lo necesario** y **se salta lo ya
+descargado**, así que la primera ejecución baja ~600 MB y las siguientes son
+instantáneas. Todos los `.nc` van a la carpeta `ruta_downloads`
+(`C:/Users/lalva/Downloads`), fuera del proyecto, para no sincronizar cientos de
+MB en Google Drive. Solo los `.rds` de resultados se guardan en el proyecto.
+
+- **Observaciones**: serie anual 1990–2022 de las 14 variables (14 ficheros).
+- **Proyecciones**: 14 variables × 4 escenarios = 56 ficheros (~577 MB).
+
+```{r}
+# En Windows, download.file() por libcurl falla por la comprobación de
+# revocación de certificados (schannel). Se usa el curl del sistema con
+# --ssl-no-revoke, que sí funciona. (En Linux/macOS, quitar --ssl-no-revoke.)
+descargar_si_falta <- function(url, destino) {
+  if (file.exists(destino) && file.info(destino)$size > 0) return(invisible(FALSE))
+  dir.create(dirname(destino), showWarnings = FALSE, recursive = TRUE)
+  download.file(url, destino, method = "curl",
+                extra = "-L --ssl-no-revoke -s", mode = "wb", quiet = TRUE)
+  invisible(TRUE)
+}
+
+thredds <- "https://escenarios.adaptecca.es/thredds/fileServer/canarias"
+
+# Carpeta destino de TODOS los ficheros .nc (observaciones + proyecciones),
+# fuera del proyecto para no sincronizarlos en Google Drive.
+ruta_downloads <- "C:/Users/lalva/Downloads"
+
+# Variables y método de downscaling: temperatura = ESD-RegBA, precip = deepESD.
+# (El método determina tanto el tag del nombre como la carpeta Temperatura/Precipitacion.)
+metodo_var <- c(
+  tasmax = "ESD-RegBA", tasmin = "ESD-RegBA", tmean = "ESD-RegBA",
+  tasmaxmax = "ESD-RegBA", tasminmin = "ESD-RegBA", tasminNa20 = "ESD-RegBA",
+  tasminNb0 = "ESD-RegBA", tasmaxNap90 = "ESD-RegBA", tasminNap90 = "ESD-RegBA",
+  tasmaxhwdmax = "ESD-RegBA",
+  pr = "deepESD", prNa1 = "deepESD", prmax24 = "deepESD", prmax5days = "deepESD")
+categoria_var  <- ifelse(metodo_var == "deepESD", "Precipitacion", "Temperatura")
+escenarios_ghg <- c("ssp126", "ssp245", "ssp370", "ssp585")
+vars           <- names(metodo_var)
+
+# --- 1) OBSERVACIONES: serie anual 1990-2022 de las 14 variables ---
+for (v in vars) {
+  f <- sprintf("%s_AEMET_None_1970-2022_yearly.nc", v)
+  descargar_si_falta(
+    file.path(thredds, "Observaciones_en_rejilla/Dato_anual", categoria_var[[v]], v, f),
+    file.path(ruta_downloads, f))
+}
+
+# --- 2) PROYECCIONES: 14 variables x 4 escenarios = 56 ficheros ---
+for (v in vars) for (s in escenarios_ghg) {
+  f <- sprintf("climatology_CMIP6_%s_%s_%s.nc", metodo_var[[v]], v, s)
+  descargar_si_falta(
+    file.path(thredds, "Proyecciones_CMIP6_en_rejilla/Climatologia",
+              categoria_var[[v]], v, f),
+    file.path(ruta_downloads, f))
+}
+
+# Verificación: todos los .nc necesarios presentes
+n_obs  <- sum(file.exists(file.path(ruta_downloads,
+            sprintf("%s_AEMET_None_1970-2022_yearly.nc", vars))))
+n_proy <- sum(file.exists(file.path(ruta_downloads,
+            as.vector(outer(vars, escenarios_ghg, function(v, s)
+              sprintf("climatology_CMIP6_%s_%s_%s.nc", metodo_var[v], v, s))))))
+cat("Ficheros .nc presentes -> observaciones:", n_obs, "/14 | proyecciones:", n_proy, "/56\n")
+stopifnot(n_obs == 14, n_proy == 56)
+```
+
+# 4. RDS de observaciones: serie anual mensual por municipio (1990-2022)
+
+Recorre las 14 variables observadas (`Dato_anual`), extrae la media por municipio
+para **cada mes y año**, y produce una tabla larga con columnas
+`fecha (yyyy-mm) · municipio · variable · unidad · value`. Se guarda en
+`observaciones_canarias_1990_2022.rds`.
+
+```{r}
+# Procesa un fichero de serie anual y devuelve tabla larga
+# (fecha, municipio, variable, unidad, value).
+serie_anual_variable <- function(var) {
+  archivo <- file.path(ruta_downloads, paste0(var, "_AEMET_None_1970-2022_yearly.nc"))
+  nc <- nc_open(archivo)
+  dn <- vapply(nc$var[[var]]$dim, function(d) d$name, character(1))
+  a  <- ncvar_get(nc, var)
+  lo <- ncvar_get(nc, "lon"); la <- ncvar_get(nc, "lat")
+  tf <- ncvar_get(nc, "time_filter")
+  tv <- ncvar_get(nc, "time")
+  tu <- ncatt_get(nc, "time", "units")$value
+  ud <- ncatt_get(nc, var, "units")$value
+  nc_close(nc)
+
+  a  <- aperm(a, match(c("lon", "lat", "time_filter", "time"), dn))
+  im <- match(meses_en, tf)
+  yy <- as.integer(format(as.Date(tv, origin = as.Date(sub(".*since\\s*", "", tu))), "%Y"))
+
+  capas <- list(); nm <- character()
+  for (mi in seq_along(im)) for (ti in seq_along(yy)) {
+    capas[[length(capas) + 1]] <- build_raster(a[, , im[mi], ti], lo, la)
+    nm <- c(nm, sprintf("M%02d_A%d", mi, yy[ti]))
+  }
+  r <- terra::rast(capas); names(r) <- nm
+
+  ex <- terra::extract(r, municipios_vect, fun = mean, na.rm = TRUE,
+                       ID = FALSE, touches = TRUE)
+  base_muni |>
+    transmute(municipio = Municipio) |>
+    bind_cols(ex) |>
+    pivot_longer(cols = matches("^M[0-9]+_A[0-9]+$"),
+                 names_to = c("mes", "anio"),
+                 names_pattern = "M([0-9]+)_A([0-9]+)",
+                 values_to = "value") |>
+    transmute(fecha     = paste(anio, mes, sep = "-"),   # yyyy-mm
+              municipio = municipio,
+              variable  = var,
+              unidad    = normaliza_unidad(ud),
+              value     = round(value, 2))
+}
+
+# Recorre todas las variables y apila
+tabla_obs_anual <- bind_rows(lapply(vars, serie_anual_variable)) |>
+  arrange(municipio, variable, fecha)
+
+# Guardar el resultado en la carpeta del proyecto
+saveRDS(tabla_obs_anual, "observaciones_canarias_1990_2022.rds")
+
+# Vista previa (~488k filas: 88 muni × 12 m × 33 a × 14 var)
+cat("observaciones_canarias_1990_2022.rds ->",
+    nrow(tabla_obs_anual), "filas x", ncol(tabla_obs_anual), "columnas\n")
+DT::datatable(head(tabla_obs_anual, 500),
+              filter = "top",
+              caption = "Muestra (primeras 500 filas). Completa en el .rds.",
+              options = list(pageLength = 12))
+```
+
+# 5. RDS de proyecciones: por mes, municipio y modelo (12 modelos x 4 horizontes x 4 SSP)
+
+Recorre las 14 variables y los 4 escenarios GHG (56 ficheros de proyección) y
+extrae **todos los miembros del ensemble**: los **11 GCMs individuales** más la
+media `average` (etiquetada como `ensemble` en la columna `modelo`). Para cada
+uno toma los 4 periodos climáticos: la **base histórica de referencia
+(1971–2000)** más los 3 horizontes futuros. Extrae por municipio cada mes y
+produce una tabla larga
+`municipio · variable · unidad · escenario · modelo · horizonte · mes · value`
+(sin años, porque las proyecciones son climatologías de 30 años). Se guarda en
+`proyecciones_canarias.rds`.
+
+Nota: la base histórica `reference` está definida en CMIP6 a partir del forzamiento
+histórico común, por lo que su valor es prácticamente idéntico en los 4 ficheros SSP;
+se incluye en cada escenario (estructura factorial) para facilitar el cálculo de
+anomalías futuro − referencia dentro de cada escenario.
+
+```{r}
+horizontes <- c("reference", "near_future", "medium_future", "far_future")
+
+# Procesa un fichero (variable, escenario) y devuelve tabla larga por municipio.
+proyeccion_var_esc <- function(var, esc) {
+  archivo <- file.path(ruta_downloads,
+    sprintf("climatology_CMIP6_%s_%s_%s.nc", metodo_var[[var]], var, esc))
+  nc <- nc_open(archivo)
+  dn <- vapply(nc$var[[var]]$dim, function(d) d$name, character(1))
+  a  <- ncvar_get(nc, var)
+  lo <- ncvar_get(nc, "lon"); la <- ncvar_get(nc, "lat")
+  tf <- ncvar_get(nc, "time_filter")
+  pe <- ncvar_get(nc, "period")
+  me <- ncvar_get(nc, "member")
+  ud <- ncatt_get(nc, var, "units")$value
+  nc_close(nc)
+
+  a <- aperm(a, match(c("lon", "lat", "time_filter", "period", "member"), dn))
+  im      <- match(meses_en, tf)
+  iperiod <- match(horizontes, pe)
+  stopifnot(!anyNA(im), !anyNA(iperiod), length(me) >= 1)
+
+  # Capas: TODOS los miembros (11 GCMs + 'average') x 4 periodos x 12 meses.
+  # Nombre parseable "B<miembro>_H<periodo>_M<mes>".
+  capas <- list(); nm <- character()
+  for (mb in seq_along(me)) for (hi in seq_along(iperiod)) for (mi in seq_along(im)) {
+    capas[[length(capas) + 1]] <- build_raster(a[, , im[mi], iperiod[hi], mb], lo, la)
+    nm <- c(nm, sprintf("B%02d_H%d_M%02d", mb, hi, mi))
+  }
+  r <- terra::rast(capas); names(r) <- nm
+
+  ex <- terra::extract(r, municipios_vect, fun = mean, na.rm = TRUE,
+                       ID = FALSE, touches = TRUE)
+  base_muni |>
+    transmute(municipio = Municipio) |>
+    bind_cols(ex) |>
+    pivot_longer(cols = matches("^B[0-9]+_H[0-9]+_M[0-9]+$"),
+                 names_to = c("mb", "hi", "mes"),
+                 names_pattern = "B([0-9]+)_H([0-9]+)_M([0-9]+)",
+                 values_to = "value") |>
+    transmute(municipio = municipio,
+              variable  = var,
+              unidad    = normaliza_unidad(ud),
+              escenario = esc,
+              modelo    = limpia_modelo(me[as.integer(mb)]),
+              horizonte = horizontes[as.integer(hi)],
+              mes       = as.integer(mes),
+              value     = round(value, 2))
+}
+
+# Recorre las 56 combinaciones variable x escenario
+combos <- expand.grid(var = vars, esc = escenarios_ghg, stringsAsFactors = FALSE)
+tabla_proy_mensual <- bind_rows(Map(proyeccion_var_esc, combos$var, combos$esc)) |>
+  mutate(horizonte = factor(horizonte, levels = horizontes)) |>
+  arrange(municipio, variable, escenario, modelo, horizonte, mes)
+
+# Guardar el resultado en la carpeta del proyecto
+saveRDS(tabla_proy_mensual, "proyecciones_canarias.rds")
+
+# Vista previa (~2,84M filas: 88 muni × 14 var × 4 SSP × 12 modelos × 4 periodos × 12 meses)
+cat("proyecciones_canarias.rds ->",
+    nrow(tabla_proy_mensual), "filas x", ncol(tabla_proy_mensual), "columnas\n")
+DT::datatable(head(tabla_proy_mensual, 500),
+              filter = "top",
+              caption = "Muestra (primeras 500 filas). Completa en el .rds.",
+              options = list(pageLength = 12))
+```

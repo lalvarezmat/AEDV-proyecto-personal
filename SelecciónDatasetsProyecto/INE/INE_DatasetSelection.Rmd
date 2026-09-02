@@ -1,0 +1,563 @@
+---
+title: "Análisis de datasets seleccionados del INE"
+author: "Luis Alvarez"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: readable
+    number_sections: true
+    self_contained: true
+---
+
+<style>
+h1.title { font-size: 24px; }
+h1 { font-size: 20px; }
+h2 { font-size: 18px; }
+h3 { font-size: 16px; }
+body { font-size: 14px;}
+p { font-size: 14px; margin-bottom: 10px;
+}
+/* Todas las cajas con scroll llevan la misma separación por debajo, para que no
+   queden pegadas al texto que viene después (evita tener que poner <br> a mano
+   detrás de cada una) */
+.tabla-scroll, .caja-scroll, .tabla-scroll-xy { margin-bottom: 28px; }
+/* Tablas anchas: envolver el chunk en <div class="tabla-scroll"> ... </div> para verlas completas con scroll horizontal */
+.tabla-scroll { overflow-x: auto; }
+.tabla-scroll table { width: auto; min-width: 100%; }
+.tabla-scroll table td, .tabla-scroll table th { white-space: nowrap; }
+/* Textos y listados largos (p. ej. todas las fechas de una serie semanal):
+   envolver en <div class="caja-scroll"> ... </div> para acotar su altura y recorrerlos
+   con scroll vertical, en vez de ocupar páginas enteras del documento */
+.caja-scroll { max-height: 250px; overflow-y: auto; padding: 10px 14px;
+               border: 1px solid #ddd; background-color: #fafafa; }
+/* Tablas que pueden ser anchas Y largas (p. ej. una fila por combinación de
+   atributos): scroll en los dos ejes, con la fila de cabecera fija arriba
+   mientras se recorre. Alternativa ligera a DT::datatable: HTML puro, sin
+   JavaScript ni dependencias */
+.tabla-scroll-xy { overflow: auto; max-height: 450px; border: 1px solid #ddd; }
+.tabla-scroll-xy table { width: auto; min-width: 100%; margin-bottom: 0; }
+.tabla-scroll-xy table td, .tabla-scroll-xy table th { white-space: nowrap; }
+.tabla-scroll-xy thead th { position: sticky; top: 0; z-index: 1;
+                            background-color: #fff; box-shadow: inset 0 -1px 0 #ddd; }
+/* Celdas de cumple/no cumple de la tabla de validación de requisitos */
+.val-ok, .val-no { display: block; text-align: center; font-weight: bold;
+                   color: #fff; padding: 2px 6px; border-radius: 3px; }
+.val-ok { background-color: #28a745; }
+.val-no { background-color: #dc3545; }
+</style>
+
+```{r,echo=FALSE}
+# OPCIONES POR DEFECTO AL COMPILAR LOS CHUNKS
+knitr::opts_chunk$set(
+  warning = FALSE,
+  message = FALSE,
+  cache = FALSE,
+  echo = FALSE,
+  # las figuras se escriben fuera del proyecto (el html es self_contained y las
+  # incrusta en base64), para que knitr no deje la carpeta auxiliar
+  # "INE_DatasetSelection_files" junto al html
+  fig.path = paste0(tempdir(), "/INE_DatasetSelection_files/")
+)
+```
+
+```{r, echo=FALSE}
+library(pxR)
+library(openxlsx)
+library(tidyverse)
+
+# asociamos funciones a determinadas librerías para evitar posibles errores
+select <- dplyr::select
+mutate <- dplyr::mutate
+filter <- dplyr::filter
+group_by <- dplyr::group_by
+summarise <- dplyr::summarise
+summarize <- dplyr::summarize
+rename <- dplyr::rename
+```
+
+Este documento analiza en detalle **un** dataset del INE, ya elegido a partir de la tabla que genera **INE_TableDatasetGeneration.Rmd**, y comprueba si cumple los requisitos para ser el dataset principal del proyecto personal de **AEDV**.
+
+Para analizar otro dataset basta con cambiar su identificador en el chunk de abajo y volver a compilar.
+
+```{r,echo=TRUE}
+# IDENTIFICADOR DEL DATASET QUE VAMOS A ANALIZAR
+Dataset.Id <- 76136 #(IPC CCAA) #35176   # 35177 #  56940 (población CCAA)
+```
+
+<!--IMPORTANTE: Si cambiamos el dataset, si se tiene activada la opción cache=TRUE para los chunks, hay que borrar la carpeta que se genera con la extensión "_cache" para obligar a recompilar todos los chunks con el nuevo dataset. Al hacer `knit` se compilarán todos los chunks, aunque obviamente, los textos fuera de los chunks no se actualizarán-->
+
+# Descarga, limpieza y guardado del dataset
+
+Descargamos el dataset del INE en formato `.px` y eliminamos las filas sin dato.
+
+```{r,results='hide',echo=TRUE}
+# cargamos la tabla y quitamos las observaciones sin valor
+data <- read.px(paste0("https://www.ine.es/jaxiT3/files/t/px/", Dataset.Id, ".px")) |>
+  as_tibble() |>
+  na.omit()
+```
+
+El INE entrega los datos ya en formato ordenado (*tidy*): una fila por observación, con el valor numérico en la columna `value` y el resto de columnas como dimensiones (variables categóricas). Una de esas dimensiones es siempre el **periodo** y otra suele ser la **geografía**, aunque el INE no las marca como tales: hay que localizarlas.
+
+```{r,echo=TRUE}
+# COLUMNA GEOGRÁFICA: el INE no la identifica, así que se busca cuál de las
+# dimensiones contiene nombres de lugares de España. Se comprueban varias
+# referencias de distinto nivel (nacional, comunidad, provincia, municipio) y se
+# elige la columna que más aciertos acumula.
+GEO_REFS <- c("Nacional", "Asturias", "Madrid", "Toledo", "Tenerife", "Telde")
+
+dims <- colnames(data)[!sapply(data, is.numeric) & colnames(data) != "Periodo"]
+
+geo_hits <- sapply(dims, function(d)
+  sum(sapply(GEO_REFS, function(ref)
+    any(str_detect(as.character(data[[d]]), fixed(ref, ignore_case = TRUE)))))
+)
+
+geo_col <- if(length(dims) == 0 || max(geo_hits) == 0) NULL else dims[which.max(geo_hits)]
+
+if(is.null(geo_col))
+  warning("No se ha detectado ninguna columna geográfica. Dimensiones disponibles: ",
+          paste(dims, collapse = ", "))
+
+cat("Columna temporal   :", if("Periodo" %in% colnames(data)) "Periodo" else "NO ENCONTRADA", "\n")
+cat("Columna geográfica :", if(is.null(geo_col)) "NO ENCONTRADA" else geo_col, "\n")
+```
+
+Antes de guardar nada en disco, eliminamos las columnas que **no aportan ninguna información**: aquellas cuyo valor es siempre el mismo en todas las filas. Se excluyen de esta comprobación la columna temporal, la geográfica y las numéricas, que son las columnas estructurales del dataset y no dimensiones susceptibles de ser constantes sin más.
+
+```{r,echo=TRUE}
+# columnas candidatas: todas menos las estructurales (periodo, geografía, valor)
+cols_candidatas <- setdiff(colnames(data)[!sapply(data, is.numeric)],
+                           c("Periodo", geo_col))
+n_valores <- sapply(data[cols_candidatas], function(x) n_distinct(x, na.rm = TRUE))
+cols_constantes <- names(n_valores)[n_valores <= 1]
+
+if(length(cols_constantes) > 0){
+  cat("Columnas con un solo valor (se eliminan):\n")
+  for(col in cols_constantes)
+    cat(sprintf("  - %-20s = %s\n", col, as.character(unique(data[[col]])[1])))
+  data <- data |> select(-all_of(cols_constantes))
+} else {
+  cat("Ninguna columna tiene un solo valor: no se elimina ninguna.\n")
+}
+```
+
+Guardamos el dataset **lo primero de todo**, nada más limpiarlo, en formato `rds` (el formato nativo de `R`: conserva los tipos de las columnas y ocupa mucho menos que un Excel).
+
+```{r,echo=TRUE}
+filename <- as.character(Dataset.Id)
+
+saveRDS(data, file = paste0(filename, ".rds"))
+
+cat("Fichero guardado:", paste0(filename, ".rds"),
+    sprintf("(%.1f MB)\n", file.info(paste0(filename, ".rds"))$size / 1024^2))
+```
+
+Guardamos también los metadatos del dataset recogidos en el catálogo de la asignatura (**INE.datasets.xlsx**, generado por **INE_TableDatasetGeneration.Rmd**): la fila correspondiente a este dataset, con las columnas pasadas a filas (`Campo`/`Valor`) para que quepan en una tabla estrecha.
+
+```{r,echo=TRUE}
+# el catálogo habitual es el filtrado; si el dataset no está en él (el filtro
+# deja fuera datasets que sí sirven) se busca en el volcado completo .raw, que
+# solo existe si el generador se ha ejecutado entero
+fila_metadatos <- read.xlsx("INE.datasets.xlsx") |>
+  filter(Id == Dataset.Id)
+
+if(nrow(fila_metadatos) == 0 && file.exists("INE.datasets.raw.xlsx"))
+  fila_metadatos <- read.xlsx("INE.datasets.raw.xlsx") |>
+    filter(Id == Dataset.Id)
+
+if(nrow(fila_metadatos) == 0)
+  stop("El dataset ", Dataset.Id, " no aparece en el catálogo del INE. ",
+       "Comprueba el identificador o vuelve a generar el catálogo con INE_TableDatasetGeneration.Rmd")
+
+# LastUpdate viene del Excel como número de serie de fechas de Excel
+fila_metadatos <- fila_metadatos |>
+  mutate(LastUpdate = as.character(as.Date(LastUpdate, origin = "1899-12-30")))
+
+# DIM viene del catálogo, calculado ANTES de descargar este dataset en concreto,
+# así que puede listar dimensiones que aquí han resultado constantes y ya no
+# están en `data` (cols_constantes, calculado más arriba): se quitan de DIM para
+# que no mencione columnas que ya no existen en el rds guardado. El catálogo
+# trunca los nombres de columna a 20 caracteres, por eso se comparan truncados.
+quitar_dims_constantes <- function(dim_text, quitar){
+  if(is.na(dim_text) || dim_text %in% c("-", "*") || length(quitar) == 0) return(dim_text)
+  quitar20 <- substr(quitar, 1, 20)
+  partes   <- strsplit(dim_text, " - ", fixed = TRUE)[[1]]
+  nombres  <- sub(" [0-9]+$", "", partes)
+  partes   <- partes[!nombres %in% quitar20]
+  if(length(partes) == 0) return("-")
+  paste(partes, collapse = " - ")
+}
+
+fila_metadatos <- fila_metadatos |>
+  mutate(DIM = quitar_dims_constantes(DIM, cols_constantes))
+
+# pasamos las columnas a filas: son más legibles en vertical. Se añade
+# geo.col.name (la columna geográfica detectada más arriba) para que la sección
+# de análisis no tenga que volver a detectarla a partir de los datos
+metadatos <- tibble(
+  Campo = colnames(fila_metadatos),
+  Valor = as.character(t(fila_metadatos))
+) |>
+  bind_rows(tibble(Campo = "geo.col.name",
+                   Valor = if(is.null(geo_col)) NA_character_ else geo_col))
+
+write.xlsx(metadatos, file = paste0(filename, "_metadatos.xlsx"), overwrite = TRUE)
+```
+
+Una vez guardados en disco los metadatos (fichero xlsx) y los datos (fichero RDS), iniciamos el proceso de análisis. A partir de aquí el documento se compila **solo** con los ficheros ya guardados en disco (el `rds` y el `xlsx` de metadatos); no se usa ningún objeto de las secciones anteriores. Es a propósito: es la parte que el alumno incluye en la memoria del proyecto personal, así que tiene que poder ejecutarse sola (lo único que se usa de lo definido anteriormente es el Dataset.Id)
+
+# Análisis del dataset
+
+
+
+```{r,echo=TRUE}
+# se repite aquí (idéntico al de la sección "Descarga, limpieza y guardado") para
+# poder nombrar los ficheros sin depender de ningún chunk anterior
+#Dataset.Id <- 35176 # hay que poner el dataset ID real que use el alumno 
+filename   <- as.character(Dataset.Id)
+```
+
+```{r,echo=TRUE}
+metadatos <- read.xlsx(paste0(filename, "_metadatos.xlsx"))
+```
+
+**metadatos**
+
+<div class="tabla-scroll">
+
+```{r}
+metadatos |>
+  knitr::kable()
+```
+
+</div>
+
+```{r,echo=TRUE}
+data <- readRDS(paste0(filename, ".rds"))
+```
+
+**data**
+
+```{r}
+data
+```
+
+```{r,echo=TRUE}
+# COLUMNA GEOGRÁFICA: se guardó en los metadatos (geo.col.name) al construir el
+# rds, así que no hace falta volver a detectarla a partir de los datos
+geo_col <- metadatos$Valor[metadatos$Campo == "geo.col.name"]
+if(is.na(geo_col)) geo_col <- NULL
+
+cat("Columna geográfica :", if(is.null(geo_col)) "NO ENCONTRADA" else geo_col, "\n")
+```
+
+## Información sobre las columnas de la tabla descargada
+
+Se presentan las diferentes dimensiones, cada una con sus valores posibles y el nº de observaciones. A diferencia de Eurostat, el INE entrega los valores ya con su nombre completo, así que no hace falta traducir ningún código.
+
+```{r, results='asis'}
+# results='asis' para poder envolver la salida de cada columna en HTML propio
+# (concretamente, la caja con scroll vertical de Periodo). Sin 'asis' el
+# <div>/<pre> se imprimirían como texto literal en vez de interpretarse.
+imprime_caja <- function(m, texto, scroll = FALSE){
+  cat("\n**", texto, "**\n\n", sep = "")
+  if(scroll) cat('<div class="caja-scroll">\n\n')
+  cat("```\n")
+  print(m)
+  cat("```\n")
+  if(scroll) cat("\n</div>\n")
+  cat("\n")
+}
+
+for(col in colnames(data)){
+  if(is.numeric(data[[col]])) next
+
+  tb <- data |>
+    group_by(!!sym(col)) |>
+    summarise(N.observ = dplyr::n(), .groups = "drop") |>
+    arrange(desc(N.observ)) |>
+    # los nombres del INE pueden ser muy largos (municipios, tipos de dato)
+    mutate(!!col := substr(as.character(!!sym(col)), 1, 55))
+
+  texto <- paste0("COLUMNA: ", col, " (", nrow(tb), " opciones)")
+
+  # cualquier columna puede tener muchas opciones (municipios, tipos de dato
+  # detallados...), no solo Periodo: se muestran TODAS, en una caja con scroll
+  # vertical en vez de truncar a 50 o alargar la página
+  imprime_caja(tb |> as.matrix() |> noquote(), texto, scroll = TRUE)
+}
+```
+
+## Nº de observaciones en Canarias
+
+Todos los datos del INE se refieren a España, así que aquí lo que interesa comprobar es que **Canarias** esté bien representada. Según el nivel de desglose del dataset, Canarias aparece como la comunidad autónoma (`Canarias`), como sus dos provincias (`35 Palmas, Las` y `38 Santa Cruz de Tenerife`) o como municipios con código `35xxx`/`38xxx`.
+
+```{r}
+# Detecta si un valor de la columna geográfica corresponde a Canarias. Se
+# comprueba por nombre (comunidad, provincias e islas) y por código INE: las dos
+# provincias canarias son la 35 y la 38, y sus municipios empiezan por esos dos
+# dígitos ("35016 Las Palmas de Gran Canaria").
+es_canaria <- function(x){
+  x <- as.character(x)
+  str_detect(x, regex("canarias|palmas|tenerife|hierro|gomera|lanzarote|fuerteventura",
+                      ignore_case = TRUE)) |
+  str_detect(x, "^(35|38)[0-9]*\\s")
+}
+```
+
+```{r}
+if(is.null(geo_col)){
+  cat("No se ha identificado la columna geográfica: no se puede comprobar Canarias.\n")
+} else {
+  data.geo <- data |>
+    group_by(!!sym(geo_col)) |>
+    summarise(N.Observ = dplyr::n(), .groups = "drop")
+
+  regiones_canarias <- data.geo |> filter(es_canaria(!!sym(geo_col)))
+
+  if(nrow(regiones_canarias) == 0)
+    cat("El dataset NO contiene ninguna región de Canarias.\n")
+  else
+    print(as.data.frame(regiones_canarias), row.names = FALSE)
+}
+```
+
+## Validación de requisitos AEDV
+
+Esta sección resume, de un vistazo, si el dataset sirve como dataset principal del proyecto. Se comprueban los **cuatro criterios** de la asignatura sobre **cada combinación de atributos** (es decir, sobre cada serie temporal que el dataset permite seguir por región):
+
+* **Cobertura geográfica**: el dataset debe tener datos de un número mínimo de regiones, según el nivel de desglose que indica su código: **500** para municipios (`MUN`), **40** para provincias (`PROV`) y **15** para comunidades autónomas (`CCAA`).
+
+* **Datos actualizados**: el último dato debe ser de **2024** o posterior.
+
+* **Tamaño de las series temporales**: el **percentil 25 (P25)** del nº de fechas por región debe superar el umbral de su frecuencia: **10** para datos anuales, **20** para semestrales, **40** para trimestrales, **60** para mensuales, **200** para semanales y **1096** para diarios (tres años). Usar el P25 equivale a exigir que el **75 % de las regiones** alcance ese tamaño.
+
+* **Tamaño de las series temporales en Canarias**: el mismo umbral debe superarse también, de forma individual, en alguna de las regiones canarias del dataset.
+
+La frecuencia se detecta automáticamente desde el formato de `Periodo` (`"2020"` → anual, `"2008S1"` → semestral, `"2020T1"` → trimestral, `"2020M01"` → mensual, `"2020SM01"` → semanal, `"1/1/2020"` → diario). También se reconocen fechas literales en español (`"1 de abril de 1971"`), clasificándolas por el salto entre fechas consecutivas. **Si el dataset mezcla frecuencias, aparecerá una fila por cada frecuencia detectada.**
+
+```{r}
+# --- DETECCIÓN DE LA FRECUENCIA ----------------------------------------------
+# El INE no publica la frecuencia como columna: se deduce del FORMATO de las
+# fechas. No vale restar dígitos entre dos fechas consecutivas: "2026T1"/"2026T2"
+# y "2026M01"/"2026M02" son indistinguibles por ese método.
+
+# Fechas literales en español ("1 de abril de 1971"): no encajan en ningún
+# patrón de `case_when` de abajo (quedan en "otro"), así que se reclasifican
+# aparte, porque hace falta ver TODAS las fechas del dataset a la vez para medir
+# el salto entre fechas consecutivas.
+MESES_ES <- c(enero = 1, febrero = 2, marzo = 3, abril = 4, mayo = 5, junio = 6,
+              julio = 7, agosto = 8, septiembre = 9, setiembre = 9, octubre = 10,
+              noviembre = 11, diciembre = 12)
+
+fecha_literal_es_a_Date <- function(x){
+  m <- regmatches(x, regexec("^([0-9]{1,2}) de ([[:alpha:]]+) de ([0-9]{4})$", x, ignore.case = TRUE))
+  txt <- vapply(m, function(g){
+    if(length(g) != 4) return(NA_character_)
+    mes <- MESES_ES[tolower(g[3])]
+    if(is.na(mes)) return(NA_character_)
+    sprintf("%s-%02d-%02d", g[4], mes, as.integer(g[2]))
+  }, character(1))
+  as.Date(txt)
+}
+
+# Clasifica por el salto MEDIANO entre fechas consecutivas (en días). Los
+# rangos de tolerancia cubren la variación normal de longitud de meses/
+# trimestres y los años bisiestos.
+clasifica_por_gap <- function(fechas_date){
+  d <- sort(unique(fechas_date))
+  if(length(d) < 2) return("?")
+  gap <- as.numeric(stats::median(diff(d)))
+  if(gap <= 1.5)                 return("D")
+  if(gap >= 5   && gap <= 9)     return("W")
+  if(gap >= 27  && gap <= 32)    return("M")
+  if(gap >= 85  && gap <= 97)    return("Q")
+  if(gap >= 175 && gap <= 190)   return("S")
+  if(gap >= 350 && gap <= 380)   return("Y")
+  return("?")
+}
+
+classify_time <- function(t) {
+  d <- dplyr::case_when(
+    # Diario: el INE lo entrega como "1/1/2020" o "10/4/2020" (día/mes/año, con
+    # el día y el mes de una o dos cifras). Se admite también el ISO "2020-01-01".
+    stringr::str_detect(t, "^[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}$|^[0-9]{4}-[0-9]{2}-[0-9]{2}$") ~ "D",
+    # El INE codifica la semana como "1975SM01" (SM = semana). Va antes que el
+    # patrón mensual porque, si no, "otro" se lo tragaría y el umbral quedaría NA.
+    stringr::str_detect(t, "^[0-9]{4}SM[0-9]{2}$") ~ "W",
+    stringr::str_detect(t, "^[0-9]{4}M[0-9]{2}$|^[0-9]{4}-[0-9]{2}$") ~ "M",
+    stringr::str_detect(t, "^[0-9]{4}[QT][0-9]$") ~ "Q",
+    stringr::str_detect(t, "^[0-9]{4}S[1-2]$") ~ "S",
+    stringr::str_detect(t, "^[0-9]{4}$")           ~ "Y",
+    TRUE                                            ~ "otro"
+  )
+
+  es_literal <- d == "otro" & stringr::str_detect(t, "^[0-9]{1,2} de [[:alpha:]]+ de [0-9]{4}$")
+  if(any(es_literal)){
+    fechas_lit <- fecha_literal_es_a_Date(t[es_literal])
+    fechas_lit <- unique(fechas_lit[!is.na(fechas_lit)])
+    if(length(fechas_lit) >= 2) d[es_literal] <- clasifica_por_gap(fechas_lit)
+  }
+  d
+}
+```
+
+```{r}
+# --- ATRIBUTOS Y TAMAÑO DE CADA SERIE ----------------------------------------
+# Los atributos son las dimensiones que no son ni la geografía ni la fecha: cada
+# combinación de sus valores es un atributo que se sigue en el tiempo para cada
+# región.
+hay_datos <- "Periodo" %in% colnames(data) && !is.null(geo_col)
+
+if(hay_datos){
+  attr_dims <- setdiff(colnames(data)[!sapply(data, is.numeric)],
+                       c("Periodo", geo_col))
+
+  # Nº de fechas de cada serie (combinación de atributos x región x frecuencia).
+  # La frecuencia entra en la agrupación porque un mismo dataset del INE puede
+  # mezclar varias (p. ej. datos mensuales y su acumulado anual).
+  series <- data |>
+    mutate(freq_obs = classify_time(Periodo)) |>
+    group_by(across(all_of(c(attr_dims, geo_col, "freq_obs")))) |>
+    summarise(n_periodos = n_distinct(Periodo), .groups = "drop")
+
+  # Resumen por combinación de atributos y frecuencia. Si el dataset no tiene
+  # más dimensiones que la geografía y la fecha, sale una fila por frecuencia.
+  tb <- series |>
+    group_by(across(all_of(c(attr_dims, "freq_obs")))) |>
+    summarise(
+      n_regiones = n_distinct(!!sym(geo_col)),
+      P0   = as.integer(min(n_periodos)),
+      P25  = as.integer(quantile(n_periodos, 0.25)),
+      P50  = as.integer(quantile(n_periodos, 0.50)),
+      P75  = as.integer(quantile(n_periodos, 0.75)),
+      P100 = as.integer(max(n_periodos)),
+      .groups = "drop"
+    ) |>
+    arrange(desc(n_regiones), desc(P25))
+}
+```
+
+```{r}
+# --- APLICACIÓN DE LOS CUATRO CRITERIOS --------------------------------------
+if(hay_datos){
+  umbral_freq <- c(Y = 10L, S = 20L, Q = 40L, M = 60L, W = 200L, D = 1096L,
+                   otro = NA_integer_, `?` = NA_integer_)
+
+  # Cobertura geográfica: el umbral depende del nivel de desglose, que el INE
+  # indica en el código del dataset (MUN / PROV / CCAA)
+  codigo_geo <- metadatos$Valor[metadatos$Campo == "Codigo"]
+  tipo_geo   <- dplyr::case_when(
+    str_detect(codigo_geo, "MUN")  ~ "MUN",
+    str_detect(codigo_geo, "PROV") ~ "PROV",
+    str_detect(codigo_geo, "CCAA") ~ "CCAA",
+    TRUE ~ "OTRO"
+  )
+  umbral_cob <- unname(c(MUN = 500L, PROV = 40L, CCAA = 15L, OTRO = NA_integer_)[tipo_geo])
+
+  year_end <- max(as.integer(substr(data$Periodo, 1, 4)), na.rm = TRUE)
+  ok_fecha <- year_end >= 2024
+
+  # Tamaño de la serie temporal en Canarias: por combinación de atributos y
+  # frecuencia, basta con que ALGUNA región canaria alcance el umbral por su cuenta
+  grupos <- c(attr_dims, "freq_obs")
+
+  ok_temp_can_tbl <- series |>
+    filter(es_canaria(!!sym(geo_col))) |>
+    mutate(umbral = unname(umbral_freq[freq_obs])) |>
+    group_by(across(all_of(grupos))) |>
+    summarise(ok_temp_can = any(!is.na(umbral) & n_periodos >= umbral), .groups = "drop")
+
+  tb_val <- tb |>
+    left_join(ok_temp_can_tbl, by = grupos) |>
+    mutate(
+      umbral   = unname(umbral_freq[freq_obs]),
+      ok_cob   = !is.na(umbral_cob) & n_regiones >= umbral_cob,
+      ok_fecha = ok_fecha,
+      ok_temp  = !is.na(umbral) & P25 >= umbral,
+      # una combinación sin ninguna fila canaria no tiene pareja en el join:
+      # replace_na() la marca como no cumplida, no como NA
+      ok_temp_can = replace_na(ok_temp_can, FALSE),
+      ok_total = ok_cob & ok_fecha & ok_temp & ok_temp_can,
+      etiqueta = if(length(attr_dims) > 0)
+                   apply(across(all_of(attr_dims)), 1,
+                         function(r) paste(substr(r, 1, 30), collapse = " / "))
+                 else
+                   "dataset completo",
+      etiqueta = paste0(etiqueta, " [", freq_obs, "]")
+    )
+
+  n_validos <- sum(tb_val$ok_total)
+  n_total   <- nrow(tb_val)
+} else {
+  n_validos <- 0L
+  n_total   <- 0L
+}
+```
+
+**Combinaciones de atributos**: nº de regiones y percentiles del tamaño de la serie temporal (nº de periodos por región).
+
+<div class="tabla-scroll-xy">
+
+```{r}
+# kable en vez de DT::datatable: la tabla puede tener muchas filas (una por
+# combinación de atributos) y aquí solo hace falta poder recorrerla, no filtrarla
+# ni ordenarla. El contenedor .tabla-scroll-xy le da el scroll en los dos ejes.
+if(hay_datos){
+  tb_val |>
+    select(all_of(attr_dims), freq_obs, n_regiones, P0, P25, P50, P75, P100) |>
+    knitr::kable()
+} else {
+  cat("No se ha podido calcular la tabla: falta la columna Periodo o la geográfica.")
+}
+```
+
+</div>
+
+```{r}
+if(hay_datos){
+  cabecera <- paste0("**Validación de requisitos AEDV** — último año con datos: ", year_end,
+                     " | Nivel geográfico: ", tipo_geo,
+                     " (umbral de cobertura: ",
+                     ifelse(is.na(umbral_cob), "?", umbral_cob), " regiones).")
+} else {
+  cabecera <- "**Validación de requisitos AEDV** — no disponible."
+}
+```
+
+`r cabecera`
+
+<div class="tabla-scroll-xy">
+
+```{r}
+# Tabla de validación en HTML (antes era un heatmap de ggplot, pero al ser una
+# IMAGEN su altura crecía con el nº de combinaciones y había que recortarla a 30
+# filas). Como tabla se muestran TODAS y se recorren con el scroll del
+# contenedor, con la cabecera fija arriba. Las clases val-ok/val-no dan el color.
+marca <- function(x)
+  ifelse(x, '<span class="val-ok">&#10004;</span>', '<span class="val-no">&#10008;</span>')
+
+if(hay_datos){
+  tb_val |>
+    transmute(
+      Atributos                       = etiqueta,
+      `Cobertura geográfica`          = marca(ok_cob),
+      `Datos actualizados (≥ 2024)`   = marca(ok_fecha),
+      `Tamaño series (P25 ≥ umbral)`  = marca(ok_temp),
+      `Tamaño series Canarias`        = marca(ok_temp_can),
+      `CUMPLE LOS 4`                  = marca(ok_total)
+    ) |>
+    # escape = FALSE para que el <span> de cada celda se interprete como HTML y
+    # no se imprima literalmente
+    knitr::kable(escape = FALSE, align = c("l", rep("c", 5)))
+} else {
+  cat("No se ha podido calcular la validación.")
+}
+```
+
+</div>
+
+De las **`r n_total`** combinaciones de atributos analizadas, **`r n_validos`** cumplen los cuatro criterios de validación (cobertura geográfica, datos actualizados, tamaño de las series temporales y tamaño de las series temporales en Canarias).
+
+El requisito de disponer de al menos 4 atributos válidos `r if(n_validos >= 4) "**se cumple ✓**" else paste0("**no se cumple ✗** — con la selección actual faltan ", 4 - n_validos, " combinación(es) válida(s) para alcanzar el mínimo de 4")`.

@@ -1,0 +1,709 @@
+---
+title: "Generación de la tabla con información de los datasets de Eurostat"
+author: "Luis Alvarez"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: readable
+    toc: true
+    toc_float: true
+    number_sections: true
+---
+
+<!--
+# TRUCOS ÚTILES AL EDITAR:
+(1) TECLAS: CTRL-MAY-1 : EDICIÓN DE CÓDIGO OCUPA/NO OCUPA TODA LA VENTANA
+(2) TECLAS: CTRL-ALT-C : EJECUTA UN CHUNK CUANDO EL CURSOR DEL RATÓN ESTA DENTRO DEL CHUNK (OTRA FORMA ES HACER CLICK EN EL BOTÓN TRIANGULAR VERDE EN LA ESQUINA SUPERIOR DERECHA DEL CHUNK)
+(3) ACTIVAR "knit on Save" PARA COMPILAR AUTOMÁTICAMENTE AL GUARDAR EL ARCHIVO (CTRL-S)
+(4) PARA CREAR UN CHUNK NUEVO USAR BOTÓN VERDE CON UNA "C" EN LA PARTE SUPERIOR DERECHA DE LA VENTANA
+(5) PARA EJECUTAR UNA PORCIÓN DE CÓDIGO O VISUALIZAR EL VALOR DE UNA TABLA/VARIABLE SELECCIONAR EL CÓDIGO CON EL RATÓN Y HACER CTRL-ENTER -->
+
+<style>
+h1.title { font-size: 24px; }
+h1 { font-size: 20px; }
+h2 { font-size: 18px; }
+h3 { font-size: 16px; }
+body { font-size: 14px;}
+p { font-size: 14px; margin-bottom: 10px;
+}
+/* Tablas anchas: envolver el chunk en <div class="tabla-scroll"> ... </div> para verlas completas con scroll horizontal */
+.tabla-scroll { overflow-x: auto; }
+.tabla-scroll table { width: auto; min-width: 100%; }
+.tabla-scroll table td, .tabla-scroll table th { white-space: nowrap; }
+</style>
+
+```{r,echo=FALSE}
+# OPCIONES POR DEFECTO AL COMPILAR LOS CHUNKS
+knitr::opts_chunk$set(
+  warning = FALSE,
+  message = FALSE,
+  cache = FALSE,
+  echo = TRUE
+)
+```
+
+```{r, echo=FALSE}
+if (!require(openxlsx)) install.packages('openxlsx')
+if (!require(DT)) install.packages('DT')
+if (!require(leaflet)) install.packages('leaflet')
+if (!require(sf)) install.packages('sf')
+if (!require(tidyverse)) install.packages('tidyverse')
+if (!require(eurostat)) install.packages('eurostat')
+if (!require(xml2)) install.packages('xml2')
+library(eurostat)
+library(openxlsx)
+library(DT)
+library(leaflet)
+library(sf)
+library(tidyverse)
+library(xml2)
+source("../../../utilidades.R") # aedv_leer_geojson
+```
+
+```{r,echo=FALSE}
+# asociamos funciones a determinadas librerías para evitar posibles errores
+select <- dplyr::select
+mutate <- dplyr::mutate
+filter <- dplyr::filter
+group_by <- dplyr::group_by
+summarise <- dplyr::summarise
+summarize <- dplyr::summarize
+rename <- dplyr::rename
+```
+
+# Introducción
+
+[Eurostat](https://ec.europa.eu/eurostat/web/main/home) es la oficina estadística de la Unión Europea, responsable de recopilar, armonizar y publicar estadísticas comparables entre los países miembros de la UE y algunos países asociados. [La base de datos de Eurostat](https://ec.europa.eu/eurostat/web/main/data/database#Data%20navigation%20tree) está muy bien organizada y podemos trabajar directamente con ella desde `R` usando el paquete `eurostat`.
+
+En este documento recorremos **todo** el catálogo de Eurostat y generamos dos hojas Excel con la información de cada dataset, del mismo modo que se hace con el INE y el ISTAC:
+
+* **Eurostat.datasets.raw.xlsx** : todos los datasets recorridos con su información ampliada.
+
+* **Eurostat.datasets.xlsx** : solo los que cumplen los requisitos mínimos de la asignatura **AEDV**.
+
+El documento que analiza en detalle **un** dataset concreto, ya elegido a partir de estas tablas, es **EUROSTAT_DatasetSelection.Rmd**.
+
+Eurostat organiza la información mediante un sistema jerárquico de clasificación territorial que denomina NUTS (Nomenclature of Units for Territorial Statistics) de la siguiente forma:
+
+* NUTS 0 : Países. Hay 39 países registrados de los cuales 27 forman, actualmente, la Comunidad Económica Europea. Cada país tiene un código identificativo de 2 letras. El código de España es "ES".
+
+* NUTS 1 : Grandes regiones dentro de los países que se corresponden con una, o la unión de varias, comunidades autónomas (o el equivalente en otros países). Hay 115 regiones registradas, entre ellas, Canarias. Tienen un código identificativo de 3 caracteres donde los dos primeros identifican el país. El código de Canarias es "ES7"
+
+* NUTS 2 : Comunidades autónomas (o el equivalente en otros países). Hay 299 regiones registradas, entre ellas, Canarias. Tienen un código identificativo de 4 caracteres donde los dos primeros identifican el país. El código de Canarias es "ES70". Es decir, que Canarias aparece como región NUTS 1 y región NUTS 2 con códigos distintos.
+
+* NUTS 3 : Provincias (o el equivalente en otros países), aunque en el caso de Canarias es por islas (no por provincias), lo cual es interesante porque nos da una información más detallada. Tienen un código identificativo de 5 caracteres donde los dos primeros identifican el país. Hay 1345 regiones registradas, entre ellas, todas las Islas Canarias. Por ejemplo, el código de Gran Canaria es "ES705".
+
+A continuación se visualizan las zonas geográficas que corresponden a los diferentes NUTS. Si pasamos el ratón por encima de una región veremos el código de la región asociada y su nombre completo. Además de estos códigos de regiones reales que aparecen en estos mapas hay códigos para agrupaciones de países como "EU27_2020", que representa la agrupación de los 27 países que actualmente forman la unión europea, así como otros códigos de regiones que no están en estos mapas NUTS como las regiones del Reino Unido que ya no está en la Unión Europea o regiones creadas con fines estadísticos que no tienen asociada una región real en un mapa NUTS.
+
+## Regiones NUTS 0 {-}
+
+```{r,echo=TRUE}
+#geoj <- aedv_leer_geojson("https://gisco-services.ec.europa.eu/distribution/v2/nuts/geojson/NUTS_RG_01M_2024_4326_LEVL_0.geojson")
+
+geoj <- aedv_leer_geojson("https://ctim.ulpgc.es/AEDV/data/NUTS_RG_60M_2024_4326_LEVL_0.geojson")
+
+etiquetas <- paste("code: ",geoj$NUTS_ID,"<br>",geoj$NAME_LATN) |>
+  lapply(htmltools::HTML)
+
+geoj |>
+  leaflet() |>
+  addPolygons(label = etiquetas,weight = 0.5) |>
+  setView(lng = 10.7038, lat = 44, zoom = 4)
+```
+
+## Regiones NUTS 1 {-}
+
+```{r,echo=TRUE}
+geoj <- aedv_leer_geojson("https://ctim.ulpgc.es/AEDV/data/NUTS_RG_60M_2024_4326_LEVL_1.geojson")
+
+etiquetas <- paste("code: ",geoj$NUTS_ID,"<br>",geoj$NAME_LATN) |>
+  lapply(htmltools::HTML)
+
+geoj |>
+  leaflet() |>
+  addPolygons(label = etiquetas,weight = 0.5)  |>
+  setView(lng = 10.7038, lat = 44, zoom = 4)
+```
+
+## Regiones NUTS 2 {-}
+
+```{r,echo=TRUE}
+geoj <- aedv_leer_geojson("https://ctim.ulpgc.es/AEDV/data/NUTS_RG_60M_2024_4326_LEVL_2.geojson")
+
+etiquetas <- paste("code: ",geoj$NUTS_ID,"<br>",geoj$NAME_LATN) |>
+  lapply(htmltools::HTML)
+
+geoj |>
+  leaflet() |>
+  addPolygons(label = etiquetas,weight = 0.5)  |>
+  setView(lng = 10.7038, lat = 44, zoom = 4)
+```
+
+## Regiones NUTS 3 {-}
+
+```{r,echo=TRUE}
+geoj <- aedv_leer_geojson("https://ctim.ulpgc.es/AEDV/data/NUTS_RG_60M_2024_4326_LEVL_3.geojson")
+
+etiquetas <- paste("code: ",geoj$NUTS_ID,"<br>",geoj$NAME_LATN) |>
+  lapply(htmltools::HTML)
+
+geoj |>
+  leaflet() |>
+  addPolygons(label = etiquetas,weight = 0.5)  |>
+  setView(lng = 10.7038, lat = 44, zoom = 4)
+```
+
+# El catálogo de datasets de Eurostat
+
+La función `get_eurostat_toc` nos suministra, en forma de tabla, todos los datasets de Eurostat con la información básica asociada. Los campos principales de dicha tabla son:
+
+* **title**: el título del dataset. Es el campo por el que podemos filtrar más fácilmente. Puede contener información del NUTS, por ejemplo "NUTS 2" y precisar si la información es semanal, mensual o por cuatrimestre ("week", "month", o "quarter"). Si el título no contiene la palabra NUTS, posiblemente sean datos de NUTS 0, es decir por países.
+
+* **code**: el código del dataset que utilizaremos para descargarlo.
+
+* **last.update.of.data**: fecha última actualización del dataset.
+
+* **last.table.structure.change**: fecha última actualización de la estructura del dataset.
+
+* **data.start**: fecha comienzo datos de la tabla. Puede tener indicación de mes o trimestre.
+
+* **data.end**: fecha final datos de la tabla.
+
+* **values** (`N.observaciones` en el xlsx final): el nº total de observaciones (filas de la tabla del dataset. Cada fila contiene una única observación (valor numérico) acompañada de variables categóricas).
+
+* **hierarchy**: Eurostat organiza la información en un árbol de carpetas por temas. Este parámetro indica la "profundidad" en el árbol de carpetas donde se encuentra el dataset.
+
+```{r}
+datasets <- get_eurostat_toc() |>
+  as_tibble() |>
+  filter(type=="dataset") |>
+  select(-type) |>
+  distinct(code, .keep_all = TRUE) |>
+  arrange(desc(values))
+
+cat("Datasets disponibles en el catálogo de Eurostat:", nrow(datasets), "\n")
+```
+
+# Prefiltrado por la fecha del último dato
+
+El recorrido completo del catálogo son varios miles de llamadas a la API, así que **antes** de recorrerlo descartamos los datasets que ya sabemos, solo con la información del catálogo, que no pueden servir para el proyecto personal: los que **no se actualizan desde hace años**. El criterio es el mismo que se aplica en el INE: el último dato debe ser de **2024 o posterior**.
+
+Este prefiltro no necesita descargar nada porque `data.end` ya viene en el catálogo, y reduce el recorrido a menos de la mitad.
+
+```{r}
+# AÑO DEL ÚLTIMO DATO DISPONIBLE. data.end viene en varios formatos ("2024",
+# "2024-Q3", "2024-01", "2024-W32", "2024-01-31"), pero en todos ellos el año
+# son los 4 primeros caracteres.
+ANYO_MINIMO_FIN <- 2024
+
+datasets <- datasets |>
+  mutate(anyo.fin = suppressWarnings(as.numeric(substr(data.end, 1, 4))))
+
+datasets.recorrer <- datasets |>
+  filter(!is.na(anyo.fin), anyo.fin >= ANYO_MINIMO_FIN)
+
+cat("Datasets con último dato >=", ANYO_MINIMO_FIN, ":", nrow(datasets.recorrer),
+    "de", nrow(datasets), "\n")
+```
+
+```{r}
+# --- CONTROL DE CUELGUES ----------------------------------------------------
+# Lo que queda del documento son miles de llamadas a la API y puede quedarse
+# esperando indefinidamente en una de ellas. Dos medidas:
+#
+# 1) Se acota el tiempo de cada descarga. Todas usan download.file(), que respeta
+#    options(timeout): al agotarse, la descarga falla y entran los reintentos que
+#    ya existen, en vez de bloquear el documento.
+# 2) Se deja constancia del avance en un fichero .log con marca de tiempo. Al
+#    compilar con quiet=TRUE no se ve NADA por consola -los print() van al
+#    documento, que no existe hasta el final-, así que sin este log no hay forma
+#    de saber si el proceso avanza o está colgado. El fichero se puede abrir
+#    mientras compila: la última línea dice por qué dataset va y cuánto tardó.
+#
+# NOTA: el timeout NO hace que se pierdan datasets. Solo convierte una espera
+# infinita en un error, que los reintentos vuelven a intentar; si aun así falla,
+# el dataset queda marcado con "-" y se ve en el catálogo.
+#
+# El log se CREA aquí, antes de la primera sección que escribe en él (la de las
+# descripciones). Si se inicializara más abajo, junto al recorrido, ese cat()
+# sin append=TRUE borraría de un plumazo todo el avance ya registrado de las
+# descargas ESMS.
+options(timeout = 60)
+
+LOG <- "EUROSTAT_TableDatasetGeneration.log"
+cat(format(Sys.time()), "- inicio\n", file = LOG)
+log_avance <- function(k, n, code, seg, nota = ""){
+  cat(sprintf("%s  %5d/%5d  %-24s %6.1f s%s%s\n",
+              format(Sys.time()), k, n, as.character(code), seg,
+              if(seg > 30) "   <-- LENTO" else "",
+              if(nzchar(nota)) paste0("  ", nota) else ""),
+      file = LOG, append = TRUE)
+}
+```
+
+# Descripción del contenido de cada dataset
+
+El título de un dataset de Eurostat es con frecuencia poco explícito (`Income of households by NUTS 2 region`), así que conviene añadir una **descripción de su contenido**. Eurostat la publica en unos ficheros de metadatos llamados **ESMS** (*Euro SDMX Metadata Structure*), de los que nos interesa el campo `DATA_DESCR`.
+
+<div class="nota">
+<strong class="bloque-titulo">La descripción es de la operación estadística, no del dataset</strong>
+
+Un fichero ESMS describe una **operación estadística completa**, y de cada operación cuelgan muchos datasets. Por eso **varios datasets comparten exactamente la misma descripción**: los 3.043 datasets que recorremos se reparten entre solo unos 222 ficheros ESMS. La descripción sirve para entender de qué va la familia de datos, no para distinguir un dataset de otro dentro de esa familia; para eso están el título y las dimensiones. Además, no todos los datasets tienen ESMS asociado (alrededor de un 20 % se quedan sin descripción).
+</div>
+
+Que sean pocos ficheros ESMS es justo lo que hace barato el proceso: **se descarga cada fichero una sola vez** y se reutiliza para todos los datasets que lo comparten.
+
+```{r}
+# --- MAPA dataset -> fichero ESMS -------------------------------------------
+# Se pide la lista de TODOS los "dataflows" de Eurostat en UNA sola llamada. La
+# respuesta son unos 37 MB y tarda alrededor de un minuto, pero la alternativa
+# -preguntar dataset por dataset- serían miles de llamadas y bastante más de una
+# hora. De cada dataflow interesan las anotaciones que apuntan a su fichero ESMS.
+url_dataflows <- "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/dataflow/ESTAT/all/latest?detail=full"
+
+# CUIDADO CON EL TIMEOUT: son ~37 MB y tarda del orden de minuto y medio, muy por
+# encima de los 60 s que se fijan para las llamadas pequeñas del recorrido. Con
+# aquel límite esta descarga falla SIEMPRE, y el error que sale ("download ...
+# failed") no menciona el tiempo por ningún lado, así que despista bastante. Se
+# amplía el margen solo para esta descarga y se restaura al terminar.
+timeout.previo <- getOption("timeout")
+options(timeout = 900)
+
+tf.df <- tempfile(fileext = ".xml")
+descarga.ok <- FALSE
+for(i in 1:3){
+  descarga.ok <- tryCatch({download.file(url_dataflows, tf.df, quiet = TRUE, mode = "wb"); TRUE},
+                          error = function(e) FALSE)
+  if(descarga.ok) break
+  Sys.sleep(5)
+}
+options(timeout = timeout.previo)
+if(!descarga.ok) stop("No se pudo descargar la lista de dataflows de Eurostat")
+
+dataflows <- read_xml(tf.df)
+
+mapa.esms <- map_dfr(xml_find_all(dataflows, "//*[local-name()='Dataflow']"), function(nodo){
+  urls <- xml_text(xml_find_all(nodo, ".//*[local-name()='AnnotationURL']"))
+  zip  <- urls[grepl("_esms\\.sdmx\\.zip$", urls)]
+  htm  <- urls[grepl("_esms\\.htm$", urls)]
+  tibble(
+    # OJO: el dataflow identifica los datasets en MAYÚSCULAS ("NAMA_10R_2HHINC")
+    # y el catálogo en minúsculas ("nama_10r_2hhinc"). Sin este tolower() el
+    # cruce no encuentra NADA y todas las descripciones salen vacías, sin ningún
+    # error que lo delate.
+    code      = tolower(xml_attr(nodo, "id")),
+    esms      = if(length(zip)) str_match(zip[1], "metadata/(.+)_esms\\.sdmx\\.zip")[,2] else NA_character_,
+    ESMS      = if(length(htm)) htm[1] else NA_character_
+  )
+})
+unlink(tf.df)
+
+# Solo nos interesan los ficheros ESMS de los datasets que vamos a recorrer
+esms.necesarios <- datasets.recorrer |>
+  left_join(mapa.esms, by = "code") |>
+  pull(esms) |>
+  unique() |>
+  na.omit()
+
+cat("Datasets con descripción disponible:",
+    sum(datasets.recorrer$code %in% mapa.esms$code[!is.na(mapa.esms$esms)]),
+    "de", nrow(datasets.recorrer), "\n")
+cat("Ficheros ESMS distintos que hay que descargar:", length(esms.necesarios), "\n")
+```
+
+```{r}
+# --- DESCARGA DE LAS DESCRIPCIONES ------------------------------------------
+# El texto de DATA_DESCR viene con HTML DOBLEMENTE escapado dentro del XML:
+# xml_text() deshace el primer nivel y devuelve HTML de verdad ("<p>...&nbsp;"),
+# y read_html() deshace el segundo, quitando las etiquetas y traduciendo las
+# entidades. Hacerlo a base de expresiones regulares deja restos visibles como
+# "&nbsp;" en mitad del texto, porque el orden en que se sustituyen importa.
+limpia_html <- function(s){
+  if(is.na(s) || !nzchar(s)) return(NA_character_)
+  txt <- xml_text(read_html(paste0("<div>", s, "</div>")))
+  # El espacio duro (&nbsp;) se decodifica como U+00A0, que str_squish no toca
+  txt |> str_replace_all(" ", " ") |> str_squish()
+}
+
+lee_descripcion <- function(esms, n = 3, sleep = 1){
+  url <- paste0("https://ec.europa.eu/eurostat/api/dissemination/files?file=metadata/",
+                esms, "_esms.sdmx.zip")
+  for(i in seq_len(n)){
+    tf <- tempfile(fileext = ".zip")
+    ok <- tryCatch({download.file(url, tf, quiet = TRUE, mode = "wb"); TRUE},
+                   error = function(e) FALSE)
+    if(ok){
+      nombres <- tryCatch(unzip(tf, list = TRUE)$Name, error = function(e) NULL)
+      destino <- nombres[grepl("\\.sdmx\\.xml$", nombres)]
+      if(length(destino)){
+        td <- tempfile(); dir.create(td)
+        unzip(tf, files = destino[1], exdir = td)
+        x <- tryCatch(read_xml(file.path(td, destino[1])), error = function(e) NULL)
+        unlink(td, recursive = TRUE); unlink(tf)
+        if(!is.null(x)){
+          nodo <- xml_find_first(x, "//*[@id='DATA_DESCR']")
+          if(!inherits(nodo, "xml_missing")) return(limpia_html(xml_text(nodo)))
+          return(NA_character_)
+        }
+      }
+    }
+    unlink(tf)
+    Sys.sleep(sleep)
+  }
+  NA_character_
+}
+
+cat(format(Sys.time()), "- descargas ESMS\n", file = LOG, append = TRUE)
+
+descripciones <- tibble(esms = esms.necesarios, Descripcion = NA_character_)
+for(k in seq_len(nrow(descripciones))){
+  t.ini <- Sys.time()
+  descripciones$Descripcion[k] <- lee_descripcion(descripciones$esms[k])
+  log_avance(k, nrow(descripciones), descripciones$esms[k],
+             as.numeric(difftime(Sys.time(), t.ini, units = "secs")),
+             if(is.na(descripciones$Descripcion[k])) "SIN DATA_DESCR"
+             else paste0(nchar(descripciones$Descripcion[k]), " caracteres"))
+}
+
+cat("Descripciones obtenidas:", sum(!is.na(descripciones$Descripcion)),
+    "de", nrow(descripciones), "ficheros ESMS\n")
+```
+
+Las descripciones completas (`DATA_DESCR`) pesan varios millones de caracteres en total y se repiten en todos los datasets de la misma familia, lo que hace muy pesado manejar el catálogo en Excel. Por eso, en vez de guardar el texto completo en cada fila, le asociamos un **`topic`**: un nombre corto (en mayúsculas, tipo `POPULATION_DEMOGRAPHY_REGIONAL`) que identifica la familia. El texto completo se guarda **una sola vez por familia**, en un fichero aparte, **`Eurostat.topics.xlsx`** (`topic` · `Descripcion`), que es el que consulta `EUROSTAT_DatasetSelection.Rmd` para recuperar la descripción completa del dataset elegido.
+
+<div class="nota">
+<strong class="bloque-titulo">`Eurostat.topics.xlsx` es una tabla curada, no se regenera sola</strong>
+
+Asignar un nombre corto representativo a una descripción es una tarea de redacción, no algo que este chunk pueda automatizar. Por eso el cruce de abajo es un **`left_join`** contra `Eurostat.topics.xlsx`: los datasets cuya descripción ya está en esa tabla (por texto exacto) recuperan su `topic`; los que tengan una descripción **nueva** que nunca se haya visto (Eurostat publica una operación estadística nueva) se quedan con `topic = "SIN_TOPIC_ASIGNAR"` y se listan en el log, para que alguien les asigne un nombre corto a mano en `Eurostat.topics.xlsx` y se vuelva a lanzar este chunk.
+</div>
+
+```{r}
+# --- ASIGNACIÓN DE TOPIC A PARTIR DE Eurostat.topics.xlsx -------------------
+if(file.exists("Eurostat.topics.xlsx")){
+  topics_tabla <- read.xlsx("Eurostat.topics.xlsx") |> as_tibble()
+} else {
+  topics_tabla <- tibble(topic = character(), Descripcion = character())
+}
+
+descripciones <- descripciones |>
+  left_join(topics_tabla, by = "Descripcion") |>
+  mutate(topic = ifelse(is.na(Descripcion), NA_character_,
+                        ifelse(is.na(topic), "SIN_TOPIC_ASIGNAR", topic)))
+
+nuevas <- descripciones |>
+  filter(topic == "SIN_TOPIC_ASIGNAR") |>
+  distinct(esms, Descripcion)
+
+if(nrow(nuevas) > 0){
+  cat("\n¡ATENCIÓN!", nrow(nuevas), "descripciones nuevas sin topic asignado (quedan como",
+      "\"SIN_TOPIC_ASIGNAR\"). Hay que añadirles un nombre corto a mano en",
+      "Eurostat.topics.xlsx y volver a generar el catálogo. Ficheros ESMS afectados:\n")
+  cat(paste0("  - ", nuevas$esms), sep = "\n")
+} else {
+  cat("Todas las descripciones tienen topic asignado en Eurostat.topics.xlsx.\n")
+}
+```
+
+# Información que se recopila de cada dataset
+
+Para cada dataset del catálogo prefiltrado se consulta la **descripción del cubo** (*cube description*) que publica Eurostat en su API SDMX. Esa descripción contiene, para cada dimensión del dataset, **los valores que realmente aparecen en los datos**, y es lo que nos permite obtener la información de abajo **sin descargar el dataset**, que es lo que hace viable recorrer el catálogo entero: los datasets de Eurostat suman cientos de GB, pero su descripción de cubo ocupa unos pocos KB y se lee en menos de un segundo.
+
+La información que se recopila para cada dataset es:
+
+* `Freq` : frecuencia de los datos, obtenida de la dimensión `freq` del propio dataset: `Y` anual, `S` semestral, `Q` trimestral, `M` mensual, `W` semanal, `D` diaria. Se marca `?` si Eurostat usa un código de frecuencia no previsto, y `-` si no se pudo leer la descripción del cubo.
+
+* `N.periodos` : número de fechas distintas del dataset. Junto con `Freq` permite comprobar el requisito de tamaño de las series de AEDV (al menos 10 años, 20 semestres, 40 trimestres, 60 meses, 200 semanas o 1096 días).
+
+* `Ini` / `Fin` : primera y última fecha, tal como las codifica Eurostat.
+
+* `N.regiones` (`N.reg` en el código) : número total de códigos distintos de la dimensión `geo`.
+
+* `NUTS0`, `NUTS1`, `NUTS2`, `NUTS3` : de esos códigos, cuántos son regiones reales de cada nivel NUTS (es decir, cuántas aparecen en los mapas de arriba).
+
+* `AGREG` : códigos que son agrupaciones de países (`EU27_2020`, `EA19`...) y no una región concreta.
+
+* `OTHERS` : códigos que no tienen asociada una región real en ningún mapa NUTS actual (regiones del Reino Unido, agregados con fines estadísticos...).
+
+* `ESPAÑA` / `CANARIAS` (`ES` / `CAN` en el código) : si el dataset contiene datos de España y de Canarias. Se comprueba por prefijo, de modo que cuenta tanto el país entero (`ES`) como cualquiera de sus regiones. Canarias aparece con códigos distintos según el nivel: `ES7` como NUTS 1, `ES70` como NUTS 2 y `ES703` a `ES709` como NUTS 3 (una isla cada uno).
+
+* `N.atrib.combinados` (`N.atrib` en el código) : número de **atributos combinados**, es decir, el producto del nº de opciones de todas las dimensiones que no son ni la frecuencia, ni la geografía, ni la fecha. Cada combinación de esas opciones es un atributo que podemos seguir a lo largo del tiempo para cada región.
+
+* `Dimension_N.options` (`DIM` en el código) : esas mismas dimensiones con su nº de opciones, en el formato `nombre nº - nombre nº - ...`.
+
+* `topic` : nombre corto (p. ej. `POPULATION_DEMOGRAPHY_REGIONAL`) que identifica la **familia** a la que pertenece el dataset — su operación estadística, no el dataset concreto, así que se repite en todos los datasets que comparten ficha ESMS y alrededor de un 20 % se quedan sin él. Sustituye al texto completo de `DATA_DESCR` (varios miles de caracteres, repetido en cada fila), que hacía muy pesado manejar este catálogo en Excel. El texto completo asociado a cada `topic` está en **`Eurostat.topics.xlsx`**, que es lo que consulta `EUROSTAT_DatasetSelection.Rmd` para recuperar la descripción del dataset elegido.
+
+* `ESMS` : dirección de la página de metadatos completa de Eurostat, por si se quiere consultar el resto de la ficha (unidades, cobertura temporal, metodología, calidad...).
+
+<div class="nota">
+<strong class="bloque-titulo">Sobre `N.atrib.combinados`</strong>
+
+`N.atrib.combinados` es una **cota superior**: cuenta todas las combinaciones *posibles* de las dimensiones. En una tabla multidimensional normalmente solo una parte de esas combinaciones aparece realmente con datos. Sirve para descartar (si la cota superior ya es menor que 5, el dataset no cumple el criterio), pero el recuento real de atributos con observaciones se calcula sobre el dataset ya descargado en **EUROSTAT_DatasetSelection.Rmd**.
+</div>
+
+```{r}
+# CÓDIGOS NUTS DE REGIONES REALES PRESENTES EN LOS MAPAS NUTS ACTUALES
+
+NUTS0_codes <- c("EL", "ES", "FI", "FR", "HR", "HU", "IE", "IS", "AL", "AT", "BA", "BE", "BG", "CH", "CY", "CZ", "DE", "DK", "EE", "IT", "LI", "LT", "LU", "LV", "ME", "MK", "MT", "NL", "NO", "PL", "PT", "RO", "RS", "SE", "SI", "SK", "TR", "UA", "XK")
+
+NUTS1_codes <- c("DEA", "DEB", "DEC", "DED", "DEE", "DEF", "DEG", "DK0", "EE0", "EL3", "EL4", "EL5", "EL6", "ES1", "ES2", "ES3", "ES4", "ES5", "ES6", "ES7", "FI1", "AL0", "AT1", "AT2", "AT3", "BA0", "BE1", "BE2", "BE3", "BG3", "BG4", "CH0", "CY0", "CZ0", "DE1", "DE2", "DE3", "DE4", "DE5", "DE6", "DE7", "DE8", "DE9", "HR0", "HU1", "HU2", "HU3", "IE0", "IS0", "ITC", "ITF", "ITG", "ITH", "ITI", "LI0", "XK0", "LT0", "LU0", "LV0", "ME0", "MK0", "MT0", "NL1", "NL2", "NL3", "NL4", "NO0", "PL2", "PL4", "PL5", "PL6", "PL7", "PL8", "PL9", "PT1", "PT2", "PT3", "RO1", "RO2", "RO3", "RO4", "RS1", "RS2", "SE1", "SE2", "SE3", "SI0", "SK0", "TR1", "TR2", "TR3", "TR4", "TR5", "TR6", "TR7", "TR8", "TR9", "TRA", "TRB", "TRC", "FI2", "FR1", "FRB", "FRC", "FRD", "FRE", "FRF", "FRG", "FRH", "FRI", "FRJ", "FRK", "FRL", "FRM", "FRY")
+
+NUTS2_codes <- c("DE12", "DE13", "DE14", "DE21", "DE22", "DE23", "DE24", "DE25", "DE26", "DE27", "DE30", "DE40", "DE50", "DE60", "DE71", "DE72", "DE73", "DE80", "DE91", "DE92", "DE93", "DE94", "DEA1", "DEA2", "DEA3", "DEA4", "DEA5", "DEB1", "DEB2", "DEB3", "DEC0", "DED2", "DED4", "DED5", "DEE0", "DEF0", "DEG0", "DK01", "AL01", "AL02", "AL03", "AT11", "AT12", "AT13", "AT21", "AT22", "AT31", "AT32", "AT33", "AT34", "BA01", "BA02", "BA03", "BE10", "BE21","BE22", "BE23", "BE24", "BE25", "BE31", "BE32", "BE33", "BE34", "BE35", "BG31", "BG32", "BG33", "BG34", "BG41", "BG42", "CH01", "CH02", "CH03", "CH04", "CH05", "CH06", "CH07", "CY00", "CZ01", "CZ02", "CZ03", "CZ04", "CZ05", "CZ06", "CZ07", "CZ08", "DE11", "MK00", "MT00", "NL11", "NL12", "NL13", "NL21", "NL22", "NL23", "NL32", "NL34", "NL35", "NL36", "NL41", "NL42", "NO02", "NO06", "NO07", "NO08", "NO09", "NO0A", "NO0B", "PL21", "PL22", "PL41", "PL42", "PL43", "PL51", "PL52", "PL61", "PL62", "PL63", "PL71", "PL72", "PL81", "PL82", "PL84", "PL91", "PL92", "PT11", "PT15", "PT19", "PT1A", "PT1B", "PT1C", "DK02", "DK03", "DK04", "DK05", "EE00", "EL30", "EL41", "EL42", "EL43", "EL51", "EL52", "EL53", "EL54", "EL61", "EL62", "EL63", "EL64", "EL65", "ES11", "ES12", "ES13", "ES21", "ES22", "ES23", "ES24", "ES30", "ES41", "ES42", "ES43", "ES51", "ES52", "ES53", "ES61", "ES62", "ES63", "ES64", "ES70", "FI19", "FI1B", "FI1C", "FI1D", "FI20", "FR10", "FRB0", "FRC1", "FRC2", "FRD1", "FRD2", "FRE1", "FRE2", "FRF1", "FRF2", "FRF3", "FRG0", "FRH0", "FRI1", "FRI2", "FRI3", "FRJ1", "FRJ2", "FRK1", "FRK2", "FRL0", "FRM0", "FRY1", "FRY2", "FRY3", "FRY4", "FRY5", "HR02", "HR03", "HR05", "HR06", "HU11", "HU12", "HU21", "HU22", "HU23", "HU31", "HU32", "HU33", "IE04", "IE05", "IE06", "IS00", "ITC1", "ITC2", "ITC3", "ITC4", "ITF1", "ITF2", "ITF3", "ITF4", "ITF5", "ITF6", "ITG1", "ITG2", "ITH1", "ITH2", "ITH3", "ITH4", "ITH5", "ITI1", "ITI2", "ITI3", "ITI4", "LI00", "LT01", "LT02", "LU00", "LV00", "ME00", "SE33", "SI03", "SI04", "SK01", "SK02", "SK03", "SK04", "TR10", "TR21", "TR22", "TR31", "TR32", "TR33", "TR41", "TR42", "TR51", "TR52", "TR61", "TR62", "TR63", "TR71", "TR72", "TR81", "TR82", "TR83", "TR90", "TRA1", "TRA2", "TRB1", "TRB2", "TRC1", "TRC2", "TRC3", "XK00", "PT1D", "PT20", "PT30", "RO11", "RO12", "RO21", "RO22", "RO31", "RO32", "RO41", "RO42", "RS11", "RS12", "RS21", "RS22", "SE11", "SE12", "SE21", "SE22", "SE23", "SE31", "SE32")
+
+NUTS3_codes <- c("AT333", "AT334", "AT335", "AT341", "AT342", "BE100", "BE211", "BE212", "BE213", "BE223", "BE224", "BE225", "BE231", "BE232", "BE233", "BE234", "BE235", "BE236", "BE241", "BE242", "BE251", "BE252", "BE253", "BE254", "BE255", "BE256", "BE257", "BE258", "BE310", "BE323", "BE328","BE329", "BE32A", "BE32B", "BE32C", "BE32D", "BE331", "BE332", "BE334", "BE335", "BE336", "BE341", "BE342", "BE343", "BE344", "BE345", "BE351", "BE352", "BE353", "BG311", "BG312", "BG313", "BG314", "BG315", "BG321", "BG322", "BG323", "BG324", "BG325", "BG331", "BG332", "BG333", "BG334", "BG341", "BG342", "BG343", "BG344", "BG411", "BG412", "BG413", "BG414", "BG415", "BG421", "BG422", "BG423", "BG424", "BG425", "CH011", "CH012", "CH013", "CH021", "CH022", "CH023", "CH024", "CH025", "CH031", "CH032", "CH033", "CH040", "CH051", "CH052", "CH053", "CH054", "CH055", "CH056", "CH057", "CH061", "CH062", "CH063", "CH064", "CH065", "CH066", "CH070", "CY000", "CZ010", "CZ020", "CZ031", "CZ032", "CZ041", "CZ042", "CZ051", "CZ052", "CZ053", "CZ063", "CZ064", "CZ071", "CZ072", "CZ080", "DE111", "DE112", "DE113", "DE114", "DE115", "DE116", "DE117", "DE118", "DE119", "DE11A", "DE11B", "DE11C", "DE11D", "DE121", "DE122", "DE123", "DE124", "DE125", "DE126", "DE127", "DE128", "DE129", "DE12A", "DE12B", "DE12C", "DE131", "DE132", "DE133", "DE134", "DE135", "DE136", "DE137", "DE138", "DE139", "DE13A", "DE141", "DE142", "DE143", "DE144", "DE145", "DE146", "DE147", "DE148", "DE149", "DE211", "DE212", "AL011", "AL012", "AL013", "AL014", "AL015", "AL021", "AL022", "AL031", "AL032", "AL033", "AL034", "AL035", "AT111", "AT112", "AT113", "AT121", "AT122", "AT123", "AT124", "AT125", "AT126", "AT127", "AT130", "AT211", "AT212", "AT213", "AT221", "AT222", "AT223", "AT224", "AT225", "AT226", "AT311", "AT312", "AT313", "AT314", "AT315", "AT321", "AT322", "AT323", "AT331", "AT332", "DE238", "DE239")
+
+NUTS3_codes <-c(NUTS3_codes, "DE23A", "DE241", "DE242", "DE243", "DE244", "DE245", "DE246", "DE247", "DE248", "DE249", "DE24A", "DE24B", "DE24C", "DE24D", "DE251", "DE252", "DE253", "DE254", "DE255", "DE256", "DE257", "DE258", "DE259", "DE25A", "DE25B", "DE25C", "DE261", "DE262", "DE263", "DE264", "DE265", "DE266", "DE267", "DE268", "DE269", "DE26A", "DE26B", "DEA5C", "DEB11", "DEB12", "DEB13", "DEB14", "DEB15", "DEB17", "DEB18", "DEB1A", "DEB1B", "DEB1C", "DEB1D", "DEB21", "DEB22", "DEB23", "DEB24", "DEB25", "DEB31", "DEB32", "DEB33", "DEB34", "DEB35", "DEB36", "DEB37", "DEB38", "DEB39", "DEB3A", "DEB3B", "DEB3C", "DEB3D", "DEB3E", "DEB3F", "DEB3G", "DEB3H", "DEB3I", "DEB3J", "DEB3K", "DEC01", "DEC02", "DEC03", "DEC04", "DEC05", "DEC06", "DED21", "DED2C", "DED2D", "DED2E", "DED2F", "DED41", "DED42", "DED43", "DED44", "DED45", "DED51", "DED52", "DED53", "DEE01", "DEE02", "DEE03", "DEE04", "DEE05", "DEE06", "DEE07", "DEE08", "DEE09", "DEE0A", "DEE0B", "DEE0C", "DEE0D", "DEE0E", "DEF01", "DEF02", "DEF03", "DEF04", "DEF05", "DEF06", "DEF07", "DEF08", "DEF09", "DEF0A", "DEF0B", "DEF0C", "DEF0D", "DEF0E", "DEF0F", "DEG01", "DEG02", "DE26C", "DE271", "DE272", "DE273", "DE274", "DE275", "DE276", "DE277", "DE278", "DE279", "DE27A", "DE27B", "DE27C", "DE27D", "DE27E", "DE300", "DE401", "DE402", "DE403", "DE404", "DE405", "DE406", "DE407", "DE408", "DE409", "DE40A", "DE40B", "DE40C", "DE40D", "DE40E", "DE40F", "DE40G", "DE40H", "DE40I", "DE501", "DE502", "DE600", "DE711", "DE712", "DE713", "DE714", "DE715", "DE716", "DE717", "DE718", "DE719", "DE71A", "DE71B", "DE71C", "DE71D", "DE71E", "DE721", "DE722", "DE723", "DE724", "DE725", "DE731", "DE732", "DE733", "DE734", "DE735", "DE736", "DE737", "DE803", "DE804", "DE80J", "DE80K", "DE80L", "DE80M", "DE80N", "DE80O", "DE911", "DE912", "DE913", "DE914", "DE916", "DE917", "DE918", "DE91A", "DE91B", "DE91C", "DE922", "DE923", "DE925", "DE926", "DE927", "DE928", "DE929", "DE931", "DE932", "DE933", "DE934", "DE935", "DE936", "DE937", "DE938", "DE939", "DE93A", "DE93B", "DE941", "DE942", "DE943", "DE944", "DE945", "DE946", "DE947", "DE948", "DE949", "DE94A", "DE94B", "DE94C", "DE94D")
+
+NUTS3_codes <-c(NUTS3_codes, "DE94E", "DE94F", "DE94G", "DE94H", "DEA11", "DEA12", "DEA13", "DEA14", "DEA15", "DEA16", "DEA17", "DEA18", "DEA19", "DEA1A", "DEA1B", "DEA1C", "DEA1D", "DEA1E", "DEA1F", "DEA22", "DEA23", "DEA24", "DEA26", "DEA27", "DEA28", "DEA29", "DEA2A", "DEA2B", "DEA2C", "DEA2D", "DEA31", "DEA32", "DEA33", "DEA34", "DEA35", "DEA36", "DEA37", "DEA38", "DEA41", "DEA42", "DEA43", "DEA44", "DEA45", "DEA46", "DEA47", "DEA51", "DEA52", "DEA53", "DEA54", "DEA55", "DEA56", "DEA57", "DEA58", "DEA59", "DEA5A", "DEA5B", "DE213", "DE214", "DE215", "DE216", "DE217", "DE218", "DE219", "DE21A", "DE21B", "DE21C", "DE21D", "DE21E", "DE21F", "DE21G", "DE21H", "DE21I", "DE21J", "DE21K", "DE21L", "DE21M", "DE21N", "DE221", "DE222", "DE223", "DE224", "DE225", "DE226", "DE227", "DE228", "DE229", "DE22A", "DE22B", "DE22C", "DE231", "DE232", "DE233", "DE234", "DE235", "DE236", "DE237", "FRD11", "FRD12", "FRD13", "FRD21", "FRD22", "FRE11", "FRE12", "FRE21", "FRE22", "FRE23", "FRF11", "FRF12", "FRF21", "FRF22", "FRF23", "FRF24", "FRF31", "FRF32", "FRF33", "FRF34", "FRG01", "FRG02", "FRG03", "FRG04", "FRG05", "FRH01", "FRH02", "FRH03", "FRH04", "FRI11", "FRI12", "FRI13", "FRI14", "FRI15", "FRI21", "FRI22", "FRI23", "FRI31", "FRI32", "FRI33", "FRI34", "FRJ11", "FRJ12", "FRJ13", "FRJ14", "FRJ15", "FRJ21", "FRJ22", "FRJ23", "FRJ24", "FRJ25", "FRJ26", "FRJ27", "FRJ28", "FRK11", "FRK12", "FRK13", "FRK14", "FRK21", "FRK22", "FRK23", "FRK24", "FRK25", "FRK26", "FRK27", "FRK28", "FRL01", "FRL02", "FRL03", "FRL04", "FRL05", "FRL06", "FRM01", "FRM02", "FRY10", "FRY20", "DEG03", "DEG05", "DEG06", "DEG07", "DEG09", "DEG0A", "DEG0C", "DEG0D", "DEG0E", "DEG0G", "DEG0J", "DEG0K", "DEG0L", "DEG0M", "DEG0Q", "DEG0R", "DEG0S", "DEG0T", "DEG0U", "DEG0V", "DK011", "DK012", "DK013", "DK014", "DK021", "DK022", "DK031", "DK032", "DK041", "DK042", "DK050", "EE001", "EE004", "EE008", "EE009", "EE00A", "EL301", "EL302", "EL303", "EL304", "EL305", "EL306", "EL307", "EL411", "EL412", "EL413", "EL421", "EL422", "EL431", "EL432", "EL433", "EL434", "EL511", "EL512", "EL513", "EL514", "EL515", "EL521", "EL522", "EL523", "EL524", "EL525", "EL526", "EL527")
+
+NUTS3_codes <-c(NUTS3_codes, "EL531", "EL532", "EL533", "EL541", "EL542", "EL543", "EL611", "EL612", "EL613", "EL621", "EL622", "EL623", "EL624", "EL631", "EL632", "EL633", "EL641", "EL642", "EL643", "EL644", "EL645", "EL651", "EL652", "EL653", "ES111", "ES112", "ES113", "ES114", "ES120", "ES130", "ES211", "ES212", "ES213", "ES220", "ES230", "ES241", "ES242", "ES243", "ES300", "ES411", "ES412", "ES413", "ES414", "ES415", "ES416", "ES417", "ES418", "ES419", "ES421", "ES422", "ES423", "ES424", "ES425", "ES431", "ES432", "ES511", "ES512", "ES513", "ES514", "ES521", "ES522", "ES523", "ES531", "ES532", "ES533", "ES611", "ES612", "ES613", "ES614", "ES615", "ES616", "ES617", "ES618", "ES620", "ES630", "ES640", "ES703", "ES704", "ES705", "ES706", "ES707", "ES708", "ES709", "FI196", "FI198", "FI199", "FI19A", "FI19B", "FI1B1", "FI1C1", "FI1C2", "FI1C5", "FI1C6", "FI1C7", "FI1D5", "FI1D7", "FI1D8", "FI1D9", "FI1DA", "FI1DB", "FI1DC", "FI200", "FR101", "FR102", "FR103", "FR104", "FR105", "FR106", "FR107", "FR108", "FRB01", "FRB02", "FRB03", "FRB04", "FRB05", "FRB06", "FRC11", "FRC12", "FRC13", "FRC14", "FRC21", "FRC22", "FRC23", "FRC24", "HU313", "HU321", "HU322", "HU323", "HU331", "HU332", "HU333", "IE041", "IE042", "IE051", "IE052", "IE053", "IE061", "IE062", "IE063", "IS001", "IS002", "ITC11", "ITC12", "ITC13", "ITC14", "ITC15", "ITC16", "ITC17", "ITC18", "ITC20", "ITC31", "ITC32", "ITC33", "ITC34", "ITC41", "ITC42", "ITC43", "ITC44", "ITC46", "ITC47", "ITC48", "ITC49", "NL415", "NL416", "NL421", "NL422", "NL423", "NO020", "NO060", "NO071", "NO072", "NO073", "NO081", "NO083", "NO084", "NO085", "NO092", "NO093", "NO094", "NO0A1", "NO0A2", "NO0A3", "NO0B1", "NO0B2", "PL213", "PL214", "PL217", "PL218", "PL219", "PL21A", "PL224", "PL225", "PL227", "PL228", "PL229", "PL22A", "PL22B", "PL22C", "PL411", "PL414", "PL415", "PL416", "PL417", "PL418", "PL424", "PL426", "PL427", "PL428", "PL431", "PL432", "PL514", "PL515", "PL516", "PL517", "PL518", "PL523", "PL524", "PL613", "PL616", "PL617", "PL618", "PL619", "PL621", "PL622", "PL623", "PL633", "PL634", "PL636", "PL637", "PL638", "PL711", "PL712", "ITC4A", "ITC4B", "ITC4C", "ITC4D")
+
+NUTS3_codes <-c(NUTS3_codes, "ITF11", "ITF12", "ITF13", "ITF14", "ITF21", "ITF22", "ITF31", "ITF32", "ITF33", "ITF34", "ITF35", "ITF43", "ITF44", "ITF45", "ITF46", "ITF47", "ITF48", "ITF51", "ITF52", "ITF61", "ITF62", "ITF63", "ITF64", "ITF65", "ITG11", "ITG12", "ITG13", "ITG14", "ITG15", "ITG16", "ITG17", "ITG18", "ITG19", "ITG2D", "ITG2E", "ITG2F", "ITG2G", "ITG2H", "ITH10", "ITH20", "ITH31", "ITH32", "ITH33", "ITH34", "ITH35", "ITH36", "ITH37", "ITH41", "ITH42", "ITH43", "ITH44", "ITH51", "ITH52", "ITH53", "ITH54", "ITH55", "ITH56", "ITH57", "ITH58", "ITH59", "ITI11", "ITI12", "ITI13", "ITI14", "ITI15", "ITI16", "ITI17", "ITI18", "ITI19", "ITI1A", "ITI21", "ITI22", "ITI31", "ITI32", "ITI33", "ITI34", "ITI35", "ITI41", "ITI42", "ITI43", "ITI44", "ITI45", "LI000", "LT011", "LT021", "LT022", "LT023", "LT024", "LT025", "LT026", "LT027", "LT028", "LT029", "LU000", "LV005", "LV009", "LV00A", "LV00B", "LV00C", "ME000", "MK001", "MK002", "MK003", "MK004", "MK005", "MK006", "MK007", "MK008", "MT001", "MT002", "NL112", "NL114", "NL115", "NL126", "NL127", "NL128", "NL131", "NL132", "NL133", "NL211", "NL212", "NL213", "NL221", "NL224", "NL225", "NL226", "NL230", "NL321", "NL323", "NL325", "NL327", "NL328", "NL32A", "NL32B", "NL341", "NL342", "NL350", "NL361", "NL362", "NL363", "NL364", "NL365", "NL366", "NL411", "NL414", "FRY30", "FRY40", "FRY50", "HR021", "HR022", "HR023", "HR024", "HR025", "HR026", "HR027", "HR028", "HR031", "HR032", "HR033", "HR034", "HR035", "HR036", "HR037", "HR050", "HR061", "HR062", "HR063", "HR064", "HR065", "HU110", "HU120", "HU211", "HU212", "HU213", "HU221", "HU222", "HU223", "HU231", "HU232", "HU233", "HU311", "HU312", "TR412", "TR413", "TR421", "TR422", "TR423", "TR424", "TR425", "TR510", "TR521", "TR522", "TR611", "TR612", "TR613", "TR621", "TR622", "TR631", "TR632", "TR633", "TR711", "TR712", "TR713", "TR714", "TR715", "TR721")
+
+NUTS3_codes <-c(NUTS3_codes, "TR722", "TR723", "TR811", "TR812", "TR813", "TR821", "TR822", "TR823", "TR831", "TR832", "TR833", "TR834", "TR901", "TR902", "TR903", "TR904", "TR905", "TR906", "TRA11", "TRA12", "TRA13", "TRA21", "TRA22", "TRA23", "TRA24", "TRB11", "TRB12", "TRB13", "TRB14", "TRB21", "TRB22", "TRB23", "TRB24", "TRC11", "TRC12", "TRC13", "TRC21", "TRC22", "TRC31", "TRC32", "TRC33", "TRC34", "PL713", "PL714", "PL715", "PL721", "PL722", "PL811", "PL812", "PL814", "PL815", "PL821", "PL822", "PL823", "PL824", "PL841", "PL842", "PL843", "PL911", "PL912", "PL913", "PL921", "PL922", "PL923", "PL924", "PL925", "PL926", "PT111", "PT112", "PT119", "PT11A", "PT11B", "PT11C", "PT11D", "PT11E", "PT150", "PT191", "PT192", "PT193", "PT194", "PT195", "PT196", "PT1A0", "PT1B0", "PT1C1", "PT1C2", "PT1C3", "PT1C4", "PT1D1", "PT1D2", "PT1D3", "PT200", "PT300", "RO111", "RO112", "RO113", "RO114", "RO115", "RO116", "RO121", "RO122", "RO123", "RO124", "RO125", "RO126", "RO211", "RO212", "RO213", "RO214", "RO215", "RO216", "RO221", "RO222", "RO223", "RO224", "RO225", "RO226", "RO311", "RO312", "RO313", "RO314", "RO315", "RO316", "RO317", "RO321", "RO322", "RO411", "RO412", "RO413", "RO414", "RO415", "RO421", "RO422", "RO423", "RO424", "RS110", "RS121", "RS122", "RS123", "RS124", "RS125", "RS126", "RS127", "RS211", "RS212", "RS213", "RS214", "RS215", "RS216", "RS217", "RS218", "RS221", "RS222", "RS223", "RS224", "RS225", "RS226", "RS227", "RS228", "RS229", "SE110", "SE121", "SE122", "SE123", "SE124", "SE125", "SE211", "SE212", "SE213", "SE214", "SE221", "SE224", "SE231", "SE232", "SE311", "SE312", "SE313", "SE321", "SE322", "SE331", "SE332", "SI031", "SI032", "SI033", "SI034", "SI035", "SI036", "SI037", "SI038", "SI041", "SI042", "SI043", "SI044", "SK010", "SK021", "SK022", "SK023", "SK031", "SK032", "SK041", "SK042", "TR100", "TR211", "TR212", "TR213", "TR221", "TR222", "TR310", "TR321", "TR322", "TR323", "TR331", "TR332", "TR333", "TR334", "TR411", "XK001", "XK002", "XK003", "XK004", "XK005", "XK006", "XK007")
+
+# CLASIFICA UN CÓDIGO geo EN SU NIVEL NUTS. Los códigos que empiezan por EU, EA,
+# EF, CC, OE, G2 o G7 son agrupaciones de países (EU27_2020, EA19...), no una
+# región concreta. El resto se comprueba contra las listas de códigos reales de
+# arriba: el nº de caracteres por sí solo no basta, porque hay códigos con la
+# longitud correcta que ya no corresponden a ninguna región del mapa actual.
+NUTS.computation <- function(s){
+  if(substr(s,1,2) %in% c("EU","EA","EF","CC","OE","G2","G7"))  return("AGREG")
+  if(nchar(s)==2 & s %in% NUTS0_codes) return("N0")
+  if(nchar(s)==3 & s %in% NUTS1_codes) return("N1")
+  if(nchar(s)==4 & s %in% NUTS2_codes) return("N2")
+  if(nchar(s)==5 & s %in% NUTS3_codes) return("N3")
+  return("OTHERS")
+}
+```
+
+# Recorrido de todos los datasets y generación de **Eurostat.datasets.raw.xlsx**
+
+```{r}
+# --- LECTURA DE LA DESCRIPCIÓN DEL CUBO DE UN DATASET ------------------------
+# La API SDMX de Eurostat publica, para cada dataset, un "contentconstraint"
+# (descripción del cubo) con los valores que REALMENTE aparecen en cada
+# dimensión. Ocupa unos pocos KB frente a los MB o GB que ocupan los datos, y es
+# lo que hace viable recorrer el catálogo entero.
+url_cubo <- function(code)
+  paste0("https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/contentconstraint/ESTAT/", code)
+
+# Devuelve una lista con un elemento por dimensión (freq, unit, geo,
+# TIME_PERIOD...) y, dentro de cada uno, sus valores. NULL si no se pudo leer.
+lee_cubo <- function(code, n = 3, sleep = 1){
+  tf <- tempfile(fileext = ".xml")
+  on.exit(unlink(tf), add = TRUE)
+  for(i in seq_len(n)){
+    ok <- tryCatch({download.file(url_cubo(code), tf, quiet = TRUE, mode = "wb"); TRUE},
+                   error = function(e) FALSE)
+    if(ok){
+      x <- tryCatch(read_xml(tf), error = function(e) NULL)
+      if(!is.null(x)){
+        kv <- xml_find_all(x, "//*[local-name()='KeyValue']")
+        if(length(kv))
+          return(setNames(
+            lapply(kv, function(k) xml_text(xml_find_all(k, "./*[local-name()='Value']"))),
+            xml_attr(kv, "id")))
+      }
+    }
+    Sys.sleep(sleep)
+  }
+  NULL
+}
+
+# Eurostat codifica la frecuencia en la dimensión freq. Se traduce a los mismos
+# códigos que usan los catálogos del INE y del ISTAC (Y anual en vez de A) para
+# que los umbrales de tamaño de serie de AEDV sirvan en las tres fuentes.
+FREQ_EUROSTAT <- c(A = "Y", S = "S", H = "S", Q = "Q", M = "M", W = "W", D = "D")
+```
+
+```{r}
+# --- RECORRIDO ---------------------------------------------------------------
+# Se acumula UNA FILA COMPLETA por dataset en una lista. Es a propósito: el
+# catálogo del INE se construye con un vector por columna, y ahí hay que acordarse
+# de añadir un valor a TODOS los vectores en TODAS las salidas del bucle, porque
+# si no se descuadran entre sí y las filas acaban mezclando datos de datasets
+# distintos sin ningún aviso. Con una fila por iteración ese fallo no puede darse.
+
+filas <- vector("list", nrow(datasets.recorrer))
+
+for(k in 1:nrow(datasets.recorrer)){
+  code <- datasets.recorrer$code[k]
+  #print(paste(k, nrow(datasets.recorrer), code))
+  t.inicio <- Sys.time()
+  seg <- function() as.numeric(difftime(Sys.time(), t.inicio, units = "secs"))
+
+  cubo <- lee_cubo(code)
+
+  if(is.null(cubo)){
+    # No se pudo leer la descripción del cubo: se marca y se sigue. El dataset
+    # NO desaparece del catálogo, queda con "-" para poder localizarlo después.
+    filas[[k]] <- tibble(
+      code = code, Freq = "-", N.periodos = 0, Ini = NA_character_, Fin = NA_character_,
+      N.reg = 0, NUTS0 = 0, NUTS1 = 0, NUTS2 = 0, NUTS3 = 0, AGREG = 0, OTHERS = 0,
+      ES = FALSE, CAN = FALSE, N.atrib = 0, DIM = "-")
+    log_avance(k, nrow(datasets.recorrer), code, seg(), "no se pudo leer el cubo")
+    next
+  }
+
+  # FRECUENCIA: viene en la dimensión freq del propio dataset
+  freq.code <- if(is.null(cubo$freq)) NA_character_ else cubo$freq[1]
+  Freq <- unname(FREQ_EUROSTAT[freq.code])
+  if(is.na(Freq)) Freq <- "?"
+
+  # FECHAS
+  tp <- if(is.null(cubo$TIME_PERIOD)) character(0) else cubo$TIME_PERIOD
+
+  # GEOGRAFÍA: se clasifica cada código geo en su nivel NUTS y se cuentan
+  geo <- if(is.null(cubo$geo)) character(0) else cubo$geo
+  niveles <- if(length(geo)) vapply(geo, NUTS.computation, character(1)) else character(0)
+
+  # ATRIBUTOS: todas las dimensiones que no son frecuencia, geografía ni fecha.
+  # El producto de sus nº de opciones es el nº de atributos combinados posibles.
+  otras <- setdiff(names(cubo), c("freq", "geo", "TIME_PERIOD"))
+
+  filas[[k]] <- tibble(
+    code       = code,
+    Freq       = Freq,
+    N.periodos = length(tp),
+    Ini        = if(length(tp)) tp[1] else NA_character_,
+    Fin        = if(length(tp)) tp[length(tp)] else NA_character_,
+    N.reg      = length(geo),
+    NUTS0      = sum(niveles == "N0"),
+    NUTS1      = sum(niveles == "N1"),
+    NUTS2      = sum(niveles == "N2"),
+    NUTS3      = sum(niveles == "N3"),
+    AGREG      = sum(niveles == "AGREG"),
+    OTHERS     = sum(niveles == "OTHERS"),
+    # ES / CAN: se busca por PREFIJO, no por el código exacto del país. Hay
+    # datasets (las proyecciones de población, por ejemplo) que solo traen
+    # códigos de región -"ES70", "ES705"- y no el código "ES" del país entero:
+    # buscando "ES" exacto se quedarían fuera del filtro pese a tener datos de
+    # España con todo detalle. Canarias es "ES7" como NUTS 1, "ES70" como NUTS 2
+    # y "ES703".."ES709" como NUTS 3 (una isla cada uno).
+    ES         = any(grepl("^ES", geo)),
+    CAN        = any(grepl("^ES7$|^ES70$|^ES70[3-9]$", geo)),
+    N.atrib    = if(length(otras)) prod(lengths(cubo[otras])) else 1,
+    DIM        = if(length(otras))
+                   paste(sprintf("%s %d", otras, lengths(cubo[otras])), collapse = " - ")
+                 else "-"
+  )
+
+  log_avance(k, nrow(datasets.recorrer), code, seg(),
+             paste0("Freq=", Freq, " N.periodos=", length(tp), " N.reg=", length(geo)))
+
+  # GUARDADO PARCIAL: un recorrido de miles de datasets no debe perderse entero
+  # si algo falla a mitad.
+  if(k %% 100 == 0)
+    bind_rows(filas[1:k]) |> write.xlsx("Eurostat.datasets.temporal.xlsx")
+}
+
+Eurostat.extra <- bind_rows(filas)
+
+# El recorrido ha terminado, así que el guardado parcial ya no sirve para nada:
+# se borra para no dejar en la carpeta un fichero a medias que se pueda confundir
+# con el catálogo bueno.
+if(file.exists("Eurostat.datasets.temporal.xlsx")) file.remove("Eurostat.datasets.temporal.xlsx")
+```
+
+```{r}
+# UNIÓN DE LA INFORMACIÓN DEL CATÁLOGO, LO RECOPILADO EN EL RECORRIDO Y LAS
+# DESCRIPCIONES. El cruce con mapa.esms trae el código del fichero ESMS y la URL
+# de la página de metadatos; el cruce con descripciones trae el texto, que es el
+# mismo para todos los datasets que comparten operación estadística.
+Eurostat.datasets <- datasets.recorrer |>
+  left_join(Eurostat.extra, by = "code") |>
+  left_join(mapa.esms, by = "code") |>
+  left_join(descripciones |> select(-Descripcion), by = "esms") |>
+  select(-anyo.fin, -esms) |>
+  relocate(code, title, topic, Freq, N.periodos, Ini, Fin, values,
+           N.reg, NUTS0, NUTS1, NUTS2, NUTS3, AGREG, OTHERS, ES, CAN, N.atrib, DIM, ESMS) |>
+  arrange(desc(values)) |>
+  mutate(`Nº` = row_number(), .before = 1)
+
+# en el xlsx los nombres internos se cambian por otros más claros para el
+# alumno, y se quita `Nº` (no aporta nada fuera de la tabla interactiva: en el
+# Excel ya hay número de fila); en el resto del documento (filtrado, tablas de
+# vista previa) se sigue trabajando con los nombres/columnas internos de siempre
+Eurostat.datasets |>
+  select(-`Nº`) |>
+  rename(N.observaciones = values, N.regiones = N.reg, `ESPAÑA` = ES, CANARIAS = CAN,
+         N.atrib.combinados = N.atrib, Dimension_N.options = DIM) |>
+  write.xlsx("Eurostat.datasets.raw.xlsx")
+
+cat("Eurostat.datasets.raw.xlsx :", nrow(Eurostat.datasets), "datasets\n")
+```
+
+<div class="tabla-scroll">
+
+```{r}
+Eurostat.datasets |>
+  select(`Nº`, code, title, topic, Freq, N.periodos, Ini, Fin, values,
+         NUTS0, NUTS1, NUTS2, NUTS3, ES, CAN, N.atrib) |>
+  datatable(
+    filter  = "top",
+    rownames = FALSE,
+    options = list(scrollX = TRUE, scrollY = "400px", paging = FALSE)
+  ) |>
+  formatRound(columns = "values", mark = ",", digits = 0)
+```
+
+</div>
+
+# Filtrado de datasets y escritura de **Eurostat.datasets.xlsx**
+
+A efectos de su uso para la asignatura AEDV, filtramos la tabla anterior para simplificar la búsqueda, quedándonos solo con los datasets que cumplen los requisitos mínimos. Los datasets recorridos ya cumplen el de **actualización** (último dato de `r ANYO_MINIMO_FIN` o posterior, aplicado como prefiltro); a ese se le añaden tres más:
+
+* **Tamaño de las series temporales**: el nº de fechas del dataset debe superar el umbral de su frecuencia: **10** para datos anuales, **20** para semestrales, **40** para trimestrales, **60** para mensuales, **200** para semanales y **1096** para diarios (tres años). Son los mismos umbrales que se usan con el INE y el ISTAC.
+
+* **Cobertura geográfica**: el dataset debe tener datos de un número mínimo de regiones en algún nivel NUTS: aproximadamente **25** para NUTS 0, **90** para NUTS 1, **200** para NUTS 2 y **500** para NUTS 3. Basta con cumplirlo en un nivel.
+
+* **Atributos combinados**: al menos **5**, y que España aparezca entre las regiones (`ESPAÑA`), ya que el proyecto personal pide analizar datos que incluyan a España y/o Canarias.
+
+```{r}
+# UMBRALES DEL CRITERIO AEDV DE TAMAÑO DE LAS SERIES, POR FRECUENCIA
+umbral_freq <- c(Y = 10, S = 20, Q = 40, M = 60, W = 200, D = 1096)
+
+# UMBRALES DEL CRITERIO AEDV DE COBERTURA GEOGRÁFICA, POR NIVEL NUTS
+umbral_nuts <- c(NUTS0 = 25, NUTS1 = 90, NUTS2 = 200, NUTS3 = 500)
+
+# Nº MÍNIMO DE ATRIBUTOS COMBINADOS
+umbral_atrib <- 5
+
+Eurostat.filtrados <- Eurostat.datasets |>
+  mutate(umbral = unname(umbral_freq[Freq])) |>
+  filter(!is.na(umbral), N.periodos >= umbral) |>
+  filter(NUTS0 >= umbral_nuts["NUTS0"] | NUTS1 >= umbral_nuts["NUTS1"] |
+         NUTS2 >= umbral_nuts["NUTS2"] | NUTS3 >= umbral_nuts["NUTS3"]) |>
+  filter(N.atrib >= umbral_atrib, ES) |>
+  select(-umbral, -`Nº`) |>
+  mutate(`Nº` = row_number(), .before = 1)
+
+Eurostat.filtrados |>
+  select(-`Nº`) |>
+  rename(N.observaciones = values, N.regiones = N.reg, `ESPAÑA` = ES, CANARIAS = CAN,
+         N.atrib.combinados = N.atrib, Dimension_N.options = DIM) |>
+         arrange(topic,desc(N.observaciones)) |> 
+  write.xlsx("Eurostat.datasets.xlsx")
+
+cat("Eurostat.datasets.xlsx :", nrow(Eurostat.filtrados), "datasets\n")
+```
+
+<div class="tabla-scroll">
+
+```{r}
+Eurostat.filtrados |>
+  select(`Nº`, code, title, topic, Freq, N.periodos, Ini, Fin, values,
+         NUTS0, NUTS1, NUTS2, NUTS3, ES, CAN, N.atrib) |>
+  datatable(
+    filter  = "top",
+    rownames = FALSE,
+    options = list(scrollX = TRUE, scrollY = "400px", paging = FALSE)
+  ) |>
+  formatRound(columns = "values", mark = ",", digits = 0)
+```
+
+</div>
+
+Hay que tener en cuenta que, con frecuencia, el título del dataset no es muy claro. Simplemente poniendo el título o código del dataset en ChatGPT saldrá una explicación más detallada. Si queremos aún más detalles podemos buscarlo en la página de Eurostat. Hay datasets pequeños, como el del coeficiente Gini de desigualdad (código `ilc_di12`) que, por si solos, no son suficientes para hacer el proyecto personal pero son un excelente complemento para otros proyectos sobre temas relacionados.
+
+Una vez elegido un dataset de esta tabla, el análisis detallado (dimensiones, tamaño real de las series por combinación de atributos, representación de España y Canarias, y guardado en disco) se hace con **EUROSTAT_DatasetSelection.Rmd**, poniendo su `code` al principio del documento.

@@ -1,0 +1,412 @@
+---
+title: "Generación de la tabla con información datasets del INE usando la librería `ineapir`"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: readable
+    number_sections: true
+---
+
+<style>
+h1.title { font-size: 24px; }
+h1 { font-size: 20px; }
+h2 { font-size: 18px; }
+h3 { font-size: 16px; }
+body { font-size: 14px;}
+p { font-size: 14px; margin-bottom: 10px;
+}
+/* Tablas anchas: envolver el chunk en <div class="tabla-scroll"> ... </div> para verlas completas con scroll horizontal */
+.tabla-scroll { overflow-x: auto; }
+.tabla-scroll table { width: auto; min-width: 100%; }
+.tabla-scroll table td, .tabla-scroll table th { white-space: nowrap; }
+</style>
+
+
+
+```{r,echo=FALSE}
+# OPCIONES POR DEFECTO AL COMPILAR LOS CHUNKS 
+knitr::opts_chunk$set(
+  warning = FALSE,
+  message = FALSE,
+  echo=TRUE,
+  cache=FALSE
+)
+```
+
+```{r, echo=FALSE}
+library(curl)
+library(pxR)
+library(stringr)
+library(DT)
+library(ineapir)
+library(openxlsx)
+library(leaflet)
+library(sf)
+library(tidyverse)
+library(ggplot2)
+
+# asociamos funciones a determinadas librerías para evitar posibles errores 
+select <- dplyr::select
+mutate <- dplyr::mutate
+filter <- dplyr::filter
+group_by <- dplyr::group_by
+summarise <- dplyr::summarise
+summarize <- dplyr::summarize
+rename <- dplyr::rename
+```
+
+# Estructura información datasets INE
+
+En este documento exploramos los datasets del **INE** usando la librería `ineapir`. En un primer nivel los datasets del **INE** se organizan por grandes temas (que se llaman operaciones). En un segundo nivel, cada uno de estos grandes temas se desglosa en una colección de datasets que son los que usaremos. La información recopilada para cada dataset del INE es la siguiente: 
+
+* `Id` : 	código numérico del dataset (identifica al dataset y lo usaremos para leer el dataset desde el **INE**)
+
+* `Codigo` : 	código relativo al tipo de contenido del dataset
+
+* `OPER`	: código de la operación (primer nivel de organización del **INE**)
+
+* `OPER.Nombre`	: nombre de la operación.	
+
+* `Nombre` : 	nombre del dataset 
+
+* `Publicacion` : 	información adicional del dataset 
+
+* `Periodicidad` : frecuencia temporal de los datos, **según los metadatos** del INE (`Anual`, `Mensual`, `Semanal`, `Diario`...)
+
+* `Start` : año de inicio de datos del dataset 
+
+* `LastUpdate` : fecha de última actualización del dataset 
+
+* `N.obs` : número de observaciones (filas) del dataset
+
+* `Freq` : frecuencia **detectada a partir del formato de las fechas de los propios datos**: `Y` anual, `S` semestral, `Q` trimestral, `M` mensual, `W` semanal, `D` diaria; `?` si el formato no se reconoce, y `-`/`*` si el dataset no se pudo descargar o leer. Es un dato distinto de `Periodicidad`, que viene de los metadatos: si ambos discrepan, manda `Freq`, que se obtiene de los datos reales.
+
+* `N.periodos` : número de fechas distintas de la serie. Junto con `Freq` permite comprobar el requisito de tamaño de las series de AEDV (al menos 10 años, 20 semestres, 40 trimestres, 60 meses, 200 semanas o 1096 días).
+
+* `DIM` : dimensiones (columnas no numéricas) del dataset. Aparecen los nombres de las dimensiones y a su derecha el nº de valores posibles distintos que puede tomar. 
+<br> 
+
+
+# Generación de la tabla con información básica datasets INE 
+
+La información de los datasets se lee accediendo a los servidores del INE usando la librería `ineapir`. Una vez recopilada la información de todos los datasets disponibles se almacena en la hoja Excel **INE.datasets.raw.xlsx**. Es importante resaltar que solo podemos acceder a los datasets del **INE** (5300) que se pueden obtener a través de `ineapir`, pero puede haber otros datasets del **INE** que no se encuentren en este listado, pero que se puedan obtener directamente en la Web del INE o usando IA. 
+
+## Lectura primer nivel de operaciones del INE
+
+
+**Impresión primeros 10 datasets**
+<div class="tabla-scroll">
+```{r}
+# LECTURA INFORMACIÓN BÁSICA DATASETS DEL INE 
+
+# LECTURA OPERACIONES POSIBLES 
+ops <- ineapir::get_metadata_operations() 
+
+# LECTURA DATOS BÁSICOS DATASETS A PARTIR DE OPERACIONES 
+datasets.operaciones <- tibble()
+for(k in 1:nrow(ops)){
+  OPER.Code <- ops$Codigo[k]
+  OPER.Nombre <- ops$Nombre[k]
+  #print(paste(k," - ",nrow(ops)," -",OPER.Code))
+  tb <- get_metadata_tables_operation(operation = OPER.Code, tip = "A") |>
+    as_tibble() |>
+    mutate(OPER=OPER.Code,OPER.Nombre=ops$Nombre[k])
+  if(nrow(tb)==0) next
+  datasets.operaciones <- bind_rows(datasets.operaciones,tb)
+}
+datasets.operaciones|> 
+  head(10) |>
+  knitr::kable()
+```
+</div>
+
+<br>
+
+
+```{r}
+# PROCESAMOS  datasets.operaciones PARA OBTENER LOS DATASETS DEL INE
+INE.datasets <- datasets.operaciones |>
+  mutate(Anyo_Periodo_ini=as.numeric(Anyo_Periodo_ini)) |>
+  mutate(Ultima_Modificacion=as.Date(substr(Ultima_Modificacion,1,10))) |>
+  select(
+    Id,
+    Codigo,
+    OPER,	
+    OPER.Nombre,
+    Nombre,
+    Publicacion=T3_Publicacion,
+    Periodicidad=T3_Periodicidad,
+    Start = Anyo_Periodo_ini,
+    LastUpdate=Ultima_Modificacion
+  )  
+```
+
+## Lectura detallada de cada dataset y generación fichero **INE.datasets.raw.xlsx**
+
+
+```{r}
+# LEEMOS LOS DATASETS UNO POR UNO PARA OBTENER MÁS INFORMACIÓN BÁSICA
+# COMO EL Nº DE OBSERVACIONES Y LAS DIMENSIONES Y AÑADIRLA A INE.datasets 
+
+# FUNCIÓN PARA DETECTAR SI UNA URL EXISTE 
+url_ok <- function(url) {
+  tryCatch({
+    curl_fetch_memory(url)
+    TRUE
+  }, error = function(e) {
+    FALSE
+  })
+}
+
+
+
+# FUNCIÓN PARA LEER DE FORMA ROBUSTA UN FICHERO PX  
+read_px_retry <- function(url, n = 5, sleep = 1) {
+  tf <- tempfile(fileext = ".px")
+  on.exit(unlink(tf), add = TRUE)
+
+  for (i in seq_len(n)) {
+    ok <- tryCatch(
+      {
+        download.file(url, tf, quiet = TRUE)
+        TRUE
+      },
+      error = function(e) FALSE
+    )
+    if (ok) {
+      res <- tryCatch(read.px(tf), error = function(e) NULL)
+      if (!is.null(res)) return(res)
+    }
+    Sys.sleep(sleep)
+  }
+  NULL
+}
+
+# LECTURA DE LOS DATASETS DEL INE SELECCIONADOS. PARA CADA DATASET 
+# GUARDAMOS EL Nº DE OBSERVACIONES (FILAS) Y LAS DIMENSIONES (COLUMNAS)
+# CON EL Nº DE OPCIONES DISTINTAS QUE PUEDE TOMAR CADA DIMENSIÓN 
+# EL RESULTADO LO GUARDAMOS EN LA HOJA EXCEL "INE.datasets.temporal.xlsx"
+# QUE POSTERIORMENTE AÑADIREMOS COMO COLUMNAS A INE.datasets.raw.xlsx
+
+# Detecta la frecuencia de una serie a partir del FORMATO de sus fechas, en vez
+# de fiarse del campo Periodicidad de los metadatos. Formatos que usa el INE:
+# "2020" (anual), "2008S1" (semestral), "2020T1"/"2020Q1" (trimestral),
+# "2020M01" (mensual), "2020SM01" (semanal, SM = semana) y "1/1/2020" (diario,
+# día/mes/año con una o dos cifras). Se comprueba de la granularidad más fina a
+# la más gruesa, porque muchos datasets mezclan el agregado anual con el detalle.
+
+# Fechas literales en español ("1 de abril de 1971"): no tienen un formato con
+# posiciones fijas, así que en vez de un regex se parsean a Date y más abajo se
+# clasifican por el salto típico entre fechas consecutivas.
+MESES_ES <- c(enero = 1, febrero = 2, marzo = 3, abril = 4, mayo = 5, junio = 6,
+              julio = 7, agosto = 8, septiembre = 9, setiembre = 9, octubre = 10,
+              noviembre = 11, diciembre = 12)
+
+fecha_literal_es_a_Date <- function(x){
+  m <- regmatches(x, regexec("^([0-9]{1,2}) de ([[:alpha:]]+) de ([0-9]{4})$", x, ignore.case = TRUE))
+  txt <- vapply(m, function(g){
+    if(length(g) != 4) return(NA_character_)
+    mes <- MESES_ES[tolower(g[3])]
+    if(is.na(mes)) return(NA_character_)
+    sprintf("%s-%02d-%02d", g[4], mes, as.integer(g[2]))
+  }, character(1))
+  as.Date(txt)
+}
+
+# Clasifica un conjunto de fechas por el salto MEDIANO entre fechas consecutivas
+# (en días), para los formatos que no se pueden reconocer por regex (fechas
+# literales). Los rangos de tolerancia cubren la variación normal de longitud
+# de meses/trimestres y los años bisiestos.
+clasifica_por_gap <- function(fechas_date){
+  d <- sort(unique(fechas_date))
+  if(length(d) < 2) return("?")
+  gap <- as.numeric(stats::median(diff(d)))
+  if(gap <= 1.5)                 return("D")
+  if(gap >= 5   && gap <= 9)     return("W")
+  if(gap >= 27  && gap <= 32)    return("M")
+  if(gap >= 85  && gap <= 97)    return("Q")
+  if(gap >= 175 && gap <= 190)   return("S")
+  if(gap >= 350 && gap <= 380)   return("Y")
+  return("?")
+}
+
+deteccion_frecuencia <- function(fechas){
+  d <- unique(as.character(fechas[!is.na(fechas)]))
+  if(!length(d)) return(NA_character_)
+  if(any(grepl("^[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}$|^[0-9]{4}-[0-9]{2}-[0-9]{2}$", d))) return("D")
+  if(any(grepl("^[0-9]{4}SM[0-9]{2}$", d)))                                          return("W")
+  if(any(grepl("^[0-9]{4}M[0-9]{2}$|^[0-9]{4}-[0-9]{2}$", d)))                       return("M")
+  if(any(grepl("^[0-9]{4}[QT][0-9]$", d)))                                           return("Q")
+  if(any(grepl("^[0-9]{4}S[1-2]$", d)))                                              return("S")
+  if(any(grepl("^[0-9]{4}$", d)))                                                    return("Y")
+  fechas_lit <- fecha_literal_es_a_Date(d)
+  fechas_lit <- fechas_lit[!is.na(fechas_lit)]
+  if(length(fechas_lit) >= 2) return(clasifica_por_gap(fechas_lit))
+  # Formato no previsto: incluye los rangos "2021-2023" (un único periodo, no
+  # una fecha puntual, así que no hay serie que clasificar) y cualquier otro
+  # formato no reconocido. Se marca, no se adivina.
+  return("?")
+}
+
+# La columna temporal casi siempre se llama "Periodo"; si no, se busca la
+# primera columna no numérica cuyos valores tengan formato de fecha reconocible.
+columna_periodo <- function(data){
+  if("Periodo" %in% colnames(data)) return("Periodo")
+  for(col in colnames(data)[!sapply(data, is.numeric)]){
+    f <- deteccion_frecuencia(data[[col]])
+    if(!is.na(f) && f != "?") return(col)
+  }
+  return(NA_character_)
+}
+
+# --- CONTROL DE CUELGUES ----------------------------------------------------
+# El recorrido son miles de descargas y puede quedarse esperando indefinidamente
+# en una de ellas. Dos medidas:
+#
+# 1) Se acota el tiempo de cada descarga. read_px_retry() usa download.file(),
+#    que respeta options(timeout): al agotarse, la descarga falla y entra la
+#    lógica de reintentos que ya existe, en vez de bloquear el documento.
+# 2) Se deja constancia del avance en un fichero .log con marca de tiempo. Al
+#    compilar con quiet=TRUE no se ve NADA por consola -los print() van al
+#    documento, que no existe hasta el final-, así que sin este log no hay forma
+#    de saber si el proceso avanza o está colgado. El fichero se puede abrir
+#    mientras compila: la última línea dice por qué dataset va y cuánto tardó.
+#
+# NOTA: el timeout NO hace que se pierdan datasets. Solo convierte una espera
+# infinita en un error, que los reintentos vuelven a intentar; si aun así falla,
+# el dataset queda marcado con "-"/"*" y se ve en el catálogo.
+options(timeout = 60)
+
+LOG <- "INE_TableDatasetGeneration.log"
+cat(format(Sys.time()), "- inicio del recorrido\n", file = LOG)
+log_avance <- function(k, n, id, seg, nota = ""){
+  cat(sprintf("%s  %5d/%5d  %-12s %6.1f s%s%s\n",
+              format(Sys.time()), k, n, as.character(id), seg,
+              if(seg > 30) "   <-- LENTO" else "",
+              if(nzchar(nota)) paste0("  ", nota) else ""),
+      file = LOG, append = TRUE)
+}
+
+K <- as.numeric()
+N.obs <- as.numeric()
+DIM <- as.character()
+Freq <- as.character()       # frecuencia detectada de los datos
+N.periodos <- as.numeric()   # nº de fechas distintas de la serie
+for(k in 1:nrow(INE.datasets)){
+  #print(paste(k,nrow(INE.datasets)))
+  Dataset.Id <- INE.datasets$Id[k]
+  URL <- paste0("https://www.ine.es/jaxiT3/files/t/px/",Dataset.Id,".px")
+  t.inicio <- Sys.time()
+  seg <- function() as.numeric(difftime(Sys.time(), t.inicio, units = "secs"))
+  if(! url_ok(URL)){
+    N.obs <- c(N.obs,0)
+    K <- c(K,k)
+    DIM <- c(DIM,"-")
+    Freq <- c(Freq,"-")
+    N.periodos <- c(N.periodos,0)
+    log_avance(k, nrow(INE.datasets), Dataset.Id, seg(), "URL no accesible")
+    next
+  }
+  data <- read_px_retry(URL)
+  if(is.null(data)){
+    N.obs <- c(N.obs,1)
+    DIM <- c(DIM,"*")
+    K <- c(K,k)
+    Freq <- c(Freq,"*")
+    N.periodos <- c(N.periodos,0)
+    log_avance(k, nrow(INE.datasets), Dataset.Id, seg(), "no se pudo leer el .px")
+    next
+  }
+  
+  data <- data |> 
+    as_tibble() |>
+    na.omit()
+  N.obs <- c(N.obs,nrow(data))
+  K <- c(K,k)
+  dim <- ""
+  for(col in colnames(data)){
+    if(is.numeric(data[[col]])) next
+    N <- length(unique(data[[col]]))
+    dim <- paste0(dim,substr(col,1,20)," ",N, " - ")
+  }
+  #print(paste(nrow(data),dim))
+  DIM <- c(DIM,substr(dim,1,nchar(dim)-3))
+
+  col.periodo <- columna_periodo(data)
+  if(is.na(col.periodo)){
+    Freq <- c(Freq,"?")
+    N.periodos <- c(N.periodos,0)
+  } else {
+    Freq <- c(Freq,deteccion_frecuencia(data[[col.periodo]]))
+    N.periodos <- c(N.periodos,length(unique(data[[col.periodo]])))
+  }
+  log_avance(k, nrow(INE.datasets), Dataset.Id, seg(),
+             paste0("Freq=", tail(Freq,1), " N.periodos=", tail(N.periodos,1)))
+
+  if(k %% 100 ==0 ){
+    tibble(
+      Nº = K,
+      N.obs = N.obs,
+      Freq = Freq,
+      N.periodos = N.periodos,
+      DIM = DIM
+    ) |>
+      write.xlsx("INE.datasets.temporal.xlsx")
+  }
+}
+
+# El recorrido ha llegado al final, así que el guardado parcial ya no sirve para
+# nada: se borra para no dejar en la carpeta un fichero a medias que se pueda
+# confundir con el catálogo bueno. Si el recorrido se interrumpe, este borrado no
+# se ejecuta y el .temporal sobrevive, que es justo para lo que está.
+if(file.exists("INE.datasets.temporal.xlsx")) file.remove("INE.datasets.temporal.xlsx")
+```
+
+
+
+**Escritura de INE.datasets.raw.xlsx**
+```{r}
+INE.datasets |>
+  cbind(
+     tibble(
+      Nº = K,
+      N.obs = N.obs,
+      Freq = Freq,
+      N.periodos = N.periodos,
+      DIM = DIM
+    )
+  ) |>
+  relocate(Nº) |>
+  write.xlsx("INE.datasets.raw.xlsx")
+
+```
+
+# Filtrado de datasets y escritura fichero **INE.datasets.xlsx**
+
+A efectos de su uso para la asignatura AEDV, filtramos la tabla original para simplificar la búsqueda de datasets, eliminando datasets que no cumplen unos requisitos mínimos como: 
+
+* Datasets actualizados después del 2024 (y que no estén vacíos)
+
+* Que contengan datos relativos a regiones, que pueden ser municipios, comunidades autónomas o provincias
+
+
+```{r}
+# GUARDAMOS LOS DATOS FILTRADOS 
+INE.datasets |>
+  cbind(
+     tibble(
+      Nº = K,
+      N.obs = N.obs,
+      Freq = Freq,
+      N.periodos = N.periodos,
+      DIM = DIM
+    )
+  ) |>
+  filter(LastUpdate>=as.Date("2024-01-01"),N.obs>1) |>
+  filter( str_detect(Codigo,"MUN") | str_detect(Codigo,"CCAA") | str_detect(Codigo,"PROV"))|>
+  filter(! str_detect(Codigo,"DIST-SECC-MUN")) |> 
+  select(-Nº) |> 
+  write.xlsx("INE.datasets.xlsx")
+```
+
+
