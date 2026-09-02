@@ -27,6 +27,11 @@
   .aviso p:first-child { margin-top:0; }
   .aviso p:last-child { margin-bottom:0; }
   code { background:var(--caja); border:1px solid var(--linea); border-radius:4px; padding:.08em .35em; font-size:.9em; }
+  .tabla-scroll { overflow-x:auto; margin:1rem 0; }
+  table { border-collapse:collapse; font-size:.94rem; }
+  th, td { border-bottom:1px solid var(--linea); padding:.42rem .8rem; text-align:left; white-space:nowrap; }
+  th { font-weight:600; }
+  td.num { text-align:right; }
   footer { margin-top:3rem; padding-top:1rem; border-top:1px solid var(--linea); color:var(--suave); font-size:.9rem; }
 </style>
 </head>
@@ -63,6 +68,43 @@ criterios AEDV que deben cumplir los datasets del proyecto.</p>
 
 <p>Para cada fuente hay dos documentos: <em>TableDatasetGeneration</em> construye el catálogo completo recorriendo la API,
 y <em>DatasetSelection</em> filtra, valida y analiza el dataset elegido.</p>
+
+<div class="aviso">
+  <p><strong>No hace falta que ejecutes los <em>TableDatasetGeneration</em>.</strong> Los catálogos ya están
+  generados y publicados aquí como <code>.xlsx</code>. Volver a ejecutarlos solo sirve para <strong>detectar
+  datasets nuevos</strong> que la fuente haya publicado desde la última generación.</p>
+
+  <p><strong>Trabajar con el catálogo publicado no significa trabajar con datos viejos</strong>: la fase de
+  selección descarga <strong>siempre la versión actualizada</strong> del dataset directamente de la fuente
+  (<code>read.px()</code> en el INE, <code>get_eurostat()</code> en Eurostat, <code>wb_data()</code> en el
+  Banco Mundial, <code>istacr</code> en el ISTAC). Del catálogo solo se toma la ficha de metadatos del dataset,
+  no sus datos.</p>
+
+  <p>Importa porque son procesos <strong>largos</strong>: recorren la API dataset a dataset y descargan cada uno
+  para deducir su frecuencia temporal y el número de periodos.</p>
+
+  <div class="tabla-scroll">
+  <table>
+    <thead>
+      <tr><th>Fuente</th><th>Datasets recorridos</th><th>Duración aproximada</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>ISTAC</td><td class="num">400</td><td>~15 minutos</td></tr>
+      <tr><td>Eurostat</td><td class="num">3.050</td><td>~2 horas <span class="desc">(estimada)</span></td></tr>
+      <tr><td>INE</td><td class="num">5.521</td><td>~3 h 20 min</td></tr>
+      <tr><td>Banco Mundial</td><td class="num">16.643</td><td><strong>~13 horas</strong></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p class="desc">Tiempos medidos en agosto de 2026 sobre una conexión doméstica; dependen sobre todo de la
+  velocidad de respuesta de cada API. Una interrupción de red a mitad obliga a repetir el recorrido.</p>
+
+  <p>Los documentos de <strong>EDGAR</strong> y de los dos <strong>CLIMA</strong> son un caso distinto: no
+  recorren una API, sino que descargan los ficheros de origen (en CLIMA, unos 10 GB de NetCDF de AdapteCCa) y
+  construyen los <code>.rds</code>. Tampoco hay que ejecutarlos: los <code>.rds</code> ya están incluidos aquí,
+  y esas colecciones no se actualizan todos los años.</p>
+</div>
 
 <h3>INE — Instituto Nacional de Estadística</h3>
 <ul>
