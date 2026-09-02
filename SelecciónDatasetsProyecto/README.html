@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-08-28" />
+<meta name="date" content="2026-09-02" />
 
 <title>Selección de datasets para el proyecto de AEDV</title>
 
@@ -1422,6 +1422,12 @@ background-color: #fff;
 box-shadow: inset 0 -1px 0 #ddd;
 }
 
+.tabla-scroll-xy.con-desc table td:last-child,
+.tabla-scroll.con-desc table td:last-child {
+white-space: normal;
+min-width: 420px;
+}
+
 .val-ok, .val-no {
 display: block;
 text-align: center;
@@ -1608,7 +1614,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Selección de datasets para el proyecto de
 AEDV</h1>
-<h4 class="date">2026-08-28</h4>
+<h4 class="date">2026-09-02</h4>
 
 </div>
 
@@ -1644,10 +1650,59 @@ en dos pasos</h2>
 Paso 2 — Exploración del dataset concreto</code></pre>
 <p>Los catálogos ya están generados y disponibles como archivos Excel en
 cada subcarpeta. <strong>No necesitas ejecutar los archivos
-<code>*_TableDatasetGeneration.Rmd</code></strong> salvo que quieras
-actualizar el catálogo con datos más recientes; pero ten cuenta que la
-compilación puede durar bastantes horas y puede fallar si falla la
-conexión a internet.</p>
+<code>*_TableDatasetGeneration.Rmd</code></strong>: su única utilidad es
+<strong>descubrir datasets nuevos</strong> que la fuente haya publicado
+desde que se generó el catálogo.</p>
+<p>Que el catálogo tenga unos meses <strong>no significa que vayas a
+trabajar con datos antiguos</strong>: el
+<code>*_DatasetSelection.Rmd</code> descarga siempre la <strong>versión
+actualizada</strong> del dataset directamente de la fuente
+(<code>read.px()</code> en el INE, <code>get_eurostat()</code> en
+EUROSTAT, <code>wb_data()</code> en el Banco Mundial y
+<code>istacr</code> en el ISTAC). Del catálogo solo se toma la ficha de
+metadatos del dataset, nunca sus datos.</p>
+<p>Conviene saberlo porque regenerar un catálogo es un proceso
+<strong>largo</strong>: recorre la API dataset a dataset y descarga cada
+uno para deducir su frecuencia temporal y su número de periodos. Además,
+si la conexión a internet se interrumpe a mitad del recorrido hay que
+repetirlo entero.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Fuente</th>
+<th>Datasets recorridos</th>
+<th>Duración aproximada</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>ISTAC</td>
+<td>400</td>
+<td>~15 minutos</td>
+</tr>
+<tr class="even">
+<td>EUROSTAT</td>
+<td>3.050</td>
+<td>~2 horas (estimada)</td>
+</tr>
+<tr class="odd">
+<td>INE</td>
+<td>5.521</td>
+<td>~3 h 20 min</td>
+</tr>
+<tr class="even">
+<td>Banco Mundial</td>
+<td>16.643</td>
+<td><strong>~13 horas</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Los documentos de <strong>EDGAR</strong> y de los dos
+<strong>CLIMA</strong> son un caso distinto: no recorren una API, sino
+que descargan los ficheros de origen (en CLIMA, unos 10 GB de NetCDF de
+AdapteCCa) para construir los <code>.rds</code>. Tampoco hay que
+ejecutarlos, porque esos <code>.rds</code> se distribuyen ya hechos en
+sus carpetas.</p>
 <div class="nota">
 <p><strong class="bloque-titulo">Los catálogos son una fotografía, no
 una fuente permanente</strong></p>

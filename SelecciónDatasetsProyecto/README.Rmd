@@ -26,7 +26,20 @@ Paso 1 — Catálogo Excel con información básica de los datasets
 Paso 2 — Exploración del dataset concreto
 ```
 
-Los catálogos ya están generados y disponibles como archivos Excel en cada subcarpeta. **No necesitas ejecutar los archivos `*_TableDatasetGeneration.Rmd`** salvo que quieras actualizar el catálogo con datos más recientes; pero ten cuenta que la compilación puede durar bastantes horas y puede fallar si falla la conexión a internet.
+Los catálogos ya están generados y disponibles como archivos Excel en cada subcarpeta. **No necesitas ejecutar los archivos `*_TableDatasetGeneration.Rmd`**: su única utilidad es **descubrir datasets nuevos** que la fuente haya publicado desde que se generó el catálogo.
+
+Que el catálogo tenga unos meses **no significa que vayas a trabajar con datos antiguos**: el `*_DatasetSelection.Rmd` descarga siempre la **versión actualizada** del dataset directamente de la fuente (`read.px()` en el INE, `get_eurostat()` en EUROSTAT, `wb_data()` en el Banco Mundial y `istacr` en el ISTAC). Del catálogo solo se toma la ficha de metadatos del dataset, nunca sus datos.
+
+Conviene saberlo porque regenerar un catálogo es un proceso **largo**: recorre la API dataset a dataset y descarga cada uno para deducir su frecuencia temporal y su número de periodos. Además, si la conexión a internet se interrumpe a mitad del recorrido hay que repetirlo entero.
+
+| Fuente | Datasets recorridos | Duración aproximada |
+|---|---|---|
+| ISTAC | 400 | ~15 minutos |
+| EUROSTAT | 3.050 | ~2 horas (estimada) |
+| INE | 5.521 | ~3 h 20 min |
+| Banco Mundial | 16.643 | **~13 horas** |
+
+Los documentos de **EDGAR** y de los dos **CLIMA** son un caso distinto: no recorren una API, sino que descargan los ficheros de origen (en CLIMA, unos 10 GB de NetCDF de AdapteCCa) para construir los `.rds`. Tampoco hay que ejecutarlos, porque esos `.rds` se distribuyen ya hechos en sus carpetas.
 
 <div class="nota">
 <strong class="bloque-titulo">Los catálogos son una fotografía, no una fuente permanente</strong>
