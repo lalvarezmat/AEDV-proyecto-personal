@@ -11,4 +11,10 @@ Thumbs.db
 # Ficheros de trabajo que no son material del alumno
 *.log
 *.temporal.xlsx
+
+# Ficheros de Claude Code: pueden existir en la carpeta de origen,
+# pero este repositorio es PUBLICO y no deben llegar aqui nunca.
 .claude/
+CLAUDE.md
+settings.local.json
+*.local.json
