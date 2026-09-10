@@ -12,7 +12,7 @@ output:
 
 # Cómo usar esta carpeta para seleccionar el tema de tu proyecto
 
-Esta carpeta contiene herramientas para explorar y descargar datasets de seis fuentes de datos públicas: **EDGAR** (emisiones de gases de efecto invernadero a nivel mundial), **INE** (estadísticas españolas), **ISTAC** (estadísticas de Canarias), **EUROSTAT** (estadísticas europeas por regiones), **Banco Mundial** (indicadores globales) y **CLIMA** (variables climáticas de AdapteCCa/AEMET para España y Canarias). El objetivo es que encuentres uno o varios datasets que te resulten interesantes y que sean adecuados para el proyecto de la asignatura.
+Esta carpeta contiene herramientas para explorar y descargar datasets de siete fuentes de datos públicas: **EDGAR** (emisiones de gases de efecto invernadero a nivel mundial), **INE** (estadísticas españolas), **ISTAC** (estadísticas de Canarias), **EUROSTAT** (estadísticas europeas por regiones), **Banco Mundial** (indicadores globales), **CLIMA** (variables climáticas de AdapteCCa/AEMET para España y Canarias) e **INFORME PISA** (resultados educativos por país y por Comunidad Autónoma, con contexto de pobreza y desigualdad). El objetivo es que encuentres uno o varios datasets que te resulten interesantes y que sean adecuados para el proyecto de la asignatura.
 
 > Cuando empieces a trabajar con un dataset, el primer paso es verificar en el Campus Virtual que ningún otro alumno ha elegido ya ese tema. En ese caso apunta al final de la lista el título y código identificativo del dataset. En caso de solape con otros alumnos consultar con el profesor. Si después de analizar el dataset no te convence recuerda eliminarlo del Campus Virtual; cuando apuntes otro, lo harás al final de la lista.
 
@@ -39,7 +39,7 @@ Conviene saberlo porque regenerar un catálogo es un proceso **largo**: recorre 
 | INE | 5.521 | ~3 h 20 min |
 | Banco Mundial | 16.643 | **~13 horas** |
 
-Los documentos de **EDGAR** y de los dos **CLIMA** son un caso distinto: no recorren una API, sino que descargan los ficheros de origen (en CLIMA, unos 10 GB de NetCDF de AdapteCCa) para construir los `.rds`. Tampoco hay que ejecutarlos, porque esos `.rds` se distribuyen ya hechos en sus carpetas.
+Los documentos de **EDGAR**, los dos **CLIMA** e **INFORME PISA** son un caso distinto: no recorren un catálogo de una API para que elijas, sino que construyen un dataset ya fijado (en CLIMA, descargando unos 10 GB de NetCDF de AdapteCCa; en PISA, reconstruyendo de Wikipedia y de Banco Mundial/INE) para generar los `.rds`. Tampoco hay que ejecutarlos, porque esos `.rds` se distribuyen ya hechos en sus carpetas.
 
 <div class="nota">
 <strong class="bloque-titulo">Los catálogos son una fotografía, no una fuente permanente</strong>
@@ -58,6 +58,7 @@ Por eso es importante **no depender del catálogo Excel para tu proyecto**: una 
 | Banco Mundial | `WORLD_BANK/wb.datasets.xlsx` | Mundial: ≥100 países, ≥10 años |
 | EDGAR | *(dataset único, solo sirve para un alumno)* | Mundial: emisiones GHG 1970–2024 |
 | CLIMA (AdapteCCa) | *(proyecto propio, sin catálogo Excel; 14 variables climáticas)* | España (provincias) y Canarias (municipios): clima mensual 1951/1990–2022 + proyecciones CMIP6 |
+| INFORME PISA | *(dataset único, solo sirve para un alumno)* | Mundial (105 países, PISA 2000–2025) y España (19 CCAA, 2009–2025): resultados educativos + pobreza/desigualdad/gasto |
 
 Los datasets que usamos en AEDV siempre tienen una variable (columna) con un dato temporal que puede estar en años, cuatrimestres, meses o semanas, una variable con datos de áreas geográficas que pueden ser países, CCAA, provincias o municipios, una o varias variables categóricas que identifican qué se está midiendo y una variable numérica con el valor observado de lo que se mide.
 
@@ -444,4 +445,33 @@ Los análisis que permite realizar son:
 - **Mapas coropléticos** por región (municipios de Canarias / provincias de España).
 - **Validación AEDV** con heatmap de cobertura geográfica, actualización y tamaño de las series temporales.
 
-> **Atención al requisito de "datos actualizados".** El histórico observado de AdapteCCa llega hasta **2022** (es una colección por versión —Escenarios-PNACC 2024—, no una serie que se actualice cada año). La cobertura geográfica y la longitud de las series son excelentes, por ello, aunque la fecha del último dato es 2022 lo aceptamos como proyecto de AEDV. 
+> **Atención al requisito de "datos actualizados".** El histórico observado de AdapteCCa llega hasta **2022** (es una colección por versión —Escenarios-PNACC 2024—, no una serie que se actualice cada año). La cobertura geográfica y la longitud de las series son excelentes, por ello, aunque la fecha del último dato es 2022 lo aceptamos como proyecto de AEDV.
+
+---
+
+## INFORME PISA — resultados educativos, pobreza y desigualdad (solo sirve para un estudiante)
+
+Como EDGAR y CLIMA, **INFORME_PISA no tiene catálogo Excel previo**: es un dataset único, ya construido, en `INFORME_PISA/INFORME_PISA.Rmd`, con la misma estructura en dos partes que el resto (descarga/limpieza primero, análisis autocontenido después, copiable tal cual en la memoria).
+
+Combina **resultados del Informe PISA de la OCDE** con **contexto socioeconómico** (pobreza, desigualdad y gasto en educación), a dos niveles geográficos a la vez:
+
+| Fichero | Nivel | Cobertura | Ciclos/años |
+|---|---|---|---|
+| `pisa_paises_2000_2025.rds` | País | 105 países/economías | 2000–2025 (9 ciclos PISA, trienal con huecos) |
+| `pisa_ccaa_2009_2025.rds` | Comunidad Autónoma | 19 CCAA + España | 2009–2025 (6 ciclos) |
+| `contexto_paises.rds` | País | hasta 205 países (Banco Mundial) | variable según indicador |
+| `contexto_ccaa.rds` | Comunidad Autónoma | 19 CCAA + España (INE) | 2000/2008/2014–2024/2025 según indicador |
+
+**Origen de los datos de PISA**: la descarga directa de la OCDE está bloqueada (error 403); los dos primeros ficheros se reconstruyen de Wikipedia, verificado cruzando España entre dos parseos independientes (coinciden exactamente). Los indicadores de contexto vienen del Banco Mundial (`wbstats`, misma API que el resto del proyecto) y del INE (`ineapir`); uno de ellos, el peso de la educación en el PIB regional, se obtiene de la Contabilidad Regional de España **por descarga directa de INEbase**, porque esa estadística no está en el catálogo `INE.datasets.xlsx` ni en la lista de operaciones de la API del INE.
+
+Los cuatro ficheros están unidos por claves comunes: `iso3c` (código de país, construido con un proceso auxiliar de equivalencias de nombres) para cruzar los dos de país, y el nombre de región para cruzar los dos de CCAA (tabla de equivalencias en la hoja `ccaa_geo` de los metadatos, porque los nombres de región de Wikipedia y del INE/`mapSpain` no coinciden letra a letra).
+
+Todos los indicadores de contexto están marcados como **comparables o no entre unidades geográficas** (columna `comparable` de la hoja `contexto_indicadores`): por ejemplo, se descartó la tasa de pobreza por líneas *nacionales* del Banco Mundial porque no es comparable entre países (cada uno fija su propia línea según su renta) y se sustituyó por el índice de Gini y la pobreza *relativa* (% por debajo del 50 % de la renta mediana de cada país), que sí lo son.
+
+Los análisis que permite realizar son:
+
+- Comparación transversal entre países o entre Comunidades Autónomas en un ciclo PISA dado.
+- Evolución de un país o una CCAA a lo largo de los ciclos disponibles.
+- Relación entre resultado educativo y pobreza, desigualdad o gasto en educación, por país o por CCAA.
+
+> **Frecuencia y tamaño de serie: PISA es un caso especial.** Los dos ficheros de PISA son **trienales con huecos** (no todos los países/CCAA tienen los 9/6 ciclos), así que no encajan en el esquema de frecuencias Y/Q/M/W/D del criterio de tamaño de series de más abajo. Los dos ficheros de contexto sí son anuales y sí se miden con ese criterio. Aun así, **el conjunto es válido para AEDV** como dataset de comparación transversal (entre países o CCAA), no como serie temporal densa por país — ver el veredicto completo en la sección *Validación global de requisitos AEDV* de `INFORME_PISA.Rmd`.

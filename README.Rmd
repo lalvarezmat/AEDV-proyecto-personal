@@ -108,7 +108,7 @@ La columna `ACTIVITY` debe coincidir exactamente con los valores del vector `act
 
 Antes de escribir una sola línea de código, necesitas tener claros los datos que vas a usar.
 
-**Abre y lee** el documento `SelecciónDatasetsProyecto/README.Rmd` (o su versión compilada `.html`). Ese documento explica cómo explorar seis fuentes de datos públicas — INE, ISTAC, EUROSTAT, Banco Mundial, EDGAR GHG y AEMET — y cómo comprobar que los datasets elegidos cumplen los requisitos de AEDV.
+**Abre y lee** el documento `SelecciónDatasetsProyecto/README.Rmd` (o su versión compilada `.html`). Ese documento explica cómo explorar siete fuentes de datos públicas — INE, ISTAC, EUROSTAT, Banco Mundial, EDGAR GHG, CLIMA (AdapteCCa/AEMET) e INFORME PISA (resultados educativos con contexto de pobreza y desigualdad) — y cómo comprobar que los datasets elegidos cumplen los requisitos de AEDV.
 
 <div class="metodo">
 <strong class="bloque-titulo">Requisitos que deben cumplir tus datasets</strong>

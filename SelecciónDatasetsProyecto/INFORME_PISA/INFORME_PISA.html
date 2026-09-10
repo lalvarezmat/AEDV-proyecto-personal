@@ -12,7 +12,7 @@
 
 <meta name="date" content="2026-09-10" />
 
-<title>Selección de datasets para el proyecto de AEDV</title>
+<title>INFORME PISA: resultados históricos por país y por Comunidad Autónoma</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -1333,128 +1333,6 @@ if (window.hljs) {
 
 
 
-<style type="text/css">
-
-h1.title { font-size: 24px; }
-h1 { font-size: 20px; }
-h2 { font-size: 18px; }
-h3 { font-size: 16px; }
-body { font-size: 14px; }
-p { font-size: 14px; margin-bottom: 10px; }
-
-
-.metodo {
-background-color: #eef4fb;
-border-left: 5px solid #2971b0;
-border-radius: 4px;
-padding: 12px 16px;
-margin: 16px 0;
-font-size: 14px;
-}
-.metodo strong.bloque-titulo::before { content: "⚙️ "; }
-.metodo strong.bloque-titulo {
-display: block;
-color: #1a4f7a;
-margin-bottom: 6px;
-font-size: 15px;
-}
-
-.discusion {
-background-color: #fff8f0;
-border-left: 5px solid #d4720a;
-border-radius: 4px;
-padding: 12px 16px;
-margin: 16px 0;
-font-size: 14px;
-}
-.discusion strong.bloque-titulo::before { content: "💬 "; }
-.discusion strong.bloque-titulo {
-display: block;
-color: #8a4800;
-margin-bottom: 6px;
-font-size: 15px;
-}
-
-.resultado {
-background-color: #f0faf3;
-border-left: 5px solid #2a8c4a;
-border-radius: 4px;
-padding: 12px 16px;
-margin: 16px 0;
-font-size: 14px;
-}
-.resultado strong.bloque-titulo::before { content: "✅ "; }
-.resultado strong.bloque-titulo {
-display: block;
-color: #1a5c30;
-margin-bottom: 6px;
-font-size: 15px;
-}
-
-.tabla-scroll { overflow-x: auto; }
-.tabla-scroll table {
-width: auto; 
-min-width: 100%; 
-}
-.tabla-scroll table td,
-.tabla-scroll table th {
-white-space: nowrap; 
-}
-
-.tabla-scroll, .caja-scroll, .tabla-scroll-xy { margin-bottom: 28px; }
-
-.caja-scroll {
-max-height: 250px;
-overflow-y: auto;
-padding: 10px 14px;
-border: 1px solid #ddd;
-background-color: #fafafa;
-}
-
-.tabla-scroll-xy { overflow: auto; max-height: 450px; border: 1px solid #ddd; }
-.tabla-scroll-xy table { width: auto; min-width: 100%; margin-bottom: 0; }
-.tabla-scroll-xy table td, .tabla-scroll-xy table th { white-space: nowrap; }
-.tabla-scroll-xy thead th {
-position: sticky;
-top: 0;
-z-index: 1;
-background-color: #fff;
-box-shadow: inset 0 -1px 0 #ddd;
-}
-
-.tabla-scroll-xy.con-desc table td:last-child,
-.tabla-scroll.con-desc table td:last-child {
-white-space: normal;
-min-width: 420px;
-}
-
-.val-ok, .val-no {
-display: block;
-text-align: center;
-font-weight: bold;
-color: #fff;
-padding: 2px 6px;
-border-radius: 3px;
-}
-.val-ok { background-color: #28a745; }
-.val-no { background-color: #dc3545; }
-
-.nota {
-background-color: #f5f5f5;
-border-left: 5px solid #888888;
-border-radius: 4px;
-padding: 12px 16px;
-margin: 16px 0;
-font-size: 14px;
-}
-.nota strong.bloque-titulo::before { content: "📝 "; }
-.nota strong.bloque-titulo {
-display: block;
-color: #444444;
-margin-bottom: 6px;
-font-size: 15px;
-}
-</style>
 
 
 
@@ -1612,1744 +1490,1269 @@ border-radius: 0px;
 
 
 
-<h1 class="title toc-ignore">Selección de datasets para el proyecto de
-AEDV</h1>
+<h1 class="title toc-ignore">INFORME PISA: resultados históricos por
+país y por Comunidad Autónoma</h1>
 <h4 class="date">2026-09-10</h4>
 
 </div>
 
 
-<div id="cómo-usar-esta-carpeta-para-seleccionar-el-tema-de-tu-proyecto" class="section level1" number="1">
-<h1><span class="header-section-number">1</span> Cómo usar esta carpeta
-para seleccionar el tema de tu proyecto</h1>
-<p>Esta carpeta contiene herramientas para explorar y descargar datasets
-de siete fuentes de datos públicas: <strong>EDGAR</strong> (emisiones de
-gases de efecto invernadero a nivel mundial), <strong>INE</strong>
-(estadísticas españolas), <strong>ISTAC</strong> (estadísticas de
-Canarias), <strong>EUROSTAT</strong> (estadísticas europeas por
-regiones), <strong>Banco Mundial</strong> (indicadores globales),
-<strong>CLIMA</strong> (variables climáticas de AdapteCCa/AEMET para
-España y Canarias) e <strong>INFORME PISA</strong> (resultados
-educativos por país y por Comunidad Autónoma, con contexto de pobreza y
-desigualdad). El objetivo es que encuentres uno o varios datasets que te
-resulten interesantes y que sean adecuados para el proyecto de la
-asignatura.</p>
-<blockquote>
-<p>Cuando empieces a trabajar con un dataset, el primer paso es
-verificar en el Campus Virtual que ningún otro alumno ha elegido ya ese
-tema. En ese caso apunta al final de la lista el título y código
-identificativo del dataset. En caso de solape con otros alumnos
-consultar con el profesor. Si después de analizar el dataset no te
-convence recuerda eliminarlo del Campus Virtual; cuando apuntes otro, lo
-harás al final de la lista.</p>
-</blockquote>
-<div id="el-flujo-de-trabajo-en-dos-pasos" class="section level2" number="1.1">
-<h2><span class="header-section-number">1.1</span> El flujo de trabajo
-en dos pasos</h2>
-<p>Cada fuente de datos sigue el mismo esquema:</p>
-<pre><code>Paso 1 — Catálogo Excel con información básica de los datasets 
-         ↓
-Paso 2 — Exploración del dataset concreto</code></pre>
-<p>Los catálogos ya están generados y disponibles como archivos Excel en
-cada subcarpeta. <strong>No necesitas ejecutar los archivos
-<code>*_TableDatasetGeneration.Rmd</code></strong>: su única utilidad es
-<strong>descubrir datasets nuevos</strong> que la fuente haya publicado
-desde que se generó el catálogo.</p>
-<p>Que el catálogo tenga unos meses <strong>no significa que vayas a
-trabajar con datos antiguos</strong>: el
-<code>*_DatasetSelection.Rmd</code> descarga siempre la <strong>versión
-actualizada</strong> del dataset directamente de la fuente
-(<code>read.px()</code> en el INE, <code>get_eurostat()</code> en
-EUROSTAT, <code>wb_data()</code> en el Banco Mundial y
-<code>istacr</code> en el ISTAC). Del catálogo solo se toma la ficha de
-metadatos del dataset, nunca sus datos.</p>
-<p>Conviene saberlo porque regenerar un catálogo es un proceso
-<strong>largo</strong>: recorre la API dataset a dataset y descarga cada
-uno para deducir su frecuencia temporal y su número de periodos. Además,
-si la conexión a internet se interrumpe a mitad del recorrido hay que
-repetirlo entero.</p>
-<table>
-<thead>
-<tr class="header">
-<th>Fuente</th>
-<th>Datasets recorridos</th>
-<th>Duración aproximada</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>ISTAC</td>
-<td>400</td>
-<td>~15 minutos</td>
-</tr>
-<tr class="even">
-<td>EUROSTAT</td>
-<td>3.050</td>
-<td>~2 horas (estimada)</td>
-</tr>
-<tr class="odd">
-<td>INE</td>
-<td>5.521</td>
-<td>~3 h 20 min</td>
-</tr>
-<tr class="even">
-<td>Banco Mundial</td>
-<td>16.643</td>
-<td><strong>~13 horas</strong></td>
-</tr>
-</tbody>
-</table>
-<p>Los documentos de <strong>EDGAR</strong>, los dos
-<strong>CLIMA</strong> e <strong>INFORME PISA</strong> son un caso
-distinto: no recorren un catálogo de una API para que elijas, sino que
-construyen un dataset ya fijado (en CLIMA, descargando unos 10 GB de
-NetCDF de AdapteCCa; en PISA, reconstruyendo de Wikipedia y de Banco
-Mundial/INE) para generar los <code>.rds</code>. Tampoco hay que
-ejecutarlos, porque esos <code>.rds</code> se distribuyen ya hechos en
-sus carpetas.</p>
-<div class="nota">
-<p><strong class="bloque-titulo">Los catálogos son una fotografía, no
-una fuente permanente</strong></p>
-<p>Cada archivo Excel es una <strong>radiografía de los datasets
-existentes en el instante en que se generó</strong>, no un espejo
-permanente de lo que ofrece cada fuente (INE, ISTAC, EUROSTAT, Banco
-Mundial): los organismos añaden, retiran y renombran datasets con el
-tiempo. En raras ocasiones puede suceder que al actualizar el catálogo
-el <code>Id</code> de algún dataset cambie, o que un dataset que
-aparecía deje de estar disponible.</p>
-<p>Por eso es importante <strong>no depender del catálogo Excel para tu
-proyecto</strong>: una vez elijas tus datasets, lo que cuenta son las
-copias locales (<code>.rds</code> con los datos y
-<code>_metadatos.xlsx</code> con su ficha) que se guardan en tu carpeta
-al validarlos. Esto ya ocurre automáticamente: al compilar el
-<code>*_DatasetSelection.Rmd</code> correspondiente, lo
-<strong>primero</strong> que hace el documento es descargar los datos y
-guardarlos en disco; a partir de ahí, tanto el análisis del propio
-documento como tu proyecto trabajan siempre sobre esa copia, sin volver
-a depender de que el dataset siga disponible tal cual en la fuente
-original.</p>
-</div>
-<table>
-<colgroup>
-<col width="27%" />
-<col width="34%" />
-<col width="37%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th>Fuente</th>
-<th>Catálogo</th>
-<th>Cobertura</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>INE</td>
-<td><code>INE/INE.datasets.xlsx</code></td>
-<td>España: municipios, provincias, CCAA</td>
-</tr>
-<tr class="even">
-<td>ISTAC</td>
-<td><code>ISTAC/ISTAC_datasets.xlsx</code></td>
-<td>Canarias: municipios, islas, CCAA</td>
-</tr>
-<tr class="odd">
-<td>EUROSTAT</td>
-<td><code>EUROSTAT/Eurostat.datasets.xlsx</code></td>
-<td>Europa: países y regiones NUTS 0, 1, 2 y 3</td>
-</tr>
-<tr class="even">
-<td>Banco Mundial</td>
-<td><code>WORLD_BANK/wb.datasets.xlsx</code></td>
-<td>Mundial: ≥100 países, ≥10 años</td>
-</tr>
-<tr class="odd">
-<td>EDGAR</td>
-<td><em>(dataset único, solo sirve para un alumno)</em></td>
-<td>Mundial: emisiones GHG 1970–2024</td>
-</tr>
-<tr class="even">
-<td>CLIMA (AdapteCCa)</td>
-<td><em>(proyecto propio, sin catálogo Excel; 14 variables
-climáticas)</em></td>
-<td>España (provincias) y Canarias (municipios): clima mensual
-1951/1990–2022 + proyecciones CMIP6</td>
-</tr>
-<tr class="odd">
-<td>INFORME PISA</td>
-<td><em>(dataset único, solo sirve para un alumno)</em></td>
-<td>Mundial (105 países, PISA 2000–2025) y España (19 CCAA, 2009–2025):
-resultados educativos + pobreza/desigualdad/gasto</td>
-</tr>
-</tbody>
-</table>
-<p>Los datasets que usamos en AEDV siempre tienen una variable (columna)
-con un dato temporal que puede estar en años, cuatrimestres, meses o
-semanas, una variable con datos de áreas geográficas que pueden ser
-países, CCAA, provincias o municipios, una o varias variables
-categóricas que identifican qué se está midiendo y una variable numérica
-con el valor observado de lo que se mide.</p>
-<blockquote>
-<p>En el contexto de la asignatura AEDV, una variable (o campo) es
-cualquier columna de la tabla, una dimensión es cualquier variable no
-numérica y un indicador (o atributo) es una variable no numérica
-distinta de la variable temporal y de la variable geográfica. Por
-ejemplo: “Población” es un atributo asociado a un área geográfica en una
-fecha determinada.</p>
-</blockquote>
-<div class="metodo">
-<p><strong class="bloque-titulo">Requisitos selección datasets para
-AEDV</strong></p>
-<ul>
-<li><p><strong>Cobertura geográfica</strong>: el dataset debe cubrir
-ampliamente las áreas geográficas de su nivel:</p>
-<ul>
-<li><strong>Países</strong> (Banco Mundial): más de 100 países.</li>
-<li><strong>Canarias</strong> (ISTAC): más de 80 municipios, más de 6
-islas o más de 15 comunidades autónomas, según el nivel del dato.</li>
-<li><strong>España</strong> (INE): más de 500 municipios, más de 40
-provincias o más de 15 comunidades autónomas.</li>
-<li><strong>Europa</strong> (EUROSTAT): al menos 25 países (NUTS 0), 90
-grandes regiones (NUTS 1), 200 regiones (NUTS 2) o 500 provincias (NUTS
-3). Basta con cumplirlo en <strong>uno</strong> de los cuatro
-niveles.</li>
-</ul></li>
-<li><p><strong>Datos actualizados</strong>: debe tener datos recientes
-(último dato de 2024 o posterior). Salvo en los datasets del CLIMA que
-permitimos datos actualizados en años anteriores a 2024.</p></li>
-<li><p><strong>Tamaño de las series temporales</strong>: Para cada
-atributo (o combinación de atributos) que se mide, en el dataset
-aparece, para cada región geográfica, una serie temporal que mide su
-evolución a lo largo del tiempo. Nos interesan los atributos que para el
-75% de las regiones geográficas el tamaño de esas series alcanza un
-mínimo: al menos 10 años (datos anuales), 20 semestres (semestrales), 40
-trimestres (trimestrales), 60 meses (mensuales), 200 semanas (semanales)
-o 1096 días (diarios, es decir tres años). Eso lo medimos comprobando
-que el <strong>percentil 25 (P25)</strong> de la distribución de tamaños
-de esas series supera el umbral mínimo: si P25 ≥ umbral, el 75% de las
-regiones ya lo supera.</p></li>
-<li><p><strong>España y/o Canarias bien representadas</strong>: no basta
-con que el dataset sea grande en conjunto; el proyecto tiene que poder
-analizar <strong>nuestro entorno</strong>. Por eso se comprueba,
-<em>además</em>, que la serie temporal de España o de Canarias alcance
-por su cuenta el mismo umbral del criterio anterior. Qué se exige
-depende del tipo de dataset:</p>
-<ul>
-<li><strong>INE</strong>: alguna región <strong>canaria</strong> con
-serie suficiente. Según el nivel de desglose, Canarias aparece como la
-comunidad (<code>Canarias</code>), como sus dos provincias
-(<code>35 Palmas, Las</code> y <code>38 Santa Cruz de Tenerife</code>) o
-como municipios con código <code>35xxx</code>/<code>38xxx</code>.</li>
-<li><strong>EUROSTAT</strong>: <strong>España</strong> (<code>ES</code>)
-<strong>o</strong> alguna región de <strong>Canarias</strong>
-(<code>ES7</code>, <code>ES70</code>, o las islas
-<code>ES703</code>–<code>ES709</code>). Basta con que se cumpla en una
-de las dos.</li>
-<li><strong>Banco Mundial</strong>: <strong>España</strong>
-(<code>ESP</code>), ya que sus datos son por países y no bajan a nivel
-regional.</li>
-<li><strong>ISTAC</strong>: no se comprueba aparte, porque
-<strong>todos</strong> sus datos son ya de Canarias.</li>
-</ul></li>
-<li><p><strong>Mínimo de 4 atributos</strong>: Tenemos que seleccionar
-un nº de datasets suficientes para manejar al menos 4 atributos (o
-combinaciones de atributos) diferentes que cumplan el criterio anterior
-sobre el tamaño de las series temporales asociadas. Las variaciones que
-se derivan de un mismo atributo no cuentan como atributos diferentes, es
-decir si manejamos el dato de población, el dato de la variación anual
-de la población no cuenta como atributo diferente. Los datasets del INE
-y de EUROSTAT contienen, con frecuencia, más de 4 atributos y por tanto
-un solo dataset puede ser suficiente para hacer el proyecto. Los
-datasets del World Bank y del ISTAC solo contienen un atributo y por
-tanto hay que manejar varios datasets.</p></li>
-</ul>
-</div>
-</div>
-<div id="explorar-un-dataset-en-detalle" class="section level2" number="1.2">
-<h2><span class="header-section-number">1.2</span> Explorar un dataset
-en detalle</h2>
-<p>Abre el archivo <code>*_DatasetSelection.Rmd</code> de la fuente
-correspondiente y localiza la línea donde se especifican los datasets a
-analizar:</p>
-<p><strong>INE</strong> — cambia el valor de <code>Dataset.Id</code> por
-el identificador del dataset:</p>
-<pre class="r"><code>Dataset.Id &lt;- 76136   # ← pon aquí el Id de tu dataset</code></pre>
-<p><strong>EUROSTAT</strong> — cambia el valor de
-<code>dataset.name</code> por el código del dataset (columna
-<code>code</code> del catálogo):</p>
-<pre class="r"><code>dataset.name &lt;- &quot;demo_r_pjanaggr3&quot;   # ← pon aquí el code de tu dataset</code></pre>
-<p><strong>ISTAC y Banco Mundial</strong> — cambia el vector
-<code>IDS</code> con los identificadores de los datasets de tu catálogo.
-El formato del identificador depende de la fuente:</p>
-<pre class="r"><code># ISTAC — identificadores en mayúsculas (columna `id` del catálogo):
-IDS &lt;- c(&quot;MATRICULA_VEHICULOS&quot;, &quot;PARQUE_VEHICULOS&quot;)
-
-# Banco Mundial — códigos de la API (columna `Id` del catálogo):
-IDS &lt;- c(&quot;SP.POP.TOTL&quot;, &quot;SP.POP.TOTL.FE.IN&quot;)</code></pre>
-<p>A continuación haz <strong>Knit</strong> (<code>Ctrl+Shift+K</code>).
-Todos los <code>*_DatasetSelection.Rmd</code> siguen la misma
-estructura, en dos partes:</p>
-<p><strong>1. Descarga, limpieza y guardado.</strong> Descarga los
-datos, elimina las columnas que no aportan nada (las que tienen siempre
-el mismo valor) y <strong>guarda en disco dos ficheros</strong>, antes
-de analizar nada:</p>
-<table>
-<colgroup>
-<col width="45%" />
-<col width="55%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th>Fichero</th>
-<th>Contenido</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>&lt;nombre&gt;.rds</code></td>
-<td>Los datos ya limpios, en el formato nativo de R</td>
-</tr>
-<tr class="even">
-<td><code>&lt;nombre&gt;_metadatos.xlsx</code></td>
-<td>La ficha del dataset (su fila del catálogo), para tenerla a mano sin
-volver al Excel grande</td>
-</tr>
-</tbody>
-</table>
-<p>El <code>&lt;nombre&gt;</code> es el <strong>código del
-dataset</strong> en INE (<code>76136.rds</code>) y EUROSTAT
-(<code>demo_r_pjanaggr3.rds</code>), y un nombre fijo en las fuentes que
-combinan varios indicadores: <code>ISTAC_Selected</code> y
-<code>WB_Selected</code>.</p>
-<p><strong>2. Análisis del dataset.</strong> Vuelve a <strong>leer esos
-dos ficheros del disco</strong> y a partir de ahí hace todo el
-análisis:</p>
-<ul>
-<li>La ficha de metadatos y, en EUROSTAT, la descripción completa del
-tema al que pertenece el dataset.</li>
-<li>Las dimensiones del dataset, cada una con sus valores posibles y su
-nº de observaciones.</li>
-<li>Análisis del tamaño de las series temporales (nº de regiones/países,
-rango de fechas y percentiles).</li>
-<li>Listado de regiones o países con datos y nº de observaciones,
-comprobando la presencia de España/Canarias.</li>
-<li><strong>Una tabla de validación</strong> que marca en verde/rojo si
-cada atributo (o combinación de atributos) cumple los criterios AEDV:
-cobertura geográfica, datos actualizados, tamaño de las series
-temporales y representación de España/Canarias.</li>
-<li><strong>Un veredicto final</strong> que cuenta cuántos atributos
-válidos hay e indica si se alcanza el mínimo de 4.</li>
-</ul>
-<div class="metodo">
-<p><strong class="bloque-titulo">Cómo se aprovecha esto en la memoria
-del proyecto</strong></p>
-<p>Que el guardado vaya <strong>primero</strong> y el análisis
-<strong>después</strong> no es casualidad: está pensado para que puedas
-reutilizar el trabajo directamente.</p>
+<style>
+h1.title { font-size: 24px; }
+h1 { font-size: 20px; }
+h2 { font-size: 18px; }
+h3 { font-size: 16px; }
+body { font-size: 14px;}
+p { font-size: 14px; margin-bottom: 10px;
+}
+/* Todas las cajas con scroll llevan la misma separación por debajo, para que no
+queden pegadas al texto que viene después (evita tener que poner <br> a mano
+   detrás de cada una) */
+.tabla-scroll, .caja-scroll, .tabla-scroll-xy { margin-bottom: 28px; }
+/* Tablas anchas: envolver el chunk en <div class="tabla-scroll"> ... </div> para verlas completas con scroll horizontal */
+.tabla-scroll { overflow-x: auto; }
+.tabla-scroll table { width: auto; min-width: 100%; }
+.tabla-scroll table td, .tabla-scroll table th { white-space: nowrap; }
+/* Textos y listados largos: envolver en <div class="caja-scroll"> ... </div>
+   para acotar su altura y recorrerlos con scroll vertical, en vez de ocupar
+   páginas enteras del documento */
+.caja-scroll { max-height: 250px; overflow-y: auto; padding: 10px 14px;
+               border: 1px solid #ddd; background-color: #fafafa; }
+/* Tablas que pueden ser anchas Y largas: scroll en los dos ejes, con la fila de
+   cabecera fija arriba mientras se recorre. Alternativa ligera a DT::datatable:
+   HTML puro, sin JavaScript ni dependencias */
+.tabla-scroll-xy { overflow: auto; max-height: 450px; border: 1px solid #ddd; }
+.tabla-scroll-xy table { width: auto; min-width: 100%; margin-bottom: 0; }
+.tabla-scroll-xy table td, .tabla-scroll-xy table th { white-space: nowrap; }
+.tabla-scroll-xy thead th { position: sticky; top: 0; z-index: 1;
+                            background-color: #fff; box-shadow: inset 0 -1px 0 #ddd; }
+/* Solo en las tablas marcadas ADEMÁS con .con-desc: la última columna es texto
+   largo y se deja repartir en varias líneas, en vez de forzar una sola */
+.tabla-scroll-xy.con-desc table td:last-child,
+.tabla-scroll.con-desc table td:last-child { white-space: normal; min-width: 420px; }
+/* Celdas de aviso/caveat resaltadas en las tablas */
+.aviso-si { color: #dc3545; font-weight: bold; }
+</style>
+<p>Resultados del <strong>Informe PISA</strong> (OCDE), a dos niveles:
+por <strong>país</strong> (2000-2025, 9 ciclos) y por <strong>Comunidad
+Autónoma española</strong> (2009-2025, 6 ciclos). PISA 2025 se publicó
+el <strong>8 de septiembre de 2026</strong>, así que la serie llega
+hasta el ciclo más reciente disponible. Se añaden además dos tablas de
+<strong>contexto socioeconómico</strong> (pobreza y peso económico de la
+educación) para poder cruzarlas con los resultados: una por país (Banco
+Mundial) y otra por Comunidad Autónoma (INE).</p>
+<p><strong>Origen de los datos.</strong> La descarga directa del portal
+de la OCDE
+(<code>oecd.org/en/data/datasets/pisa-2025-database.html</code> y los
+anexos del informe) devuelve <strong>error 403</strong> (bloqueo de
+robots), tanto con <code>curl</code> como con peticiones HTTP normales.
+Los datos se reconstruyen en su lugar a partir de las tablas de
+Wikipedia (inglesa y española) que citan como fuente los informes
+oficiales de la OCDE y del Ministerio de Educación. Se ha comprobado que
+<strong>España coincide exactamente</strong> entre las dos tablas (país
+y CCAA), parseadas de forma independiente, lo que da confianza en la
+transcripción. Detalle completo de esta limitación en la hoja
+<code>dataset</code> de los metadatos y en la sección de fiabilidad más
+abajo.</p>
+<p>El documento tiene la misma estructura que el resto de documentos de
+selección de datasets de la asignatura, en <strong>dos partes
+independientes</strong>:</p>
 <ol style="list-style-type: decimal">
-<li>Compila el <code>*_DatasetSelection.Rmd</code> con tus datasets y
-comprueba que cumplen los requisitos.</li>
-<li><strong>Copia el <code>.rds</code> y el <code>_metadatos.xlsx</code>
-a la carpeta de tu proyecto</strong>, junto a tu memoria.</li>
-<li>A partir de ahí puedes hacer <strong>copy/paste del código de la
-sección “Análisis del dataset”</strong> directamente en tu memoria: esa
-parte está escrita para no depender de nada de la sección anterior —
-arranca leyendo los dos ficheros del disco, así que funciona tal cual en
-tu documento sin volver a descargar nada de internet.</li>
+<li><strong>Descarga, limpieza y guardado de los datos</strong> —
+construye las cuatro tablas (dos de PISA desde Wikipedia, dos de
+contexto desde Banco Mundial e INE) y las deja en disco junto con un
+único fichero de metadatos.</li>
+<li><strong>Análisis del dataset</strong> — parte de esos ficheros del
+disco y no usa nada de la sección anterior, de modo que <strong>se puede
+copiar tal cual en la memoria del proyecto</strong>.</li>
 </ol>
-<p>Es decir: la primera parte (descarga) <strong>no</strong> va en la
-memoria; la segunda (análisis) sí puede ir, entera o por trozos, y como
-punto de partida para tu propio análisis.</p>
-<p>Ten en cuenta que ese código usa las clases CSS del curso
-(<code>tabla-scroll</code>, <code>caja-scroll</code>,
-<code>tabla-scroll-xy</code> y las celdas verde/rojo de la tabla de
-validación). Ya están todas en el fichero <code>estilos.css</code> que
-acompaña al modelo de memoria, así que <strong>si tu memoria lo
-referencia</strong> (<code>css: estilos.css</code> en la cabecera) las
-tablas se verán igual que aquí.</p>
-</div>
-<blockquote>
-<p><strong>Cómo buscar datasets por tema.</strong> Lo habitual es
-localizar datasets concretos de un tema que te interese ayudándote de
-una IA (ChatGPT, Claude, etc.) sobre los catálogos Excel: súbele el
-<code>.xlsx</code> de la fuente (<code>ISTAC_datasets.xlsx</code>,
-<code>wb.datasets.xlsx</code>, <code>Eurostat.datasets.xlsx</code> o
-<code>INE.datasets.xlsx</code>) y pídele que te liste los
-identificadores relacionados con tu tema. Para afinar, fíjate además en
-las columnas que anticipan si cumplirán los requisitos: en
-<strong>ISTAC</strong>, <code>area</code> (nivel geográfico:
-<code>MUNI</code>, <code>ISLA</code>, <code>CCAA</code>…) y
-<code>freq</code> (frecuencia); en <strong>Banco Mundial</strong>,
-<code>Ncountries</code> y <code>dateEnd</code>; en <strong>INE</strong>,
-<code>Codigo</code> (desglose geográfico) y <code>Periodicidad</code>;
-en <strong>EUROSTAT</strong>, <code>topic</code> (familia temática),
-<code>NUTS0</code>–<code>NUTS3</code> (cobertura por nivel),
-<code>N.atrib.combinados</code> y las columnas
-<code>ESPAÑA</code>/<code>CANARIAS</code>. Copia los identificadores
-resultantes en <code>IDS</code> (o en <code>Dataset.Id</code> para el
-INE y <code>dataset.name</code> para EUROSTAT).</p>
-</blockquote>
-</div>
-</div>
-<div id="descripción-de-los-catálogos-de-datasets" class="section level1" number="2">
-<h1><span class="header-section-number">2</span> Descripción de los
-catálogos de datasets</h1>
-<div id="ine-ineine.datasets.xlsx-1.678-datasets" class="section level2" number="2.1">
-<h2><span class="header-section-number">2.1</span> INE —
-<code>INE/INE.datasets.xlsx</code> (1.678 datasets)</h2>
-<p>Este archivo contiene los datasets del Instituto Nacional de
-Estadística accesibles a través de la librería <code>ineapir</code>,
-filtrados para incluir únicamente los que tienen datos a nivel de
-municipio, provincia o comunidad autónoma y han sido actualizados en
-2024 o después.</p>
-<div id="descripción-de-columnas-de-ine.datasets.xlsx" class="section level3" number="2.1.1">
-<h3><span class="header-section-number">2.1.1</span> Descripción de
-columnas de INE.datasets.xlsx</h3>
-<table>
-<colgroup>
-<col width="40%" />
-<col width="59%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th>Columna</th>
-<th>Descripción</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>Id</code></td>
-<td>Identificador numérico del dataset. Es el valor que hay que poner en
-<code>Dataset.Id</code> en <code>INE_DatasetSelection.Rmd</code> para
-descargar el dataset.</td>
-</tr>
-<tr class="even">
-<td><code>Codigo</code></td>
-<td>Código interno del INE. Contiene información sobre el desglose
-geográfico: <code>CCAA</code> (comunidades autónomas), <code>PROV</code>
-(provincias), <code>MUN</code> (municipios).</td>
-</tr>
-<tr class="odd">
-<td><code>OPER</code></td>
-<td>Código de la operación estadística (nivel superior de clasificación
-del INE).</td>
-</tr>
-<tr class="even">
-<td><code>OPER.Nombre</code></td>
-<td>Nombre de la operación estadística a la que pertenece el dataset.
-Permite agrupar datasets del mismo ámbito temático.</td>
-</tr>
-<tr class="odd">
-<td><code>Nombre</code></td>
-<td>Nombre descriptivo del dataset.</td>
-</tr>
-<tr class="even">
-<td><code>Publicacion</code></td>
-<td>Nombre de la publicación oficial del INE asociada.</td>
-</tr>
-<tr class="odd">
-<td><code>Periodicidad</code></td>
-<td>Frecuencia de actualización: Anual, Trimestral, Mensual, Cuatrienal
-o Semanal.</td>
-</tr>
-<tr class="even">
-<td><code>Start</code></td>
-<td>Año de inicio de la serie temporal.</td>
-</tr>
-<tr class="odd">
-<td><code>LastUpdate</code></td>
-<td>Fecha de última actualización. Al estar filtrado, todos los datasets
-tienen datos recientes.</td>
-</tr>
-<tr class="even">
-<td><code>N.obs</code></td>
-<td>Número de filas del dataset. Da una idea del tamaño y riqueza del
-dataset.</td>
-</tr>
-<tr class="odd">
-<td><code>Freq</code></td>
-<td>Frecuencia temporal detectada a partir del formato de las fechas:
-<code>Y</code> (anual), <code>S</code> (semestral), <code>Q</code>
-(trimestral), <code>M</code> (mensual), <code>W</code> (semanal).
-<code>?</code> si el formato no se ha podido reconocer.</td>
-</tr>
-<tr class="even">
-<td><code>N.periodos</code></td>
-<td>Número de fechas distintas de la serie.</td>
-</tr>
-<tr class="odd">
-<td><code>DIM</code></td>
-<td>Dimensiones (variables o columnas) del dataset con el número de
-valores distintos de cada una. Por ejemplo:
-<code>Periodo 231 - Sexo 3 - CCAA 19</code> indica 231 periodos, 3 sexos
-y 19 comunidades.</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div id="organización-por-temas" class="section level3" number="2.1.2">
-<h3><span class="header-section-number">2.1.2</span> Organización por
-temas</h3>
-<p>El INE no trae una columna de tema, pero sí la operación estadística
-de la que procede cada dataset (<code>OPER.Nombre</code>, 65 valores
-distintos). Agrupándolas, el catálogo se reparte así (los recuentos
-suman los 1.678 datasets):</p>
-<table>
-<colgroup>
-<col width="15%" />
-<col width="32%" />
-<col width="52%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th>Tema</th>
-<th align="center">Nº datasets</th>
-<th>Operaciones estadísticas que lo componen
-(<code>OPER.Nombre</code>)</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><strong>Mercado laboral</strong></td>
-<td align="center">264</td>
-<td>Encuesta de Población Activa (EPA); Flujos de la Población
-Activa</td>
-</tr>
-<tr class="even">
-<td><strong>Demografía y población</strong></td>
-<td align="center">251</td>
-<td>Indicadores Demográficos Básicos; Estadística Continua de
-Población</td>
-</tr>
-<tr class="odd">
-<td><strong>Turismo</strong></td>
-<td align="center">203</td>
-<td>Ocupación hotelera, en apartamentos turísticos, campings, turismo
-rural y albergues; turismo de residentes; viviendas turísticas;
-movimientos en fronteras (15 operaciones)</td>
-</tr>
-<tr class="even">
-<td><strong>Salarios y costes laborales</strong></td>
-<td align="center">142</td>
-<td>Encuesta de Estructura Salarial (cuatrienal y anual); Encuesta de
-Coste Laboral (trimestral y anual); Índice de Precios del Trabajo</td>
-</tr>
-<tr class="odd">
-<td><strong>Nacimientos y defunciones</strong></td>
-<td align="center">125</td>
-<td>MNP Nacimientos y Defunciones; defunciones semanales (EDeS);
-defunciones por causa de muerte; tablas de mortalidad</td>
-</tr>
-<tr class="even">
-<td><strong>Matrimonios y familia</strong></td>
-<td align="center">102</td>
-<td>MNP Estadística de Matrimonios</td>
-</tr>
-<tr class="odd">
-<td><strong>Migración</strong></td>
-<td align="center">87</td>
-<td>Migraciones y Cambios de Residencia; Adquisiciones de Nacionalidad
-Española</td>
-</tr>
-<tr class="even">
-<td><strong>Vivienda e hipotecas</strong></td>
-<td align="center">80</td>
-<td>Hipotecas; ejecuciones hipotecarias; precios de vivienda y de
-alquiler; transmisión de derechos de la propiedad</td>
-</tr>
-<tr class="odd">
-<td><strong>Empresas, industria y comercio</strong></td>
-<td align="center">77</td>
-<td>Sociedades Mercantiles; DIRCE; estadística estructural de empresas;
-producción industrial; comercio al por menor (11 operaciones)</td>
-</tr>
-<tr class="even">
-<td><strong>Condiciones de vida y renta</strong></td>
-<td align="center">68</td>
-<td>Encuesta de Condiciones de Vida (ECV); Presupuestos Familiares
-(EPF); Atlas de distribución de renta de los hogares</td>
-</tr>
-<tr class="odd">
-<td><strong>Divorcios y separaciones</strong></td>
-<td align="center">57</td>
-<td>Nulidades, Separaciones y Divorcios</td>
-</tr>
-<tr class="even">
-<td><strong>Padrón municipal</strong></td>
-<td align="center">53</td>
-<td>Cifras Oficiales de Población de los Municipios Españoles</td>
-</tr>
-<tr class="odd">
-<td><strong>Delincuencia y justicia</strong></td>
-<td align="center">51</td>
-<td>Población Condenada Adulta; Población Condenada Menor de Edad</td>
-</tr>
-<tr class="even">
-<td><strong>Precios (IPC e industriales)</strong></td>
-<td align="center">43</td>
-<td>Índice de Precios de Consumo (IPC); Índices de Precios Industriales;
-precios de materiales y energía</td>
-</tr>
-<tr class="odd">
-<td><strong>Violencia de género</strong></td>
-<td align="center">28</td>
-<td>Estadística de Violencia Doméstica y Violencia de Género</td>
-</tr>
-<tr class="even">
-<td><strong>Gasto turístico</strong></td>
-<td align="center">22</td>
-<td>Gasto de los visitantes extranjeros por destino; Encuesta de Gasto
-Turístico</td>
-</tr>
-<tr class="odd">
-<td><strong>Indicadores urbanos</strong></td>
-<td align="center">21</td>
-<td>Indicadores Urbanos (Urban Audit)</td>
-</tr>
-<tr class="even">
-<td><strong>Transporte</strong></td>
-<td align="center">4</td>
-<td>Estadística de Transporte de Personas</td>
-</tr>
-</tbody>
-</table>
-<blockquote>
-<p><strong>Cuidado al filtrar por <code>OPER.Nombre</code>.</strong> La
-Encuesta Cuatrienal de Estructura Salarial aparece con <strong>dos
-nombres casi idénticos</strong>
-—<code>Encuesta Cuatrienal de Estructura Salarial</code> y
-<code>Encuesta Cuatrienal de Estructural Salarial</code>—, con 54
-datasets cada uno. Es una errata del propio INE, no del catálogo: si
-filtras por el nombre exacto te dejas fuera la mitad de la
-operación.</p>
-</blockquote>
-<hr />
-</div>
-</div>
-<div id="istac-istacistac_datasets.xlsx-400-datasets" class="section level2" number="2.2">
-<h2><span class="header-section-number">2.2</span> ISTAC —
-<code>ISTAC/ISTAC_datasets.xlsx</code> (400 datasets)</h2>
-<p>Contiene todos los datasets estadísticos de Canarias accesibles a
-través de la librería <code>istacr</code>. Es el catálogo completo sin
-filtrar, por lo que incluye datasets de todo tipo de frecuencias y
-coberturas geográficas.</p>
-<div id="descripción-de-columnas" class="section level3" number="2.2.1">
-<h3><span class="header-section-number">2.2.1</span> Descripción de
-columnas</h3>
-<table>
-<colgroup>
-<col width="40%" />
-<col width="59%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th>Columna</th>
-<th>Descripción</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>Nº</code></td>
-<td>Número de fila de referencia en el catálogo.</td>
-</tr>
-<tr class="even">
-<td><code>id</code></td>
-<td>Identificador del indicador en el sistema ISTAC. Nombre corto en
-mayúsculas (ej. <code>POBLACION</code>,
-<code>ACCIDENTES_TRABAJO_BAJA</code>). <strong>Es el valor que hay que
-incluir en el vector <code>IDS</code></strong> en
-<code>ISTAC_DatasetSelection.Rmd</code>.</td>
-</tr>
-<tr class="odd">
-<td><code>subject</code></td>
-<td>Tema al que pertenece el dataset. Permite filtrar por área de
-interés.</td>
-</tr>
-<tr class="even">
-<td><code>n.reg</code></td>
-<td>Número de regiones distintas con datos. El valor nos da una pista de
-la cobertura geográfica, por ejemplo, un valor alrededor de 97, sugiere
-que son municipios de las islas, un valor alrededor de 20, que son CCAA,
-un valor alrededor de 7 que los datos son por islas, un valor alrededor
-de 40 pueden ser provincias españolas.</td>
-</tr>
-<tr class="odd">
-<td><code>n.obs</code></td>
-<td>Número total de observaciones (filas) del dataset.</td>
-</tr>
-<tr class="even">
-<td><code>area</code></td>
-<td>Tipo de área geográfica detectada automáticamente: <code>MUNI</code>
-(municipios), <code>ISLA</code> (islas), <code>CCAA</code> (comunidades
-autónomas), <code>PROV</code> (provincias), <code>CANA</code> (Canarias
-como conjunto) u <code>OTRO</code>.</td>
-</tr>
-<tr class="odd">
-<td><code>freq</code></td>
-<td>Frecuencia temporal: <code>Y</code> (anual), <code>S</code>
-(semestral), <code>Q</code> (trimestral), <code>M</code> (mensual),
-<code>W</code> (semanal), <code>D</code> (diaria).</td>
-</tr>
-<tr class="even">
-<td><code>initDate</code></td>
-<td>Año o fecha de inicio de la serie temporal.</td>
-</tr>
-<tr class="odd">
-<td><code>lastDate</code></td>
-<td>Año o fecha del último dato disponible.</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div id="organización-por-temas-1" class="section level3" number="2.2.2">
-<h3><span class="header-section-number">2.2.2</span> Organización por
-temas</h3>
-<p>La columna <code>subject</code> trae el tema tal y como lo nombra el
-ISTAC. Son <strong>61 temas distintos</strong>, así que aquí van los 22
-con 5 datasets o más; el resto está repartido en temas de 1 a 4
-datasets. <strong>Los nombres de esta tabla son literalmente los valores
-de la columna</strong>, para que puedas filtrar por ellos en Excel.</p>
-<table>
-<colgroup>
-<col width="21%" />
-<col width="46%" />
-<col width="32%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th>Tema (valor de <code>subject</code>)</th>
-<th align="center">Nº datasets</th>
-<th>Ejemplos de <code>id</code></th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><strong>Empleo</strong></td>
-<td align="center">57</td>
-<td><code>ACCIDENTES_TRABAJO_BAJA</code>, <code>PARO_REGISTRADO</code>,
-contratos por isla y municipio</td>
-</tr>
-<tr class="even">
-<td><strong>Hostelería y turismo</strong></td>
-<td align="center">22</td>
-<td><code>ALOJATUR_ABIERTOS</code>,
-<code>ALOJATUR_ESTANCIAS_MEDIAS</code> — pernoctaciones y viajeros por
-isla (mensual)</td>
-</tr>
-<tr class="odd">
-<td><strong>Población y hogares</strong></td>
-<td align="center">22</td>
-<td><code>POBLACION</code>, <code>POBLACION_00A14</code> — por
-municipio, isla, sexo y grupo de edad</td>
-</tr>
-<tr class="even">
-<td><strong>Presupuestos y tributos</strong></td>
-<td align="center">20</td>
-<td><code>PRESUPUESTO_AYUNTAMIENTOS_LIQUIDADO_GASTO_HABITANTE</code> y
-variantes por municipio</td>
-</tr>
-<tr class="odd">
-<td><strong>Movimiento natural</strong></td>
-<td align="center">18</td>
-<td><code>DEFUNCIONES</code>, <code>DEFUNCIONES_EDAD_MEDIA</code>,
-nacimientos y matrimonios por municipio</td>
-</tr>
-<tr class="even">
-<td><strong>Transporte, movilidad y comunicaciones</strong></td>
-<td align="center">16</td>
-<td><code>MATRICULA_VEHICULOS</code>, <code>PARQUE_VEHICULOS</code>,
-tráfico aéreo interinsular</td>
-</tr>
-<tr class="odd">
-<td><strong>Empresas y centros de trabajo</strong></td>
-<td align="center">14</td>
-<td><code>DIRCE_EMPRESAS</code>,
-<code>EMPRESAS_SEGURIDAD_SOCIAL</code></td>
-</tr>
-<tr class="even">
-<td><strong>Sistema de salud y atención sanitaria</strong></td>
-<td align="center">13</td>
-<td><code>GASTO_FARMACEUTICO</code>,
-<code>GASTO_FARMACEUTICO_MEDIO_ENVASE</code> (mensual)</td>
-</tr>
-<tr class="odd">
-<td><strong>Igualdad y diversidad de género</strong></td>
-<td align="center">11</td>
-<td><code>REPRESENTACION_FEMENINA_ALCALDIAS_PC</code> y otros
-indicadores por isla</td>
-</tr>
-<tr class="even">
-<td><strong>Calidad de vida y usos del tiempo</strong></td>
-<td align="center">10</td>
-<td><code>JUEGOS_AZAR_APUESTAS_PRESENCIALES</code>,
-<code>JUEGOS_AZAR_BINGO</code></td>
-</tr>
-<tr class="odd">
-<td><strong>Industria</strong></td>
-<td align="center">10</td>
-<td><code>EIAP_PRODUCCION_PROPIA</code>,
-<code>EMPRESAS_INDUSTRIA_PERSONAL_OCUPADO</code></td>
-</tr>
-<tr class="even">
-<td><strong>Justicia y seguridad ciudadana</strong></td>
-<td align="center">9</td>
-<td><code>POBLACION_RECLUSA</code>,
-<code>POBLACION_RECLUSA_HOMBRES</code></td>
-</tr>
-<tr class="odd">
-<td><strong>Condiciones de vida</strong></td>
-<td align="center">8</td>
-<td><code>DESIGUALDAD_INDICE_GINI</code>,
-<code>DESIGUALDAD_P80_P20</code></td>
-</tr>
-<tr class="even">
-<td><strong>Educación y aprendizaje permanente</strong></td>
-<td align="center">8</td>
-<td><code>ALUMNADO_NO_UNIVERSITARIO_CONCERTADOS_REGIMEN_GENERAL</code></td>
-</tr>
-<tr class="odd">
-<td><strong>Turismo, comercio, transporte y otros
-servicios</strong></td>
-<td align="center">8</td>
-<td><code>EMPRESAS_SERVICIOS_PERSONAL_OCUPADO</code></td>
-</tr>
-<tr class="even">
-<td><strong>Agricultura</strong></td>
-<td align="center">7</td>
-<td><code>SUPERFICIE_CULTIVO</code>,
-<code>SUPERFICIE_CULTIVO_HERBACEOS</code></td>
-</tr>
-<tr class="odd">
-<td><strong>Comercio</strong></td>
-<td align="center">7</td>
-<td><code>EMPRESAS_COMERCIO_PERSONAL_OCUPADO</code></td>
-</tr>
-<tr class="even">
-<td><strong>Pensiones, prestaciones y ayudas de protección
-social</strong></td>
-<td align="center">7</td>
-<td><code>PENSIONES_CONTRIBUTIVAS</code>,
-<code>DESEMPLEO_PRESTACIONES</code></td>
-</tr>
-<tr class="odd">
-<td><strong>Comercio exterior e internacionalización de la
-economía</strong></td>
-<td align="center">6</td>
-<td><code>COMERCIO_EXTERIOR_DEFICIT_COMERCIAL</code></td>
-</tr>
-<tr class="even">
-<td><strong>Construcción</strong></td>
-<td align="center">6</td>
-<td><code>CEMENTO_VENTAS</code>, <code>LICITACION_OFICIAL</code></td>
-</tr>
-<tr class="odd">
-<td><strong>Agricultura y ganadería</strong></td>
-<td align="center">5</td>
-<td><code>PRECIOS_AGRICOLAS_MEDIO_PONDERADO_AGUACATE</code></td>
-</tr>
-<tr class="even">
-<td><strong>Empleos y relación con la actividad económica</strong></td>
-<td align="center">5</td>
-<td><code>AFILIACIONES_MEDIAS</code>,
-<code>AFILIACIONES_MEDIAS_HOMBRES</code></td>
-</tr>
-<tr class="odd">
-<td><em>Otros 39 temas con menos de 5 datasets</em></td>
-<td align="center">111</td>
-<td><code>PIB_PM</code>, <code>IPC</code>,
-<code>ENERGIA_ELECTRICA_DISPONIBLE</code>, <code>GANADO_BOVINO</code>,
-<code>HIPOTECAS_CONSTITUIDAS</code>, <code>IPV</code>…</td>
-</tr>
-</tbody>
-</table>
-<blockquote>
-<p><strong>El mismo asunto aparece bajo varios
-<code>subject</code>.</strong> El ISTAC no tiene una clasificación
-única: la salud está repartida entre
-<code>Sistema de salud y atención sanitaria</code> (13),
-<code>Estado de salud y morbilidad</code> (3), <code>Salud</code> (3) y
-<code>Salud y protección ambiental</code> (3); la agricultura, entre
-<code>Agricultura</code> (7), <code>Agricultura y ganadería</code> (5),
-<code>Ganadería</code> (4) y <code>Agricultura, ganadería y pesca</code>
-(3). Busca por palabra clave en la columna <code>id</code>, no solo por
-<code>subject</code>.</p>
-</blockquote>
-<hr />
-</div>
-</div>
-<div id="banco-mundial-world_bankwb.datasets.xlsx-2.468-datasets" class="section level2" number="2.3">
-<h2><span class="header-section-number">2.3</span> Banco Mundial —
-<code>WORLD_BANK/wb.datasets.xlsx</code> (2.468 datasets)</h2>
-<p>Contiene indicadores del Banco Mundial filtrados para incluir solo
-los que tienen datos de al menos 100 países, al menos 10 años de datos,
-y cuya última observación es de 2022 o posterior. <strong>Nota:</strong>
-algunos indicadores tienen el último dato en 2022 o 2023; para cumplir
-el requisito de AEDV de datos posteriores a 2024, verifica la columna
-<code>dateEnd</code> antes de elegir. Las series arrancan desde 1960 en
-muchos casos.</p>
-<div id="descripción-de-columnas-1" class="section level3" number="2.3.1">
-<h3><span class="header-section-number">2.3.1</span> Descripción de
-columnas</h3>
-<table>
-<colgroup>
-<col width="40%" />
-<col width="59%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th>Columna</th>
-<th>Descripción</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>Nº</code></td>
-<td>Número de fila de referencia en el catálogo.</td>
-</tr>
-<tr class="even">
-<td><code>Topic</code></td>
-<td>Tema del indicador (en inglés). Permite agrupar por área de
-interés.</td>
-</tr>
-<tr class="odd">
-<td><code>Id</code></td>
-<td>Código del indicador en la API del Banco Mundial (ej.
-<code>SP.POP.TOTL</code>). <strong>Es el valor que hay que incluir en el
-vector <code>IDS</code></strong> en
-<code>WORLD_BANK_DatasetSelection.Rmd</code>.</td>
-</tr>
-<tr class="even">
-<td><code>Indicator</code></td>
-<td>Nombre del indicador en inglés.</td>
-</tr>
-<tr class="odd">
-<td><code>Ncountries</code></td>
-<td>Número de países con datos (entre 100 y 265).</td>
-</tr>
-<tr class="even">
-<td><code>N.obs</code></td>
-<td>Número total de observaciones (filas).</td>
-</tr>
-<tr class="odd">
-<td><code>dateStart</code></td>
-<td>Año del primer dato disponible.</td>
-</tr>
-<tr class="even">
-<td><code>dateEnd</code></td>
-<td>Año del último dato disponible.</td>
-</tr>
-<tr class="odd">
-<td><code>Ndates</code></td>
-<td>Número de años distintos con datos (entre 11 y 143).</td>
-</tr>
-<tr class="even">
-<td><code>Indicator_desc</code></td>
-<td>Descripción detallada de cómo se mide el indicador y qué incluye.
-Muy útil para entender qué se está analizando exactamente antes de
-elegirlo.</td>
-</tr>
-<tr class="odd">
-<td><code>last_updated</code></td>
-<td>Fecha de la última actualización del indicador en el Banco
-Mundial.</td>
-</tr>
-<tr class="even">
-<td><code>ANOTHER.DIMENSIONS</code></td>
-<td>Otras dimensiones disponibles en el dataset además de país y
-año.</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div id="organización-por-temas-2" class="section level3" number="2.3.2">
-<h3><span class="header-section-number">2.3.2</span> Organización por
-temas</h3>
-<table>
-<colgroup>
-<col width="13%" />
-<col width="30%" />
-<col width="55%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th>Tema (valor de <code>Topic</code>)</th>
-<th align="center">Nº datasets</th>
-<th>Ejemplos de indicadores</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><em>(sin <code>Topic</code>)</em></td>
-<td align="center"><strong>928</strong></td>
-<td>Ver el aviso de debajo: proyecciones, protección social, deuda y
-población</td>
-</tr>
-<tr class="even">
-<td><strong>Social Protection &amp; Labor</strong></td>
-<td align="center">598</td>
-<td>Tasa de desempleo, cobertura de pensiones, subsidios de desempleo
-por país</td>
-</tr>
-<tr class="odd">
-<td><strong>Economy &amp; Growth</strong></td>
-<td align="center">204</td>
-<td>PIB per cápita, comercio exterior (% PIB), inflación, formación
-bruta de capital</td>
-</tr>
-<tr class="even">
-<td><strong>Health</strong></td>
-<td align="center">178</td>
-<td>Esperanza de vida, mortalidad infantil, gasto sanitario, prevalencia
-de enfermedades</td>
-</tr>
-<tr class="odd">
-<td><strong>Education</strong></td>
-<td align="center">125</td>
-<td>Tasa de alfabetización, ratio alumnos/profesor, gasto en educación
-(% PIB)</td>
-</tr>
-<tr class="even">
-<td><strong>Private Sector</strong></td>
-<td align="center">81</td>
-<td>Facilidad para hacer negocios, densidad de nuevas empresas por
-país</td>
-</tr>
-<tr class="odd">
-<td><strong>Public Sector</strong></td>
-<td align="center">71</td>
-<td>Gasto público, deuda, ingresos fiscales por país</td>
-</tr>
-<tr class="even">
-<td><strong>Aid Effectiveness</strong></td>
-<td align="center">54</td>
-<td>Flujos de ayuda bilateral por país donante y receptor</td>
-</tr>
-<tr class="odd">
-<td><strong>Financial Sector</strong></td>
-<td align="center">37</td>
-<td>Capitalización bursátil, crédito privado, acceso a servicios
-financieros</td>
-</tr>
-<tr class="even">
-<td><strong>External Debt</strong></td>
-<td align="center">34</td>
-<td>Deuda externa total, uso del crédito del FMI</td>
-</tr>
-<tr class="odd">
-<td><strong>Agriculture &amp; Rural Development</strong></td>
-<td align="center">32</td>
-<td>Consumo de fertilizantes, tierra agrícola, valor añadido agrícola (%
-PIB)</td>
-</tr>
-<tr class="even">
-<td><strong>Gender</strong></td>
-<td align="center">29</td>
-<td>Tasa de alfabetización femenina, participación laboral por sexo,
-paridad educativa</td>
-</tr>
-<tr class="odd">
-<td><strong>Energy &amp; Mining</strong></td>
-<td align="center">28</td>
-<td>Intensidad energética, acceso a electricidad, energías renovables (%
-consumo)</td>
-</tr>
-<tr class="even">
-<td><strong>Infrastructure</strong></td>
-<td align="center">23</td>
-<td>Acceso a agua potable, uso de internet, infraestructura de
-transporte</td>
-</tr>
-<tr class="odd">
-<td><strong>Poverty</strong></td>
-<td align="center">21</td>
-<td>Población en chabolas, índice de pobreza multidimensional</td>
-</tr>
-<tr class="even">
-<td><strong>Climate Change</strong></td>
-<td align="center">12</td>
-<td>Emisiones CO₂ per cápita, población en zonas costeras en riesgo</td>
-</tr>
-<tr class="odd">
-<td><strong>Environment</strong></td>
-<td align="center">5</td>
-<td>Recursos hídricos renovables, superficie forestal</td>
-</tr>
-<tr class="even">
-<td><strong>Urban Development</strong></td>
-<td align="center">5</td>
-<td>Población urbana, crecimiento de las ciudades</td>
-</tr>
-<tr class="odd">
-<td><strong>Science &amp; Technology</strong></td>
-<td align="center">3</td>
-<td>Gasto en I+D (% PIB), investigadores por millón de habitantes</td>
-</tr>
-</tbody>
-</table>
-<div class="discusion">
-<p><strong class="bloque-titulo">Los 928 indicadores sin
-<code>Topic</code>: no aparecen al filtrar por tema</strong></p>
-<p><strong>Más de un tercio del catálogo (928 de 2.468) tiene la columna
-<code>Topic</code> vacía.</strong> No son datos defectuosos —todos
-cumplen ya el filtro de ≥100 países y ≥10 años—, simplemente el Banco
-Mundial no les asignó tema. Si buscas por <code>Topic</code> en Excel, o
-le pides a una IA que filtre por esa columna, <strong>te los pierdes
-todos</strong>. Se distinguen por el prefijo del <code>Id</code>:</p>
-<table>
-<colgroup>
-<col width="30%" />
-<col width="40%" />
-<col width="30%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th>Prefijo</th>
-<th align="center">Nº</th>
-<th>Qué son</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>PRJ.*</code></td>
-<td align="center">308</td>
-<td><strong>Proyecciones</strong> de población y nivel educativo hasta
-2100</td>
-</tr>
-<tr class="even">
-<td><code>per_*</code></td>
-<td align="center">234</td>
-<td>Protección social y equidad (base ASPIRE): cobertura y adecuación de
-prestaciones</td>
-</tr>
-<tr class="odd">
-<td><code>DT.*</code></td>
-<td align="center">170</td>
-<td>Deuda externa detallada por acreedor, plazo y tipo</td>
-</tr>
-<tr class="even">
-<td><code>SP.*</code></td>
-<td align="center">73</td>
-<td>Población por edad, sexo y ámbito urbano/rural</td>
-</tr>
-<tr class="odd">
-<td><code>BI.*</code></td>
-<td align="center">54</td>
-<td>Empleo público (<em>Worldwide Bureaucracy Indicators</em>):
-plantilla, salarios y composición</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Trampa con <code>dateEnd</code>:</strong> los 308 indicadores
-<code>PRJ.*</code> tienen <code>dateEnd = 2100</code>. Si ordenas el
-catálogo por esa columna para encontrar «lo más actualizado», salen los
-primeros — y son <strong>proyecciones, no observaciones</strong>. Para
-el proyecto necesitas datos observados: comprueba el prefijo del
-<code>Id</code> antes de fiarte de la fecha.</p>
-</div>
-<hr />
-</div>
-</div>
-<div id="eurostat-eurostateurostat.datasets.xlsx-1.763-datasets" class="section level2" number="2.4">
-<h2><span class="header-section-number">2.4</span> EUROSTAT —
-<code>EUROSTAT/Eurostat.datasets.xlsx</code> (1.763 datasets)</h2>
-<p>Contiene los datasets de la oficina estadística de la Unión Europea,
-filtrados para incluir solo los que tienen el último dato en 2024 o
-después, series lo bastante largas, cobertura suficiente en algún nivel
-NUTS, al menos 5 atributos combinados y datos de España.</p>
-<p>Su interés para el proyecto es que EUROSTAT organiza la geografía en
-<strong>cuatro niveles NUTS anidados</strong>, lo que permite comparar
-España con el resto de Europa y, a la vez, bajar al detalle
-regional:</p>
-<table>
-<colgroup>
-<col width="20%" />
-<col width="22%" />
-<col width="57%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th>Nivel</th>
-<th>Qué es</th>
-<th>Código de Canarias</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>NUTS 0</td>
-<td>Países (39 registrados)</td>
-<td><code>ES</code> (España)</td>
-</tr>
-<tr class="even">
-<td>NUTS 1</td>
-<td>Grandes regiones (115)</td>
-<td><code>ES7</code></td>
-</tr>
-<tr class="odd">
-<td>NUTS 2</td>
-<td>Comunidades autónomas o equivalente (299)</td>
-<td><code>ES70</code></td>
-</tr>
-<tr class="even">
-<td>NUTS 3</td>
-<td>Provincias o equivalente (1.345). <strong>En Canarias es por
-islas</strong>, no por provincias</td>
-<td><code>ES705</code> (Gran Canaria), <code>ES709</code>
-(Tenerife)…</td>
-</tr>
-</tbody>
-</table>
-<p>Que Canarias aparezca en los tres niveles con códigos distintos
-(<code>ES7</code>, <code>ES70</code> y las islas
-<code>ES703</code>–<code>ES709</code>) es lo que hace a EUROSTAT
-especialmente útil desde aquí: en muchos datasets se puede trabajar
-<strong>isla a isla</strong>.</p>
-<div id="descripción-de-columnas-2" class="section level3" number="2.4.1">
-<h3><span class="header-section-number">2.4.1</span> Descripción de
-columnas</h3>
-<table>
-<colgroup>
-<col width="40%" />
-<col width="59%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th>Columna</th>
-<th>Descripción</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>code</code></td>
-<td>Código del dataset. <strong>Es el valor que hay que poner en
-<code>dataset.name</code></strong> en
-<code>EUROSTAT_DatasetSelection.Rmd</code>.</td>
-</tr>
-<tr class="even">
-<td><code>title</code></td>
-<td>Título del dataset en inglés.</td>
-</tr>
-<tr class="odd">
-<td><code>topic</code></td>
-<td>Nombre corto (p. ej. <code>POPULATION_DEMOGRAPHY_REGIONAL</code>)
-que identifica la <strong>familia</strong> de datos a la que pertenece
-el dataset. Sirve para localizar de un vistazo todos los datasets del
-mismo ámbito y para recuperar su descripción completa (ver el aviso de
-abajo). Alrededor de un 20 % de los datasets no tienen
-<code>topic</code> porque EUROSTAT no publica ficha para ellos.</td>
-</tr>
-<tr class="even">
-<td><code>Freq</code></td>
-<td>Frecuencia temporal: <code>Y</code> (anual), <code>S</code>
-(semestral), <code>Q</code> (trimestral), <code>M</code> (mensual),
-<code>W</code> (semanal), <code>D</code> (diaria).</td>
-</tr>
-<tr class="odd">
-<td><code>N.periodos</code></td>
-<td>Número de fechas distintas de la serie.</td>
-</tr>
-<tr class="even">
-<td><code>Ini</code> / <code>Fin</code></td>
-<td>Primera y última fecha disponibles.</td>
-</tr>
-<tr class="odd">
-<td><code>N.observaciones</code></td>
-<td>Número total de observaciones (filas) del dataset.</td>
-</tr>
-<tr class="even">
-<td><code>N.regiones</code></td>
-<td>Número total de códigos geográficos distintos.</td>
-</tr>
-<tr class="odd">
-<td><code>NUTS0</code>, <code>NUTS1</code>, <code>NUTS2</code>,
-<code>NUTS3</code></td>
-<td>De esos códigos, cuántos son regiones reales de cada nivel.
-<strong>Son las columnas clave para el requisito de cobertura
-geográfica.</strong></td>
-</tr>
-<tr class="even">
-<td><code>AGREG</code></td>
-<td>Códigos que son agrupaciones de países (<code>EU27_2020</code>,
-<code>EA19</code>…), no una región concreta.</td>
-</tr>
-<tr class="odd">
-<td><code>OTHERS</code></td>
-<td>Códigos sin región real en los mapas NUTS actuales (Reino Unido,
-agregados estadísticos…).</td>
-</tr>
-<tr class="even">
-<td><code>ESPAÑA</code> / <code>CANARIAS</code></td>
-<td>Si el dataset tiene datos de España y de Canarias.</td>
-</tr>
-<tr class="odd">
-<td><code>N.atrib.combinados</code></td>
-<td>Número de atributos combinados posibles (producto de las opciones de
-las dimensiones que no son la frecuencia, la geografía ni la fecha). Es
-una <strong>cota superior</strong>: no todas las combinaciones aparecen
-con datos.</td>
-</tr>
-<tr class="even">
-<td><code>Dimension_N.options</code></td>
-<td>Esas mismas dimensiones con su nº de opciones, en el formato
-<code>nombre nº - nombre nº - …</code>.</td>
-</tr>
-<tr class="odd">
-<td><code>ESMS</code></td>
-<td>Dirección de la ficha de metadatos completa en la web de
-EUROSTAT.</td>
-</tr>
-<tr class="even">
-<td><code>last.update.of.data</code>,
-<code>last.table.structure.change</code>, <code>data.start</code>,
-<code>data.end</code>, <code>hierarchy</code></td>
-<td>Datos del catálogo original de EUROSTAT: fechas de actualización,
-rango temporal y profundidad en el árbol de temas.</td>
-</tr>
-</tbody>
-</table>
-<div class="nota">
-<p><strong class="bloque-titulo">Dónde está la descripción de los datos:
-<code>Eurostat.topics.xlsx</code></strong></p>
-<p>La descripción que publica EUROSTAT de cada familia de datos ocupa
-varios miles de caracteres y se repite en todos los datasets de esa
-familia, lo que hacía el catálogo lentísimo de abrir en Excel. Por eso
-el catálogo solo trae el <code>topic</code> (el nombre corto), y los
-textos completos están en un fichero aparte,
-<strong><code>EUROSTAT/Eurostat.topics.xlsx</code></strong>, con dos
-columnas: <code>topic</code> y <code>Descripcion</code>.</p>
-<p>Para leer de qué van unos datos, busca su <code>topic</code> en ese
-fichero. No hace falta hacerlo a mano para el dataset que elijas:
-<code>EUROSTAT_DatasetSelection.Rmd</code> lo consulta solo y deja la
-descripción completa en tu fichero de metadatos.</p>
-</div>
-<div class="nota">
-<p><strong class="bloque-titulo">El título de EUROSTAT suele ser
-críptico</strong></p>
-<p>Los nombres de los datasets y de sus dimensiones van abreviados
-(<code>na_item</code>, <code>B6N</code>, <code>MIO_EUR</code>). Además
-de buscar su <code>topic</code> en <code>Eurostat.topics.xlsx</code>,
-ayuda mucho pegar el título o el <code>code</code> en una IA, o abrir el
-enlace de la columna <code>ESMS</code>. El propio
-<code>EUROSTAT_DatasetSelection.Rmd</code> traduce las abreviaturas a
-nombres completos al analizar el dataset.</p>
-</div>
-</div>
-<div id="organización-por-temas-3" class="section level3" number="2.4.2">
-<h3><span class="header-section-number">2.4.2</span> Organización por
-temas</h3>
-<p>El <strong>prefijo del <code>code</code></strong> (lo que va antes
-del primer guion bajo) identifica el ámbito temático: <code>ilc_</code>
-son condiciones de vida, <code>demo_</code> demografía,
-<code>tour_</code> turismo… Es la forma más rápida de acotar la búsqueda
-en el Excel. Los prefijos que se listan entre paréntesis en la tabla son
-<strong>los principales de cada tema, no todos</strong>: hay familias
-menores que también cuentan (<code>namq_</code> y <code>nasa_</code> en
-economía, <code>tran_</code> en transporte, <code>htec_</code> en
-industria…).</p>
-<table>
-<colgroup>
-<col width="15%" />
-<col width="32%" />
-<col width="52%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th>Tema</th>
-<th align="center">Nº datasets</th>
-<th>Ejemplos de datasets</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><strong>Mercado laboral</strong> (<code>lfs*</code>,
-<code>earn_</code>, <code>jvs_</code>, <code>hsw_</code>,
-<code>lc_</code>)</td>
-<td align="center">309</td>
-<td>Tasa de paro por sexo, edad y región; horas trabajadas; accidentes
-de trabajo; salarios y coste laboral</td>
-</tr>
-<tr class="even">
-<td><strong>Condiciones de vida y pobreza</strong>
-(<code>ilc_</code>)</td>
-<td align="center">214</td>
-<td>Riesgo de pobreza por umbral, edad y sexo; desigualdad (Gini);
-privación material — encuesta EU-SILC</td>
-</tr>
-<tr class="odd">
-<td><strong>Educación</strong> (<code>educ_</code>, <code>edat_</code>,
-<code>trng_</code>)</td>
-<td align="center">128</td>
-<td>Alumnado por nivel educativo; abandono escolar temprano; formación
-continua</td>
-</tr>
-<tr class="even">
-<td><strong>Transporte</strong> (<code>road_</code>, <code>rail_</code>,
-<code>avia_</code>, <code>mar_</code>)</td>
-<td align="center">116</td>
-<td>Pasajeros aéreos entre regiones; transporte de mercancías por
-carretera y ferrocarril; accidentes de tráfico</td>
-</tr>
-<tr class="odd">
-<td><strong>Economía y cuentas nacionales</strong> (<code>nama_</code>,
-<code>prc_</code>, <code>gov_</code>, <code>bop_</code>)</td>
-<td align="center">102</td>
-<td>PIB y renta de los hogares por región NUTS 2; precios; déficit y
-deuda pública; balanza de pagos</td>
-</tr>
-<tr class="even">
-<td><strong>Demografía y proyecciones</strong> (<code>demo_</code>,
-<code>proj_</code>, <code>cens_</code>)</td>
-<td align="center">101</td>
-<td>Población a 1 de enero por edad, sexo y región; defunciones
-semanales por NUTS 3; proyecciones hasta 2100</td>
-</tr>
-<tr class="odd">
-<td><strong>Migración y asilo</strong> (<code>migr_</code>)</td>
-<td align="center">97</td>
-<td>Solicitantes de asilo por nacionalidad, edad y sexo (datos
-mensuales); permisos de residencia</td>
-</tr>
-<tr class="even">
-<td><strong>Industria, comercio y servicios</strong> (<code>sts_</code>,
-<code>ext_</code>, <code>inn_</code>, <code>ei_</code>)</td>
-<td align="center">92</td>
-<td>Producción industrial mensual; comercio exterior; innovación
-empresarial; indicadores de coyuntura</td>
-</tr>
-<tr class="odd">
-<td><strong>Salud</strong> (<code>hlth_</code>)</td>
-<td align="center">82</td>
-<td>Causas de muerte por región; esperanza de vida saludable; recursos y
-gasto sanitario</td>
-</tr>
-<tr class="even">
-<td><strong>Turismo</strong> (<code>tour_</code>)</td>
-<td align="center">77</td>
-<td>Pernoctaciones y capacidad de alojamiento por región; gasto por país
-de destino</td>
-</tr>
-<tr class="odd">
-<td><strong>Energía</strong> (<code>nrg_</code>)</td>
-<td align="center">71</td>
-<td>Balances energéticos; precios de la electricidad y el gas; energías
-renovables</td>
-</tr>
-<tr class="even">
-<td><strong>Medio ambiente y clima</strong> (<code>env_</code>,
-<code>sdg_</code>)</td>
-<td align="center">64</td>
-<td>Emisiones atmosféricas por actividad; residuos; indicadores de
-desarrollo sostenible</td>
-</tr>
-<tr class="odd">
-<td><strong>Agricultura y pesca</strong> (<code>apro_</code>,
-<code>ef_</code>, <code>fish_</code>, <code>for_</code>)</td>
-<td align="center">56</td>
-<td>Producción agrícola y ganadera; estructura de las explotaciones;
-capturas pesqueras</td>
-</tr>
-<tr class="even">
-<td><strong>Sociedad digital</strong> (<code>isoc_</code>)</td>
-<td align="center">48</td>
-<td>Uso de internet por individuos y empresas; comercio electrónico;
-competencias digitales</td>
-</tr>
-<tr class="odd">
-<td><strong>Otros</strong> (<code>naio_</code>, <code>rd_</code>,
-<code>urt_</code>, <code>crim_</code>, <code>cult_</code>…)</td>
-<td align="center">206</td>
-<td>Tablas input-output, I+D, estadísticas urbanas, criminalidad,
-cultura, juventud</td>
-</tr>
-</tbody>
-</table>
-<hr />
-</div>
-</div>
-<div id="edgar-dataset-único-de-emisiones-de-gases-de-efecto-invernadero-solo-sirve-para-un-estudiante" class="section level2" number="2.5">
-<h2><span class="header-section-number">2.5</span> EDGAR — dataset único
-de emisiones de gases de efecto invernadero (solo sirve para un
-estudiante)</h2>
-<p>EDGAR <strong>no tiene catálogo Excel previo</strong>: no hay nada
-que buscar, el dataset es uno solo. Por lo demás,
-<code>EDGAR_GHG/EDGAR_GHG.Rmd</code> está organizado igual que los
-<code>*_DatasetSelection.Rmd</code> del resto de fuentes, en dos partes:
-primero descarga y guarda en disco (<code>EDGAR_GHG.rds</code> con los
-datos y <code>EDGAR_GHG_metadatos.xlsx</code> con su ficha), y después
-analiza leyendo esos dos ficheros. La sección <strong>Análisis del
-dataset</strong> vuelve a ser autocontenida, así que puedes copiarla tal
-cual en tu memoria.</p>
-<p>El dataset ya está descargado y procesado, y <strong>la descarga solo
-se ejecuta si falta el <code>.rds</code></strong>: compilar el documento
-no vuelve a bajar los varios GB de ficheros de EDGAR. Para actualizar a
-una versión más reciente hay que borrar <code>EDGAR_GHG.rds</code> y
-cambiar los nombres de fichero de las URL.</p>
-<p>Como EDGAR no publica una descripción de sus indicadores, el
-<code>EDGAR_GHG_metadatos.xlsx</code> la trae en <strong>tres
-hojas</strong>: <code>dataset</code> (ficha general), <code>ipcc</code>
-(qué es cada sector) y <code>Substance</code> (qué es cada gas, con su
-unidad y su potencial de calentamiento). Es el equivalente al
-<code>Indicator_desc</code> del Banco Mundial o al <code>topic</code> de
-EUROSTAT.</p>
-<p>Cubre <strong>225 países y territorios</strong>, <strong>38 sectores
-IPCC</strong> (más el <code>TOTAL</code>), <strong>35
-sustancias</strong> entre gases individuales y agregados en
-CO₂-equivalente, y <strong>55 años</strong> (1970–2024), con 1,2
-millones de filas.</p>
-<p>Los análisis que permite realizar son:</p>
+<pre class="r"><code># nombres de los ficheros que se guardan en disco
+filename          &lt;- &quot;INFORME_PISA&quot;
+f_paises          &lt;- &quot;pisa_paises_2000_2025.rds&quot;
+f_ccaa            &lt;- &quot;pisa_ccaa_2009_2025.rds&quot;
+f_contexto_paises &lt;- &quot;contexto_paises.rds&quot;
+f_contexto_ccaa   &lt;- &quot;contexto_ccaa.rds&quot;</code></pre>
+<div id="descarga-limpieza-y-guardado-de-los-datos" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> Descarga, limpieza y
+guardado de los datos</h1>
+<!-- Esta sección NO va en la memoria del proyecto: solo construye los ficheros
+     de disco que consume la sección siguiente -->
+<pre class="r"><code># TRUE solo si falta alguno de los dos rds: evita volver a descargar/parsear en
+# cada compilación. Para forzar la actualización (p. ej. cuando la OCDE publique
+# PISA 2028), basta con borrar los dos rds de esta carpeta.
+DESCARGAR_DATOS &lt;- !file.exists(f_paises) || !file.exists(f_ccaa)
+
+cat(if (DESCARGAR_DATOS) &quot;No se encuentran los rds: se reconstruyen desde Wikipedia.\n&quot;
+    else paste0(&quot;Se reutilizan &quot;, f_paises, &quot; y &quot;, f_ccaa, &quot; ya existentes &quot;,
+                &quot;(borrarlos para volver a generar).\n&quot;))</code></pre>
+<pre><code>## Se reutilizan pisa_paises_2000_2025.rds y pisa_ccaa_2009_2025.rds ya existentes (borrarlos para volver a generar).</code></pre>
+<pre class="r"><code>## --- descarga del wikitexto fuente (sin curl: readLines(url()) directo) ---
+url_en &lt;- paste0(&quot;https://en.wikipedia.org/w/index.php?&quot;,
+                  &quot;title=Programme_for_International_Student_Assessment&amp;action=raw&quot;)
+url_es &lt;- paste0(&quot;https://es.wikipedia.org/w/index.php?&quot;,
+                  &quot;title=Anexo:Resultados_del_Informe_PISA_en_Espa%C3%B1a_&quot;,
+                  &quot;por_Comunidades_Aut%C3%B3nomas&amp;action=raw&quot;)
+
+wiki_en &lt;- readLines(url(url_en, &quot;rb&quot;), warn = FALSE, encoding = &quot;UTF-8&quot;)
+wiki_es &lt;- readLines(url(url_es, &quot;rb&quot;), warn = FALSE, encoding = &quot;UTF-8&quot;)</code></pre>
+<pre class="r"><code>## --- funciones auxiliares de parseo de tablas wiki -------------------------
+
+# localiza el rango de una sección delimitada por un encabezado que cumple
+# `patron` y el siguiente encabezado de nivel `nivel` o superior (no hardcodea
+# números de línea: sigue funcionando si Wikipedia reordena el artículo)
+extraer_seccion &lt;- function(lineas, patron, nivel = &quot;==&quot;) {
+  ini &lt;- grep(patron, lineas)[1]
+  post &lt;- grep(paste0(&quot;^&quot;, nivel), lineas)
+  fin_candidatos &lt;- post[post &gt; ini]
+  fin &lt;- if (length(fin_candidatos) &gt; 0) fin_candidatos[1] - 1 else length(lineas)
+  lineas[ini:fin]
+}
+
+# nombre de país a partir de {{flagcountry|Pais}} resto-de-texto ; el resto
+# (regiones/ciudades como &quot;B-S-J-G{{efn...}}&quot; o &quot;Shanghai&quot;) se conserva entre
+# paréntesis para no perder que es una sub-muestra, no el país completo
+clean_country &lt;- function(x) {
+  x &lt;- trimws(x)
+  m &lt;- regmatches(x, regexec(&quot;^\\{\\{flag(?:country)?\\|([^}|]+)&quot;, x))[[1]]
+  pais &lt;- if (length(m) &gt;= 2) trimws(m[2]) else trimws(sub(&quot;^\\{\\{.*\\|&quot;, &quot;&quot;, x))
+  resto &lt;- sub(&quot;^\\{\\{flag(?:country)?\\|[^}]*\\}\\}&quot;, &quot;&quot;, x)
+  resto &lt;- gsub(&quot;\\{\\{efn[^}]*\\}\\}&quot;, &quot;&quot;, resto)
+  resto &lt;- gsub(&quot;\\{\\{efn[^|]*\\|[^}]*&quot;, &quot;&quot;, resto)
+  resto &lt;- gsub(&quot;\\[\\[|\\]\\]&quot;, &quot;&quot;, resto)
+  resto &lt;- gsub(&quot;^-&quot;, &quot;&quot;, resto)
+  resto &lt;- trimws(resto)
+  if (nchar(resto) &gt; 0 &amp;&amp; !grepl(&quot;^\\{\\{efn&quot;, resto)) paste0(pais, &quot; (&quot;, resto, &quot;)&quot;) else pais
+}
+
+# nombre de país/región a partir de un wikilink [[destino|mostrado]] o [[destino]]
+clean_country_link &lt;- function(x) {
+  x &lt;- trimws(x)
+  m &lt;- regmatches(x, regexec(&quot;\\[\\[(.*?)\\]\\]&quot;, x, perl = TRUE))[[1]]
+  pais &lt;- if (length(m) &gt;= 2) { partes &lt;- strsplit(m[2], &quot;\\|&quot;)[[1]]; partes[length(partes)] } else x
+  gsub(&quot;\\*+$&quot;, &quot;&quot;, trimws(pais))
+}
+
+# puntuación numérica; admite el formato data-sort-value=NNN.N|NNN de la fila
+# &quot;International Average&quot;
+clean_score &lt;- function(x) {
+  x &lt;- trimws(x)
+  if (grepl(&quot;data-sort-value&quot;, x)) x &lt;- sub(&quot;.*\\|&quot;, &quot;&quot;, x)
+  x &lt;- gsub(&quot;[^0-9.]&quot;, &quot;&quot;, x)
+  if (x == &quot;&quot;) return(NA_real_)
+  as.numeric(x)
+}</code></pre>
+<pre class="r"><code>## --- 1. serie histórica por país, 2000-2022 --------------------------------
+## tabla &quot;Rankings comparison 2000-2022&quot;: una sub-tabla por asignatura, con dos
+## columnas (puntuación, puesto) por cada ciclo
+
+seg_hist &lt;- extraer_seccion(wiki_en, &quot;===Rankings comparison 2000&quot;)
+
+subject_headers &lt;- list(
+  list(pattern = &quot;\\| Mathematics&quot;, subject = &quot;mathematics&quot;,
+       years = c(2022, 2018, 2015, 2012, 2009, 2006, 2003, 2000)),
+  list(pattern = &quot;\\| Science&quot;, subject = &quot;science&quot;,
+       years = c(2022, 2018, 2015, 2012, 2009, 2006)),
+  list(pattern = &quot;\\| Reading&quot;, subject = &quot;reading&quot;,
+       years = c(2022, 2018, 2015, 2012, 2009, 2006, 2003, 2000))
+)
+
+resultados_hist &lt;- list(); current_subject &lt;- NA; current_years &lt;- NULL
+i &lt;- 1; n &lt;- length(seg_hist)
+while (i &lt;= n) {
+  ln &lt;- seg_hist[i]
+  matched &lt;- FALSE
+  for (h in subject_headers) {
+    if (grepl(h$pattern, ln) &amp;&amp; grepl(&quot;^! colspan&quot;, ln)) {
+      current_subject &lt;- h$subject; current_years &lt;- h$years; matched &lt;- TRUE; break
+    }
+  }
+  if (matched) { i &lt;- i + 1; next }
+  if (grepl(&quot;^\\|\\}&quot;, ln)) { current_subject &lt;- NA; i &lt;- i + 1; next }
+  if (!is.na(current_subject) &amp;&amp; grepl(&quot;^\\|-&quot;, ln)) {
+    fields &lt;- character(0); i &lt;- i + 1
+    while (i &lt;= n &amp;&amp; !grepl(&quot;^\\|-&quot;, seg_hist[i]) &amp;&amp; !grepl(&quot;^\\|\\}&quot;, seg_hist[i]) &amp;&amp; !grepl(&quot;^!&quot;, seg_hist[i])) {
+      if (grepl(&quot;^\\|&quot;, seg_hist[i])) fields &lt;- c(fields, sub(&quot;^\\|&quot;, &quot;&quot;, seg_hist[i]))
+      i &lt;- i + 1
+    }
+    if (length(fields) &gt;= 1) {
+      country_raw &lt;- fields[1]
+      if (!grepl(&quot;International Average&quot;, country_raw) &amp;&amp; nchar(trimws(country_raw)) &gt; 0 &amp;&amp;
+          !grepl(&quot;^style=&quot;, country_raw)) {
+        country &lt;- clean_country(country_raw); rest &lt;- fields[-1]; n_years &lt;- length(current_years)
+        if (length(rest) &gt;= 2 * n_years) {
+          for (k in seq_len(n_years)) {
+            score &lt;- clean_score(rest[(k - 1) * 2 + 1])
+            if (!is.na(score))
+              resultados_hist[[length(resultados_hist) + 1]] &lt;- data.frame(
+                country = country, year = current_years[k], subject = current_subject,
+                score = score, stringsAsFactors = FALSE)
+          }
+        }
+      }
+    }
+    next
+  }
+  i &lt;- i + 1
+}
+hist_2000_2022 &lt;- bind_rows(resultados_hist)</code></pre>
+<pre class="r"><code>## --- 2. ranking mundial 2025 por país ---------------------------------------
+## tabla de 3 sub-tablas lado a lado (Ciencias, Matemáticas, Lectura); el orden
+## se lee de la cabecera en vez de suponerlo fijo
+
+seg_2025 &lt;- extraer_seccion(wiki_en, &quot;=== PISA 2025 ranking summary ===&quot;)
+orden_2025 &lt;- tolower(str_extract(seg_2025[grepl(&#39;style=&quot;width:33%;&quot;&#39;, seg_2025)],
+                                   &quot;(Science|Mathematics|Reading)&quot;))
+
+parse_block_rank &lt;- function(seg) {
+  out &lt;- list(); i &lt;- 1; n &lt;- length(seg)
+  while (i &lt;= n) {
+    if (grepl(&quot;^\\|-&quot;, seg[i])) {
+      fields &lt;- character(0); i &lt;- i + 1
+      while (i &lt;= n &amp;&amp; !grepl(&quot;^\\|-&quot;, seg[i]) &amp;&amp; !grepl(&quot;^\\|\\}&quot;, seg[i])) {
+        if (grepl(&quot;^\\|&quot;, seg[i])) fields &lt;- c(fields, sub(&quot;^\\|&quot;, &quot;&quot;, seg[i]))
+        i &lt;- i + 1
+      }
+      if (length(fields) == 3) {
+        rank &lt;- suppressWarnings(as.integer(trimws(fields[1])))
+        country &lt;- clean_country_link(fields[2])
+        score &lt;- suppressWarnings(as.numeric(gsub(&quot;[^0-9.]&quot;, &quot;&quot;, fields[3])))
+        if (!is.na(rank) &amp;&amp; !is.na(score) &amp;&amp; nchar(country) &gt; 0)
+          out[[length(out) + 1]] &lt;- data.frame(rank = rank, country = country, score = score,
+                                                stringsAsFactors = FALSE)
+      }
+      next
+    }
+    i &lt;- i + 1
+  }
+  bind_rows(out)
+}
+
+inicios_2025 &lt;- grep(&#39;^\\{\\| class=&quot;wikitable&quot; style=&quot;width:100%; margin:0&#39;, seg_2025)
+finales_2025 &lt;- grep(&quot;^\\|\\}$&quot;, seg_2025)
+usados &lt;- rep(FALSE, length(finales_2025))
+y2025_list &lt;- list()
+for (k in seq_along(inicios_2025)) {
+  ini &lt;- inicios_2025[k]
+  cand &lt;- finales_2025[finales_2025 &gt; ini &amp; !usados]
+  fin &lt;- cand[1]
+  usados[which(finales_2025 == fin)[1]] &lt;- TRUE
+  df &lt;- parse_block_rank(seg_2025[ini:fin])
+  df$subject &lt;- orden_2025[k]; df$year &lt;- 2025
+  y2025_list[[k]] &lt;- df
+}
+y2025 &lt;- bind_rows(y2025_list) |&gt; select(-rank)</code></pre>
+<pre class="r"><code>## --- 3. tabla final por país: unión 2000-2022 + 2025, en español -----------
+
+# sub-muestras NO representativas del país completo (región/ciudad concreta en
+# vez de la muestra nacional); Hong Kong y Macao NO están aquí: son economías
+# PISA de pleno derecho, no una submuestra de China
+entidades_parciales &lt;- c(
+  &quot;Argentina (CABA)&quot;, &quot;Azerbaijan (Baku)&quot;, &quot;B-S-J-Z (China)&quot;,
+  &quot;China (B-S-J-G)&quot;, &quot;China (B-S-J-Z)&quot;, &quot;China (Shanghai)&quot;,
+  &quot;Dushanbe (Tajikistan)&quot;, &quot;Kurdistan Region (Iraq)&quot;,
+  &quot;Ukrainian regions (17 of 27)&quot;
+)
+
+# Wikipedia etiqueta 5 economías con un nombre DISTINTO solo en la tabla de PISA
+# 2025 (nombre oficial actualizado) frente a las 8 tablas de ciclos anteriores
+# (nombre antiguo): sin normalizar, cada una queda partida en dos &quot;países&quot; -su
+# historia 2000-2022 por un lado y un único punto 2025 por otro-, justo en el
+# ciclo más reciente. Se corrige AQUÍ, antes de construir pisa_paises, al nombre
+# vigente/oficial; se documenta en la hoja `nombres_normalizados` de los metadatos.
+nombres_normalizados &lt;- c(
+  &quot;Turkey&quot; = &quot;Türkiye&quot;, &quot;Macau&quot; = &quot;Macao&quot;, &quot;Hong Kong&quot; = &quot;Hong Kong&quot;,
+  &quot;Hong Kong (China)&quot; = &quot;Hong Kong&quot;, &quot;Macao (China)&quot; = &quot;Macao&quot;,
+  &quot;Taiwan&quot; = &quot;Chinese Taipei&quot;, &quot;Macedonia&quot; = &quot;North Macedonia&quot;
+)
+
+pisa_paises_sin_iso &lt;- bind_rows(hist_2000_2022, y2025) |&gt;
+  rename(pais = country, anio = year, asignatura = subject, puntuacion = score) |&gt;
+  mutate(
+    asignatura = recode(asignatura, mathematics = &quot;matematicas&quot;, reading = &quot;lectura&quot;, science = &quot;ciencias&quot;),
+    pais = coalesce(nombres_normalizados[pais], pais),
+    entidad_parcial = pais %in% entidades_parciales
+  )
+
+## --- proceso AUXILIAR: tabla de equivalencias pais -&gt; iso3c -----------------
+## No se guarda como rds propio; su unico fin es anadir la columna `iso3c` a
+## pisa_paises_2000_2025.rds para poder cruzarlo con cualquier fuente por pais
+## (aqui, contexto_paises.rds del Banco Mundial) sin tener que repetir este
+## trabajo de emparejamiento de nombres cada vez.
+#
+# pais &quot;base&quot; para las sub-muestras (entidad_parcial): la soberania real a la
+# que pertenecen, salvo Hong Kong y Macao, que SI son economias propias
+pais_base_especial &lt;- c(
+  &quot;Argentina (CABA)&quot; = &quot;Argentina&quot;, &quot;Azerbaijan (Baku)&quot; = &quot;Azerbaijan&quot;,
+  &quot;China (Shanghai)&quot; = &quot;China&quot;, &quot;China (B-S-J-G)&quot; = &quot;China&quot;, &quot;China (B-S-J-Z)&quot; = &quot;China&quot;,
+  &quot;B-S-J-Z (China)&quot; = &quot;China&quot;, &quot;Dushanbe (Tajikistan)&quot; = &quot;Tajikistan&quot;,
+  &quot;Kurdistan Region (Iraq)&quot; = &quot;Iraq&quot;, &quot;Ukrainian regions (17 of 27)&quot; = &quot;Ukraine&quot;
+)
+
+crosswalk_iso3c &lt;- tibble(pais = sort(unique(pisa_paises_sin_iso$pais))) |&gt;
+  mutate(pais_base = coalesce(pais_base_especial[pais], pais),
+         iso3c = suppressWarnings(countrycode::countrycode(pais_base, &quot;country.name&quot;, &quot;iso3c&quot;)),
+         # Kosovo no tiene codigo ISO 3166-1 oficial (estatus disputado); se usa
+         # &quot;XKX&quot;, el codigo de facto que emplean el Banco Mundial y otros organismos
+         iso3c = if_else(pais == &quot;Kosovo&quot;, &quot;XKX&quot;, iso3c))
+
+sin_iso3c &lt;- crosswalk_iso3c |&gt; filter(is.na(iso3c)) |&gt; pull(pais)
+if (length(sin_iso3c) &gt; 0) warning(&quot;Países sin iso3c en la tabla de equivalencias: &quot;, paste(sin_iso3c, collapse = &quot;, &quot;))
+
+pisa_paises &lt;- pisa_paises_sin_iso |&gt;
+  left_join(crosswalk_iso3c |&gt; select(pais, iso3c), by = &quot;pais&quot;) |&gt;
+  select(pais, iso3c, anio, asignatura, puntuacion, entidad_parcial) |&gt;
+  arrange(pais, asignatura, anio)
+
+saveRDS(pisa_paises, f_paises)
+cat(&quot;Fichero guardado:&quot;, f_paises, &quot;-&quot;, nrow(pisa_paises), &quot;filas,&quot;,
+    n_distinct(pisa_paises$pais), &quot;países/entidades,&quot;,
+    sum(is.na(crosswalk_iso3c$iso3c)), &quot;sin iso3c\n&quot;)</code></pre>
+<pre class="r"><code>## --- 4. resultados por Comunidad Autónoma, 2009-2025 -----------------------
+## una sección &quot;=== AAAA ===&quot; por ciclo, con 3 sub-tablas (Lectura, Matemáticas,
+## Ciencias) de filas región/puntuación, más filas de referencia en negrita
+## (Media España / Media OCDE / Promedio UE)
+
+cabeceras_anio &lt;- grep(&quot;^=== (20[0-9]{2}) ===&quot;, wiki_es)
+anios_wiki &lt;- as.integer(str_extract(wiki_es[cabeceras_anio], &quot;20[0-9]{2}&quot;))
+todas_cabeceras &lt;- sort(c(cabeceras_anio, grep(&quot;^==[^=]&quot;, wiki_es)))
+
+# el &quot;año de Wikipedia&quot; 2019 corresponde en realidad al ciclo PISA 2018 (la
+# prueba se aplicó en 2018; la prensa española etiquetó la noticia por el año
+# de publicación, diciembre de 2019). El resto de años coinciden.
+anio_pisa_de &lt;- function(aw) if (aw == 2019) 2018L else aw
+
+orden_asignaturas_ccaa &lt;- c(&quot;reading&quot;, &quot;mathematics&quot;, &quot;science&quot;)
+
+clean_region &lt;- function(x) {
+  x &lt;- trimws(x)
+  m &lt;- regmatches(x, gregexpr(&quot;\\[\\[(.*?)\\]\\]&quot;, x, perl = TRUE))[[1]]
+  if (length(m) == 0) return(list(region = NA_character_, aviso = FALSE))
+  ultimo &lt;- m[length(m)]
+  inner &lt;- sub(&quot;^\\[\\[&quot;, &quot;&quot;, sub(&quot;\\]\\]$&quot;, &quot;&quot;, ultimo))
+  partes &lt;- strsplit(inner, &quot;\\|&quot;)[[1]]
+  region &lt;- trimws(partes[length(partes)])
+  resto &lt;- sub(&quot;.*\\]\\]&quot;, &quot;&quot;, x)
+  list(region = region, aviso = grepl(&quot;\\*&quot;, resto))
+}
+
+parse_subtabla_ccaa &lt;- function(seg) {
+  out &lt;- list(); i &lt;- 1; n &lt;- length(seg)
+  while (i &lt;= n &amp;&amp; !grepl(&quot;^\\{\\| ?border=0&quot;, seg[i])) i &lt;- i + 1
+  i &lt;- i + 1
+  while (i &lt;= n &amp;&amp; !grepl(&quot;^\\|\\}&quot;, seg[i])) {
+    if (grepl(&quot;^\\|-&quot;, seg[i])) {
+      fields &lt;- character(0); i &lt;- i + 1
+      while (i &lt;= n &amp;&amp; !grepl(&quot;^\\|-&quot;, seg[i]) &amp;&amp; !grepl(&quot;^\\|\\}&quot;, seg[i])) {
+        if (grepl(&quot;^\\|&quot;, seg[i])) fields &lt;- c(fields, sub(&quot;^\\|&quot;, &quot;&quot;, seg[i]))
+        i &lt;- i + 1
+      }
+      if (length(fields) == 3) {
+        region_field &lt;- fields[2]; score_field &lt;- trimws(fields[3])
+        es_ambito &lt;- grepl(&quot;&#39;&#39;&#39;&quot;, region_field)
+        cr &lt;- clean_region(region_field)
+        if (es_ambito) {
+          ambito_txt &lt;- trimws(gsub(&quot;&#39;&#39;&#39;&quot;, &quot;&quot;, region_field))
+          ambito &lt;- case_when(grepl(&quot;OCDE&quot;, ambito_txt) ~ &quot;OCDE&quot;,
+                               grepl(&quot;Espa&quot;, ambito_txt) ~ &quot;España&quot;,
+                               grepl(&quot;UE&quot;, ambito_txt) ~ &quot;UE&quot;,
+                               TRUE ~ ambito_txt)
+          score &lt;- as.numeric(gsub(&quot;[^0-9.]&quot;, &quot;&quot;, gsub(&quot;&#39;&#39;&#39;&quot;, &quot;&quot;, score_field)))
+          out[[length(out) + 1]] &lt;- data.frame(region = ambito, ambito = &quot;referencia&quot;, score = score,
+                                                aviso_exclusion = FALSE, stringsAsFactors = FALSE)
+        } else if (!is.na(cr$region)) {
+          score &lt;- as.numeric(gsub(&quot;[^0-9.]&quot;, &quot;&quot;, score_field))
+          if (!is.na(score))
+            out[[length(out) + 1]] &lt;- data.frame(region = cr$region, ambito = &quot;CCAA&quot;, score = score,
+                                                  aviso_exclusion = cr$aviso, stringsAsFactors = FALSE)
+        }
+      }
+      next
+    }
+    i &lt;- i + 1
+  }
+  bind_rows(out)
+}
+
+todo_ccaa &lt;- list()
+for (k in seq_along(cabeceras_anio)) {
+  ini &lt;- cabeceras_anio[k]
+  fin &lt;- todas_cabeceras[todas_cabeceras &gt; ini][1] - 1
+  if (is.na(fin)) fin &lt;- length(wiki_es)
+  seg &lt;- wiki_es[ini:fin]
+
+  inicios &lt;- grep(&quot;^\\{\\| ?border=0&quot;, seg)
+  finales &lt;- grep(&quot;^\\|\\}$&quot;, seg)
+  usados_c &lt;- rep(FALSE, length(finales))
+  for (j in seq_along(inicios)) {
+    if (j &gt; length(orden_asignaturas_ccaa)) next
+    ii &lt;- inicios[j]
+    cand &lt;- finales[finales &gt; ii &amp; !usados_c]
+    fin_j &lt;- cand[1]
+    usados_c[which(finales == fin_j)[1]] &lt;- TRUE
+    df &lt;- parse_subtabla_ccaa(seg[ii:fin_j])
+    if (nrow(df) &gt; 0) {
+      df$subject &lt;- orden_asignaturas_ccaa[j]
+      df$anio &lt;- anio_pisa_de(anios_wiki[k])
+      todo_ccaa[[length(todo_ccaa) + 1]] &lt;- df
+    }
+  }
+}
+
+pisa_ccaa &lt;- bind_rows(todo_ccaa) |&gt;
+  rename(asignatura = subject, puntuacion = score) |&gt;
+  mutate(asignatura = recode(asignatura, mathematics = &quot;matematicas&quot;, reading = &quot;lectura&quot;, science = &quot;ciencias&quot;)) |&gt;
+  select(region, ambito, anio, asignatura, puntuacion, aviso_exclusion) |&gt;
+  arrange(region, asignatura, anio)
+
+saveRDS(pisa_ccaa, f_ccaa)
+cat(&quot;Fichero guardado:&quot;, f_ccaa, &quot;-&quot;, nrow(pisa_ccaa), &quot;filas,&quot;,
+    n_distinct(pisa_ccaa$region[pisa_ccaa$ambito == &quot;CCAA&quot;]), &quot;regiones\n&quot;)</code></pre>
+<div id="datos-de-contexto-pobreza-y-peso-económico-de-la-educación" class="section level2" number="1.1">
+<h2><span class="header-section-number">1.1</span> Datos de contexto:
+pobreza y peso económico de la educación</h2>
+<p>Para poder cruzar PISA con condiciones socioeconómicas se incorporan
+cuatro indicadores más, ya identificados y validados en las carpetas
+<code>INE/</code> y <code>WORLD_BANK/</code> de
+<code>SelecciónDatasetsProyecto</code>:</p>
 <ul>
-<li>Evolución histórica de emisiones totales por país o región.</li>
-<li>Comparación entre países en un año concreto (rankings).</li>
-<li>Análisis sectorial: qué sectores emiten más en un país (energía,
-transporte, industria, agricultura, residuos).</li>
-<li>Análisis por gas: CO₂ fósil, metano (CH₄), óxido nitroso (N₂O),
-gases fluorados.</li>
-<li>Relación entre emisiones y otros indicadores del Banco Mundial (PIB,
-población, energía), combinando ambas fuentes mediante el código de país
-ISO.</li>
+<li><strong>Banco Mundial, por país</strong>: gasto público en educación
+(% del PIB), índice de Gini de desigualdad de ingresos y <strong>pobreza
+relativa</strong> (% de población por debajo del 50% de la renta mediana
+del propio país, estándar tipo OCDE). Se descartó la tasa de pobreza
+según líneas <strong>nacionales</strong> (<code>SI.POV.NAHC</code>): el
+propio Banco Mundial advierte que <strong>no es comparable en niveles
+absolutos entre países</strong> (cada país fija su propia línea según su
+renta), solo en tendencia dentro de un mismo país. El Gini y la pobreza
+relativa sí están pensados para comparar entre países, y no son
+redundantes entre sí: el Gini mide desigualdad de la distribución, la
+pobreza relativa mide pobreza en sentido propio (correlación 0,84, no
+1).</li>
+<li><strong>INE, por Comunidad Autónoma</strong> (Encuesta de
+Condiciones de Vida): tasa de riesgo de pobreza, y el indicador AROPE
+(riesgo de pobreza o exclusión social, objetivo Europa 2030) con sus
+tres componentes.</li>
+<li><strong>INE, por Comunidad Autónoma</strong> (Contabilidad Regional
+de España): peso de la rama <em>Administración pública, educación,
+sanidad y servicios sociales</em> sobre el PIB regional, más el PIB
+regional en valor absoluto.</li>
 </ul>
-<blockquote>
-<p>Para usar EDGAR correctamente, filtra siempre por
-<code>Substance</code> antes de hacer sumas. Mezclar gases individuales
-con sus agregados en CO₂-equivalente (<code>GWP_100_AR5_*</code>)
-duplicaría o triplicaría los valores. Consulta la sección
-<em>Descripción de las variables de la tabla</em> en el documento
-compilado para más detalles.</p>
-</blockquote>
-<hr />
+<p><strong>No hay un indicador de “gasto en educación” aislado por
+Comunidad Autónoma</strong>: el catálogo del INE ya generado no incluye
+la Contabilidad Regional, y esta se obtiene aparte, directamente de
+INEbase (<code>ine.es</code>), por un mecanismo distinto al resto del
+proyecto (descarga directa de tablas, no la API <code>ineapir</code> que
+usan los generadores de catálogo). Además, esa fuente <strong>no aísla
+la rama “Educación”</strong>: la clasificación de 11 ramas de las
+cuentas regionales la agrupa junto con administración pública, sanidad y
+servicios sociales (rama <code>O_Q</code>); se documenta esta limitación
+en los metadatos y no se presenta como si fuera gasto educativo
+puro.</p>
+<pre class="r"><code>DESCARGAR_CONTEXTO &lt;- !file.exists(f_contexto_paises) || !file.exists(f_contexto_ccaa)
+
+cat(if (DESCARGAR_CONTEXTO) &quot;No se encuentran los rds de contexto: se descargan del Banco Mundial y el INE.\n&quot;
+    else paste0(&quot;Se reutilizan &quot;, f_contexto_paises, &quot; y &quot;, f_contexto_ccaa, &quot; ya existentes &quot;,
+                &quot;(borrarlos para volver a generar).\n&quot;))</code></pre>
+<pre><code>## Se reutilizan contexto_paises.rds y contexto_ccaa.rds ya existentes (borrarlos para volver a generar).</code></pre>
+<pre class="r"><code>## --- contexto por país: Banco Mundial ---------------------------------------
+## SE.XPD.TOTL.GD.ZS: gasto público en educación, total (% del PIB)
+## SI.POV.GINI:        indice de Gini de desigualdad de ingresos (0-100)
+## SI.DST.50MD:        pobreza RELATIVA: % de poblacion por debajo del 50% de
+##                      la renta mediana del propio pais (estandar tipo OCDE)
+##
+## Se descarta SI.POV.NAHC (pobreza segun lineas NACIONALES): el propio Banco
+## Mundial documenta que NO es comparable en niveles absolutos entre paises,
+## solo en tendencia dentro de cada pais (cada pais fija su propia linea segun
+## su renta). Gini mide DESIGUALDAD, no pobreza; se añade pobreza_relativa_pct
+## como el indicador de POBREZA en si mismo que sigue siendo comparable entre
+## paises (el umbral, &quot;50% de la mediana&quot;, se calcula igual en todos). Ambos
+## comprobados con datos reales: Gini Noruega/Finlandia ~26-27, Espana ~33,
+## Brasil/Sudafrica ~50-54; pobreza_relativa_pct Finlandia/Noruega ~7%, Espana
+## ~15%, Brasil/Sudafrica ~20-21% (correlacion con Gini 0,84: relacionados pero
+## no redundantes, 91 de 99 paises PISA con iso3c tienen dato en los dos).
+options(timeout = max(60, getOption(&quot;timeout&quot;)))
+
+wb_raw &lt;- wb_data(indicator = c(gasto_educacion_pct_pib = &quot;SE.XPD.TOTL.GD.ZS&quot;,
+                                 indice_gini             = &quot;SI.POV.GINI&quot;,
+                                 pobreza_relativa_pct    = &quot;SI.DST.50MD&quot;),
+                   start_date = 1970, end_date = 2025, return_wide = FALSE)
+
+contexto_paises &lt;- wb_raw |&gt;
+  filter(!is.na(value)) |&gt;
+  transmute(pais = country, iso3c, anio = as.integer(date),
+            indicador = indicator_id, valor = value) |&gt;
+  mutate(indicador = recode(indicador, SE.XPD.TOTL.GD.ZS = &quot;gasto_educacion_pct_pib&quot;,
+                             SI.POV.GINI = &quot;indice_gini&quot;, SI.DST.50MD = &quot;pobreza_relativa_pct&quot;)) |&gt;
+  arrange(pais, indicador, anio)
+
+saveRDS(contexto_paises, f_contexto_paises)
+cat(&quot;Fichero guardado:&quot;, f_contexto_paises, &quot;-&quot;, nrow(contexto_paises), &quot;filas,&quot;,
+    n_distinct(contexto_paises$pais), &quot;países\n&quot;)</code></pre>
+<pre class="r"><code>## --- contexto por CCAA: INE (ECV + Contabilidad Regional) -------------------
+
+# la ECV devuelve, por fila, un Nombre &quot;&lt;territorio&gt;. Total. &lt;concepto&gt;. Base 2013.&quot;
+# de donde extraemos territorio y concepto directamente (mas fiable que la lista
+# de metadatos anidada, que usa variables distintas para &quot;Total Nacional&quot; y CCAA)
+parse_ecv &lt;- function(idTable) {
+  r &lt;- get_data_table(idTable = idTable, unnest = TRUE, tip = &quot;AM&quot;)
+  m &lt;- str_match(r$Nombre, &quot;^(.*?)\\. Total\\. (.*?)\\. Base 2013\\.&quot;)
+  r |&gt; transmute(region = str_trim(m[, 2]), concepto = str_trim(m[, 3]),
+                 anio = as.integer(Anyo), valor = Valor)
+}
+
+# 9963: Tasa de riesgo de pobreza por CCAA (ya en el catalogo INE.datasets.xlsx)
+pobreza_ccaa &lt;- parse_ecv(9963) |&gt;
+  filter(concepto == &quot;Tasa de riesgo de pobreza (renta del año anterior a la entrevista)&quot;) |&gt;
+  transmute(region, anio, indicador = &quot;pobreza_pct&quot;, valor)
+
+# 60264: AROPE y sus 3 componentes por CCAA (ya en el catalogo INE.datasets.xlsx)
+arope_codigos &lt;- c(
+  &quot;Tasa de riesgo de pobreza o exclusión social (indicador AROPE)&quot; = &quot;arope_pct&quot;,
+  &quot;En riesgo de pobreza (renta año anterior a la entrevista)&quot;      = &quot;arope_riesgo_pobreza_pct&quot;,
+  &quot;Con carencia material y social severa&quot;                         = &quot;arope_carencia_material_pct&quot;,
+  &quot;Viviendo en hogares con baja intensidad en el trabajo (de 0 a 64 años)&quot; = &quot;arope_baja_intensidad_trabajo_pct&quot;
+)
+arope_ccaa &lt;- parse_ecv(60264) |&gt;
+  filter(concepto %in% names(arope_codigos)) |&gt;
+  transmute(region, anio, indicador = recode(concepto, !!!arope_codigos), valor)
+
+# 76923 (tpx de INEbase, fuera de la API/catalogo): PIB y VAB por rama de
+# actividad y CCAA, Contabilidad Regional de España. La rama O_Q agrupa
+# &quot;Administración pública y defensa, seguridad social obligatoria, educación,
+# actividades sanitarias y de servicios sociales&quot; (no aisla educación sola).
+# NombrePeriodo trae sufijos &quot;(A)&quot; avance/&quot;(P)&quot; provisional en los años más
+# recientes: se limpian para quedarnos con el año.
+cre_raw &lt;- get_data_table(idTable = 76923, unnest = TRUE, tip = &quot;AM&quot;)
+
+peso_oq_ccaa &lt;- cre_raw |&gt;
+  filter(str_detect(Nombre, fixed(&quot;educación, actividades sanitarias&quot;)),
+         str_ends(Nombre, &quot;Estructura porcentual&quot;)) |&gt;
+  transmute(region = str_trim(str_extract(Nombre, &quot;^.*?(?=, O_Q\\.)&quot;)),
+            anio = as.integer(str_extract(NombrePeriodo, &quot;^[0-9]{4}&quot;)),
+            indicador = &quot;peso_admin_edu_sanidad_pib_pct&quot;, valor = Valor)
+
+pib_ccaa &lt;- cre_raw |&gt;
+  filter(str_detect(Nombre, fixed(&quot;PRODUCTO INTERIOR BRUTO A PRECIOS DE MERCADO&quot;)),
+         str_ends(Nombre, &quot;, Valor&quot;)) |&gt;
+  transmute(region = str_trim(str_extract(Nombre, &quot;^.*?(?=, PRODUCTO)&quot;)),
+            anio = as.integer(str_extract(NombrePeriodo, &quot;^[0-9]{4}&quot;)),
+            indicador = &quot;pib_miles_eur&quot;, valor = Valor)
+
+# &quot;Total Nacional&quot;/&quot;TOTAL NACIONAL&quot; -&gt; &quot;España&quot;, igual que en pisa_ccaa
+contexto_ccaa &lt;- bind_rows(pobreza_ccaa, arope_ccaa, peso_oq_ccaa, pib_ccaa) |&gt;
+  mutate(region = if_else(region %in% c(&quot;Total Nacional&quot;, &quot;TOTAL NACIONAL&quot;), &quot;España&quot;, region),
+         ambito = if_else(region == &quot;España&quot;, &quot;referencia&quot;, &quot;CCAA&quot;)) |&gt;
+  select(region, ambito, anio, indicador, valor) |&gt;
+  arrange(region, indicador, anio)
+
+saveRDS(contexto_ccaa, f_contexto_ccaa)
+cat(&quot;Fichero guardado:&quot;, f_contexto_ccaa, &quot;-&quot;, nrow(contexto_ccaa), &quot;filas,&quot;,
+    n_distinct(contexto_ccaa$region[contexto_ccaa$ambito == &quot;CCAA&quot;]), &quot;regiones,&quot;,
+    n_distinct(contexto_ccaa$indicador), &quot;indicadores\n&quot;)</code></pre>
 </div>
-<div id="clima-variables-climáticas-de-adaptecca-dos-proyectos-posibles-para-dos-ámbitos-geográficos" class="section level2" number="2.6">
-<h2><span class="header-section-number">2.6</span> CLIMA — variables
-climáticas de AdapteCCa (dos proyectos posibles, para dos ámbitos
-geográficos)</h2>
-<p>Al igual que EDGAR, <strong>CLIMA no sigue el flujo de dos
-pasos</strong> (no hay catálogo Excel): los “datasets” son un conjunto
-fijo de <strong>14 variables climáticas</strong> (temperatura,
-precipitación y varios índices derivados) medidas <strong>por región y
-mes</strong> con <strong>dos ámbitos geográficos</strong> a elegir:</p>
+<div id="metadatos-del-dataset" class="section level2" number="1.2">
+<h2><span class="header-section-number">1.2</span> Metadatos del
+dataset</h2>
+<p>Igual que EDGAR o CLIMA, esta fuente <strong>no tiene un catálogo
+previo</strong> del que extraer la ficha: los metadatos se construyen en
+este mismo documento y se guardan en <strong>un único fichero</strong>,
+<code>INFORME_PISA_metadatos.xlsx</code>, con <strong>siete
+hojas</strong>:</p>
+<ul>
+<li><code>dataset</code> — ficha general (fuente, limitación de acceso,
+cobertura, tamaño de los cuatro ficheros, cobertura del cruce por
+<code>iso3c</code>).</li>
+<li><code>entidades_especiales</code> — qué países/entidades de
+<code>pisa_paises</code> <strong>no</strong> son la muestra nacional
+completa (sub-regiones, ciudades).</li>
+<li><code>nombres_normalizados</code> — los 5 países que Wikipedia
+etiqueta con un nombre distinto SOLO en la tabla de PISA 2025 frente al
+resto de ciclos (p. ej. <code>Turkey</code>→<code>Türkiye</code>),
+corregidos aquí para que la serie no se parta en dos.</li>
+<li><code>ciclos</code> — correspondencia entre el año de aplicación
+real de la prueba PISA y el año que a veces usa la prensa española (2018
+→ “PISA 2019”).</li>
+<li><code>ccaa_geo</code> — equivalencia entre el nombre de región usado
+aquí (Wikipedia) y el <code>ine.ccaa.name</code> de
+<code>mapSpain</code>, necesaria para los mapas coropléticos y para
+cruzar con <code>contexto_ccaa</code>.</li>
+<li><code>contexto_indicadores</code> — diccionario de los 6 indicadores
+de contexto (fuente, ámbito país/CCAA, unidad, descripción y
+advertencias de uso).</li>
+<li><code>contexto_fuentes</code> — de dónde sale cada tabla de
+contexto: el Banco Mundial vía <code>wbstats</code> (API, igual que el
+resto del proyecto) y el INE vía <code>ineapir</code>, pero la
+Contabilidad Regional (<code>peso_admin_edu_sanidad_pib_pct</code>,
+<code>pib_miles_eur</code>) por <strong>descarga directa de
+INEbase</strong> (tabla <code>tpx=76923</code>), fuera del catálogo ya
+generado en <code>INE/INE.datasets.xlsx</code>.</li>
+</ul>
+<p><strong>La columna <code>iso3c</code> de
+<code>pisa_paises</code></strong> (código ISO 3166-1 alfa-3) se
+construye con un <strong>proceso auxiliar que no se guarda como fichero
+propio</strong>: una tabla de equivalencias país→iso3c (vía el paquete
+<code>countrycode</code>, con las 9 sub-muestras mapeadas a la soberanía
+real y Kosovo forzado a <code>XKX</code>, el código de facto que usa
+también el Banco Mundial). Su único fin es poder cruzar
+<code>pisa_paises</code> con <code>contexto_paises</code> — o con
+cualquier otra fuente por país— sin repetir el trabajo de emparejar
+nombres cada vez.</p>
+<pre class="r"><code>pisa_paises     &lt;- readRDS(f_paises)
+pisa_ccaa       &lt;- readRDS(f_ccaa)
+contexto_paises &lt;- readRDS(f_contexto_paises)
+contexto_ccaa   &lt;- readRDS(f_contexto_ccaa)
+
+entidades_parciales &lt;- c(
+  &quot;Argentina (CABA)&quot;, &quot;Azerbaijan (Baku)&quot;, &quot;B-S-J-Z (China)&quot;,
+  &quot;China (B-S-J-G)&quot;, &quot;China (B-S-J-Z)&quot;, &quot;China (Shanghai)&quot;,
+  &quot;Dushanbe (Tajikistan)&quot;, &quot;Kurdistan Region (Iraq)&quot;,
+  &quot;Ukrainian regions (17 of 27)&quot;
+)
+
+desc_entidades &lt;- tibble::tribble(
+  ~pais,                          ~representativa, ~explicacion,
+  &quot;Argentina (CABA)&quot;,             &quot;NO&quot;, &quot;Ciudad Autónoma de Buenos Aires (muestra ampliada de una sola ciudad), no toda Argentina.&quot;,
+  &quot;Azerbaijan (Baku)&quot;,            &quot;NO&quot;, &quot;Solo la ciudad de Bakú fue evaluada en los ciclos en que aparece, no todo el país.&quot;,
+  &quot;China (Shanghai)&quot;,             &quot;NO&quot;, &quot;PISA 2009 y 2012: solo la ciudad de Shanghái, la región china con mejor resultado educativo.&quot;,
+  &quot;China (B-S-J-G)&quot;,              &quot;NO&quot;, &quot;PISA 2015: Pekín-Shanghái-Jiangsu-Guangdong, 4 provincias/municipios, no China continental.&quot;,
+  &quot;China (B-S-J-Z)&quot;,              &quot;NO&quot;, &quot;PISA 2018: Pekín-Shanghái-Jiangsu-Zhejiang, 4 provincias/municipios, no China continental.&quot;,
+  &quot;B-S-J-Z (China)&quot;,              &quot;NO&quot;, &quot;PISA 2022 y 2025: mismas 4 provincias/municipios que &#39;China (B-S-J-Z)&#39; de 2018; no son series comparables entre sí como &#39;China&#39; a secas.&quot;,
+  &quot;Dushanbe (Tajikistan)&quot;,        &quot;NO&quot;, &quot;Solo la capital, Dusambé.&quot;,
+  &quot;Kurdistan Region (Iraq)&quot;,      &quot;NO&quot;, &quot;Solo la región autónoma del Kurdistán iraquí, no todo Irak.&quot;,
+  &quot;Ukrainian regions (17 of 27)&quot;, &quot;NO&quot;, &quot;PISA 2022: muestra reducida a 17 de las 27 regiones por la invasión rusa.&quot;
+)
+
+# Hong Kong y Macao YA NO llevan paréntesis en pisa_paises (se normalizaron en
+# nombres_normalizados: eran economías de pleno derecho, no submuestras, y su
+# única &quot;rareza&quot; era el nombre distinto en la tabla de PISA 2025; corregida esa
+# rareza no necesitan fila propia aquí)
+
+desc_nombres_normalizados &lt;- tibble::tribble(
+  ~nombre_wikipedia_original, ~nombre_usado_aqui, ~ciclos_con_nombre_original, ~nota,
+  &quot;Turkey&quot;,    &quot;Türkiye&quot;,         &quot;2003-2022 (8 ciclos)&quot;, &quot;Nombre oficial vigente desde 2022 (Türkiye); la tabla de PISA 2025 ya lo usaba, la comparativa 2000-2022 no.&quot;,
+  &quot;Macau&quot;,     &quot;Macao&quot;,           &quot;2003-2022 (8 ciclos)&quot;, &quot;Wikipedia usa &#39;Macau&#39; en la comparativa histórica y &#39;Macao (China)&#39; solo en la tabla de PISA 2025; se unifica en &#39;Macao&#39;.&quot;,
+  &quot;Hong Kong&quot;, &quot;Hong Kong&quot;,       &quot;2000-2022 (9 ciclos)&quot;, &quot;Wikipedia usa &#39;Hong Kong&#39; en la comparativa histórica y &#39;Hong Kong (China)&#39; solo en PISA 2025; se unifica sin el paréntesis.&quot;,
+  &quot;Taiwan&quot;,    &quot;Chinese Taipei&quot;,  &quot;2006-2022 (6 ciclos)&quot;, &quot;&#39;Chinese Taipei&#39; es la denominación oficial que usa la propia OCDE/PISA; la comparativa histórica de Wikipedia la simplificaba a &#39;Taiwan&#39;.&quot;,
+  &quot;Macedonia&quot;, &quot;North Macedonia&quot;, &quot;2000-2022 (4 ciclos)&quot;, &quot;Nombre oficial del país desde el Acuerdo de Prespa (2019); la comparativa histórica conserva el nombre anterior a ese acuerdo.&quot;
+)
+
+desc_ciclos &lt;- tibble::tribble(
+  ~anio_pisa, ~anio_prensa_espanola, ~nota,
+  2000, &quot;2000&quot;, &quot;&quot;,
+  2003, &quot;2003&quot;, &quot;&quot;,
+  2006, &quot;2006&quot;, &quot;&quot;,
+  2009, &quot;2009&quot;, &quot;&quot;,
+  2012, &quot;2012&quot;, &quot;&quot;,
+  2015, &quot;2015&quot;, &quot;&quot;,
+  2018, &quot;2019&quot;, &quot;La prensa española etiquetó estos resultados por el año de PUBLICACIÓN (dic-2019); el ciclo internacional PISA es 2018 (año de aplicación de la prueba). El dataset usa siempre 2018.&quot;,
+  2022, &quot;2022&quot;, &quot;Ciclo aplicado en 2022 en vez de 2021: retraso de un año por la pandemia de COVID-19.&quot;,
+  2025, &quot;2025&quot;, &quot;Resultados publicados el 8 de septiembre de 2026.&quot;
+)
+
+desc_ccaa_geo &lt;- tibble::tribble(
+  ~region,               ~ine_ccaa_name,
+  &quot;Andalucía&quot;,             &quot;Andalucía&quot;,
+  &quot;Aragón&quot;,                &quot;Aragón&quot;,
+  &quot;Asturias&quot;,              &quot;Asturias, Principado de&quot;,
+  &quot;Islas Baleares&quot;,        &quot;Balears, Illes&quot;,
+  &quot;Islas Canarias&quot;,        &quot;Canarias&quot;,
+  &quot;Cantabria&quot;,             &quot;Cantabria&quot;,
+  &quot;Castilla-La Mancha&quot;,    &quot;Castilla - La Mancha&quot;,
+  &quot;Castilla y León&quot;,       &quot;Castilla y León&quot;,
+  &quot;Cataluña&quot;,              &quot;Cataluña&quot;,
+  &quot;Ceuta&quot;,                 &quot;Ceuta&quot;,
+  &quot;Comunidad Valenciana&quot;,  &quot;Comunitat Valenciana&quot;,
+  &quot;Extremadura&quot;,           &quot;Extremadura&quot;,
+  &quot;Galicia&quot;,               &quot;Galicia&quot;,
+  &quot;Comunidad de Madrid&quot;,   &quot;Madrid, Comunidad de&quot;,
+  &quot;Melilla&quot;,               &quot;Melilla&quot;,
+  &quot;Región de Murcia&quot;,      &quot;Murcia, Región de&quot;,
+  &quot;Navarra&quot;,               &quot;Navarra, Comunidad Foral de&quot;,
+  &quot;País Vasco&quot;,            &quot;País Vasco&quot;,
+  &quot;La Rioja&quot;,              &quot;Rioja, La&quot;
+)
+
+desc_contexto_indicadores &lt;- tibble::tribble(
+  ~indicador,                          ~ambito, ~fuente,        ~unidad, ~comparable, ~descripcion,
+  &quot;gasto_educacion_pct_pib&quot;,           &quot;pais&quot;,  &quot;Banco Mundial (SE.XPD.TOTL.GD.ZS)&quot;, &quot;% del PIB&quot;, &quot;SI&quot;,
+    &quot;Gasto público total en educación (corriente + capital + transferencias), gobierno general. Ratio estandarizada por el Banco Mundial: comparable entre países (con la salvedad habitual de qué partidas cuenta cada país como gasto público).&quot;,
+  &quot;indice_gini&quot;,                       &quot;pais&quot;,  &quot;Banco Mundial (SI.POV.GINI)&quot;, &quot;índice 0-100&quot;, &quot;SI&quot;,
+    &quot;Desigualdad de ingresos (0 = igualdad perfecta, 100 = desigualdad máxima). Diseñado explícitamente para comparar ENTRE países, al contrario que la tasa de pobreza por líneas nacionales (descartada, ver nota abajo). Mide desigualdad de la DISTRIBUCIÓN, no pobreza en sí. Comprobado con datos reales: Noruega/Finlandia ~26-27, España ~33, Brasil/Sudáfrica ~50-54.&quot;,
+  &quot;pobreza_relativa_pct&quot;,              &quot;pais&quot;,  &quot;Banco Mundial (SI.DST.50MD)&quot;, &quot;% de población&quot;, &quot;SI&quot;,
+    &quot;Pobreza RELATIVA: % de población con renta por debajo del 50% de la renta mediana de su propio país (estándar tipo OCDE). A diferencia de la tasa por líneas NACIONALES (descartada), el umbral se calcula igual en todos los países, así que sí es comparable entre ellos, y a diferencia del Gini mide pobreza propiamente, no desigualdad. Comprobado con datos reales: Finlandia/Noruega ~7%, España ~15%, Brasil/Sudáfrica ~20-21% (correlación con indice_gini = 0,84: relacionados pero no redundantes).&quot;,
+  &quot;pobreza_pct&quot;,                       &quot;CCAA&quot;,  &quot;INE, Encuesta de Condiciones de Vida (ECV)&quot;, &quot;% de población&quot;, &quot;SI&quot;,
+    &quot;Tasa de riesgo de pobreza (renta del año anterior a la entrevista), sin alquiler imputado. Misma encuesta y el mismo umbral metodológico en las 19 CCAA: comparable entre regiones (no tiene el problema de &#39;línea nacional&#39; propio de comparar entre países distintos).&quot;,
+  &quot;arope_pct&quot;,                         &quot;CCAA&quot;,  &quot;INE, ECV&quot;, &quot;% de población&quot;, &quot;SI&quot;,
+    &quot;Indicador AROPE: riesgo de pobreza o exclusión social (objetivo Europa 2030). Es el indicador oficial de la UE, más amplio que la sola tasa de pobreza monetaria. Misma metodología en las 19 CCAA.&quot;,
+  &quot;arope_riesgo_pobreza_pct&quot;,          &quot;CCAA&quot;,  &quot;INE, ECV&quot;, &quot;% de población&quot;, &quot;SI&quot;,
+    &quot;Componente de renta del AROPE (equivalente conceptualmente a pobreza_pct, calculado dentro de la serie AROPE). Misma metodología en las 19 CCAA.&quot;,
+  &quot;arope_carencia_material_pct&quot;,       &quot;CCAA&quot;,  &quot;INE, ECV&quot;, &quot;% de población&quot;, &quot;SI&quot;,
+    &quot;Componente de carencia material y social severa del AROPE (no poder afrontar ciertos gastos/bienes básicos). Misma metodología en las 19 CCAA.&quot;,
+  &quot;arope_baja_intensidad_trabajo_pct&quot;, &quot;CCAA&quot;,  &quot;INE, ECV&quot;, &quot;% de población 0-64 años&quot;, &quot;SI&quot;,
+    &quot;Componente de baja intensidad de empleo en el hogar del AROPE. Misma metodología en las 19 CCAA.&quot;,
+  &quot;peso_admin_edu_sanidad_pib_pct&quot;,    &quot;CCAA&quot;,  &quot;INE, Contabilidad Regional de España (CRE)&quot;, &quot;% del PIB regional&quot;, &quot;SI&quot;,
+    &quot;Peso de la rama O_Q (Administración pública y defensa, seguridad social obligatoria, EDUCACIÓN, actividades sanitarias y de servicios sociales) sobre el PIB de la Comunidad Autónoma. Es una proporción (ya normalizada por el propio PIB regional), comparable entre CCAA. ADVERTENCIA APARTE: no aísla la educación; la CRE no desagrega esta rama en España.&quot;,
+  &quot;pib_miles_eur&quot;,                     &quot;CCAA&quot;,  &quot;INE, Contabilidad Regional de España (CRE)&quot;, &quot;miles de euros&quot;, &quot;NO&quot;,
+    &quot;Producto Interior Bruto a precios de mercado de la Comunidad Autónoma (precios corrientes), en valor ABSOLUTO. NO comparable directamente entre CCAA para medir nivel de renta o riqueza: una región con más población da más PIB total sin ser más rica por habitante (Madrid &gt; La Rioja por tamaño, no solo por productividad). Para comparar entre CCAA habría que dividir por población (PIB per cápita), no incluida aquí. Válido tal cual para seguir la evolución temporal de una misma CCAA. El INE marca los 1-2 últimos años como avance/provisional (sufijos &#39;(A)&#39;/&#39;(P)&#39; del periodo original); aquí solo se conserva el año.&quot;
+)
+
+desc_contexto_fuentes &lt;- tibble::tribble(
+  ~tabla,             ~mecanismo,                                  ~detalle,
+  &quot;contexto_paises&quot;,  &quot;API (wbstats::wb_data)&quot;,                    &quot;Mismo mecanismo que el resto del proyecto (Banco Mundial). Indicadores SE.XPD.TOTL.GD.ZS, SI.POV.GINI y SI.DST.50MD, ya identificados en WORLD_BANK/wb.datasets.xlsx.&quot;,
+  &quot;contexto_ccaa (pobreza/AROPE)&quot;, &quot;API (ineapir::get_data_table)&quot;, &quot;Mismo mecanismo que el resto del proyecto (INE). idTable 9963 y 60264, ya identificados en INE/INE.datasets.xlsx.&quot;,
+  &quot;contexto_ccaa (peso_admin_edu_sanidad_pib_pct, pib_miles_eur)&quot;, &quot;Descarga directa de INEbase (ineapir::get_data_table con idTable=76923, el &#39;tpx&#39; de la tabla PC-Axis)&quot;, &quot;La Contabilidad Regional de España NO aparece en la lista de 112 operaciones que expone la API del INE (comprobado en vivo): es un producto de INEbase fuera del catálogo ya generado por INE_TableDatasetGeneration.Rmd. Se accede por el mismo paquete ineapir pero indicando directamente el identificador de tabla localizado en la web (ine.es), no a través de una operación catalogada.&quot;
+)
+
+n_con_iso3c &lt;- pisa_paises |&gt; distinct(pais, iso3c) |&gt; summarise(sum(!is.na(iso3c))) |&gt; pull()
+n_paises_total &lt;- n_distinct(pisa_paises$pais)
+n_cruzan_contexto &lt;- pisa_paises |&gt; distinct(iso3c) |&gt; filter(!is.na(iso3c)) |&gt;
+  semi_join(contexto_paises |&gt; distinct(iso3c), by = &quot;iso3c&quot;) |&gt; nrow()
+
+ficha &lt;- tibble(
+  Campo = c(&quot;Fuente&quot;, &quot;Limitacion_de_acceso&quot;, &quot;URL_original_OCDE&quot;, &quot;URL_reconstruccion&quot;,
+            &quot;Fecha_de_generacion&quot;,
+            &quot;Fichero_paises&quot;, &quot;Paises_N_filas&quot;, &quot;Paises_N_entidades&quot;, &quot;Paises_N_entidades_parciales&quot;,
+            &quot;Paises_ciclos&quot;, &quot;Paises_Freq&quot;, &quot;Paises_N_con_iso3c&quot;, &quot;Paises_N_que_cruzan_con_contexto&quot;,
+            &quot;Fichero_ccaa&quot;, &quot;CCAA_N_filas&quot;, &quot;CCAA_N_regiones&quot;, &quot;CCAA_ciclos&quot;, &quot;CCAA_Freq&quot;,
+            &quot;Fichero_contexto_paises&quot;, &quot;ContextoPaises_N_filas&quot;, &quot;ContextoPaises_N_paises&quot;,
+            &quot;Fichero_contexto_ccaa&quot;, &quot;ContextoCCAA_N_filas&quot;, &quot;ContextoCCAA_N_indicadores&quot;),
+  Valor = c(
+    &quot;OCDE (Programme for International Student Assessment)&quot;,
+    &quot;Descarga directa de oecd.org bloqueada (HTTP 403, filtro anti-robots); reconstruido de Wikipedia&quot;,
+    &quot;https://www.oecd.org/en/data/datasets/pisa-2025-database.html&quot;,
+    paste(&quot;en.wikipedia.org/wiki/Programme_for_International_Student_Assessment;&quot;,
+          &quot;es.wikipedia.org/wiki/Anexo:Resultados_del_Informe_PISA_en_España_por_Comunidades_Autónomas&quot;),
+    as.character(Sys.Date()),
+    f_paises, as.character(nrow(pisa_paises)), as.character(n_distinct(pisa_paises$pais)),
+    as.character(sum(pisa_paises$entidad_parcial[!duplicated(pisa_paises$pais)])),
+    paste(sort(unique(pisa_paises$anio)), collapse = &quot;, &quot;),
+    &quot;trienal con huecos (no todos los países en todos los ciclos; ver P25 de longitud de serie en el análisis)&quot;,
+    paste0(n_con_iso3c, &quot; de &quot;, n_paises_total),
+    paste0(n_cruzan_contexto, &quot; (iso3c presente también en contexto_paises)&quot;),
+    f_ccaa, as.character(nrow(pisa_ccaa)), as.character(n_distinct(pisa_ccaa$region[pisa_ccaa$ambito == &quot;CCAA&quot;])),
+    paste(sort(unique(pisa_ccaa$anio)), collapse = &quot;, &quot;),
+    &quot;trienal desde 2009 (España no desagregaba por CCAA en 2000/2003/2006)&quot;,
+    f_contexto_paises, as.character(nrow(contexto_paises)), as.character(n_distinct(contexto_paises$pais)),
+    f_contexto_ccaa, as.character(nrow(contexto_ccaa)), as.character(n_distinct(contexto_ccaa$indicador))
+  )
+)
+
+# comprobación: toda entidad marcada como parcial en el rds tiene descripción, y
+# viceversa no debe faltar ninguna región de pisa_ccaa en el mapeo geográfico, ni
+# ningún indicador de contexto en su diccionario, ni ningún país sin iso3c
+faltan_desc  &lt;- setdiff(entidades_parciales, desc_entidades$pais[desc_entidades$representativa == &quot;NO&quot;])
+faltan_geo   &lt;- setdiff(pisa_ccaa$region[pisa_ccaa$ambito == &quot;CCAA&quot;], desc_ccaa_geo$region)
+faltan_geo_ctx &lt;- setdiff(contexto_ccaa$region[contexto_ccaa$ambito == &quot;CCAA&quot;], desc_ccaa_geo$ine_ccaa_name)
+faltan_ind   &lt;- setdiff(unique(c(contexto_paises$indicador, contexto_ccaa$indicador)), desc_contexto_indicadores$indicador)
+sin_iso3c    &lt;- pisa_paises |&gt; distinct(pais, iso3c) |&gt; filter(is.na(iso3c)) |&gt; pull(pais)
+if (length(faltan_desc) &gt; 0) warning(&quot;Entidades parciales sin descripción: &quot;, paste(faltan_desc, collapse = &quot;, &quot;))
+if (length(faltan_geo)  &gt; 0) warning(&quot;Regiones CCAA sin equivalencia mapSpain: &quot;, paste(faltan_geo, collapse = &quot;, &quot;))
+if (length(faltan_geo_ctx) &gt; 0) warning(&quot;Regiones de contexto_ccaa sin equivalencia ccaa_geo: &quot;, paste(faltan_geo_ctx, collapse = &quot;, &quot;))
+if (length(faltan_ind)  &gt; 0) warning(&quot;Indicadores de contexto sin descripción: &quot;, paste(faltan_ind, collapse = &quot;, &quot;))
+if (length(sin_iso3c)   &gt; 0) warning(&quot;Países sin iso3c: &quot;, paste(sin_iso3c, collapse = &quot;, &quot;))
+
+write.xlsx(list(dataset = ficha, entidades_especiales = desc_entidades,
+                nombres_normalizados = desc_nombres_normalizados,
+                ciclos = desc_ciclos, ccaa_geo = desc_ccaa_geo,
+                contexto_indicadores = desc_contexto_indicadores,
+                contexto_fuentes = desc_contexto_fuentes),
+           file = paste0(filename, &quot;_metadatos.xlsx&quot;), overwrite = TRUE)
+
+cat(&quot;Fichero guardado:&quot;, paste0(filename, &quot;_metadatos.xlsx&quot;),
+    &quot;- hojas: dataset, entidades_especiales, nombres_normalizados, ciclos, ccaa_geo,&quot;,
+    &quot;contexto_indicadores, contexto_fuentes\n&quot;)</code></pre>
+<pre><code>## Fichero guardado: INFORME_PISA_metadatos.xlsx - hojas: dataset, entidades_especiales, nombres_normalizados, ciclos, ccaa_geo, contexto_indicadores, contexto_fuentes</code></pre>
+<pre class="r"><code>cat(&quot;Entidades sin descripcion:&quot;, length(faltan_desc), &quot;| regiones CCAA sin mapeo geografico:&quot;, length(faltan_geo),
+    &quot;| regiones contexto sin mapeo:&quot;, length(faltan_geo_ctx), &quot;| indicadores sin descripcion:&quot;, length(faltan_ind),
+    &quot;| paises sin iso3c:&quot;, length(sin_iso3c), &quot;\n&quot;)</code></pre>
+<pre><code>## Entidades sin descripcion: 0 | regiones CCAA sin mapeo geografico: 0 | regiones contexto sin mapeo: 0 | indicadores sin descripcion: 0 | paises sin iso3c: 0</code></pre>
+<p>Una vez guardados en disco los metadatos (fichero xlsx) y los datos
+(los dos ficheros RDS), iniciamos el proceso de análisis. A partir de
+aquí el documento se compila <strong>solo</strong> con los ficheros ya
+guardados en disco; no se usa ningún objeto de las secciones anteriores.
+Es a propósito: es la parte que el alumno incluye en la memoria del
+proyecto personal, así que tiene que poder ejecutarse sola (lo único que
+se repite de lo definido antes son los nombres de fichero).</p>
+</div>
+</div>
+<div id="análisis-del-dataset" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> Análisis del
+dataset</h1>
+<pre class="r"><code># se repite aquí (idéntico al de las secciones anteriores) para poder nombrar los
+# ficheros sin depender de ningún chunk anterior
+filename          &lt;- &quot;INFORME_PISA&quot;
+f_paises          &lt;- &quot;pisa_paises_2000_2025.rds&quot;
+f_ccaa            &lt;- &quot;pisa_ccaa_2009_2025.rds&quot;
+f_contexto_paises &lt;- &quot;contexto_paises.rds&quot;
+f_contexto_ccaa   &lt;- &quot;contexto_ccaa.rds&quot;</code></pre>
+<pre class="r"><code># el resto de hojas del xlsx (entidades_especiales, nombres_normalizados, ciclos,
+# ccaa_geo, contexto_indicadores, contexto_fuentes) documentan el detalle de cada
+# aviso/normalización; no se repiten aquí, este análisis se limita a describir
+# cada tabla, su tamaño de serie y la validación global de requisitos AEDV
+ficha &lt;- read.xlsx(paste0(filename, &quot;_metadatos.xlsx&quot;), sheet = &quot;dataset&quot;)
+
+pisa_paises     &lt;- readRDS(f_paises) |&gt; as_tibble()
+pisa_ccaa       &lt;- readRDS(f_ccaa)   |&gt; as_tibble()
+contexto_paises &lt;- readRDS(f_contexto_paises) |&gt; as_tibble()
+contexto_ccaa   &lt;- readRDS(f_contexto_ccaa)   |&gt; as_tibble()</code></pre>
+<p><strong>metadatos</strong></p>
+<div class="tabla-scroll">
 <table>
 <colgroup>
-<col width="17%" />
-<col width="20%" />
-<col width="22%" />
-<col width="40%" />
+<col width="16%" />
+<col width="83%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th>Ámbito</th>
-<th>Carpeta</th>
-<th>Regiones</th>
-<th>Fuente / rejilla</th>
+<th align="left">Campo</th>
+<th align="left">Valor</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><strong>Canarias</strong></td>
-<td><code>CLIMA_CANARIAS/</code></td>
-<td>88 municipios</td>
-<td>AdapteCCa ROCIO+_CAN (~2,5 km)</td>
+<td align="left">Fuente</td>
+<td align="left">OCDE (Programme for International Student
+Assessment)</td>
 </tr>
 <tr class="even">
-<td><strong>España</strong></td>
-<td><code>CLIMA_SPAIN/</code></td>
-<td>52 provincias</td>
-<td>AdapteCCa ROCIO_IBEB (~5 km, Península/Baleares/Ceuta/Melilla) +
-ROCIO+_CAN (~2,5 km, Canarias)</td>
+<td align="left">Limitacion_de_acceso</td>
+<td align="left">Descarga directa de oecd.org bloqueada (HTTP 403,
+filtro anti-robots); reconstruido de Wikipedia</td>
+</tr>
+<tr class="odd">
+<td align="left">URL_original_OCDE</td>
+<td align="left"><a href="https://www.oecd.org/en/data/datasets/pisa-2025-database.html" class="uri">https://www.oecd.org/en/data/datasets/pisa-2025-database.html</a></td>
+</tr>
+<tr class="even">
+<td align="left">URL_reconstruccion</td>
+<td align="left">en.wikipedia.org/wiki/Programme_for_International_Student_Assessment;
+es.wikipedia.org/wiki/Anexo:Resultados_del_Informe_PISA_en_España_por_Comunidades_Autónomas</td>
+</tr>
+<tr class="odd">
+<td align="left">Fecha_de_generacion</td>
+<td align="left">2026-09-10</td>
+</tr>
+<tr class="even">
+<td align="left">Fichero_paises</td>
+<td align="left">pisa_paises_2000_2025.rds</td>
+</tr>
+<tr class="odd">
+<td align="left">Paises_N_filas</td>
+<td align="left">1637</td>
+</tr>
+<tr class="even">
+<td align="left">Paises_N_entidades</td>
+<td align="left">105</td>
+</tr>
+<tr class="odd">
+<td align="left">Paises_N_entidades_parciales</td>
+<td align="left">9</td>
+</tr>
+<tr class="even">
+<td align="left">Paises_ciclos</td>
+<td align="left">2000, 2003, 2006, 2009, 2012, 2015, 2018, 2022,
+2025</td>
+</tr>
+<tr class="odd">
+<td align="left">Paises_Freq</td>
+<td align="left">trienal con huecos (no todos los países en todos los
+ciclos; ver P25 de longitud de serie en el análisis)</td>
+</tr>
+<tr class="even">
+<td align="left">Paises_N_con_iso3c</td>
+<td align="left">105 de 105</td>
+</tr>
+<tr class="odd">
+<td align="left">Paises_N_que_cruzan_con_contexto</td>
+<td align="left">98 (iso3c presente también en contexto_paises)</td>
+</tr>
+<tr class="even">
+<td align="left">Fichero_ccaa</td>
+<td align="left">pisa_ccaa_2009_2025.rds</td>
+</tr>
+<tr class="odd">
+<td align="left">CCAA_N_filas</td>
+<td align="left">366</td>
+</tr>
+<tr class="even">
+<td align="left">CCAA_N_regiones</td>
+<td align="left">19</td>
+</tr>
+<tr class="odd">
+<td align="left">CCAA_ciclos</td>
+<td align="left">2009, 2012, 2015, 2018, 2022, 2025</td>
+</tr>
+<tr class="even">
+<td align="left">CCAA_Freq</td>
+<td align="left">trienal desde 2009 (España no desagregaba por CCAA en
+2000/2003/2006)</td>
+</tr>
+<tr class="odd">
+<td align="left">Fichero_contexto_paises</td>
+<td align="left">contexto_paises.rds</td>
+</tr>
+<tr class="even">
+<td align="left">ContextoPaises_N_filas</td>
+<td align="left">9944</td>
+</tr>
+<tr class="odd">
+<td align="left">ContextoPaises_N_paises</td>
+<td align="left">205</td>
+</tr>
+<tr class="even">
+<td align="left">Fichero_contexto_ccaa</td>
+<td align="left">contexto_ccaa.rds</td>
+</tr>
+<tr class="odd">
+<td align="left">ContextoCCAA_N_filas</td>
+<td align="left">2320</td>
+</tr>
+<tr class="even">
+<td align="left">ContextoCCAA_N_indicadores</td>
+<td align="left">7</td>
 </tr>
 </tbody>
 </table>
-<p>Los datos provienen del <strong>Visor de Escenarios de Cambio
-Climático de AdapteCCa</strong> (colección Escenarios-PNACC:
-OECC/MITECO, AEMET, CSIC y Fundación Biodiversidad), distribuidos en
-NetCDF vía THREDDS. Cada ámbito tiene <strong>dos
-documentos</strong>:</p>
-<ul>
-<li><code>*_TableDatasetGeneration.Rmd</code> — descarga los NetCDF de
-AdapteCCa y <strong>genera dos <code>.rds</code></strong>: las
-<strong>observaciones</strong> (histórico, serie mensual con fecha) y
-las <strong>proyecciones</strong> (CMIP6). Este fichero solo se compila
-(puede tardar bastante) si se quiere actualizar los datos, pero para
-ello tendrían que haberse publicado datos nuevos y los nombres de acceso
-a los ficheros cambiarían. Estos datos no se publican anualmente.</li>
-<li><code>*_DatasetSelection.Rmd</code> — explora y
-<strong>valida</strong> las variables con el mismo <strong>heatmap de
-los tres criterios AEDV</strong>, e incluye <strong>mapas
-coropléticos</strong> por región y, para las proyecciones, la
-<strong>comparativa por modelo</strong> (dispersión inter-modelo de los
-11 GCMs frente al <code>ensemble</code>, por escenario y horizonte).
-Está organizado en dos partes, igual que los
-<code>*_DatasetSelection.Rmd</code> del resto de fuentes: primero elige
-las variables y guarda su ficha, y después analiza leyendo del disco, de
-modo que la sección <strong>Análisis del dataset</strong> es
-autocontenida y <strong>puedes copiarla tal cual en tu
-memoria</strong>.</li>
-</ul>
-<p>Como AdapteCCa no publica un catálogo de sus variables, cada ámbito
-genera su propio <code>CLIMA_&lt;ámbito&gt;_metadatos.xlsx</code> con
-<strong>cuatro hojas</strong>: <code>dataset</code> (ficha general),
-<code>variables</code> (qué mide cada variable, con su unidad),
-<code>horizontes</code> (el periodo de 30 años de cada uno) y
-<code>escenarios</code> (las 4 trayectorias SSP). Es el equivalente al
-<code>Indicator_desc</code> del Banco Mundial o al <code>topic</code> de
-EUROSTAT.</p>
-<p>Cada ámbito produce dos datasets:</p>
-<ul>
-<li><strong>Observaciones</strong> (clima medido por AEMET, serie
-<strong>mensual con fecha</strong> <code>yyyy-mm</code>): Canarias
-<strong>1990–2022</strong>, España <strong>1951–2022</strong> (2022
-incompleto). Columnas:
-<code>fecha · región · variable · unidad · value</code>.</li>
-<li><strong>Proyecciones</strong> (CMIP6 regionalizado;
-<strong>climatologías por mes, sin año</strong>): <strong>4 escenarios
-de emisión SSP</strong> (<code>ssp126</code>, <code>ssp245</code>,
-<code>ssp370</code>, <code>ssp585</code>) × <strong>12 modelos</strong>
-(11 GCMs individuales + <code>ensemble</code>) × <strong>4
-horizontes</strong>: la base histórica de referencia (1971–2000) y 3
-horizontes futuros (futuro cercano 2011–2040, medio 2041–2070 y lejano
-2071–2100). Columnas:
-<code>región · variable · unidad · escenario · modelo · horizonte · mes · value</code>.
-<ul>
-<li>Se guardan <strong>los resultados por modelo además del
-ensemble</strong>. La columna <code>modelo</code> toma 12 valores: los
-11 GCMs de CMIP6 (<code>ACCESS-CM2</code>, <code>CMCC-CM2-SR5</code>,
-<code>CNRM-ESM2-1</code>, <code>EC-Earth3-Veg</code>,
-<code>IITM-ESM</code>, <code>KACE-1-0-G</code>, <code>MIROC6</code>,
-<code>MPI-ESM1-2-HR</code>, <code>MRI-ESM2-0</code>,
-<code>NorESM2-MM</code>, <code>UKESM1-0-LL</code>) más
-<code>ensemble</code> (la media de los 11; campo <code>average</code>
-del origen). Mismos 11 modelos en temperatura <em>ESD-RegBA</em> y
-precipitación <em>deepESD</em>.</li>
-</ul></li>
-</ul>
-<p>Las 14 variables (idénticas en ambos ámbitos): temperatura
-(<code>tasmax</code>, <code>tasmin</code>, <code>tmean</code>, sus
-extremos mensuales, noches tropicales, días de helada, días/noches
-cálidos, ola de calor) y precipitación (<code>pr</code>, días de lluvia,
-máximos en 1 y 5 días).</p>
-<p>Los análisis que permite realizar son:</p>
-<ul>
-<li>Evolución histórica <strong>mensual</strong> de cualquier variable
-por municipio (Canarias) o provincia (España).</li>
-<li>Comparación entre regiones y rankings (climatologías).</li>
-<li><strong>Proyecciones futuras</strong> por escenario SSP,
-<strong>modelo</strong> (GCM individual o ensemble) y horizonte
-temporal, y su contraste con la línea base histórica; incluye la
-<strong>incertidumbre inter-modelo</strong> (dispersión entre los 11
-GCMs).</li>
-<li><strong>Mapas coropléticos</strong> por región (municipios de
-Canarias / provincias de España).</li>
-<li><strong>Validación AEDV</strong> con heatmap de cobertura
-geográfica, actualización y tamaño de las series temporales.</li>
-</ul>
-<blockquote>
-<p><strong>Atención al requisito de “datos actualizados”.</strong> El
-histórico observado de AdapteCCa llega hasta <strong>2022</strong> (es
-una colección por versión —Escenarios-PNACC 2024—, no una serie que se
-actualice cada año). La cobertura geográfica y la longitud de las series
-son excelentes, por ello, aunque la fecha del último dato es 2022 lo
-aceptamos como proyecto de AEDV.</p>
-</blockquote>
-<hr />
 </div>
-<div id="informe-pisa-resultados-educativos-pobreza-y-desigualdad-solo-sirve-para-un-estudiante" class="section level2" number="2.7">
-<h2><span class="header-section-number">2.7</span> INFORME PISA —
-resultados educativos, pobreza y desigualdad (solo sirve para un
-estudiante)</h2>
-<p>Como EDGAR y CLIMA, <strong>INFORME_PISA no tiene catálogo Excel
-previo</strong>: es un dataset único, ya construido, en
-<code>INFORME_PISA/INFORME_PISA.Rmd</code>, con la misma estructura en
-dos partes que el resto (descarga/limpieza primero, análisis
-autocontenido después, copiable tal cual en la memoria).</p>
-<p>Combina <strong>resultados del Informe PISA de la OCDE</strong> con
-<strong>contexto socioeconómico</strong> (pobreza, desigualdad y gasto
-en educación), a dos niveles geográficos a la vez:</p>
+<div id="pisa_paises_2000_2025.rds" class="section level2" number="2.1">
+<h2><span class="header-section-number">2.1</span>
+<code>pisa_paises_2000_2025.rds</code></h2>
+<p><em>País × asignatura × ciclo</em>. Columnas:
+<code>pais · iso3c · anio · asignatura · puntuacion · entidad_parcial</code>.
+<code>iso3c</code> viene de un proceso auxiliar (no guardado como
+fichero propio, ver metadatos) que de paso permitió corregir 5 países
+que Wikipedia partía en dos series por un cambio de nombre solo en la
+tabla de PISA 2025 (<code>nombres_normalizados</code>);
+<code>entidad_parcial</code> marca 9 sub-muestras no representativas del
+país completo (<code>entidades_especiales</code>).</p>
+<pre><code>## # A tibble: 1,637 × 6
+##    pais    iso3c  anio asignatura puntuacion entidad_parcial
+##    &lt;chr&gt;   &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;           &lt;dbl&gt; &lt;lgl&gt;          
+##  1 Albania ALB    2009 ciencias          391 FALSE          
+##  2 Albania ALB    2012 ciencias          397 FALSE          
+##  3 Albania ALB    2015 ciencias          427 FALSE          
+##  4 Albania ALB    2018 ciencias          417 FALSE          
+##  5 Albania ALB    2022 ciencias          376 FALSE          
+##  6 Albania ALB    2025 ciencias          435 FALSE          
+##  7 Albania ALB    2000 lectura           349 FALSE          
+##  8 Albania ALB    2009 lectura           385 FALSE          
+##  9 Albania ALB    2012 lectura           394 FALSE          
+## 10 Albania ALB    2015 lectura           405 FALSE          
+## # ℹ 1,627 more rows</code></pre>
+<p><strong>Tamaño de serie</strong>: nº de los 9 ciclos posibles
+(2000-2025, trienal con huecos) con dato, por país.</p>
 <table>
-<colgroup>
-<col width="25%" />
-<col width="25%" />
-<col width="25%" />
-<col width="25%" />
-</colgroup>
 <thead>
 <tr class="header">
-<th>Fichero</th>
-<th>Nivel</th>
-<th>Cobertura</th>
-<th>Ciclos/años</th>
+<th align="left">asignatura</th>
+<th align="right">n_paises</th>
+<th align="right">P25</th>
+<th align="right">P50</th>
+<th align="right">P100</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>pisa_paises_2000_2025.rds</code></td>
-<td>País</td>
-<td>105 países/economías</td>
-<td>2000–2025 (9 ciclos PISA, trienal con huecos)</td>
+<td align="left">ciencias</td>
+<td align="right">96</td>
+<td align="right">3</td>
+<td align="right">7</td>
+<td align="right">7</td>
 </tr>
 <tr class="even">
-<td><code>pisa_ccaa_2009_2025.rds</code></td>
-<td>Comunidad Autónoma</td>
-<td>19 CCAA + España</td>
-<td>2009–2025 (6 ciclos)</td>
+<td align="left">lectura</td>
+<td align="right">96</td>
+<td align="right">3</td>
+<td align="right">7</td>
+<td align="right">9</td>
 </tr>
 <tr class="odd">
-<td><code>contexto_paises.rds</code></td>
-<td>País</td>
-<td>hasta 205 países (Banco Mundial)</td>
-<td>variable según indicador</td>
-</tr>
-<tr class="even">
-<td><code>contexto_ccaa.rds</code></td>
-<td>Comunidad Autónoma</td>
-<td>19 CCAA + España (INE)</td>
-<td>2000/2008/2014–2024/2025 según indicador</td>
+<td align="left">matematicas</td>
+<td align="right">96</td>
+<td align="right">3</td>
+<td align="right">7</td>
+<td align="right">9</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Origen de los datos de PISA</strong>: la descarga directa de
-la OCDE está bloqueada (error 403); los dos primeros ficheros se
-reconstruyen de Wikipedia, verificado cruzando España entre dos parseos
-independientes (coinciden exactamente). Los indicadores de contexto
-vienen del Banco Mundial (<code>wbstats</code>, misma API que el resto
-del proyecto) y del INE (<code>ineapir</code>); uno de ellos, el peso de
-la educación en el PIB regional, se obtiene de la Contabilidad Regional
-de España <strong>por descarga directa de INEbase</strong>, porque esa
-estadística no está en el catálogo <code>INE.datasets.xlsx</code> ni en
-la lista de operaciones de la API del INE.</p>
-<p>Los cuatro ficheros están unidos por claves comunes:
-<code>iso3c</code> (código de país, construido con un proceso auxiliar
-de equivalencias de nombres) para cruzar los dos de país, y el nombre de
-región para cruzar los dos de CCAA (tabla de equivalencias en la hoja
-<code>ccaa_geo</code> de los metadatos, porque los nombres de región de
-Wikipedia y del INE/<code>mapSpain</code> no coinciden letra a
-letra).</p>
-<p>Todos los indicadores de contexto están marcados como
-<strong>comparables o no entre unidades geográficas</strong> (columna
+</div>
+<div id="pisa_ccaa_2009_2025.rds" class="section level2" number="2.2">
+<h2><span class="header-section-number">2.2</span>
+<code>pisa_ccaa_2009_2025.rds</code></h2>
+<p><em>Región × asignatura × ciclo</em>. Columnas:
+<code>region · ambito · anio · asignatura · puntuacion · aviso_exclusion</code>.
+España no desagrega por CCAA antes de 2009. <code>aviso_exclusion</code>
+marca 2 regiones en 2025 (Murcia, Cataluña) con alto porcentaje de
+alumnado excluido de la muestra.</p>
+<pre><code>## # A tibble: 366 × 6
+##    region    ambito  anio asignatura puntuacion aviso_exclusion
+##    &lt;chr&gt;     &lt;chr&gt;  &lt;int&gt; &lt;chr&gt;           &lt;dbl&gt; &lt;lgl&gt;          
+##  1 Andalucía CCAA    2009 ciencias          469 FALSE          
+##  2 Andalucía CCAA    2012 ciencias          486 FALSE          
+##  3 Andalucía CCAA    2015 ciencias          473 FALSE          
+##  4 Andalucía CCAA    2018 ciencias          471 FALSE          
+##  5 Andalucía CCAA    2022 ciencias          473 FALSE          
+##  6 Andalucía CCAA    2025 ciencias          462 FALSE          
+##  7 Andalucía CCAA    2009 lectura           461 FALSE          
+##  8 Andalucía CCAA    2012 lectura           477 FALSE          
+##  9 Andalucía CCAA    2015 lectura           479 FALSE          
+## 10 Andalucía CCAA    2018 lectura           466 FALSE          
+## # ℹ 356 more rows</code></pre>
+<p><strong>Tamaño de serie</strong>: nº de los 6 ciclos posibles
+(2009-2025) con dato, por región.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">asignatura</th>
+<th align="right">n_regiones</th>
+<th align="right">P25</th>
+<th align="right">P50</th>
+<th align="right">P100</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">ciencias</td>
+<td align="right">19</td>
+<td align="right">5.5</td>
+<td align="right">6</td>
+<td align="right">6</td>
+</tr>
+<tr class="even">
+<td align="left">lectura</td>
+<td align="right">19</td>
+<td align="right">5.5</td>
+<td align="right">6</td>
+<td align="right">6</td>
+</tr>
+<tr class="odd">
+<td align="left">matematicas</td>
+<td align="right">19</td>
+<td align="right">5.5</td>
+<td align="right">6</td>
+<td align="right">6</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="contexto_paises.rds" class="section level2" number="2.3">
+<h2><span class="header-section-number">2.3</span>
+<code>contexto_paises.rds</code></h2>
+<p><em>País × indicador × año</em>, Banco Mundial. Columnas:
+<code>pais · iso3c · anio · indicador · valor</code>. Tres indicadores,
+todos <strong>comparables entre países</strong> (columna
 <code>comparable</code> de la hoja <code>contexto_indicadores</code>):
-por ejemplo, se descartó la tasa de pobreza por líneas
-<em>nacionales</em> del Banco Mundial porque no es comparable entre
-países (cada uno fija su propia línea según su renta) y se sustituyó por
-el índice de Gini y la pobreza <em>relativa</em> (% por debajo del 50 %
-de la renta mediana de cada país), que sí lo son.</p>
-<p>Los análisis que permite realizar son:</p>
+<code>gasto_educacion_pct_pib</code>, <code>indice_gini</code>
+(desigualdad de ingresos) y <code>pobreza_relativa_pct</code> (% por
+debajo del 50% de la renta mediana del propio país). Se descartó la tasa
+de pobreza por líneas nacionales por ser, según el propio Banco Mundial,
+no comparable entre países — solo en tendencia dentro de cada uno; Gini
+y pobreza relativa sí lo son y, aunque están correlacionados (0,84), no
+son lo mismo: uno mide desigualdad, el otro pobreza.</p>
+<pre><code>## # A tibble: 9,944 × 5
+##    pais        iso3c  anio indicador               valor
+##    &lt;chr&gt;       &lt;chr&gt; &lt;int&gt; &lt;chr&gt;                   &lt;dbl&gt;
+##  1 Afghanistan AFG    2010 gasto_educacion_pct_pib  3.48
+##  2 Afghanistan AFG    2011 gasto_educacion_pct_pib  3.46
+##  3 Afghanistan AFG    2012 gasto_educacion_pct_pib  2.60
+##  4 Afghanistan AFG    2013 gasto_educacion_pct_pib  3.45
+##  5 Afghanistan AFG    2014 gasto_educacion_pct_pib  3.70
+##  6 Afghanistan AFG    2015 gasto_educacion_pct_pib  3.26
+##  7 Afghanistan AFG    2016 gasto_educacion_pct_pib  4.54
+##  8 Afghanistan AFG    2017 gasto_educacion_pct_pib  4.34
+##  9 Albania     ALB    1994 gasto_educacion_pct_pib  3.45
+## 10 Albania     ALB    1995 gasto_educacion_pct_pib  3.14
+## # ℹ 9,934 more rows</code></pre>
+<p><strong>Tamaño de serie</strong>: nº de años con dato por país, y
+periodo cubierto.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">indicador</th>
+<th align="right">n_paises</th>
+<th align="right">anio_min</th>
+<th align="right">anio_max</th>
+<th align="right">P25</th>
+<th align="right">P50</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">gasto_educacion_pct_pib</td>
+<td align="right">203</td>
+<td align="right">1970</td>
+<td align="right">2025</td>
+<td align="right">18</td>
+<td align="right">26</td>
+</tr>
+<tr class="even">
+<td align="left">indice_gini</td>
+<td align="right">171</td>
+<td align="right">1970</td>
+<td align="right">2025</td>
+<td align="right">4</td>
+<td align="right">9</td>
+</tr>
+<tr class="odd">
+<td align="left">pobreza_relativa_pct</td>
+<td align="right">171</td>
+<td align="right">1970</td>
+<td align="right">2025</td>
+<td align="right">4</td>
+<td align="right">9</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="contexto_ccaa.rds" class="section level2" number="2.4">
+<h2><span class="header-section-number">2.4</span>
+<code>contexto_ccaa.rds</code></h2>
+<p><em>Región × indicador × año</em>, INE (ECV + Contabilidad Regional).
+Columnas: <code>region · ambito · anio · indicador · valor</code>. Seis
+indicadores: pobreza, AROPE y sus 3 componentes, y peso de la rama
+<code>O_Q</code> (administración pública + <strong>educación</strong> +
+sanidad + servicios sociales — no aísla solo educación) y PIB regional
+(detalle en <code>contexto_indicadores</code>). Al ser una misma
+encuesta/ metodología aplicada uniformemente a las 19 CCAA, los 5
+primeros indicadores <strong>sí son comparables entre regiones</strong>
+sin más; <code>pib_miles_eur</code> <strong>no</strong> (es un valor
+absoluto sin normalizar por población: compara tamaño, no nivel de
+renta).</p>
+<pre><code>## # A tibble: 2,320 × 5
+##    region    ambito  anio indicador                         valor
+##    &lt;chr&gt;     &lt;chr&gt;  &lt;int&gt; &lt;chr&gt;                             &lt;dbl&gt;
+##  1 Andalucía CCAA    2014 arope_baja_intensidad_trabajo_pct  27.4
+##  2 Andalucía CCAA    2015 arope_baja_intensidad_trabajo_pct  24.3
+##  3 Andalucía CCAA    2016 arope_baja_intensidad_trabajo_pct  23.9
+##  4 Andalucía CCAA    2017 arope_baja_intensidad_trabajo_pct  22.8
+##  5 Andalucía CCAA    2018 arope_baja_intensidad_trabajo_pct  19  
+##  6 Andalucía CCAA    2019 arope_baja_intensidad_trabajo_pct  18.4
+##  7 Andalucía CCAA    2020 arope_baja_intensidad_trabajo_pct  13.9
+##  8 Andalucía CCAA    2021 arope_baja_intensidad_trabajo_pct  18.4
+##  9 Andalucía CCAA    2022 arope_baja_intensidad_trabajo_pct  12.3
+## 10 Andalucía CCAA    2023 arope_baja_intensidad_trabajo_pct  12.1
+## # ℹ 2,310 more rows</code></pre>
+<p><strong>Tamaño de serie</strong>: nº de años con dato por región
+(panel completo: todas las regiones tienen el mismo nº de años en cada
+indicador).</p>
+<table style="width:100%;">
+<colgroup>
+<col width="47%" />
+<col width="15%" />
+<col width="12%" />
+<col width="12%" />
+<col width="11%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">indicador</th>
+<th align="right">n_regiones</th>
+<th align="right">anio_min</th>
+<th align="right">anio_max</th>
+<th align="right">n_anios</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">arope_baja_intensidad_trabajo_pct</td>
+<td align="right">19</td>
+<td align="right">2014</td>
+<td align="right">2025</td>
+<td align="right">12</td>
+</tr>
+<tr class="even">
+<td align="left">arope_carencia_material_pct</td>
+<td align="right">19</td>
+<td align="right">2014</td>
+<td align="right">2025</td>
+<td align="right">12</td>
+</tr>
+<tr class="odd">
+<td align="left">arope_pct</td>
+<td align="right">19</td>
+<td align="right">2014</td>
+<td align="right">2025</td>
+<td align="right">12</td>
+</tr>
+<tr class="even">
+<td align="left">arope_riesgo_pobreza_pct</td>
+<td align="right">19</td>
+<td align="right">2014</td>
+<td align="right">2025</td>
+<td align="right">12</td>
+</tr>
+<tr class="odd">
+<td align="left">peso_admin_edu_sanidad_pib_pct</td>
+<td align="right">19</td>
+<td align="right">2000</td>
+<td align="right">2024</td>
+<td align="right">25</td>
+</tr>
+<tr class="even">
+<td align="left">pib_miles_eur</td>
+<td align="right">19</td>
+<td align="right">2000</td>
+<td align="right">2024</td>
+<td align="right">25</td>
+</tr>
+<tr class="odd">
+<td align="left">pobreza_pct</td>
+<td align="right">19</td>
+<td align="right">2008</td>
+<td align="right">2025</td>
+<td align="right">18</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="validación-global-de-requisitos-aedv" class="section level2" number="2.5">
+<h2><span class="header-section-number">2.5</span> Validación global de
+requisitos AEDV</h2>
+<p>Los 4 ficheros son complementarios pero de naturaleza distinta, así
+que se valoran en conjunto, no cada uno contra el umbral genérico de
+tamaño de serie del curso (pensado para frecuencias Y/Q/M/W/D
+regulares):</p>
 <ul>
-<li>Comparación transversal entre países o entre Comunidades Autónomas
-en un ciclo PISA dado.</li>
-<li>Evolución de un país o una CCAA a lo largo de los ciclos
-disponibles.</li>
-<li>Relación entre resultado educativo y pobreza, desigualdad o gasto en
-educación, por país o por CCAA.</li>
+<li><strong><code>pisa_paises</code></strong>: frecuencia
+<strong>trienal con huecos</strong>, no encaja en Y/Q/M/W/D. P25 ≈ 2-3
+ciclos de 9 posibles — insuficiente para análisis de tendencia propio
+(STL/ARIMA) salvo en el grupo reducido de países con los 9 ciclos
+completos. Sí cumple sobradamente como dataset de <strong>comparación
+transversal</strong> entre países o entre ciclos: 105 entidades, datos
+hasta el ciclo más reciente (2025, publicado hace días).</li>
+<li><strong><code>pisa_ccaa</code></strong>: mismo régimen trienal, 19
+regiones, 6 ciclos posibles desde
+<ol start="2009" style="list-style-type: decimal">
+<li>Cobertura geográfica completa de España; tamaño de serie corto pero
+suficiente para comparar CCAA en un ciclo dado.</li>
+</ol></li>
+<li><strong><code>contexto_paises</code></strong> y
+<strong><code>contexto_ccaa</code></strong>: frecuencia <strong>anual
+(Y)</strong>, que sí es comparable al umbral del curso (P25 ≥ 10).
+<code>contexto_ccaa</code> lo cumple holgadamente en 3 de sus 4
+indicadores (pobreza: 18 años; peso educación/PIB: 25 años) y por poco
+en AROPE (12 años); <code>contexto_paises</code> depende del indicador y
+del país (el propio chunk anterior da el P25 exacto). Cobertura
+geográfica: 20 áreas en <code>contexto_ccaa</code> (completa), variable
+por país en <code>contexto_paises</code>.</li>
+<li><strong>Fiabilidad de la fuente</strong>: la descarga oficial de la
+OCDE está bloqueada
+<ol start="403" style="list-style-type: decimal">
+<li>y se reconstruye de Wikipedia, verificado cruzando España entre dos
+parseos independientes; la Contabilidad Regional del INE se obtuvo por
+un mecanismo distinto al resto del proyecto (descarga directa de
+INEbase, no la API/catálogo ya generado). Ambas limitaciones están
+documentadas en los metadatos, no ocultan datos.</li>
+</ol></li>
+<li><strong>0 valores <code>NA</code>, 0 filas duplicadas</strong> en
+los cuatro ficheros.</li>
 </ul>
-<blockquote>
-<p><strong>Frecuencia y tamaño de serie: PISA es un caso
-especial.</strong> Los dos ficheros de PISA son <strong>trienales con
-huecos</strong> (no todos los países/CCAA tienen los 9/6 ciclos), así
-que no encajan en el esquema de frecuencias Y/Q/M/W/D del criterio de
-tamaño de series de más abajo. Los dos ficheros de contexto sí son
-anuales y sí se miden con ese criterio. Aun así, <strong>el conjunto es
-válido para AEDV</strong> como dataset de comparación transversal (entre
-países o CCAA), no como serie temporal densa por país — ver el veredicto
-completo en la sección <em>Validación global de requisitos AEDV</em> de
-<code>INFORME_PISA.Rmd</code>.</p>
-</blockquote>
+<p><strong>Conclusión</strong>: el conjunto <strong>cumple los
+requisitos de AEDV</strong> para un proyecto de comparación entre países
+y entre Comunidades Autónomas, cruzando resultados educativos con
+contexto socioeconómico. No cumple el perfil de una serie temporal densa
+por país al estilo de los datasets anuales del curso — esa es una
+limitación de PISA en sí (trienal, con huecos), no de cómo se ha
+construido este dataset.</p>
 </div>
 </div>
 

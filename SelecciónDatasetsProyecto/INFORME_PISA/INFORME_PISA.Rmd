@@ -1,0 +1,986 @@
+---
+title: "INFORME PISA: resultados históricos por país y por Comunidad Autónoma"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: readable
+    toc: true
+    toc_float: true
+    number_sections: true
+    self_contained: true
+---
+
+<style>
+h1.title { font-size: 24px; }
+h1 { font-size: 20px; }
+h2 { font-size: 18px; }
+h3 { font-size: 16px; }
+body { font-size: 14px;}
+p { font-size: 14px; margin-bottom: 10px;
+}
+/* Todas las cajas con scroll llevan la misma separación por debajo, para que no
+   queden pegadas al texto que viene después (evita tener que poner <br> a mano
+   detrás de cada una) */
+.tabla-scroll, .caja-scroll, .tabla-scroll-xy { margin-bottom: 28px; }
+/* Tablas anchas: envolver el chunk en <div class="tabla-scroll"> ... </div> para verlas completas con scroll horizontal */
+.tabla-scroll { overflow-x: auto; }
+.tabla-scroll table { width: auto; min-width: 100%; }
+.tabla-scroll table td, .tabla-scroll table th { white-space: nowrap; }
+/* Textos y listados largos: envolver en <div class="caja-scroll"> ... </div>
+   para acotar su altura y recorrerlos con scroll vertical, en vez de ocupar
+   páginas enteras del documento */
+.caja-scroll { max-height: 250px; overflow-y: auto; padding: 10px 14px;
+               border: 1px solid #ddd; background-color: #fafafa; }
+/* Tablas que pueden ser anchas Y largas: scroll en los dos ejes, con la fila de
+   cabecera fija arriba mientras se recorre. Alternativa ligera a DT::datatable:
+   HTML puro, sin JavaScript ni dependencias */
+.tabla-scroll-xy { overflow: auto; max-height: 450px; border: 1px solid #ddd; }
+.tabla-scroll-xy table { width: auto; min-width: 100%; margin-bottom: 0; }
+.tabla-scroll-xy table td, .tabla-scroll-xy table th { white-space: nowrap; }
+.tabla-scroll-xy thead th { position: sticky; top: 0; z-index: 1;
+                            background-color: #fff; box-shadow: inset 0 -1px 0 #ddd; }
+/* Solo en las tablas marcadas ADEMÁS con .con-desc: la última columna es texto
+   largo y se deja repartir en varias líneas, en vez de forzar una sola */
+.tabla-scroll-xy.con-desc table td:last-child,
+.tabla-scroll.con-desc table td:last-child { white-space: normal; min-width: 420px; }
+/* Celdas de aviso/caveat resaltadas en las tablas */
+.aviso-si { color: #dc3545; font-weight: bold; }
+</style>
+
+```{r,echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE, cache = FALSE)
+```
+
+```{r, echo=FALSE}
+library(tidyverse)
+library(openxlsx)
+library(mapSpain)
+library(leaflet)
+library(wbstats)
+library(ineapir)
+library(countrycode)
+select <- dplyr::select; mutate <- dplyr::mutate; filter <- dplyr::filter
+group_by <- dplyr::group_by; summarise <- dplyr::summarise; rename <- dplyr::rename
+```
+
+Resultados del **Informe PISA** (OCDE), a dos niveles: por **país** (2000-2025, 9
+ciclos) y por **Comunidad Autónoma española** (2009-2025, 6 ciclos). PISA 2025 se
+publicó el **8 de septiembre de 2026**, así que la serie llega hasta el ciclo más
+reciente disponible. Se añaden además dos tablas de **contexto socioeconómico**
+(pobreza y peso económico de la educación) para poder cruzarlas con los
+resultados: una por país (Banco Mundial) y otra por Comunidad Autónoma (INE).
+
+**Origen de los datos.** La descarga directa del portal de la OCDE
+(`oecd.org/en/data/datasets/pisa-2025-database.html` y los anexos del informe)
+devuelve **error 403** (bloqueo de robots), tanto con `curl` como con peticiones
+HTTP normales. Los datos se reconstruyen en su lugar a partir de las tablas de
+Wikipedia (inglesa y española) que citan como fuente los informes oficiales de la
+OCDE y del Ministerio de Educación. Se ha comprobado que **España coincide
+exactamente** entre las dos tablas (país y CCAA), parseadas de forma
+independiente, lo que da confianza en la transcripción. Detalle completo de esta
+limitación en la hoja `dataset` de los metadatos y en la sección de fiabilidad más
+abajo.
+
+El documento tiene la misma estructura que el resto de documentos de selección de
+datasets de la asignatura, en **dos partes independientes**:
+
+1. **Descarga, limpieza y guardado de los datos** — construye las cuatro tablas
+   (dos de PISA desde Wikipedia, dos de contexto desde Banco Mundial e INE) y las
+   deja en disco junto con un único fichero de metadatos.
+2. **Análisis del dataset** — parte de esos ficheros del disco y no usa nada de la
+   sección anterior, de modo que **se puede copiar tal cual en la memoria del
+   proyecto**.
+
+```{r,echo=TRUE}
+# nombres de los ficheros que se guardan en disco
+filename          <- "INFORME_PISA"
+f_paises          <- "pisa_paises_2000_2025.rds"
+f_ccaa            <- "pisa_ccaa_2009_2025.rds"
+f_contexto_paises <- "contexto_paises.rds"
+f_contexto_ccaa   <- "contexto_ccaa.rds"
+```
+
+# Descarga, limpieza y guardado de los datos
+
+<!-- Esta sección NO va en la memoria del proyecto: solo construye los ficheros
+     de disco que consume la sección siguiente -->
+
+```{r,echo=TRUE}
+# TRUE solo si falta alguno de los dos rds: evita volver a descargar/parsear en
+# cada compilación. Para forzar la actualización (p. ej. cuando la OCDE publique
+# PISA 2028), basta con borrar los dos rds de esta carpeta.
+DESCARGAR_DATOS <- !file.exists(f_paises) || !file.exists(f_ccaa)
+
+cat(if (DESCARGAR_DATOS) "No se encuentran los rds: se reconstruyen desde Wikipedia.\n"
+    else paste0("Se reutilizan ", f_paises, " y ", f_ccaa, " ya existentes ",
+                "(borrarlos para volver a generar).\n"))
+```
+
+```{r,echo=TRUE,eval=DESCARGAR_DATOS}
+## --- descarga del wikitexto fuente (sin curl: readLines(url()) directo) ---
+url_en <- paste0("https://en.wikipedia.org/w/index.php?",
+                  "title=Programme_for_International_Student_Assessment&action=raw")
+url_es <- paste0("https://es.wikipedia.org/w/index.php?",
+                  "title=Anexo:Resultados_del_Informe_PISA_en_Espa%C3%B1a_",
+                  "por_Comunidades_Aut%C3%B3nomas&action=raw")
+
+wiki_en <- readLines(url(url_en, "rb"), warn = FALSE, encoding = "UTF-8")
+wiki_es <- readLines(url(url_es, "rb"), warn = FALSE, encoding = "UTF-8")
+```
+
+```{r,echo=TRUE,eval=DESCARGAR_DATOS}
+## --- funciones auxiliares de parseo de tablas wiki -------------------------
+
+# localiza el rango de una sección delimitada por un encabezado que cumple
+# `patron` y el siguiente encabezado de nivel `nivel` o superior (no hardcodea
+# números de línea: sigue funcionando si Wikipedia reordena el artículo)
+extraer_seccion <- function(lineas, patron, nivel = "==") {
+  ini <- grep(patron, lineas)[1]
+  post <- grep(paste0("^", nivel), lineas)
+  fin_candidatos <- post[post > ini]
+  fin <- if (length(fin_candidatos) > 0) fin_candidatos[1] - 1 else length(lineas)
+  lineas[ini:fin]
+}
+
+# nombre de país a partir de {{flagcountry|Pais}} resto-de-texto ; el resto
+# (regiones/ciudades como "B-S-J-G{{efn...}}" o "Shanghai") se conserva entre
+# paréntesis para no perder que es una sub-muestra, no el país completo
+clean_country <- function(x) {
+  x <- trimws(x)
+  m <- regmatches(x, regexec("^\\{\\{flag(?:country)?\\|([^}|]+)", x))[[1]]
+  pais <- if (length(m) >= 2) trimws(m[2]) else trimws(sub("^\\{\\{.*\\|", "", x))
+  resto <- sub("^\\{\\{flag(?:country)?\\|[^}]*\\}\\}", "", x)
+  resto <- gsub("\\{\\{efn[^}]*\\}\\}", "", resto)
+  resto <- gsub("\\{\\{efn[^|]*\\|[^}]*", "", resto)
+  resto <- gsub("\\[\\[|\\]\\]", "", resto)
+  resto <- gsub("^-", "", resto)
+  resto <- trimws(resto)
+  if (nchar(resto) > 0 && !grepl("^\\{\\{efn", resto)) paste0(pais, " (", resto, ")") else pais
+}
+
+# nombre de país/región a partir de un wikilink [[destino|mostrado]] o [[destino]]
+clean_country_link <- function(x) {
+  x <- trimws(x)
+  m <- regmatches(x, regexec("\\[\\[(.*?)\\]\\]", x, perl = TRUE))[[1]]
+  pais <- if (length(m) >= 2) { partes <- strsplit(m[2], "\\|")[[1]]; partes[length(partes)] } else x
+  gsub("\\*+$", "", trimws(pais))
+}
+
+# puntuación numérica; admite el formato data-sort-value=NNN.N|NNN de la fila
+# "International Average"
+clean_score <- function(x) {
+  x <- trimws(x)
+  if (grepl("data-sort-value", x)) x <- sub(".*\\|", "", x)
+  x <- gsub("[^0-9.]", "", x)
+  if (x == "") return(NA_real_)
+  as.numeric(x)
+}
+```
+
+```{r,echo=TRUE,eval=DESCARGAR_DATOS}
+## --- 1. serie histórica por país, 2000-2022 --------------------------------
+## tabla "Rankings comparison 2000-2022": una sub-tabla por asignatura, con dos
+## columnas (puntuación, puesto) por cada ciclo
+
+seg_hist <- extraer_seccion(wiki_en, "===Rankings comparison 2000")
+
+subject_headers <- list(
+  list(pattern = "\\| Mathematics", subject = "mathematics",
+       years = c(2022, 2018, 2015, 2012, 2009, 2006, 2003, 2000)),
+  list(pattern = "\\| Science", subject = "science",
+       years = c(2022, 2018, 2015, 2012, 2009, 2006)),
+  list(pattern = "\\| Reading", subject = "reading",
+       years = c(2022, 2018, 2015, 2012, 2009, 2006, 2003, 2000))
+)
+
+resultados_hist <- list(); current_subject <- NA; current_years <- NULL
+i <- 1; n <- length(seg_hist)
+while (i <= n) {
+  ln <- seg_hist[i]
+  matched <- FALSE
+  for (h in subject_headers) {
+    if (grepl(h$pattern, ln) && grepl("^! colspan", ln)) {
+      current_subject <- h$subject; current_years <- h$years; matched <- TRUE; break
+    }
+  }
+  if (matched) { i <- i + 1; next }
+  if (grepl("^\\|\\}", ln)) { current_subject <- NA; i <- i + 1; next }
+  if (!is.na(current_subject) && grepl("^\\|-", ln)) {
+    fields <- character(0); i <- i + 1
+    while (i <= n && !grepl("^\\|-", seg_hist[i]) && !grepl("^\\|\\}", seg_hist[i]) && !grepl("^!", seg_hist[i])) {
+      if (grepl("^\\|", seg_hist[i])) fields <- c(fields, sub("^\\|", "", seg_hist[i]))
+      i <- i + 1
+    }
+    if (length(fields) >= 1) {
+      country_raw <- fields[1]
+      if (!grepl("International Average", country_raw) && nchar(trimws(country_raw)) > 0 &&
+          !grepl("^style=", country_raw)) {
+        country <- clean_country(country_raw); rest <- fields[-1]; n_years <- length(current_years)
+        if (length(rest) >= 2 * n_years) {
+          for (k in seq_len(n_years)) {
+            score <- clean_score(rest[(k - 1) * 2 + 1])
+            if (!is.na(score))
+              resultados_hist[[length(resultados_hist) + 1]] <- data.frame(
+                country = country, year = current_years[k], subject = current_subject,
+                score = score, stringsAsFactors = FALSE)
+          }
+        }
+      }
+    }
+    next
+  }
+  i <- i + 1
+}
+hist_2000_2022 <- bind_rows(resultados_hist)
+```
+
+```{r,echo=TRUE,eval=DESCARGAR_DATOS}
+## --- 2. ranking mundial 2025 por país ---------------------------------------
+## tabla de 3 sub-tablas lado a lado (Ciencias, Matemáticas, Lectura); el orden
+## se lee de la cabecera en vez de suponerlo fijo
+
+seg_2025 <- extraer_seccion(wiki_en, "=== PISA 2025 ranking summary ===")
+orden_2025 <- tolower(str_extract(seg_2025[grepl('style="width:33%;"', seg_2025)],
+                                   "(Science|Mathematics|Reading)"))
+
+parse_block_rank <- function(seg) {
+  out <- list(); i <- 1; n <- length(seg)
+  while (i <= n) {
+    if (grepl("^\\|-", seg[i])) {
+      fields <- character(0); i <- i + 1
+      while (i <= n && !grepl("^\\|-", seg[i]) && !grepl("^\\|\\}", seg[i])) {
+        if (grepl("^\\|", seg[i])) fields <- c(fields, sub("^\\|", "", seg[i]))
+        i <- i + 1
+      }
+      if (length(fields) == 3) {
+        rank <- suppressWarnings(as.integer(trimws(fields[1])))
+        country <- clean_country_link(fields[2])
+        score <- suppressWarnings(as.numeric(gsub("[^0-9.]", "", fields[3])))
+        if (!is.na(rank) && !is.na(score) && nchar(country) > 0)
+          out[[length(out) + 1]] <- data.frame(rank = rank, country = country, score = score,
+                                                stringsAsFactors = FALSE)
+      }
+      next
+    }
+    i <- i + 1
+  }
+  bind_rows(out)
+}
+
+inicios_2025 <- grep('^\\{\\| class="wikitable" style="width:100%; margin:0', seg_2025)
+finales_2025 <- grep("^\\|\\}$", seg_2025)
+usados <- rep(FALSE, length(finales_2025))
+y2025_list <- list()
+for (k in seq_along(inicios_2025)) {
+  ini <- inicios_2025[k]
+  cand <- finales_2025[finales_2025 > ini & !usados]
+  fin <- cand[1]
+  usados[which(finales_2025 == fin)[1]] <- TRUE
+  df <- parse_block_rank(seg_2025[ini:fin])
+  df$subject <- orden_2025[k]; df$year <- 2025
+  y2025_list[[k]] <- df
+}
+y2025 <- bind_rows(y2025_list) |> select(-rank)
+```
+
+```{r,echo=TRUE,eval=DESCARGAR_DATOS}
+## --- 3. tabla final por país: unión 2000-2022 + 2025, en español -----------
+
+# sub-muestras NO representativas del país completo (región/ciudad concreta en
+# vez de la muestra nacional); Hong Kong y Macao NO están aquí: son economías
+# PISA de pleno derecho, no una submuestra de China
+entidades_parciales <- c(
+  "Argentina (CABA)", "Azerbaijan (Baku)", "B-S-J-Z (China)",
+  "China (B-S-J-G)", "China (B-S-J-Z)", "China (Shanghai)",
+  "Dushanbe (Tajikistan)", "Kurdistan Region (Iraq)",
+  "Ukrainian regions (17 of 27)"
+)
+
+# Wikipedia etiqueta 5 economías con un nombre DISTINTO solo en la tabla de PISA
+# 2025 (nombre oficial actualizado) frente a las 8 tablas de ciclos anteriores
+# (nombre antiguo): sin normalizar, cada una queda partida en dos "países" -su
+# historia 2000-2022 por un lado y un único punto 2025 por otro-, justo en el
+# ciclo más reciente. Se corrige AQUÍ, antes de construir pisa_paises, al nombre
+# vigente/oficial; se documenta en la hoja `nombres_normalizados` de los metadatos.
+nombres_normalizados <- c(
+  "Turkey" = "Türkiye", "Macau" = "Macao", "Hong Kong" = "Hong Kong",
+  "Hong Kong (China)" = "Hong Kong", "Macao (China)" = "Macao",
+  "Taiwan" = "Chinese Taipei", "Macedonia" = "North Macedonia"
+)
+
+pisa_paises_sin_iso <- bind_rows(hist_2000_2022, y2025) |>
+  rename(pais = country, anio = year, asignatura = subject, puntuacion = score) |>
+  mutate(
+    asignatura = recode(asignatura, mathematics = "matematicas", reading = "lectura", science = "ciencias"),
+    pais = coalesce(nombres_normalizados[pais], pais),
+    entidad_parcial = pais %in% entidades_parciales
+  )
+
+## --- proceso AUXILIAR: tabla de equivalencias pais -> iso3c -----------------
+## No se guarda como rds propio; su unico fin es anadir la columna `iso3c` a
+## pisa_paises_2000_2025.rds para poder cruzarlo con cualquier fuente por pais
+## (aqui, contexto_paises.rds del Banco Mundial) sin tener que repetir este
+## trabajo de emparejamiento de nombres cada vez.
+#
+# pais "base" para las sub-muestras (entidad_parcial): la soberania real a la
+# que pertenecen, salvo Hong Kong y Macao, que SI son economias propias
+pais_base_especial <- c(
+  "Argentina (CABA)" = "Argentina", "Azerbaijan (Baku)" = "Azerbaijan",
+  "China (Shanghai)" = "China", "China (B-S-J-G)" = "China", "China (B-S-J-Z)" = "China",
+  "B-S-J-Z (China)" = "China", "Dushanbe (Tajikistan)" = "Tajikistan",
+  "Kurdistan Region (Iraq)" = "Iraq", "Ukrainian regions (17 of 27)" = "Ukraine"
+)
+
+crosswalk_iso3c <- tibble(pais = sort(unique(pisa_paises_sin_iso$pais))) |>
+  mutate(pais_base = coalesce(pais_base_especial[pais], pais),
+         iso3c = suppressWarnings(countrycode::countrycode(pais_base, "country.name", "iso3c")),
+         # Kosovo no tiene codigo ISO 3166-1 oficial (estatus disputado); se usa
+         # "XKX", el codigo de facto que emplean el Banco Mundial y otros organismos
+         iso3c = if_else(pais == "Kosovo", "XKX", iso3c))
+
+sin_iso3c <- crosswalk_iso3c |> filter(is.na(iso3c)) |> pull(pais)
+if (length(sin_iso3c) > 0) warning("Países sin iso3c en la tabla de equivalencias: ", paste(sin_iso3c, collapse = ", "))
+
+pisa_paises <- pisa_paises_sin_iso |>
+  left_join(crosswalk_iso3c |> select(pais, iso3c), by = "pais") |>
+  select(pais, iso3c, anio, asignatura, puntuacion, entidad_parcial) |>
+  arrange(pais, asignatura, anio)
+
+saveRDS(pisa_paises, f_paises)
+cat("Fichero guardado:", f_paises, "-", nrow(pisa_paises), "filas,",
+    n_distinct(pisa_paises$pais), "países/entidades,",
+    sum(is.na(crosswalk_iso3c$iso3c)), "sin iso3c\n")
+```
+
+```{r,echo=TRUE,eval=DESCARGAR_DATOS}
+## --- 4. resultados por Comunidad Autónoma, 2009-2025 -----------------------
+## una sección "=== AAAA ===" por ciclo, con 3 sub-tablas (Lectura, Matemáticas,
+## Ciencias) de filas región/puntuación, más filas de referencia en negrita
+## (Media España / Media OCDE / Promedio UE)
+
+cabeceras_anio <- grep("^=== (20[0-9]{2}) ===", wiki_es)
+anios_wiki <- as.integer(str_extract(wiki_es[cabeceras_anio], "20[0-9]{2}"))
+todas_cabeceras <- sort(c(cabeceras_anio, grep("^==[^=]", wiki_es)))
+
+# el "año de Wikipedia" 2019 corresponde en realidad al ciclo PISA 2018 (la
+# prueba se aplicó en 2018; la prensa española etiquetó la noticia por el año
+# de publicación, diciembre de 2019). El resto de años coinciden.
+anio_pisa_de <- function(aw) if (aw == 2019) 2018L else aw
+
+orden_asignaturas_ccaa <- c("reading", "mathematics", "science")
+
+clean_region <- function(x) {
+  x <- trimws(x)
+  m <- regmatches(x, gregexpr("\\[\\[(.*?)\\]\\]", x, perl = TRUE))[[1]]
+  if (length(m) == 0) return(list(region = NA_character_, aviso = FALSE))
+  ultimo <- m[length(m)]
+  inner <- sub("^\\[\\[", "", sub("\\]\\]$", "", ultimo))
+  partes <- strsplit(inner, "\\|")[[1]]
+  region <- trimws(partes[length(partes)])
+  resto <- sub(".*\\]\\]", "", x)
+  list(region = region, aviso = grepl("\\*", resto))
+}
+
+parse_subtabla_ccaa <- function(seg) {
+  out <- list(); i <- 1; n <- length(seg)
+  while (i <= n && !grepl("^\\{\\| ?border=0", seg[i])) i <- i + 1
+  i <- i + 1
+  while (i <= n && !grepl("^\\|\\}", seg[i])) {
+    if (grepl("^\\|-", seg[i])) {
+      fields <- character(0); i <- i + 1
+      while (i <= n && !grepl("^\\|-", seg[i]) && !grepl("^\\|\\}", seg[i])) {
+        if (grepl("^\\|", seg[i])) fields <- c(fields, sub("^\\|", "", seg[i]))
+        i <- i + 1
+      }
+      if (length(fields) == 3) {
+        region_field <- fields[2]; score_field <- trimws(fields[3])
+        es_ambito <- grepl("'''", region_field)
+        cr <- clean_region(region_field)
+        if (es_ambito) {
+          ambito_txt <- trimws(gsub("'''", "", region_field))
+          ambito <- case_when(grepl("OCDE", ambito_txt) ~ "OCDE",
+                               grepl("Espa", ambito_txt) ~ "España",
+                               grepl("UE", ambito_txt) ~ "UE",
+                               TRUE ~ ambito_txt)
+          score <- as.numeric(gsub("[^0-9.]", "", gsub("'''", "", score_field)))
+          out[[length(out) + 1]] <- data.frame(region = ambito, ambito = "referencia", score = score,
+                                                aviso_exclusion = FALSE, stringsAsFactors = FALSE)
+        } else if (!is.na(cr$region)) {
+          score <- as.numeric(gsub("[^0-9.]", "", score_field))
+          if (!is.na(score))
+            out[[length(out) + 1]] <- data.frame(region = cr$region, ambito = "CCAA", score = score,
+                                                  aviso_exclusion = cr$aviso, stringsAsFactors = FALSE)
+        }
+      }
+      next
+    }
+    i <- i + 1
+  }
+  bind_rows(out)
+}
+
+todo_ccaa <- list()
+for (k in seq_along(cabeceras_anio)) {
+  ini <- cabeceras_anio[k]
+  fin <- todas_cabeceras[todas_cabeceras > ini][1] - 1
+  if (is.na(fin)) fin <- length(wiki_es)
+  seg <- wiki_es[ini:fin]
+
+  inicios <- grep("^\\{\\| ?border=0", seg)
+  finales <- grep("^\\|\\}$", seg)
+  usados_c <- rep(FALSE, length(finales))
+  for (j in seq_along(inicios)) {
+    if (j > length(orden_asignaturas_ccaa)) next
+    ii <- inicios[j]
+    cand <- finales[finales > ii & !usados_c]
+    fin_j <- cand[1]
+    usados_c[which(finales == fin_j)[1]] <- TRUE
+    df <- parse_subtabla_ccaa(seg[ii:fin_j])
+    if (nrow(df) > 0) {
+      df$subject <- orden_asignaturas_ccaa[j]
+      df$anio <- anio_pisa_de(anios_wiki[k])
+      todo_ccaa[[length(todo_ccaa) + 1]] <- df
+    }
+  }
+}
+
+pisa_ccaa <- bind_rows(todo_ccaa) |>
+  rename(asignatura = subject, puntuacion = score) |>
+  mutate(asignatura = recode(asignatura, mathematics = "matematicas", reading = "lectura", science = "ciencias")) |>
+  select(region, ambito, anio, asignatura, puntuacion, aviso_exclusion) |>
+  arrange(region, asignatura, anio)
+
+saveRDS(pisa_ccaa, f_ccaa)
+cat("Fichero guardado:", f_ccaa, "-", nrow(pisa_ccaa), "filas,",
+    n_distinct(pisa_ccaa$region[pisa_ccaa$ambito == "CCAA"]), "regiones\n")
+```
+
+## Datos de contexto: pobreza y peso económico de la educación
+
+Para poder cruzar PISA con condiciones socioeconómicas se incorporan cuatro
+indicadores más, ya identificados y validados en las carpetas `INE/` y
+`WORLD_BANK/` de `SelecciónDatasetsProyecto`:
+
+- **Banco Mundial, por país**: gasto público en educación (% del PIB), índice
+  de Gini de desigualdad de ingresos y **pobreza relativa** (% de población por
+  debajo del 50% de la renta mediana del propio país, estándar tipo OCDE). Se
+  descartó la tasa de pobreza según líneas **nacionales** (`SI.POV.NAHC`): el
+  propio Banco Mundial advierte que **no es comparable en niveles absolutos
+  entre países** (cada país fija su propia línea según su renta), solo en
+  tendencia dentro de un mismo país. El Gini y la pobreza relativa sí están
+  pensados para comparar entre países, y no son redundantes entre sí: el Gini
+  mide desigualdad de la distribución, la pobreza relativa mide pobreza en
+  sentido propio (correlación 0,84, no 1).
+- **INE, por Comunidad Autónoma** (Encuesta de Condiciones de Vida): tasa de
+  riesgo de pobreza, y el indicador AROPE (riesgo de pobreza o exclusión social,
+  objetivo Europa 2030) con sus tres componentes.
+- **INE, por Comunidad Autónoma** (Contabilidad Regional de España): peso de la
+  rama *Administración pública, educación, sanidad y servicios sociales* sobre el
+  PIB regional, más el PIB regional en valor absoluto.
+
+**No hay un indicador de "gasto en educación" aislado por Comunidad Autónoma**:
+el catálogo del INE ya generado no incluye la Contabilidad Regional, y esta se
+obtiene aparte, directamente de INEbase (`ine.es`), por un mecanismo distinto al
+resto del proyecto (descarga directa de tablas, no la API `ineapir` que usan los
+generadores de catálogo). Además, esa fuente **no aísla la rama "Educación"**: la
+clasificación de 11 ramas de las cuentas regionales la agrupa junto con
+administración pública, sanidad y servicios sociales (rama `O_Q`); se documenta
+esta limitación en los metadatos y no se presenta como si fuera gasto educativo puro.
+
+```{r,echo=TRUE}
+DESCARGAR_CONTEXTO <- !file.exists(f_contexto_paises) || !file.exists(f_contexto_ccaa)
+
+cat(if (DESCARGAR_CONTEXTO) "No se encuentran los rds de contexto: se descargan del Banco Mundial y el INE.\n"
+    else paste0("Se reutilizan ", f_contexto_paises, " y ", f_contexto_ccaa, " ya existentes ",
+                "(borrarlos para volver a generar).\n"))
+```
+
+```{r,echo=TRUE,eval=DESCARGAR_CONTEXTO}
+## --- contexto por país: Banco Mundial ---------------------------------------
+## SE.XPD.TOTL.GD.ZS: gasto público en educación, total (% del PIB)
+## SI.POV.GINI:        indice de Gini de desigualdad de ingresos (0-100)
+## SI.DST.50MD:        pobreza RELATIVA: % de poblacion por debajo del 50% de
+##                      la renta mediana del propio pais (estandar tipo OCDE)
+##
+## Se descarta SI.POV.NAHC (pobreza segun lineas NACIONALES): el propio Banco
+## Mundial documenta que NO es comparable en niveles absolutos entre paises,
+## solo en tendencia dentro de cada pais (cada pais fija su propia linea segun
+## su renta). Gini mide DESIGUALDAD, no pobreza; se añade pobreza_relativa_pct
+## como el indicador de POBREZA en si mismo que sigue siendo comparable entre
+## paises (el umbral, "50% de la mediana", se calcula igual en todos). Ambos
+## comprobados con datos reales: Gini Noruega/Finlandia ~26-27, Espana ~33,
+## Brasil/Sudafrica ~50-54; pobreza_relativa_pct Finlandia/Noruega ~7%, Espana
+## ~15%, Brasil/Sudafrica ~20-21% (correlacion con Gini 0,84: relacionados pero
+## no redundantes, 91 de 99 paises PISA con iso3c tienen dato en los dos).
+options(timeout = max(60, getOption("timeout")))
+
+wb_raw <- wb_data(indicator = c(gasto_educacion_pct_pib = "SE.XPD.TOTL.GD.ZS",
+                                 indice_gini             = "SI.POV.GINI",
+                                 pobreza_relativa_pct    = "SI.DST.50MD"),
+                   start_date = 1970, end_date = 2025, return_wide = FALSE)
+
+contexto_paises <- wb_raw |>
+  filter(!is.na(value)) |>
+  transmute(pais = country, iso3c, anio = as.integer(date),
+            indicador = indicator_id, valor = value) |>
+  mutate(indicador = recode(indicador, SE.XPD.TOTL.GD.ZS = "gasto_educacion_pct_pib",
+                             SI.POV.GINI = "indice_gini", SI.DST.50MD = "pobreza_relativa_pct")) |>
+  arrange(pais, indicador, anio)
+
+saveRDS(contexto_paises, f_contexto_paises)
+cat("Fichero guardado:", f_contexto_paises, "-", nrow(contexto_paises), "filas,",
+    n_distinct(contexto_paises$pais), "países\n")
+```
+
+```{r,echo=TRUE,eval=DESCARGAR_CONTEXTO}
+## --- contexto por CCAA: INE (ECV + Contabilidad Regional) -------------------
+
+# la ECV devuelve, por fila, un Nombre "<territorio>. Total. <concepto>. Base 2013."
+# de donde extraemos territorio y concepto directamente (mas fiable que la lista
+# de metadatos anidada, que usa variables distintas para "Total Nacional" y CCAA)
+parse_ecv <- function(idTable) {
+  r <- get_data_table(idTable = idTable, unnest = TRUE, tip = "AM")
+  m <- str_match(r$Nombre, "^(.*?)\\. Total\\. (.*?)\\. Base 2013\\.")
+  r |> transmute(region = str_trim(m[, 2]), concepto = str_trim(m[, 3]),
+                 anio = as.integer(Anyo), valor = Valor)
+}
+
+# 9963: Tasa de riesgo de pobreza por CCAA (ya en el catalogo INE.datasets.xlsx)
+pobreza_ccaa <- parse_ecv(9963) |>
+  filter(concepto == "Tasa de riesgo de pobreza (renta del año anterior a la entrevista)") |>
+  transmute(region, anio, indicador = "pobreza_pct", valor)
+
+# 60264: AROPE y sus 3 componentes por CCAA (ya en el catalogo INE.datasets.xlsx)
+arope_codigos <- c(
+  "Tasa de riesgo de pobreza o exclusión social (indicador AROPE)" = "arope_pct",
+  "En riesgo de pobreza (renta año anterior a la entrevista)"      = "arope_riesgo_pobreza_pct",
+  "Con carencia material y social severa"                         = "arope_carencia_material_pct",
+  "Viviendo en hogares con baja intensidad en el trabajo (de 0 a 64 años)" = "arope_baja_intensidad_trabajo_pct"
+)
+arope_ccaa <- parse_ecv(60264) |>
+  filter(concepto %in% names(arope_codigos)) |>
+  transmute(region, anio, indicador = recode(concepto, !!!arope_codigos), valor)
+
+# 76923 (tpx de INEbase, fuera de la API/catalogo): PIB y VAB por rama de
+# actividad y CCAA, Contabilidad Regional de España. La rama O_Q agrupa
+# "Administración pública y defensa, seguridad social obligatoria, educación,
+# actividades sanitarias y de servicios sociales" (no aisla educación sola).
+# NombrePeriodo trae sufijos "(A)" avance/"(P)" provisional en los años más
+# recientes: se limpian para quedarnos con el año.
+cre_raw <- get_data_table(idTable = 76923, unnest = TRUE, tip = "AM")
+
+peso_oq_ccaa <- cre_raw |>
+  filter(str_detect(Nombre, fixed("educación, actividades sanitarias")),
+         str_ends(Nombre, "Estructura porcentual")) |>
+  transmute(region = str_trim(str_extract(Nombre, "^.*?(?=, O_Q\\.)")),
+            anio = as.integer(str_extract(NombrePeriodo, "^[0-9]{4}")),
+            indicador = "peso_admin_edu_sanidad_pib_pct", valor = Valor)
+
+pib_ccaa <- cre_raw |>
+  filter(str_detect(Nombre, fixed("PRODUCTO INTERIOR BRUTO A PRECIOS DE MERCADO")),
+         str_ends(Nombre, ", Valor")) |>
+  transmute(region = str_trim(str_extract(Nombre, "^.*?(?=, PRODUCTO)")),
+            anio = as.integer(str_extract(NombrePeriodo, "^[0-9]{4}")),
+            indicador = "pib_miles_eur", valor = Valor)
+
+# "Total Nacional"/"TOTAL NACIONAL" -> "España", igual que en pisa_ccaa
+contexto_ccaa <- bind_rows(pobreza_ccaa, arope_ccaa, peso_oq_ccaa, pib_ccaa) |>
+  mutate(region = if_else(region %in% c("Total Nacional", "TOTAL NACIONAL"), "España", region),
+         ambito = if_else(region == "España", "referencia", "CCAA")) |>
+  select(region, ambito, anio, indicador, valor) |>
+  arrange(region, indicador, anio)
+
+saveRDS(contexto_ccaa, f_contexto_ccaa)
+cat("Fichero guardado:", f_contexto_ccaa, "-", nrow(contexto_ccaa), "filas,",
+    n_distinct(contexto_ccaa$region[contexto_ccaa$ambito == "CCAA"]), "regiones,",
+    n_distinct(contexto_ccaa$indicador), "indicadores\n")
+```
+
+## Metadatos del dataset
+
+Igual que EDGAR o CLIMA, esta fuente **no tiene un catálogo previo** del que
+extraer la ficha: los metadatos se construyen en este mismo documento y se
+guardan en **un único fichero**, `INFORME_PISA_metadatos.xlsx`, con **siete
+hojas**:
+
+- `dataset` — ficha general (fuente, limitación de acceso, cobertura, tamaño de
+  los cuatro ficheros, cobertura del cruce por `iso3c`).
+- `entidades_especiales` — qué países/entidades de `pisa_paises` **no** son la
+  muestra nacional completa (sub-regiones, ciudades).
+- `nombres_normalizados` — los 5 países que Wikipedia etiqueta con un nombre
+  distinto SOLO en la tabla de PISA 2025 frente al resto de ciclos (p. ej.
+  `Turkey`→`Türkiye`), corregidos aquí para que la serie no se parta en dos.
+- `ciclos` — correspondencia entre el año de aplicación real de la prueba PISA y
+  el año que a veces usa la prensa española (2018 → "PISA 2019").
+- `ccaa_geo` — equivalencia entre el nombre de región usado aquí (Wikipedia) y el
+  `ine.ccaa.name` de `mapSpain`, necesaria para los mapas coropléticos y para
+  cruzar con `contexto_ccaa`.
+- `contexto_indicadores` — diccionario de los 6 indicadores de contexto (fuente,
+  ámbito país/CCAA, unidad, descripción y advertencias de uso).
+- `contexto_fuentes` — de dónde sale cada tabla de contexto: el Banco Mundial vía
+  `wbstats` (API, igual que el resto del proyecto) y el INE vía `ineapir`, pero la
+  Contabilidad Regional (`peso_admin_edu_sanidad_pib_pct`, `pib_miles_eur`) por
+  **descarga directa de INEbase** (tabla `tpx=76923`), fuera del catálogo ya
+  generado en `INE/INE.datasets.xlsx`.
+
+**La columna `iso3c` de `pisa_paises`** (código ISO 3166-1 alfa-3) se construye
+con un **proceso auxiliar que no se guarda como fichero propio**: una tabla de
+equivalencias país→iso3c (vía el paquete `countrycode`, con las 9 sub-muestras
+mapeadas a la soberanía real y Kosovo forzado a `XKX`, el código de facto que usa
+también el Banco Mundial). Su único fin es poder cruzar `pisa_paises` con
+`contexto_paises` — o con cualquier otra fuente por país— sin repetir el trabajo
+de emparejar nombres cada vez.
+
+```{r,echo=TRUE}
+pisa_paises     <- readRDS(f_paises)
+pisa_ccaa       <- readRDS(f_ccaa)
+contexto_paises <- readRDS(f_contexto_paises)
+contexto_ccaa   <- readRDS(f_contexto_ccaa)
+
+entidades_parciales <- c(
+  "Argentina (CABA)", "Azerbaijan (Baku)", "B-S-J-Z (China)",
+  "China (B-S-J-G)", "China (B-S-J-Z)", "China (Shanghai)",
+  "Dushanbe (Tajikistan)", "Kurdistan Region (Iraq)",
+  "Ukrainian regions (17 of 27)"
+)
+
+desc_entidades <- tibble::tribble(
+  ~pais,                          ~representativa, ~explicacion,
+  "Argentina (CABA)",             "NO", "Ciudad Autónoma de Buenos Aires (muestra ampliada de una sola ciudad), no toda Argentina.",
+  "Azerbaijan (Baku)",            "NO", "Solo la ciudad de Bakú fue evaluada en los ciclos en que aparece, no todo el país.",
+  "China (Shanghai)",             "NO", "PISA 2009 y 2012: solo la ciudad de Shanghái, la región china con mejor resultado educativo.",
+  "China (B-S-J-G)",              "NO", "PISA 2015: Pekín-Shanghái-Jiangsu-Guangdong, 4 provincias/municipios, no China continental.",
+  "China (B-S-J-Z)",              "NO", "PISA 2018: Pekín-Shanghái-Jiangsu-Zhejiang, 4 provincias/municipios, no China continental.",
+  "B-S-J-Z (China)",              "NO", "PISA 2022 y 2025: mismas 4 provincias/municipios que 'China (B-S-J-Z)' de 2018; no son series comparables entre sí como 'China' a secas.",
+  "Dushanbe (Tajikistan)",        "NO", "Solo la capital, Dusambé.",
+  "Kurdistan Region (Iraq)",      "NO", "Solo la región autónoma del Kurdistán iraquí, no todo Irak.",
+  "Ukrainian regions (17 of 27)", "NO", "PISA 2022: muestra reducida a 17 de las 27 regiones por la invasión rusa."
+)
+
+# Hong Kong y Macao YA NO llevan paréntesis en pisa_paises (se normalizaron en
+# nombres_normalizados: eran economías de pleno derecho, no submuestras, y su
+# única "rareza" era el nombre distinto en la tabla de PISA 2025; corregida esa
+# rareza no necesitan fila propia aquí)
+
+desc_nombres_normalizados <- tibble::tribble(
+  ~nombre_wikipedia_original, ~nombre_usado_aqui, ~ciclos_con_nombre_original, ~nota,
+  "Turkey",    "Türkiye",         "2003-2022 (8 ciclos)", "Nombre oficial vigente desde 2022 (Türkiye); la tabla de PISA 2025 ya lo usaba, la comparativa 2000-2022 no.",
+  "Macau",     "Macao",           "2003-2022 (8 ciclos)", "Wikipedia usa 'Macau' en la comparativa histórica y 'Macao (China)' solo en la tabla de PISA 2025; se unifica en 'Macao'.",
+  "Hong Kong", "Hong Kong",       "2000-2022 (9 ciclos)", "Wikipedia usa 'Hong Kong' en la comparativa histórica y 'Hong Kong (China)' solo en PISA 2025; se unifica sin el paréntesis.",
+  "Taiwan",    "Chinese Taipei",  "2006-2022 (6 ciclos)", "'Chinese Taipei' es la denominación oficial que usa la propia OCDE/PISA; la comparativa histórica de Wikipedia la simplificaba a 'Taiwan'.",
+  "Macedonia", "North Macedonia", "2000-2022 (4 ciclos)", "Nombre oficial del país desde el Acuerdo de Prespa (2019); la comparativa histórica conserva el nombre anterior a ese acuerdo."
+)
+
+desc_ciclos <- tibble::tribble(
+  ~anio_pisa, ~anio_prensa_espanola, ~nota,
+  2000, "2000", "",
+  2003, "2003", "",
+  2006, "2006", "",
+  2009, "2009", "",
+  2012, "2012", "",
+  2015, "2015", "",
+  2018, "2019", "La prensa española etiquetó estos resultados por el año de PUBLICACIÓN (dic-2019); el ciclo internacional PISA es 2018 (año de aplicación de la prueba). El dataset usa siempre 2018.",
+  2022, "2022", "Ciclo aplicado en 2022 en vez de 2021: retraso de un año por la pandemia de COVID-19.",
+  2025, "2025", "Resultados publicados el 8 de septiembre de 2026."
+)
+
+desc_ccaa_geo <- tibble::tribble(
+  ~region,               ~ine_ccaa_name,
+  "Andalucía",             "Andalucía",
+  "Aragón",                "Aragón",
+  "Asturias",              "Asturias, Principado de",
+  "Islas Baleares",        "Balears, Illes",
+  "Islas Canarias",        "Canarias",
+  "Cantabria",             "Cantabria",
+  "Castilla-La Mancha",    "Castilla - La Mancha",
+  "Castilla y León",       "Castilla y León",
+  "Cataluña",              "Cataluña",
+  "Ceuta",                 "Ceuta",
+  "Comunidad Valenciana",  "Comunitat Valenciana",
+  "Extremadura",           "Extremadura",
+  "Galicia",               "Galicia",
+  "Comunidad de Madrid",   "Madrid, Comunidad de",
+  "Melilla",               "Melilla",
+  "Región de Murcia",      "Murcia, Región de",
+  "Navarra",               "Navarra, Comunidad Foral de",
+  "País Vasco",            "País Vasco",
+  "La Rioja",              "Rioja, La"
+)
+
+desc_contexto_indicadores <- tibble::tribble(
+  ~indicador,                          ~ambito, ~fuente,        ~unidad, ~comparable, ~descripcion,
+  "gasto_educacion_pct_pib",           "pais",  "Banco Mundial (SE.XPD.TOTL.GD.ZS)", "% del PIB", "SI",
+    "Gasto público total en educación (corriente + capital + transferencias), gobierno general. Ratio estandarizada por el Banco Mundial: comparable entre países (con la salvedad habitual de qué partidas cuenta cada país como gasto público).",
+  "indice_gini",                       "pais",  "Banco Mundial (SI.POV.GINI)", "índice 0-100", "SI",
+    "Desigualdad de ingresos (0 = igualdad perfecta, 100 = desigualdad máxima). Diseñado explícitamente para comparar ENTRE países, al contrario que la tasa de pobreza por líneas nacionales (descartada, ver nota abajo). Mide desigualdad de la DISTRIBUCIÓN, no pobreza en sí. Comprobado con datos reales: Noruega/Finlandia ~26-27, España ~33, Brasil/Sudáfrica ~50-54.",
+  "pobreza_relativa_pct",              "pais",  "Banco Mundial (SI.DST.50MD)", "% de población", "SI",
+    "Pobreza RELATIVA: % de población con renta por debajo del 50% de la renta mediana de su propio país (estándar tipo OCDE). A diferencia de la tasa por líneas NACIONALES (descartada), el umbral se calcula igual en todos los países, así que sí es comparable entre ellos, y a diferencia del Gini mide pobreza propiamente, no desigualdad. Comprobado con datos reales: Finlandia/Noruega ~7%, España ~15%, Brasil/Sudáfrica ~20-21% (correlación con indice_gini = 0,84: relacionados pero no redundantes).",
+  "pobreza_pct",                       "CCAA",  "INE, Encuesta de Condiciones de Vida (ECV)", "% de población", "SI",
+    "Tasa de riesgo de pobreza (renta del año anterior a la entrevista), sin alquiler imputado. Misma encuesta y el mismo umbral metodológico en las 19 CCAA: comparable entre regiones (no tiene el problema de 'línea nacional' propio de comparar entre países distintos).",
+  "arope_pct",                         "CCAA",  "INE, ECV", "% de población", "SI",
+    "Indicador AROPE: riesgo de pobreza o exclusión social (objetivo Europa 2030). Es el indicador oficial de la UE, más amplio que la sola tasa de pobreza monetaria. Misma metodología en las 19 CCAA.",
+  "arope_riesgo_pobreza_pct",          "CCAA",  "INE, ECV", "% de población", "SI",
+    "Componente de renta del AROPE (equivalente conceptualmente a pobreza_pct, calculado dentro de la serie AROPE). Misma metodología en las 19 CCAA.",
+  "arope_carencia_material_pct",       "CCAA",  "INE, ECV", "% de población", "SI",
+    "Componente de carencia material y social severa del AROPE (no poder afrontar ciertos gastos/bienes básicos). Misma metodología en las 19 CCAA.",
+  "arope_baja_intensidad_trabajo_pct", "CCAA",  "INE, ECV", "% de población 0-64 años", "SI",
+    "Componente de baja intensidad de empleo en el hogar del AROPE. Misma metodología en las 19 CCAA.",
+  "peso_admin_edu_sanidad_pib_pct",    "CCAA",  "INE, Contabilidad Regional de España (CRE)", "% del PIB regional", "SI",
+    "Peso de la rama O_Q (Administración pública y defensa, seguridad social obligatoria, EDUCACIÓN, actividades sanitarias y de servicios sociales) sobre el PIB de la Comunidad Autónoma. Es una proporción (ya normalizada por el propio PIB regional), comparable entre CCAA. ADVERTENCIA APARTE: no aísla la educación; la CRE no desagrega esta rama en España.",
+  "pib_miles_eur",                     "CCAA",  "INE, Contabilidad Regional de España (CRE)", "miles de euros", "NO",
+    "Producto Interior Bruto a precios de mercado de la Comunidad Autónoma (precios corrientes), en valor ABSOLUTO. NO comparable directamente entre CCAA para medir nivel de renta o riqueza: una región con más población da más PIB total sin ser más rica por habitante (Madrid > La Rioja por tamaño, no solo por productividad). Para comparar entre CCAA habría que dividir por población (PIB per cápita), no incluida aquí. Válido tal cual para seguir la evolución temporal de una misma CCAA. El INE marca los 1-2 últimos años como avance/provisional (sufijos '(A)'/'(P)' del periodo original); aquí solo se conserva el año."
+)
+
+desc_contexto_fuentes <- tibble::tribble(
+  ~tabla,             ~mecanismo,                                  ~detalle,
+  "contexto_paises",  "API (wbstats::wb_data)",                    "Mismo mecanismo que el resto del proyecto (Banco Mundial). Indicadores SE.XPD.TOTL.GD.ZS, SI.POV.GINI y SI.DST.50MD, ya identificados en WORLD_BANK/wb.datasets.xlsx.",
+  "contexto_ccaa (pobreza/AROPE)", "API (ineapir::get_data_table)", "Mismo mecanismo que el resto del proyecto (INE). idTable 9963 y 60264, ya identificados en INE/INE.datasets.xlsx.",
+  "contexto_ccaa (peso_admin_edu_sanidad_pib_pct, pib_miles_eur)", "Descarga directa de INEbase (ineapir::get_data_table con idTable=76923, el 'tpx' de la tabla PC-Axis)", "La Contabilidad Regional de España NO aparece en la lista de 112 operaciones que expone la API del INE (comprobado en vivo): es un producto de INEbase fuera del catálogo ya generado por INE_TableDatasetGeneration.Rmd. Se accede por el mismo paquete ineapir pero indicando directamente el identificador de tabla localizado en la web (ine.es), no a través de una operación catalogada."
+)
+
+n_con_iso3c <- pisa_paises |> distinct(pais, iso3c) |> summarise(sum(!is.na(iso3c))) |> pull()
+n_paises_total <- n_distinct(pisa_paises$pais)
+n_cruzan_contexto <- pisa_paises |> distinct(iso3c) |> filter(!is.na(iso3c)) |>
+  semi_join(contexto_paises |> distinct(iso3c), by = "iso3c") |> nrow()
+
+ficha <- tibble(
+  Campo = c("Fuente", "Limitacion_de_acceso", "URL_original_OCDE", "URL_reconstruccion",
+            "Fecha_de_generacion",
+            "Fichero_paises", "Paises_N_filas", "Paises_N_entidades", "Paises_N_entidades_parciales",
+            "Paises_ciclos", "Paises_Freq", "Paises_N_con_iso3c", "Paises_N_que_cruzan_con_contexto",
+            "Fichero_ccaa", "CCAA_N_filas", "CCAA_N_regiones", "CCAA_ciclos", "CCAA_Freq",
+            "Fichero_contexto_paises", "ContextoPaises_N_filas", "ContextoPaises_N_paises",
+            "Fichero_contexto_ccaa", "ContextoCCAA_N_filas", "ContextoCCAA_N_indicadores"),
+  Valor = c(
+    "OCDE (Programme for International Student Assessment)",
+    "Descarga directa de oecd.org bloqueada (HTTP 403, filtro anti-robots); reconstruido de Wikipedia",
+    "https://www.oecd.org/en/data/datasets/pisa-2025-database.html",
+    paste("en.wikipedia.org/wiki/Programme_for_International_Student_Assessment;",
+          "es.wikipedia.org/wiki/Anexo:Resultados_del_Informe_PISA_en_España_por_Comunidades_Autónomas"),
+    as.character(Sys.Date()),
+    f_paises, as.character(nrow(pisa_paises)), as.character(n_distinct(pisa_paises$pais)),
+    as.character(sum(pisa_paises$entidad_parcial[!duplicated(pisa_paises$pais)])),
+    paste(sort(unique(pisa_paises$anio)), collapse = ", "),
+    "trienal con huecos (no todos los países en todos los ciclos; ver P25 de longitud de serie en el análisis)",
+    paste0(n_con_iso3c, " de ", n_paises_total),
+    paste0(n_cruzan_contexto, " (iso3c presente también en contexto_paises)"),
+    f_ccaa, as.character(nrow(pisa_ccaa)), as.character(n_distinct(pisa_ccaa$region[pisa_ccaa$ambito == "CCAA"])),
+    paste(sort(unique(pisa_ccaa$anio)), collapse = ", "),
+    "trienal desde 2009 (España no desagregaba por CCAA en 2000/2003/2006)",
+    f_contexto_paises, as.character(nrow(contexto_paises)), as.character(n_distinct(contexto_paises$pais)),
+    f_contexto_ccaa, as.character(nrow(contexto_ccaa)), as.character(n_distinct(contexto_ccaa$indicador))
+  )
+)
+
+# comprobación: toda entidad marcada como parcial en el rds tiene descripción, y
+# viceversa no debe faltar ninguna región de pisa_ccaa en el mapeo geográfico, ni
+# ningún indicador de contexto en su diccionario, ni ningún país sin iso3c
+faltan_desc  <- setdiff(entidades_parciales, desc_entidades$pais[desc_entidades$representativa == "NO"])
+faltan_geo   <- setdiff(pisa_ccaa$region[pisa_ccaa$ambito == "CCAA"], desc_ccaa_geo$region)
+faltan_geo_ctx <- setdiff(contexto_ccaa$region[contexto_ccaa$ambito == "CCAA"], desc_ccaa_geo$ine_ccaa_name)
+faltan_ind   <- setdiff(unique(c(contexto_paises$indicador, contexto_ccaa$indicador)), desc_contexto_indicadores$indicador)
+sin_iso3c    <- pisa_paises |> distinct(pais, iso3c) |> filter(is.na(iso3c)) |> pull(pais)
+if (length(faltan_desc) > 0) warning("Entidades parciales sin descripción: ", paste(faltan_desc, collapse = ", "))
+if (length(faltan_geo)  > 0) warning("Regiones CCAA sin equivalencia mapSpain: ", paste(faltan_geo, collapse = ", "))
+if (length(faltan_geo_ctx) > 0) warning("Regiones de contexto_ccaa sin equivalencia ccaa_geo: ", paste(faltan_geo_ctx, collapse = ", "))
+if (length(faltan_ind)  > 0) warning("Indicadores de contexto sin descripción: ", paste(faltan_ind, collapse = ", "))
+if (length(sin_iso3c)   > 0) warning("Países sin iso3c: ", paste(sin_iso3c, collapse = ", "))
+
+write.xlsx(list(dataset = ficha, entidades_especiales = desc_entidades,
+                nombres_normalizados = desc_nombres_normalizados,
+                ciclos = desc_ciclos, ccaa_geo = desc_ccaa_geo,
+                contexto_indicadores = desc_contexto_indicadores,
+                contexto_fuentes = desc_contexto_fuentes),
+           file = paste0(filename, "_metadatos.xlsx"), overwrite = TRUE)
+
+cat("Fichero guardado:", paste0(filename, "_metadatos.xlsx"),
+    "- hojas: dataset, entidades_especiales, nombres_normalizados, ciclos, ccaa_geo,",
+    "contexto_indicadores, contexto_fuentes\n")
+cat("Entidades sin descripcion:", length(faltan_desc), "| regiones CCAA sin mapeo geografico:", length(faltan_geo),
+    "| regiones contexto sin mapeo:", length(faltan_geo_ctx), "| indicadores sin descripcion:", length(faltan_ind),
+    "| paises sin iso3c:", length(sin_iso3c), "\n")
+```
+
+Una vez guardados en disco los metadatos (fichero xlsx) y los datos (los dos
+ficheros RDS), iniciamos el proceso de análisis. A partir de aquí el documento se
+compila **solo** con los ficheros ya guardados en disco; no se usa ningún objeto
+de las secciones anteriores. Es a propósito: es la parte que el alumno incluye en
+la memoria del proyecto personal, así que tiene que poder ejecutarse sola (lo
+único que se repite de lo definido antes son los nombres de fichero).
+
+# Análisis del dataset
+
+```{r,echo=TRUE}
+# se repite aquí (idéntico al de las secciones anteriores) para poder nombrar los
+# ficheros sin depender de ningún chunk anterior
+filename          <- "INFORME_PISA"
+f_paises          <- "pisa_paises_2000_2025.rds"
+f_ccaa            <- "pisa_ccaa_2009_2025.rds"
+f_contexto_paises <- "contexto_paises.rds"
+f_contexto_ccaa   <- "contexto_ccaa.rds"
+```
+
+```{r,echo=TRUE}
+# el resto de hojas del xlsx (entidades_especiales, nombres_normalizados, ciclos,
+# ccaa_geo, contexto_indicadores, contexto_fuentes) documentan el detalle de cada
+# aviso/normalización; no se repiten aquí, este análisis se limita a describir
+# cada tabla, su tamaño de serie y la validación global de requisitos AEDV
+ficha <- read.xlsx(paste0(filename, "_metadatos.xlsx"), sheet = "dataset")
+
+pisa_paises     <- readRDS(f_paises) |> as_tibble()
+pisa_ccaa       <- readRDS(f_ccaa)   |> as_tibble()
+contexto_paises <- readRDS(f_contexto_paises) |> as_tibble()
+contexto_ccaa   <- readRDS(f_contexto_ccaa)   |> as_tibble()
+```
+
+**metadatos**
+
+<div class="tabla-scroll">
+
+```{r}
+knitr::kable(ficha)
+```
+
+</div>
+
+## `pisa_paises_2000_2025.rds`
+
+*País × asignatura × ciclo*. Columnas: `pais · iso3c · anio · asignatura ·
+puntuacion · entidad_parcial`. `iso3c` viene de un proceso auxiliar (no
+guardado como fichero propio, ver metadatos) que de paso permitió corregir 5
+países que Wikipedia partía en dos series por un cambio de nombre solo en la
+tabla de PISA 2025 (`nombres_normalizados`); `entidad_parcial` marca 9
+sub-muestras no representativas del país completo (`entidades_especiales`).
+
+```{r}
+pisa_paises
+```
+
+**Tamaño de serie**: nº de los 9 ciclos posibles (2000-2025, trienal con
+huecos) con dato, por país.
+
+```{r}
+pisa_paises |>
+  filter(!entidad_parcial) |>
+  group_by(asignatura) |>
+  summarise(n_paises = n_distinct(pais),
+            P25 = quantile(as.integer(table(pais)), 0.25),
+            P50 = median(as.integer(table(pais))),
+            P100 = max(table(pais)), .groups = "drop") |>
+  knitr::kable()
+```
+
+## `pisa_ccaa_2009_2025.rds`
+
+*Región × asignatura × ciclo*. Columnas: `region · ambito · anio · asignatura ·
+puntuacion · aviso_exclusion`. España no desagrega por CCAA antes de 2009.
+`aviso_exclusion` marca 2 regiones en 2025 (Murcia, Cataluña) con alto
+porcentaje de alumnado excluido de la muestra.
+
+```{r}
+pisa_ccaa
+```
+
+**Tamaño de serie**: nº de los 6 ciclos posibles (2009-2025) con dato, por región.
+
+```{r}
+pisa_ccaa |>
+  filter(ambito == "CCAA") |>
+  group_by(asignatura) |>
+  summarise(n_regiones = n_distinct(region),
+            P25 = quantile(as.integer(table(region)), 0.25),
+            P50 = median(as.integer(table(region))),
+            P100 = max(table(region)), .groups = "drop") |>
+  knitr::kable()
+```
+
+## `contexto_paises.rds`
+
+*País × indicador × año*, Banco Mundial. Columnas: `pais · iso3c · anio ·
+indicador · valor`. Tres indicadores, todos **comparables entre países**
+(columna `comparable` de la hoja `contexto_indicadores`): `gasto_educacion_pct_pib`,
+`indice_gini` (desigualdad de ingresos) y `pobreza_relativa_pct` (% por debajo
+del 50% de la renta mediana del propio país). Se descartó la tasa de pobreza
+por líneas nacionales por ser, según el propio Banco Mundial, no comparable
+entre países — solo en tendencia dentro de cada uno; Gini y pobreza relativa sí
+lo son y, aunque están correlacionados (0,84), no son lo mismo: uno mide
+desigualdad, el otro pobreza.
+
+```{r}
+contexto_paises
+```
+
+**Tamaño de serie**: nº de años con dato por país, y periodo cubierto.
+
+```{r}
+contexto_paises |>
+  group_by(indicador) |>
+  summarise(n_paises = n_distinct(pais), anio_min = min(anio), anio_max = max(anio),
+            P25 = quantile(as.integer(table(pais)), 0.25),
+            P50 = median(as.integer(table(pais))), .groups = "drop") |>
+  knitr::kable()
+```
+
+## `contexto_ccaa.rds`
+
+*Región × indicador × año*, INE (ECV + Contabilidad Regional). Columnas:
+`region · ambito · anio · indicador · valor`. Seis indicadores: pobreza, AROPE
+y sus 3 componentes, y peso de la rama `O_Q` (administración pública +
+**educación** + sanidad + servicios sociales — no aísla solo educación) y PIB
+regional (detalle en `contexto_indicadores`). Al ser una misma encuesta/
+metodología aplicada uniformemente a las 19 CCAA, los 5 primeros indicadores
+**sí son comparables entre regiones** sin más; `pib_miles_eur` **no** (es un
+valor absoluto sin normalizar por población: compara tamaño, no nivel de renta).
+
+```{r}
+contexto_ccaa
+```
+
+**Tamaño de serie**: nº de años con dato por región (panel completo: todas las
+regiones tienen el mismo nº de años en cada indicador).
+
+```{r}
+contexto_ccaa |>
+  filter(ambito == "CCAA") |>
+  group_by(indicador) |>
+  summarise(n_regiones = n_distinct(region), anio_min = min(anio), anio_max = max(anio),
+            n_anios = n_distinct(anio), .groups = "drop") |>
+  knitr::kable()
+```
+
+## Validación global de requisitos AEDV
+
+Los 4 ficheros son complementarios pero de naturaleza distinta, así que se
+valoran en conjunto, no cada uno contra el umbral genérico de tamaño de serie
+del curso (pensado para frecuencias Y/Q/M/W/D regulares):
+
+- **`pisa_paises`**: frecuencia **trienal con huecos**, no encaja en Y/Q/M/W/D.
+  P25 ≈ 2-3 ciclos de 9 posibles — insuficiente para análisis de tendencia
+  propio (STL/ARIMA) salvo en el grupo reducido de países con los 9 ciclos
+  completos. Sí cumple sobradamente como dataset de **comparación
+  transversal** entre países o entre ciclos: 105 entidades, datos hasta el
+  ciclo más reciente (2025, publicado hace días).
+- **`pisa_ccaa`**: mismo régimen trienal, 19 regiones, 6 ciclos posibles desde
+  2009. Cobertura geográfica completa de España; tamaño de serie corto pero
+  suficiente para comparar CCAA en un ciclo dado.
+- **`contexto_paises`** y **`contexto_ccaa`**: frecuencia **anual (Y)**, que sí
+  es comparable al umbral del curso (P25 ≥ 10). `contexto_ccaa` lo cumple
+  holgadamente en 3 de sus 4 indicadores (pobreza: 18 años; peso
+  educación/PIB: 25 años) y por poco en AROPE (12 años); `contexto_paises`
+  depende del indicador y del país (el propio chunk anterior da el P25 exacto).
+  Cobertura geográfica: 20 áreas en `contexto_ccaa` (completa), variable por
+  país en `contexto_paises`.
+- **Fiabilidad de la fuente**: la descarga oficial de la OCDE está bloqueada
+  (403) y se reconstruye de Wikipedia, verificado cruzando España entre dos
+  parseos independientes; la Contabilidad Regional del INE se obtuvo por un
+  mecanismo distinto al resto del proyecto (descarga directa de INEbase, no la
+  API/catálogo ya generado). Ambas limitaciones están documentadas en los
+  metadatos, no ocultan datos.
+- **0 valores `NA`, 0 filas duplicadas** en los cuatro ficheros.
+
+**Conclusión**: el conjunto **cumple los requisitos de AEDV** para un proyecto
+de comparación entre países y entre Comunidades Autónomas, cruzando resultados
+educativos con contexto socioeconómico. No cumple el perfil de una serie
+temporal densa por país al estilo de los datasets anuales del curso — esa es
+una limitación de PISA en sí (trienal, con huecos), no de cómo se ha construido
+este dataset.
