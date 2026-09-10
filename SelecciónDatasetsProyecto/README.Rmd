@@ -466,7 +466,7 @@ Combina **resultados del Informe PISA de la OCDE** con **contexto socioeconómic
 
 Los cuatro ficheros están unidos por claves comunes: `iso3c` (código de país, construido con un proceso auxiliar de equivalencias de nombres) para cruzar los dos de país, y el nombre de región para cruzar los dos de CCAA (tabla de equivalencias en la hoja `ccaa_geo` de los metadatos, porque los nombres de región de Wikipedia y del INE/`mapSpain` no coinciden letra a letra).
 
-Todos los indicadores de contexto están marcados como **comparables o no entre unidades geográficas** (columna `comparable` de la hoja `contexto_indicadores`): por ejemplo, se descartó la tasa de pobreza por líneas *nacionales* del Banco Mundial porque no es comparable entre países (cada uno fija su propia línea según su renta) y se sustituyó por el índice de Gini y la pobreza *relativa* (% por debajo del 50 % de la renta mediana de cada país), que sí lo son.
+Todos los indicadores de contexto están marcados como **comparables o no entre unidades geográficas** (columna `comparable` de la hoja `contexto_indicadores`): no basta con que un índice mida "algo relacionado" con pobreza o desigualdad, tiene que poder compararse entre países o entre CCAA. Por eso los indicadores de país son el índice de Gini y la pobreza *relativa* (% por debajo del 50 % de la renta mediana de cada país), y no una tasa de pobreza con un umbral distinto en cada país.
 
 Los análisis que permite realizar son:
 

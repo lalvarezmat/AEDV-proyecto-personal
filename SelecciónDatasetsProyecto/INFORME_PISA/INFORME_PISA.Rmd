@@ -463,14 +463,11 @@ indicadores más, ya identificados y validados en las carpetas `INE/` y
 
 - **Banco Mundial, por país**: gasto público en educación (% del PIB), índice
   de Gini de desigualdad de ingresos y **pobreza relativa** (% de población por
-  debajo del 50% de la renta mediana del propio país, estándar tipo OCDE). Se
-  descartó la tasa de pobreza según líneas **nacionales** (`SI.POV.NAHC`): el
-  propio Banco Mundial advierte que **no es comparable en niveles absolutos
-  entre países** (cada país fija su propia línea según su renta), solo en
-  tendencia dentro de un mismo país. El Gini y la pobreza relativa sí están
-  pensados para comparar entre países, y no son redundantes entre sí: el Gini
-  mide desigualdad de la distribución, la pobreza relativa mide pobreza en
-  sentido propio (correlación 0,84, no 1).
+  debajo del 50% de la renta mediana del propio país, estándar tipo OCDE). Los
+  tres están pensados para comparar **entre** países, que es el objetivo aquí;
+  Gini y pobreza relativa no son redundantes entre sí, pese a estar
+  correlacionados (0,84): el Gini mide desigualdad de la distribución, la
+  pobreza relativa mide pobreza en sentido propio.
 - **INE, por Comunidad Autónoma** (Encuesta de Condiciones de Vida): tasa de
   riesgo de pobreza, y el indicador AROPE (riesgo de pobreza o exclusión social,
   objetivo Europa 2030) con sus tres componentes.
@@ -502,16 +499,15 @@ cat(if (DESCARGAR_CONTEXTO) "No se encuentran los rds de contexto: se descargan 
 ## SI.DST.50MD:        pobreza RELATIVA: % de poblacion por debajo del 50% de
 ##                      la renta mediana del propio pais (estandar tipo OCDE)
 ##
-## Se descarta SI.POV.NAHC (pobreza segun lineas NACIONALES): el propio Banco
-## Mundial documenta que NO es comparable en niveles absolutos entre paises,
-## solo en tendencia dentro de cada pais (cada pais fija su propia linea segun
-## su renta). Gini mide DESIGUALDAD, no pobreza; se añade pobreza_relativa_pct
-## como el indicador de POBREZA en si mismo que sigue siendo comparable entre
-## paises (el umbral, "50% de la mediana", se calcula igual en todos). Ambos
-## comprobados con datos reales: Gini Noruega/Finlandia ~26-27, Espana ~33,
-## Brasil/Sudafrica ~50-54; pobreza_relativa_pct Finlandia/Noruega ~7%, Espana
-## ~15%, Brasil/Sudafrica ~20-21% (correlacion con Gini 0,84: relacionados pero
-## no redundantes, 91 de 99 paises PISA con iso3c tienen dato en los dos).
+## Los tres son comparables ENTRE paises (condicion imprescindible aqui: el
+## objetivo es comparar paises entre si, no solo seguir la tendencia de cada
+## uno por separado). Gini mide DESIGUALDAD, no pobreza; pobreza_relativa_pct
+## es el indicador de POBREZA en si mismo, con un umbral ("50% de la mediana")
+## que se calcula igual en todos los paises. Comprobados con datos reales:
+## Gini Noruega/Finlandia ~26-27, Espana ~33, Brasil/Sudafrica ~50-54;
+## pobreza_relativa_pct Finlandia/Noruega ~7%, Espana ~15%, Brasil/Sudafrica
+## ~20-21% (correlacion con Gini 0,84: relacionados pero no redundantes, 91 de
+## 99 paises PISA con iso3c tienen dato en los dos).
 options(timeout = max(60, getOption("timeout")))
 
 wb_raw <- wb_data(indicator = c(gasto_educacion_pct_pib = "SE.XPD.TOTL.GD.ZS",
@@ -712,11 +708,11 @@ desc_contexto_indicadores <- tibble::tribble(
   "gasto_educacion_pct_pib",           "pais",  "Banco Mundial (SE.XPD.TOTL.GD.ZS)", "% del PIB", "SI",
     "Gasto público total en educación (corriente + capital + transferencias), gobierno general. Ratio estandarizada por el Banco Mundial: comparable entre países (con la salvedad habitual de qué partidas cuenta cada país como gasto público).",
   "indice_gini",                       "pais",  "Banco Mundial (SI.POV.GINI)", "índice 0-100", "SI",
-    "Desigualdad de ingresos (0 = igualdad perfecta, 100 = desigualdad máxima). Diseñado explícitamente para comparar ENTRE países, al contrario que la tasa de pobreza por líneas nacionales (descartada, ver nota abajo). Mide desigualdad de la DISTRIBUCIÓN, no pobreza en sí. Comprobado con datos reales: Noruega/Finlandia ~26-27, España ~33, Brasil/Sudáfrica ~50-54.",
+    "Desigualdad de ingresos (0 = igualdad perfecta, 100 = desigualdad máxima). Diseñado explícitamente para comparar ENTRE países. Mide desigualdad de la DISTRIBUCIÓN, no pobreza en sí. Comprobado con datos reales: Noruega/Finlandia ~26-27, España ~33, Brasil/Sudáfrica ~50-54.",
   "pobreza_relativa_pct",              "pais",  "Banco Mundial (SI.DST.50MD)", "% de población", "SI",
-    "Pobreza RELATIVA: % de población con renta por debajo del 50% de la renta mediana de su propio país (estándar tipo OCDE). A diferencia de la tasa por líneas NACIONALES (descartada), el umbral se calcula igual en todos los países, así que sí es comparable entre ellos, y a diferencia del Gini mide pobreza propiamente, no desigualdad. Comprobado con datos reales: Finlandia/Noruega ~7%, España ~15%, Brasil/Sudáfrica ~20-21% (correlación con indice_gini = 0,84: relacionados pero no redundantes).",
+    "Pobreza RELATIVA: % de población con renta por debajo del 50% de la renta mediana de su propio país (estándar tipo OCDE). El umbral se calcula igual en todos los países, así que es comparable entre ellos, y a diferencia del Gini mide pobreza propiamente, no desigualdad. Comprobado con datos reales: Finlandia/Noruega ~7%, España ~15%, Brasil/Sudáfrica ~20-21% (correlación con indice_gini = 0,84: relacionados pero no redundantes).",
   "pobreza_pct",                       "CCAA",  "INE, Encuesta de Condiciones de Vida (ECV)", "% de población", "SI",
-    "Tasa de riesgo de pobreza (renta del año anterior a la entrevista), sin alquiler imputado. Misma encuesta y el mismo umbral metodológico en las 19 CCAA: comparable entre regiones (no tiene el problema de 'línea nacional' propio de comparar entre países distintos).",
+    "Tasa de riesgo de pobreza (renta del año anterior a la entrevista), sin alquiler imputado. Misma encuesta y el mismo umbral metodológico en las 19 CCAA: comparable entre regiones.",
   "arope_pct",                         "CCAA",  "INE, ECV", "% de población", "SI",
     "Indicador AROPE: riesgo de pobreza o exclusión social (objetivo Europa 2030). Es el indicador oficial de la UE, más amplio que la sola tasa de pobreza monetaria. Misma metodología en las 19 CCAA.",
   "arope_riesgo_pobreza_pct",          "CCAA",  "INE, ECV", "% de población", "SI",
@@ -898,13 +894,12 @@ pisa_ccaa |>
 
 *País × indicador × año*, Banco Mundial. Columnas: `pais · iso3c · anio ·
 indicador · valor`. Tres indicadores, todos **comparables entre países**
-(columna `comparable` de la hoja `contexto_indicadores`): `gasto_educacion_pct_pib`,
-`indice_gini` (desigualdad de ingresos) y `pobreza_relativa_pct` (% por debajo
-del 50% de la renta mediana del propio país). Se descartó la tasa de pobreza
-por líneas nacionales por ser, según el propio Banco Mundial, no comparable
-entre países — solo en tendencia dentro de cada uno; Gini y pobreza relativa sí
-lo son y, aunque están correlacionados (0,84), no son lo mismo: uno mide
-desigualdad, el otro pobreza.
+(columna `comparable` de la hoja `contexto_indicadores`, imprescindible al
+elegir un índice de contexto: no vale cualquiera, tiene que poder compararse
+entre regiones): `gasto_educacion_pct_pib`, `indice_gini` (desigualdad de
+ingresos) y `pobreza_relativa_pct` (% por debajo del 50% de la renta mediana
+del propio país). Gini y pobreza relativa, aunque correlacionados (0,84), no
+son lo mismo: uno mide desigualdad, el otro pobreza.
 
 ```{r}
 contexto_paises
