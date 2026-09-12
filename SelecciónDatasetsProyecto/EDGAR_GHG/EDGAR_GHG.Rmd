@@ -28,12 +28,12 @@ p { font-size: 14px; margin-bottom: 10px;
 .tabla-scroll { overflow-x: auto; }
 .tabla-scroll table { width: auto; min-width: 100%; }
 .tabla-scroll table td, .tabla-scroll table th { white-space: nowrap; }
-/* Textos y listados largos (p. ej. la descripción de un sector IPCC o de una
+/* Textos y listados largos (p. ej. la descripción de un sector o de una
    sustancia): envolver en <div class="caja-scroll"> ... </div> para acotar su
    altura y recorrerlos con scroll vertical, en vez de ocupar páginas enteras */
 .caja-scroll { max-height: 250px; overflow-y: auto; padding: 10px 14px;
                border: 1px solid #ddd; background-color: #fafafa; }
-/* Tablas que pueden ser anchas Y largas (p. ej. una fila por sector IPCC o por
+/* Tablas que pueden ser anchas Y largas (p. ej. una fila por sector o por
    sustancia): scroll en los dos ejes, con la fila de cabecera fija arriba
    mientras se recorre. Alternativa ligera a DT::datatable: HTML puro, sin
    JavaScript ni dependencias */
@@ -76,11 +76,18 @@ rename <- dplyr::rename
 ```
 
 
-Emisión de Gases de Efecto Invernadero con datos de [EDGAR](https://edgar.jrc.ec.europa.eu/dataset_ghg2025). Los datos de **EDGAR** se suelen actualizar en el mes de septiembre. Hay que estar atentos ese mes para actualizar los datos usando el código cambiando adecuadamente los nombres de los archivos para poner la versión más actualizada.
+Emisión de Gases de Efecto Invernadero con datos de [EDGAR](https://edgar.jrc.ec.europa.eu/report_2026). Los datos de **EDGAR** se suelen actualizar en el mes de septiembre. Hay que estar atentos ese mes para actualizar los datos usando el código cambiando adecuadamente el nombre del fichero para poner la versión más actualizada.
+
+> **Cambio de formato en la versión 2026 (respecto a versiones anteriores del curso):** hasta la versión 2025, EDGAR distribuía 7 ficheros ZIP (uno por sustancia) con un Excel dentro que traía el detalle completo por **39 sectores IPCC 2006** y **35 sustancias individuales** (gases en unidades físicas + agregados en CO2-equivalente). **Esa distribución ya no existe.** En su lugar, EDGAR publica ahora:
+>
+> 1. **Mapas en rejilla** (0,1° de resolución, lat/lon) por sustancia y sector — sirven para cartografía, no para un análisis tabular por país sin agregar antes cientos de MB de rejilla.
+> 2. Un **"booklet"** del informe anual (un único xlsx de pocos MB) con tablas ya agregadas **por país**, pero con mucha menos granularidad: **9 sectores macro** en vez de 39, y **4 grupos de sustancias** (todos ya expresados en CO2-equivalente) en vez de 35 sustancias individuales.
+>
+> Este documento usa la opción 2 (el booklet), la única que sigue dando una tabla país × sector × sustancia × año sin tener que descargar y agregar rejillas. Se pierde detalle sectorial y de gases respecto a las versiones del curso anteriores a 2026, pero se gana cobertura hasta 2025 y dos tablas nuevas que sí se procesan en este documento: emisiones **per cápita** y **por PIB**, que antes no existían.
 
 El documento tiene la misma estructura que el resto de documentos de selección de datasets de la asignatura, en **dos partes independientes**:
 
-1. **Descarga, limpieza y guardado de los datos** — construye la tabla a partir de los ficheros de EDGAR y la deja en disco junto con sus metadatos.
+1. **Descarga, limpieza y guardado de los datos** — construye la tabla a partir del fichero de EDGAR y la deja en disco junto con sus metadatos.
 2. **Análisis del dataset** — parte de esos dos ficheros del disco y no usa nada de la sección anterior, de modo que **se puede copiar tal cual en la memoria del proyecto**.
 
 ```{r,echo=TRUE}
@@ -92,10 +99,10 @@ filename <- "EDGAR_GHG"
 
 <!-- Esta sección NO va en la memoria del proyecto: solo construye los ficheros de disco que consume la sección siguiente -->
 
-La descarga son 7 ficheros comprimidos de varios cientos de MB, así que **solo se ejecuta si el `.rds` no está todavía en la carpeta**. Como el fichero se distribuye ya generado, en condiciones normales este bloque no hace nada. Para forzar la actualización de los datos (por ejemplo, cuando EDGAR publica una versión nueva en septiembre), basta con borrar `EDGAR_GHG.rds` y actualizar los nombres de fichero de las URL.
+La descarga es un único fichero xlsx de pocos MB (el "booklet" del informe anual de EDGAR), del que salen **dos** ficheros rds (`EDGAR_GHG.rds` y `EDGAR_GHG_normalizado.rds`), así que **solo se ejecuta si `EDGAR_GHG.rds` no está todavía en la carpeta**. Como los ficheros se distribuyen ya generados, en condiciones normales este bloque no hace nada. Para forzar la actualización de los datos (por ejemplo, cuando EDGAR publica una versión nueva en septiembre), basta con borrar **los dos** `.rds` y actualizar el año en la URL.
 
 ```{r,echo=TRUE}
-# TRUE solo si falta el rds: evita volver a descargar varios GB en cada compilación
+# TRUE solo si falta el rds: evita volver a descargar en cada compilación
 DESCARGAR_DATOS <- !file.exists(paste0(filename, ".rds"))
 
 cat(if(DESCARGAR_DATOS) "No se encuentra el rds: se descargan los datos de EDGAR.\n"
@@ -104,71 +111,36 @@ cat(if(DESCARGAR_DATOS) "No se encuentra el rds: se descargan los datos de EDGAR
 ```
 
 ```{r,echo=TRUE}
-# LECTURA DATOS EDGAR Y GENERACIÓN RDS CON LA COMBINACIÓN DE RESULTADOS
+# LECTURA DATOS EDGAR Y GENERACIÓN RDS
 
-# URL DE LOS DIFERENTES DATASETS
-URL <- c(
-  "https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/EDGAR/datasets/EDGAR_2025_GHG/IEA_EDGAR_CO2_1970_2024.zip",
-  "https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/EDGAR/datasets/EDGAR_2025_GHG/EDGAR_CO2bio_1970_2024.zip",
-  "https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/EDGAR/datasets/EDGAR_2025_GHG/EDGAR_CH4_1970_2024.zip",
-  "https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/EDGAR/datasets/EDGAR_2025_GHG/EDGAR_N2O_1970_2024.zip",
-  "https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/EDGAR/datasets/EDGAR_2025_GHG/EDGAR_F-gases_1990_2024.zip",
-  "https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/EDGAR/datasets/EDGAR_2025_GHG/EDGAR_AR5g_F-gases_1990_2024.zip",
-  "https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/EDGAR/datasets/EDGAR_2025_GHG/EDGAR_AR5_GHG_1970_2024.zip"
-)
+# URL DEL "BOOKLET" DEL INFORME ANUAL (único fichero, a diferencia de los 7 ZIP
+# de versiones anteriores al 2026)
+URL <- "https://edgar.jrc.ec.europa.eu/booklet/EDGAR_2026_GHG_booklet_2026.xlsx"
 ```
 
 ```{r,echo=TRUE,eval=DESCARGAR_DATOS}
-# Las descargas son ficheros grandes: ampliamos el timeout por defecto (60 s) de R.
-options(timeout = max(600, getOption("timeout")))
+temp_xlsx <- tempfile(fileext = ".xlsx")
+download.file(URL, temp_xlsx, mode = "wb")
 
-# LECTURA Y COMBINACIÓN DE TODOS LOS FICHEROS
-GHG <- tibble()
-for(url in URL){
-  temp <- tempfile(fileext = ".zip")
+# Hoja "GHG_by_sector_and_country": el desglose por sector (9 categorías) y
+# sustancia (4 grupos, ya en CO2-equivalente). Las 2 últimas filas de la hoja
+# están vacías (pie de tabla de Excel) y se descartan.
+datos.sector <- read.xlsx(temp_xlsx, sheet = "GHG_by_sector_and_country") |>
+  as_tibble() |>
+  filter(!is.na(Substance))
 
-  # Descargar el ZIP
-  download.file(url, temp, mode = "wb")
+# Hoja "GHG_totals_by_country": el total por país (todos los sectores y
+# sustancias sumados). Es el equivalente al "TOTAL" de versiones anteriores:
+# se añade como Sector = "TOTAL" y Substance = "GWP_100_AR5_GHG" (mismo nombre
+# que ya usaban las versiones anteriores para el agregado de todos los gases).
+datos.totales <- read.xlsx(temp_xlsx, sheet = "GHG_totals_by_country") |>
+  as_tibble() |>
+  filter(!is.na(Country)) |>
+  mutate(Sector = "TOTAL", Substance = "GWP_100_AR5_GHG") |>
+  relocate(Substance, Sector, .before = 1)
 
-  # Explorar archivos ZIP
-  archivos <- unzip(temp, list = TRUE)$Name
-
-  # Seleccionar hoja excel
-  archivo_xlsx <- archivos[which(str_detect(archivos,"xlsx"))][1]
-
-  # Crear carpeta temporal para extraer los archivos del ZIP
-  temp_dir <- tempdir()
-
-  # Extraer el XLSX dentro de la carpeta temporal
-  unzip(temp, files = archivo_xlsx, exdir = temp_dir)
-
-  # Construir la ruta completa del XLSX extraído
-  temp_xlsx_path <- file.path(temp_dir, archivo_xlsx)
-
-  # Verificar que el archivo existe
-  if(!file.exists(temp_xlsx_path)) stop("El archivo no se extrajo correctamente.")
-
-
-  # Leer hoja 2 del XLSX con datos por ipcc
-  datos.ipcc <- read.xlsx(temp_xlsx_path,sheet = 2,startRow = 10) |> as_tibble() |>
-    rename(ipcc=ipcc_code_2006_for_standard_report_name) |>
-    select(-ipcc_code_2006_for_standard_report)
-
-  # Leer hoja 4 del XLSX con datos totales
-  datos.total <- read.xlsx(temp_xlsx_path,sheet = 4,startRow = 10) |> as_tibble() |>
-    mutate(ipcc="TOTAL") |>
-    relocate(ipcc,.after=Name)
-
-  # Combinamos los dos datasets
-  data <- bind_rows(datos.ipcc,datos.total) |>
-    arrange(Name,ipcc) |>
-    select(-IPCC_annex,-C_group_IM24_sh) |>
-    rename_with(~ gsub("^Y_", "", .x), .cols = starts_with("Y_"))
-
-  GHG <-  bind_rows(GHG,data)
-}
-
-GHG <- GHG |>
+GHG <- bind_rows(datos.sector, datos.totales) |>
+  rename(EDGAR_Country_Code = `EDGAR.Country.Code`) |>
   pivot_longer(
     cols      = matches("^[0-9]{4}$"),
     names_to  = "date",
@@ -176,246 +148,182 @@ GHG <- GHG |>
   ) |>
   mutate(date = as.integer(date)) |>
   filter(!is.na(value)) |>
-  relocate(date)
+  relocate(date, EDGAR_Country_Code, Country, Sector, Substance, value)
 
 # Guardamos los datos LO PRIMERO DE TODO, nada más construirlos, en formato rds
-# (el formato nativo de R: conserva los tipos de las columnas y ocupa mucho menos
-# que un Excel; los 1,2 millones de filas de esta tabla pasan de 40 MB en xlsx a
-# menos de 10 MB en rds)
+# (el formato nativo de R: conserva los tipos de las columnas y ocupa mucho
+# menos que un Excel)
 saveRDS(GHG, file = paste0(filename, ".rds"))
 
 cat("Fichero guardado:", paste0(filename, ".rds"),
     sprintf("(%.1f MB)\n", file.info(paste0(filename, ".rds"))$size / 1024^2))
 ```
 
+```{r,echo=TRUE,eval=DESCARGAR_DATOS}
+# TABLA NORMALIZADA: emisiones per cápita y por PIB. Novedad de la versión
+# 2026: en versiones anteriores del curso no existía esta vista. Es un
+# segundo fichero (no se mezcla con GHG) porque tiene otra unidad y otra
+# granularidad: solo país × año, sin desglose por Sector/Substance.
+datos.per_capita <- read.xlsx(temp_xlsx, sheet = "GHG_per_capita_by_country") |>
+  as_tibble() |>
+  filter(!is.na(Country)) |>
+  mutate(indicador = "per_capita")
+
+datos.per_gdp <- read.xlsx(temp_xlsx, sheet = "GHG_per_GDP_by_country") |>
+  as_tibble() |>
+  filter(!is.na(Country)) |>
+  mutate(indicador = "per_gdp")
+
+# El PIB solo está disponible desde 1990 (16 años menos que per cápita, que
+# arranca en 1970); pivot_longer con `values_drop_na` de sobra por si acaso,
+# pero aquí la diferencia de cobertura ya viene de qué columnas de año trae
+# cada hoja, no de NA sueltos dentro de la hoja.
+GHG_normalizado <- bind_rows(datos.per_capita, datos.per_gdp) |>
+  rename(EDGAR_Country_Code = `EDGAR.Country.Code`) |>
+  pivot_longer(
+    cols      = matches("^[0-9]{4}$"),
+    names_to  = "date",
+    values_to = "value"
+  ) |>
+  mutate(date = as.integer(date)) |>
+  filter(!is.na(value)) |>
+  relocate(date, EDGAR_Country_Code, Country, indicador, value)
+
+saveRDS(GHG_normalizado, file = paste0(filename, "_normalizado.rds"))
+
+cat("Fichero guardado:", paste0(filename, "_normalizado.rds"),
+    sprintf("(%.1f MB)\n", file.info(paste0(filename, "_normalizado.rds"))$size / 1024^2))
+```
+
 ## Metadatos del dataset
 
-A diferencia del INE, el ISTAC, EUROSTAT o el Banco Mundial, EDGAR **no tiene un catálogo previo** del que extraer la ficha del dataset: aquí los metadatos se construyen en este mismo documento y se guardan en `EDGAR_GHG_metadatos.xlsx`, con **tres hojas**:
+A diferencia del INE, el ISTAC, EUROSTAT o el Banco Mundial, EDGAR **no tiene un catálogo previo** del que extraer la ficha del dataset: aquí los metadatos se construyen en este mismo documento y se guardan en `EDGAR_GHG_metadatos.xlsx`, con **cuatro hojas**:
 
-- `dataset` — la ficha general (fuente, versión, cobertura, unidades).
-- `ipcc` — el significado de cada uno de los sectores IPCC 2006 de la columna `ipcc`.
-- `Substance` — el significado de cada gas o agregado de la columna `Substance`, con su unidad y su potencial de calentamiento.
+- `dataset` — la ficha general (fuente, versión, cobertura, unidades) de las dos tablas de datos (`EDGAR_GHG.rds` y `EDGAR_GHG_normalizado.rds`).
+- `Sector` — el significado de cada uno de los 9 sectores macro de la columna `Sector` (más `TOTAL`, añadido por este documento).
+- `Substance` — el significado de cada grupo de gases de la columna `Substance`, con su unidad.
+- `Indicador` — el significado de cada valor de la columna `indicador` de `EDGAR_GHG_normalizado.rds` (emisiones per cápita y por PIB), con su unidad.
 
-Las dos últimas son las **explicaciones de los indicadores**, que es lo que en las otras fuentes viene ya dado en el catálogo (`Indicator_desc` en el Banco Mundial, `Descripcion` del `topic` en EUROSTAT).
+Las tres últimas son las **explicaciones de los indicadores**, que es lo que en las otras fuentes viene ya dado en el catálogo (`Indicator_desc` en el Banco Mundial, `Descripcion` del `topic` en EUROSTAT).
 
-> **Nota:** las columnas `descripcion` de las hojas `ipcc` y `Substance` han sido generadas mediante consulta a IA a partir de la nomenclatura IPCC 2006 y de fuentes científicas (informes IPCC AR5, fichas EDGAR). **No provienen directamente de la base de datos EDGAR.**
+> **Nota:** a diferencia de versiones anteriores del curso, las descripciones de `Sector` de abajo son una **traducción directa de la definición oficial que EDGAR publica en la hoja `info` del propio booklet** (no generadas por IA). Las de `Substance` sí se han redactado a mano a partir de esa misma hoja y de fuentes generales sobre GWP-100 (AR5).
 
 ```{r,echo=TRUE}
-# DESCRIPCIÓN DE CADA SECTOR IPCC 2006 (columna `ipcc`)
-desc_ipcc <- tibble(
-  ipcc = c(
+# DESCRIPCIÓN DE CADA SECTOR (columna `Sector`), traducida de la definición
+# oficial de EDGAR (hoja `info` del booklet)
+desc_sector <- tibble(
+  Sector = c(
     "TOTAL",
-    "Main Activity Electricity and Heat Production",
-    "Petroleum Refining - Manufacture of Solid Fuels and Other Energy Industries",
-    "Manufacturing Industries and Construction",
-    "Residential and other sectors",
-    "Civil Aviation",
-    "Road Transportation no resuspension",
-    "Railways",
-    "Water-borne Navigation",
-    "Other Transportation",
-    "Oil and Natural Gas",
-    "Solid Fuels",
-    "Fossil fuel fires",
-    "Cement production",
-    "Lime production",
-    "Glass Production",
-    "Other Process Uses of Carbonates",
-    "Chemical Industry",
-    "Metal Industry",
-    "Non-Energy Products from Fuels and Solvent Use",
-    "Electronics Industry",
-    "Product Uses as Substitutes for Ozone Depleting Substances",
-    "Other Product Manufacture and Use",
-    "Enteric Fermentation",
-    "Manure Management",
-    "Rice cultivations",
-    "Direct N2O Emissions from managed soils",
-    "Indirect N2O Emissions from managed soils",
-    "Indirect N2O emissions from the atmospheric deposition of nitrogen in NOx and NH3",
-    "Indirect N2O Emissions from manure management",
-    "Liming",
-    "Urea application",
-    "Solid Waste Disposal",
-    "Biological Treatment of Solid Waste",
-    "Incineration and Open Burning of Waste",
-    "Wastewater Treatment and Discharge",
-    "Emissions from biomass burning",
-    "Non-Specified",
-    "Other"
+    "Power Industry",
+    "Industrial Combustion",
+    "Buildings",
+    "Transport",
+    "Agriculture",
+    "Fuel Production",
+    "Processes",
+    "Waste"
   ),
   descripcion = c(
-    "Suma de todos los sectores por país. Procede de la hoja de totales; no debe combinarse con filas de sectores individuales.",
-    "Centrales eléctricas y plantas de calor que venden energía a la red o a terceros (sector eléctrico público).",
-    "Refinerías de petróleo, coquería, fabricación de briquetas y otras industrias energéticas no clasificadas en otra parte.",
-    "Combustión en industrias manufactureras y de la construcción: siderurgia, química, papel, alimentación, etc.",
-    "Combustión en hogares, comercios, instituciones públicas y agricultura/pesca (excluido el transporte).",
-    "Aviación doméstica (vuelos dentro del mismo país). Excluye la aviación internacional (Int. Aviation).",
-    "Emisiones por combustión de vehículos de carretera. No incluye resuspensión de partículas.",
-    "Emisiones de combustión en locomotoras y trenes.",
-    "Navegación interior y costera nacional. Excluye la navegación marítima internacional (Int. Shipping).",
-    "Transporte por oleoductos/gasoductos y otras modalidades no clasificadas en otra parte.",
-    "Emisiones fugitivas en exploración, producción, transporte y distribución de petróleo y gas natural.",
-    "Emisiones fugitivas en minería del carbón y transformación de combustibles sólidos (coque, briquetas).",
-    "Incendios no controlados en minas de carbón y pozos de petróleo/gas.",
-    "CO2 liberado por la calcinación del carbonato cálcico (CaCO3) durante la fabricación de clinker de cemento.",
-    "CO2 liberado por la calcinación de piedra caliza para obtener cal viva (CaO).",
-    "CO2 procedente del uso de carbonatos (soda ash, caliza) como materia prima en la fabricación de vidrio.",
-    "CO2 de carbonatos usados en procesos industriales no clasificados en otra parte: cerámica, siderurgia, papel, etc.",
-    "Emisiones de proceso en la industria química: producción de amoníaco, ácido nítrico, ácido adípico, etc.",
-    "Emisiones de proceso en siderurgia y metalurgia no férrea: aluminio, magnesio, zinc, plomo, etc.",
-    "Uso de combustibles como materia prima no energética (lubricantes, asfalto) y emisiones por uso de disolventes.",
-    "Emisiones de gases fluorados (SF6, NF3, PFC) en fabricación de semiconductores, pantallas planas y células solares.",
-    "Emisiones de HFC y otros gases fluorados como sustitutos de CFC/HCFC en refrigeración, AC, espumas y aerosoles.",
-    "Emisiones de SF6 en equipos eléctricos de alta tensión y otras aplicaciones industriales no clasificadas.",
-    "CH4 producido por fermentación microbiana en el tracto digestivo del ganado rumiante (vacas, ovejas, etc.).",
-    "CH4 y N2O emitidos durante el almacenamiento y tratamiento del estiércol animal.",
-    "CH4 por fermentación anaerobia en arrozales inundados.",
-    "N2O emitido directamente desde suelos agrícolas por aplicación de fertilizantes nitrogenados y residuos de cultivos.",
-    "N2O emitido indirectamente desde suelos agrícolas por lixiviación y escorrentía del nitrógeno aplicado.",
-    "N2O emitido indirectamente por deposición atmosférica de NOx y NH3 de origen agrícola.",
-    "N2O emitido indirectamente por volatilización y lixiviación del nitrógeno del estiércol.",
-    "CO2 liberado por la aplicación de cal (CaCO3) o dolomita a suelos agrícolas ácidos.",
-    "CO2 liberado por la hidrólisis de urea aplicada como fertilizante nitrogenado.",
-    "CH4 producido por descomposición anaerobia de residuos orgánicos en vertederos y rellenos sanitarios.",
-    "CH4 y N2O emitidos en el compostaje y digestión anaerobia de residuos sólidos urbanos.",
-    "GHG emitidos en la incineración de residuos en plantas y en la quema a cielo abierto (vertederos, residuos agrícolas).",
-    "CH4 y N2O emitidos en el tratamiento de aguas residuales domésticas e industriales y descarga de efluentes.",
-    "CH4 y N2O de la quema de biomasa en incendios forestales, quema de sabanas y quema agrícola post-cosecha.",
-    "Emisiones de combustión no asignadas a ningún subsector concreto del IPCC.",
-    "Emisiones de procesos industriales u otras fuentes no clasificables en categorías IPCC específicas."
+    "Suma de todos los sectores. Procede de la hoja de totales por país del booklet; no debe combinarse con filas de sectores individuales.",
+    "Centrales eléctricas y de calor, públicas o de autoproductores.",
+    "Combustión para fabricación industrial.",
+    "Combustión estacionaria a pequeña escala no industrial (hogares, comercios, instituciones).",
+    "Combustión móvil: carretera, ferrocarril, transporte marítimo y aviación.",
+    "Suelos agrícolas, quema de residuos de cultivos, fermentación entérica, gestión de estiércol y emisiones indirectas de N2O de origen agrícola.",
+    "Producción, transformación y refino de combustibles.",
+    "Procesos industriales (p. ej. producción de cemento, hierro y acero, aluminio, productos químicos, disolventes...).",
+    "Eliminación de residuos sólidos y tratamiento de aguas residuales."
   )
 )
 ```
 
 ```{r,echo=TRUE}
-# DESCRIPCIÓN DE CADA GAS O AGREGADO (columna `Substance`)
+# DESCRIPCIÓN DE CADA GRUPO DE SUSTANCIAS (columna `Substance`)
 desc_substance <- tibble(
   Substance = c(
-    "CO2",
-    "CO2bio",
-    "CH4",
-    "N2O",
-    "SF6",
-    "NF3",
-    "CF4",
-    "C2F6",
-    "C3F8",
-    "c-C4F8",
-    "C4F10",
-    "C5F12",
-    "C6F14",
-    "HFC-23",
-    "HFC-32",
-    "HFC-41",
-    "HFC-125",
-    "HFC-134",
-    "HFC-134a",
-    "HFC-143",
-    "HFC-143a",
-    "HFC-152a",
-    "HFC-227ea",
-    "HFC-236fa",
-    "HFC-245fa",
-    "HFC-365mfc",
-    "HFC-43-10-mee",
-    "HCFC-141b",
-    "HCFC-142b",
     "GWP_100_AR5_GHG",
-    "GWP_100_AR5_HFC",
-    "GWP_100_AR5_HCFC",
-    "GWP_100_AR5_PFC",
-    "GWP_100_AR5_SF6",
-    "GWP_100_AR5_NF3"
+    "CO2",
+    "GWP_100_AR5_CH4",
+    "GWP_100_AR5_N2O",
+    "GWP_100_AR5_F-gases"
   ),
   descripcion = c(
-    "Dióxido de carbono de origen fósil. Unidad: kton CO2/año. Principal GHG por volumen; procede de combustión de carbón, petróleo y gas.",
-    "Dióxido de carbono de origen biogénico. Unidad: kton CO2/año. Procede de la combustión de biomasa y biocombustibles; contabilizado por separado del CO2 fósil.",
-    "Metano. Unidad: kton CH4/año. GWP-100 (AR5) = 28. Fuentes: ganadería, gas natural, vertederos, arrozales.",
-    "Óxido nitroso. Unidad: kton N2O/año. GWP-100 (AR5) = 265. Fuentes: fertilizantes agrícolas, aguas residuales, combustión.",
-    "Hexafluoruro de azufre. Unidad: kton SF6/año. GWP-100 (AR5) = 23.500. Usado en equipos eléctricos de alta tensión.",
-    "Trifluoruro de nitrógeno. GWP-100 (AR5) = 16.100. Usado en fabricación de semiconductores y pantallas planas.",
-    "Tetrafluoruro de carbono (PFC). GWP-100 (AR5) = 6.630. Subproducto de la producción de aluminio y semiconductores.",
-    "Hexafluoroetano (PFC). GWP-100 (AR5) = 11.100. Emitido en producción de aluminio y fabricación de semiconductores.",
-    "Octafluoropropano (PFC). GWP-100 (AR5) = 8.900. Emitido principalmente en fabricación de semiconductores.",
-    "Perfluorociclobutano (PFC). GWP-100 (AR5) = 9.540. Emitido en fabricación de semiconductores.",
-    "Perfluorobutano (PFC). GWP-100 (AR5) = 9.200. Emitido en fabricación de semiconductores.",
-    "Perfluoropentano (PFC). GWP-100 (AR5) = 8.550. Emitido en fabricación de semiconductores.",
-    "Perfluorohexano (PFC). GWP-100 (AR5) = 7.910. Emitido en fabricación de semiconductores.",
-    "HFC subproducto de la fabricación de HCFC-22; también refrigerante criogénico. GWP-100 (AR5) = 12.400.",
-    "HFC usado en mezclas refrigerantes (R-410A) y bombas de calor. GWP-100 (AR5) = 677.",
-    "HFC de muy bajo GWP. GWP-100 (AR5) = 116. Uso comercial reducido.",
-    "HFC componente de mezclas refrigerantes R-404A y R-410A. GWP-100 (AR5) = 3.170.",
-    "HFC de uso comercial limitado. GWP-100 (AR5) = 1.100.",
-    "HFC más usado en refrigeración doméstica y automoción (refrigerante R-134a). GWP-100 (AR5) = 1.300.",
-    "HFC de uso comercial muy limitado. GWP-100 (AR5) = 328.",
-    "HFC componente de mezcla R-404A para refrigeración comercial. GWP-100 (AR5) = 4.800.",
-    "HFC de bajo GWP usado como propelente en aerosoles. GWP-100 (AR5) = 138.",
-    "HFC usado como agente extintor y propelente en aerosoles médicos (inhaladores). GWP-100 (AR5) = 3.350.",
-    "HFC usado como agente extintor en sistemas de supresión de incendios. GWP-100 (AR5) = 8.060.",
-    "HFC usado en espumas de poliuretano rígidas y como agente de limpieza. GWP-100 (AR5) = 858.",
-    "HFC usado en espumas de poliuretano y como disolvente de precisión. GWP-100 (AR5) = 804.",
-    "HFC de cadena larga usado como disolvente de precisión en electrónica. GWP-100 (AR5) = 1.650.",
-    "HCFC usado en espumas de aislamiento; regulado por el Protocolo de Montreal. GWP-100 (AR5) = 725.",
-    "HCFC usado en espumas y refrigeración; regulado por el Protocolo de Montreal. GWP-100 (AR5) = 2.310.",
-    "AGREGADO: suma de TODOS los gases en CO2-equivalente (GWP-100, AR5). Unidad: kton CO2eq/año. Indicador principal para comparar emisiones totales entre países y sectores.",
-    "AGREGADO: suma de todos los HFC en CO2-equivalente (GWP-100, AR5). Unidad: kton CO2eq/año.",
-    "AGREGADO: suma de todos los HCFC en CO2-equivalente (GWP-100, AR5). Unidad: kton CO2eq/año.",
-    "AGREGADO: suma de todos los PFC (perfluorocarbonos) en CO2-equivalente (GWP-100, AR5). Unidad: kton CO2eq/año.",
-    "AGREGADO: SF6 expresado en CO2-equivalente (GWP-100, AR5). Unidad: kton CO2eq/año.",
-    "AGREGADO: NF3 expresado en CO2-equivalente (GWP-100, AR5). Unidad: kton CO2eq/año."
+    "AGREGADO: suma de las 4 categorías siguientes en CO2-equivalente (GWP-100, AR5). Unidad: Mt CO2eq/año. Solo existe en las filas con Sector = \"TOTAL\".",
+    "Dióxido de carbono de origen fósil. A diferencia de versiones anteriores del curso, este booklet NO incluye el CO2 de origen biogénico por separado. Unidad: Mt CO2/año (= Mt CO2eq, su GWP es 1).",
+    "Metano agregado en CO2-equivalente (GWP-100 AR5 = 28). Unidad: Mt CO2eq/año. Ya no se distingue la fuente (ganadería, gas natural, vertederos...); para eso está la columna Sector.",
+    "Óxido nitroso agregado en CO2-equivalente (GWP-100 AR5 = 265). Unidad: Mt CO2eq/año.",
+    "Suma de TODOS los gases fluorados (HFC + PFC + SF6 + NF3) en CO2-equivalente. Unidad: Mt CO2eq/año. A diferencia de versiones anteriores del curso, ya no se desglosa por especie individual (HFC-134a, SF6...)."
   )
 )
 ```
 
-La ficha general se calcula a partir de la tabla ya guardada en disco, para que describa exactamente lo que hay en el `.rds` y no lo que se esperaba descargar.
+```{r,echo=TRUE}
+# DESCRIPCIÓN DE CADA INDICADOR de EDGAR_GHG_normalizado.rds (columna `indicador`)
+desc_indicador <- tibble(
+  indicador = c("per_capita", "per_gdp"),
+  descripcion = c(
+    "Emisiones totales del país (todos los sectores y sustancias) divididas entre su población. Unidad: t CO2eq/cap/año. Cobertura: 1970-2025, igual que la tabla principal.",
+    "Emisiones totales del país divididas entre su PIB. Unidad: t CO2eq/kUSD/año. Cobertura: SOLO 1990-2025 (16 años menos que per_capita; el PIB no está disponible antes de 1990)."
+  )
+)
+```
+
+La ficha general se calcula a partir de las tablas ya guardadas en disco, para que describa exactamente lo que hay en los `.rds` y no lo que se esperaba descargar.
 
 ```{r,echo=TRUE}
-GHG <- readRDS(paste0(filename, ".rds"))
+GHG             <- readRDS(paste0(filename, ".rds"))
+GHG_normalizado <- readRDS(paste0(filename, "_normalizado.rds"))
 
 ficha <- tibble(
-  Campo = c("Fuente", "Version", "URL", "N.ficheros.combinados", "Fecha.de.generacion",
-            "N.observaciones", "N.columnas", "N.paises", "N.sectores.ipcc",
-            "N.sustancias", "Freq", "Ini", "Fin", "N.periodos", "Unidades"),
+  Campo = c("Fuente", "Version", "URL", "N.hojas.combinadas", "Fecha.de.generacion",
+            "N.observaciones", "N.columnas", "N.paises.y.entidades", "N.sectores",
+            "N.sustancias", "Freq", "Ini", "Fin", "N.periodos", "Unidades",
+            "N.observaciones.normalizado", "N.paises.normalizado", "Ini.per_gdp"),
   Valor = c(
     "EDGAR (Emissions Database for Global Atmospheric Research), JRC - Comisión Europea",
-    "EDGAR 2025 GHG",
-    "https://edgar.jrc.ec.europa.eu/dataset_ghg2025",
-    as.character(length(URL)),
+    "EDGAR 2026 GHG (booklet del informe anual 2026)",
+    "https://edgar.jrc.ec.europa.eu/report_2026",
+    "2",
     as.character(Sys.Date()),
     as.character(nrow(GHG)),
     as.character(ncol(GHG)),
-    as.character(n_distinct(GHG$Country_code_A3)),
-    as.character(n_distinct(GHG$ipcc)),
+    as.character(n_distinct(GHG$EDGAR_Country_Code)),
+    as.character(n_distinct(GHG$Sector)),
     as.character(n_distinct(GHG$Substance)),
     "Y (anual)",
     as.character(min(GHG$date)),
     as.character(max(GHG$date)),
     as.character(n_distinct(GHG$date)),
-    paste("kton de la sustancia/año para los gases individuales;",
-          "kton CO2-equivalente/año para los agregados GWP_100_AR5_*")
+    "Mt CO2-equivalente/año (para CO2 puro, Mt CO2eq = Mt CO2 porque su GWP es 1)",
+    as.character(nrow(GHG_normalizado)),
+    as.character(n_distinct(GHG_normalizado$EDGAR_Country_Code)),
+    as.character(min(GHG_normalizado$date[GHG_normalizado$indicador == "per_gdp"]))
   )
 )
 
 # comprobación: toda categoría presente en los datos tiene que tener descripción
-faltan_ipcc <- setdiff(unique(GHG$ipcc), desc_ipcc$ipcc)
-faltan_subs <- setdiff(unique(GHG$Substance), desc_substance$Substance)
-if(length(faltan_ipcc) > 0)
-  warning("Sectores ipcc sin descripción: ", paste(faltan_ipcc, collapse = ", "))
+faltan_sector     <- setdiff(unique(GHG$Sector), desc_sector$Sector)
+faltan_subs       <- setdiff(unique(GHG$Substance), desc_substance$Substance)
+faltan_indicador  <- setdiff(unique(GHG_normalizado$indicador), desc_indicador$indicador)
+if(length(faltan_sector) > 0)
+  warning("Sectores sin descripción: ", paste(faltan_sector, collapse = ", "))
 if(length(faltan_subs) > 0)
   warning("Sustancias sin descripción: ", paste(faltan_subs, collapse = ", "))
+if(length(faltan_indicador) > 0)
+  warning("Indicadores sin descripción: ", paste(faltan_indicador, collapse = ", "))
 
-# las tres hojas en un solo xlsx: openxlsx toma el nombre de cada hoja del
+# las cuatro hojas en un solo xlsx: openxlsx toma el nombre de cada hoja del
 # nombre del elemento de la lista
 write.xlsx(list(dataset   = ficha,
-                ipcc      = desc_ipcc,
-                Substance = desc_substance),
+                 Sector    = desc_sector,
+                 Substance = desc_substance,
+                 Indicador = desc_indicador),
            file = paste0(filename, "_metadatos.xlsx"), overwrite = TRUE)
 
 cat("Fichero guardado:", paste0(filename, "_metadatos.xlsx"),
-    "- hojas: dataset, ipcc, Substance\n")
-cat("Categorías sin descripción:", length(faltan_ipcc), "sectores ipcc,",
-    length(faltan_subs), "sustancias\n")
+    "- hojas: dataset, Sector, Substance, Indicador\n")
+cat("Categorías sin descripción:", length(faltan_sector), "sectores,",
+    length(faltan_subs), "sustancias,", length(faltan_indicador), "indicadores\n")
 ```
 
 Una vez guardados en disco los metadatos (fichero xlsx) y los datos (fichero RDS), iniciamos el proceso de análisis. A partir de aquí el documento se compila **solo** con los ficheros ya guardados en disco; no se usa ningún objeto de las secciones anteriores. Es a propósito: es la parte que el alumno incluye en la memoria del proyecto personal, así que tiene que poder ejecutarse sola (lo único que se usa de lo definido anteriormente es `filename`).
@@ -429,11 +337,12 @@ filename <- "EDGAR_GHG"
 ```
 
 ```{r,echo=TRUE}
-# las descripciones de los indicadores viven en las hojas `ipcc` y `Substance`
-# del fichero de metadatos, y la ficha general en la hoja `dataset`
+# las descripciones de los indicadores viven en las hojas `Sector`, `Substance`
+# e `Indicador` del fichero de metadatos, y la ficha general en `dataset`
 ficha          <- read.xlsx(paste0(filename, "_metadatos.xlsx"), sheet = "dataset")
-desc_ipcc      <- read.xlsx(paste0(filename, "_metadatos.xlsx"), sheet = "ipcc")
+desc_sector    <- read.xlsx(paste0(filename, "_metadatos.xlsx"), sheet = "Sector")
 desc_substance <- read.xlsx(paste0(filename, "_metadatos.xlsx"), sheet = "Substance")
+desc_indicador <- read.xlsx(paste0(filename, "_metadatos.xlsx"), sheet = "Indicador")
 ```
 
 **metadatos**
@@ -456,7 +365,7 @@ data <- readRDS(paste0(filename, ".rds"))
 data
 ```
 
-> **Aviso sobre la tabla combinada:** Esta tabla une 7 datasets en uno solo, por lo que **NO debe sumarse a ciegas** sobre `Substance` ni sobre todas las filas. Coexisten los gases individuales (en kton de sustancia/año) con sus agregados en CO2-equivalente `GWP_100_AR5_*` (en kton CO2eq/año) y con el total `GWP_100_AR5_GHG`. Sumar todo duplicaría/triplicaría emisiones y mezclaría unidades. Ver la sección *Descripción de las variables de la tabla* más abajo.
+> **Aviso sobre la tabla combinada:** Esta tabla combina el desglose por sector con el total por país en una sola tabla, por lo que **NO debe sumarse a ciegas** sobre `Sector` ni sobre `Substance`. Las filas `Sector == "TOTAL"` (con `Substance == "GWP_100_AR5_GHG"`) ya son la suma de todos los sectores y sustancias: sumarlas junto con el resto duplicaría las emisiones. Ver la sección *Descripción de las variables de la tabla* más abajo.
 
 ## Información sobre las columnas de la tabla descargada
 
@@ -488,20 +397,18 @@ for(col in colnames(data)){
     group_by(!!sym(col)) |>
     summarise(N.observ = dplyr::n(), .groups = "drop") |>
     arrange(desc(N.observ)) |>
-    # los nombres de sector IPCC y de país pueden ser muy largos
+    # los nombres de sector y de país pueden ser largos
     mutate(!!col := substr(as.character(!!sym(col)), 1, 60))
 
   texto <- paste0("COLUMNA: ", col, " (", n_opciones, " opciones)")
 
-  # cualquier columna puede tener muchas opciones (225 países, 39 sectores...):
+  # cualquier columna puede tener muchas opciones (212 países/entidades...):
   # se muestran TODAS, en una caja con scroll vertical en vez de alargar la página
   imprime_caja(tb |> as.matrix() |> noquote(), texto, scroll = TRUE)
 }
 ```
 
-## Valores únicos de ipcc (sector IPCC 2006) y nº de observaciones en la tabla
-
-> **Nota:** La columna `descripcion` ha sido generada mediante consulta a IA a partir de la nomenclatura IPCC 2006. No proviene directamente de la base de datos EDGAR.
+## Valores únicos de Sector y nº de observaciones en la tabla
 
 <div class="tabla-scroll-xy con-desc">
 
@@ -511,18 +418,15 @@ for(col in colnames(data)){
 # dos ejes, con la cabecera fija arriba, y .con-desc deja que la última columna
 # (la descripción) reparta en varias líneas.
 data |>
-  count(ipcc, name = "n_observaciones") |>
+  count(Sector, name = "n_observaciones") |>
   arrange(desc(n_observaciones)) |>
-  left_join(desc_ipcc, by = "ipcc") |>
-  mutate(descripcion = if_else(is.na(descripcion), "BUSCAR DESCRIPCIÓN", descripcion)) |>
+  left_join(desc_sector, by = "Sector") |>
   knitr::kable()
 ```
 
 </div>
 
 ## Valores únicos de Sustancias / gases y nº de observaciones en la tabla
-
-> **Nota:** La columna `descripcion` ha sido generada mediante consulta a IA a partir de fuentes científicas (informes IPCC AR5, fichas EDGAR). No proviene directamente de la base de datos EDGAR.
 
 <div class="tabla-scroll-xy con-desc">
 
@@ -531,7 +435,6 @@ data |>
   count(Substance, name = "n_observaciones") |>
   arrange(desc(n_observaciones)) |>
   left_join(desc_substance, by = "Substance") |>
-  mutate(descripcion = if_else(is.na(descripcion), "BUSCAR DESCRIPCIÓN", descripcion)) |>
   knitr::kable()
 ```
 
@@ -539,13 +442,13 @@ data |>
 
 ## Nº de observaciones en España
 
-Los datos de EDGAR son por países, así que aquí lo que interesa comprobar es que **España** (`ESP`) esté presente y bien representada.
+Los datos de EDGAR son por países, así que aquí lo que interesa comprobar es que **España** esté presente y bien representada. **Ojo**: desde la versión 2026, EDGAR ya no reporta España por separado, sino fusionada con Andorra bajo el código `ESP` (ver la sección de más abajo sobre la columna `Country`).
 
 ```{r}
 data.esp <- data |>
-  filter(Country_code_A3 == "ESP") |>
+  filter(EDGAR_Country_Code == "ESP") |>
   summarise(N.Observ    = dplyr::n(),
-            n_sectores  = n_distinct(ipcc),
+            n_sectores  = n_distinct(Sector),
             n_sustancias= n_distinct(Substance),
             n_periodos  = n_distinct(date),
             date_min    = min(date),
@@ -560,18 +463,18 @@ if(data.esp$N.Observ == 0){
 
 ## Tamaño series temporales de atributos combinados
 
-Cada combinación de **sustancia × sector IPCC** es un atributo que se sigue en el tiempo para cada país. Se muestra, para cada una, el nº de países con datos y los percentiles del tamaño de su serie temporal (nº de años con dato no nulo por país).
+Cada combinación de **sustancia × sector** es un atributo que se sigue en el tiempo para cada país/entidad. Se muestra, para cada una, el nº de países con datos y los percentiles del tamaño de su serie temporal (nº de años con dato no nulo por país).
 
 <div class="tabla-scroll-xy">
 
 ```{r}
-# Combinaciones Substance x ipcc (sector): nº de observaciones, percentiles y rango de años
+# Combinaciones Substance x Sector: nº de observaciones, percentiles y rango de años
 data |>
-  group_by(Substance, ipcc, Name) |>
+  group_by(Substance, Sector, Country) |>
   summarise(n_años = n_distinct(date), .groups = "drop") |>
-  group_by(Substance, ipcc) |>
+  group_by(Substance, Sector) |>
   summarise(
-    n_paises = n_distinct(Name),
+    n_paises = n_distinct(Country),
     P0   = min(n_años),
     P25  = quantile(n_años, 0.25),
     P50  = quantile(n_años, 0.50),
@@ -585,92 +488,152 @@ data |>
 
 </div>
 
+## Emisiones normalizadas: per cápita y por PIB
+
+Novedad de la versión 2026 del dataset: junto a las emisiones absolutas, EDGAR publica ahora dos vistas normalizadas por país y año, en un fichero aparte (`EDGAR_GHG_normalizado.rds`) porque tienen otra unidad y otra granularidad — solo país × año, sin desglose por `Sector`/`Substance` (son siempre el total del país).
+
+```{r,echo=TRUE}
+data_norm <- readRDS(paste0(filename, "_normalizado.rds"))
+```
+
+**data_normalizado**
+
+```{r}
+data_norm
+```
+
+<div class="tabla-scroll-xy con-desc">
+
+```{r}
+data_norm |>
+  count(indicador, name = "n_observaciones") |>
+  left_join(desc_indicador, by = "indicador") |>
+  knitr::kable()
+```
+
+</div>
+
+Como referencia, los 10 países/entidades con mayores emisiones **per cápita** en el último año disponible (excluyendo `GLOBAL TOTAL` y `EU27`, que no son países):
+
+<div class="tabla-scroll">
+
+```{r}
+data_norm |>
+  filter(indicador == "per_capita",
+         date == max(date),
+         !EDGAR_Country_Code %in% c("GLOBAL TOTAL", "EU27")) |>
+  arrange(desc(value)) |>
+  slice(1:10) |>
+  select(Country, date, value) |>
+  rename(t_CO2eq_per_capita = value) |>
+  knitr::kable()
+```
+
+</div>
 
 ## Descripción de las variables de la tabla GHG
 
 La tabla `GHG` está en **formato tidy**: cada fila representa una observación única
-*país × sector × sustancia × año*. Resulta de combinar 7 datasets EDGAR (hoja por sector
-IPCC 2006 y hoja de totales por país), pivotar los 55 años a una columna `date` y eliminar
-los valores ausentes. La tabla tiene **7 columnas** y del orden de **1,2 millones de filas**
-(combinaciones con dato no nulo).
+*país/entidad × sector × grupo de sustancias × año*. Resulta de combinar las dos
+hojas por país del "booklet" del informe anual de EDGAR (desglose por sector y
+total), pivotar los 56 años a una columna `date` y eliminar los valores ausentes.
+La tabla tiene **6 columnas** y del orden de **250.000-300.000 filas** (combinaciones
+con dato no nulo) — bastantes menos que en versiones del curso anteriores a 2026
+(~1,2 millones), porque el booklet agrega mucho más que la distribución antigua
+(ver el aviso de cambio de formato al principio del documento).
 
 ### 1. Identificadores geográficos
 
-- **`Country_code_A3`** *(texto)* — Código ISO 3166-1 alfa-3 del país o territorio
-  (`AFG`, `ESP`, `CHN`…). Es la clave geográfica más estable y la recomendada para cruzar
-  con otras fuentes (población, PIB, etc.).
-- **`Name`** *(texto)* — Nombre legible del país, territorio o entidad. Hay 225 valores
-  distintos, con varios matices a tener en cuenta:
-    - **Dos entradas no son países, sino transporte internacional**: `Int. Aviation` e
-      `Int. Shipping` (búnkeres internacionales, no asignables a un país). Conviene
-      **excluirlas para rankings por país** e incluirlas solo si se busca el total mundial
-      con búnkeres.
-    - **No hay agregados supranacionales** (ni `World`, ni `EU27`, ni continentes): el total
-      mundial **no viene precalculado** y hay que sumarlo.
-    - **Los territorios dependientes figuran por separado de su metrópoli** (Hong Kong y
-      Macao aparte de China; Groenlandia y Faroe aparte de Dinamarca; Puerto Rico, Guam, etc.
-      aparte de EE.UU.; Guadalupe, Martinica, Reunión, Mayotte, etc. aparte de Francia). No
-      hay doble conteo, pero si se quiere agrupar por "país soberano" hay que reasignarlos.
-    - **Hay nombres históricos/obsoletos**: `Serbia and Montenegro` (entidad ya disuelta),
-      `Macedonia, the former Yugoslav Republic of`, `Libyan Arab Jamahiriya`,
-      `Netherlands Antilles`, `Swaziland`, `Cape Verde`, `Czech Republic`. Por esto es mejor
-      unir por `Country_code_A3` que por `Name`.
-    - **Los delimitadores son inconsistentes**: la mayoría usan coma
-      (`Korea, Republic of`) pero algunos usan guion bajo (`Congo_the Democratic Republic of the`,
-      `Taiwan_Province of China`, `Tanzania_United Republic of`, `Virgin Islands_British`,
-      `Virgin Islands_USA`). Hay que tenerlo presente si se separa/parsea la columna.
-    - EDGAR **no incluye una variable de región/continente**: si se quiere agregar por
-      regiones, hay que construirla.
+- **`EDGAR_Country_Code`** *(texto)* — Código de 3 letras que usa EDGAR para el país
+  o entidad (`AFG`, `ESP`, `CHN`…). **No es exactamente el ISO 3166-1 alfa-3 estándar**:
+  coincide en la mayoría de los casos, pero EDGAR fusiona algunos países pequeños
+  con un vecino mayor bajo un único código (ver más abajo). Es la clave recomendada
+  para cruzar con otras fuentes, con esa salvedad.
+- **`Country`** *(texto)* — Nombre legible del país o entidad. Hay 212 valores
+  distintos (225 en versiones del curso anteriores a 2026: EDGAR ha reducido el
+  nº de entidades al fusionar varias), con varios matices a tener en cuenta:
+    - **Varios países pequeños aparecen fusionados con un vecino**, bajo el código
+      de este último: `Spain and Andorra` (`ESP`), `Switzerland and Liechtenstein`
+      (`CHE`), `France and Monaco` (`FRA`), `Italy, San Marino and the Holy See`
+      (`ITA`), `Israel and Palestine, State of` (`ISR`), `Sudan and South Sudan`
+      (`SDN`). **Si el proyecto se centra en uno de estos países, conviene saber
+      que la cifra incluye también al vecino fusionado.**
+    - **Hay nombres históricos/obsoletos** en algún caso, como `Serbia and
+      Montenegro` (entidad ya disuelta). Por esto sigue siendo mejor unir por
+      `EDGAR_Country_Code` que por `Country`.
+    - **Dos entradas no son países, sino transporte internacional**: `International
+      Aviation` e `International Shipping` (búnkeres internacionales, no asignables
+      a un país). Conviene **excluirlas para rankings por país**.
+    - **Novedad de la versión 2026: sí hay agregados supranacionales ya
+      precalculados**: `GLOBAL TOTAL` (mundo) y `EU27` (Unión Europea de los 27).
+      En versiones anteriores del curso **no existían** y había que sumarlos a
+      mano; ahora existen, pero **hay que excluirlos igualmente de cualquier
+      ranking o promedio por país**, porque no son países.
 
 ### 2. Dimensiones de clasificación
 
-- **`ipcc`** *(texto)* — Sector emisor según la nomenclatura **IPCC 2006** (nombre
-  descriptivo, no el código numérico). Tiene 39 valores; el valor especial **`TOTAL`** marca
-  las filas de la hoja de totales por país (suma de todos los sectores). Los otros 38 se agrupan
-  en las grandes categorías del IPCC:
-    - *Energía (combustión y fugitivas)*, 12 sectores: Main Activity Electricity and Heat Production,
-      Petroleum Refining…, Manufacturing Industries and Construction, Residential and other
-      sectors, Civil Aviation, Road Transportation no resuspension, Railways, Water-borne
-      Navigation, Other Transportation, Oil and Natural Gas, Solid Fuels, Fossil fuel fires.
-    - *Procesos industriales y uso de productos (IPPU)*, 10 sectores: Cement production, Lime production,
-      Glass Production, Other Process Uses of Carbonates, Chemical Industry, Metal Industry,
-      Non-Energy Products from Fuels and Solvent Use, Electronics Industry, Product Uses as
-      Substitutes for Ozone Depleting Substances, Other Product Manufacture and Use.
-    - *Agricultura*, 9 sectores: Enteric Fermentation, Manure Management, Rice cultivations, Direct N2O
-      Emissions from managed soils, Indirect N2O Emissions from managed soils, Indirect N2O
-      emissions from the atmospheric deposition of nitrogen in NOx and NH3, Indirect N2O
-      Emissions from manure management, Liming, Urea application.
-    - *Residuos*, 4 sectores: Solid Waste Disposal, Biological Treatment of Solid Waste, Incineration and
-      Open Burning of Waste, Wastewater Treatment and Discharge.
-    - *Otros / biomasa*, 3 sectores: Emissions from biomass burning, Non-Specified, Other.
-- **`Substance`** *(texto)* — Gas o magnitud de la fila. **Es la columna más delicada**, porque
-  mezcla tres tipos de valores con unidades distintas:
-    - *Gases individuales (masa)*: `CO2` (fósil), `CO2bio` (biogénico), `CH4`, `N2O`.
-    - *Especies de gases fluorados (masa)*: HFC (`HFC-125`, `HFC-134a`, `HFC-23`…), HCFC
-      (`HCFC-141b`, `HCFC-142b`), PFC (`CF4`, `C2F6`, `c-C4F8`…), `SF6` y `NF3`.
-    - *Agregados en CO2-equivalente (AR5, GWP-100)*: `GWP_100_AR5_HFC`, `GWP_100_AR5_HCFC`,
-      `GWP_100_AR5_PFC`, `GWP_100_AR5_SF6`, `GWP_100_AR5_NF3` (subtotales por familia de
-      gases-F) y `GWP_100_AR5_GHG` (**el total global de todos los gases en CO2eq**).
-- **`fossil_bio`** *(texto)* — Origen del carbono en las filas de CO2 (fósil vs. biogénico).
-  Solo está poblada para los datasets de CO2; para CH4, N2O y gases fluorados aparece como `NA`.
-  Es en parte redundante con la distinción `CO2`/`CO2bio` de `Substance`.
+- **`Sector`** *(texto)* — Sector emisor, según la agrupación macro que usa EDGAR
+  en el informe anual (9 valores; ver la tabla de descripciones más arriba, tomada
+  directamente de la hoja `info` del booklet). El valor especial **`TOTAL`**
+  (añadido por este documento, no viene así en el fichero original de EDGAR) marca
+  las filas de la hoja de totales por país, es decir, la suma de los 9 sectores.
+  **Ojo:** en versiones del curso anteriores a 2026 esta columna se llamaba `ipcc`
+  y tenía 39 valores (la nomenclatura IPCC 2006 completa); EDGAR ya no publica ese
+  desglose fino en el booklet.
+- **`Substance`** *(texto)* — Grupo de gases de la fila. Todos están ya expresados
+  en **CO2-equivalente** (GWP-100, AR5), así que a diferencia de versiones
+  anteriores del curso **no hay que preocuparse de mezclar unidades físicas
+  distintas**: solo hay 5 valores posibles:
+    - `CO2` — dióxido de carbono de origen fósil (ya no se reporta el biogénico
+      por separado).
+    - `GWP_100_AR5_CH4`, `GWP_100_AR5_N2O` — metano y óxido nitroso, agregados.
+    - `GWP_100_AR5_F-gases` — TODOS los gases fluorados juntos (ya no se
+      desglosan por especie individual como en versiones anteriores del curso).
+    - `GWP_100_AR5_GHG` — el total de las 4 categorías anteriores. **Solo aparece
+      en las filas con `Sector == "TOTAL"`.**
 
 ### 3. Variables de medida
 
-- **`date`** *(entero)* — Año de la observación (1970–2024). Los gases fluorados y los
-  agregados AR5 solo tienen datos desde **1990**; las filas con valor ausente se han
-  eliminado al pivotar, por lo que no aparecen en la tabla.
-- **`value`** *(numérico)* — Emisión anual de la combinación país × sector × sustancia.
-  **Las unidades dependen de `Substance`**: sustancias individuales en **kton de la
-  sustancia/año**; agregados `GWP_100_AR5_*` en **kton de CO2-equivalente/año**.
+- **`date`** *(entero)* — Año de la observación (1970–2025).
+- **`value`** *(numérico)* — Emisión anual de la combinación país/entidad × sector
+  × sustancia, en **Mt CO2-equivalente/año** (para `Substance == "CO2"` esto
+  coincide con Mt CO2/año, porque su GWP es 1). A diferencia de versiones
+  anteriores del curso, **todas las filas comparten la misma unidad**: no hace
+  falta consultar `Substance` para saber en qué unidad está expresado `value`.
 
 ### Cómo usar la tabla sin equivocarse
 
-- Para un **total comparable entre países/sectores en CO2eq**: filtrar
-  `Substance == "GWP_100_AR5_GHG"`.
-- Para analizar **un gas concreto en su unidad física**: filtrar esa especie (p. ej. `CH4`,
-  `CO2`, `SF6`) y **no** mezclarla con los `GWP_100_*`.
-- Para **totales por país**: usar las filas `ipcc == "TOTAL"`, sin combinarlas con las de
-  sectores (eso duplicaría).
-- Para **rankings por país**: decidir el tratamiento de `Int. Aviation`/`Int. Shipping` y de
-  los territorios dependientes.
+- Para un **total comparable entre países/sectores**: filtrar `Sector == "TOTAL"`
+  y `Substance == "GWP_100_AR5_GHG"`.
+- Para analizar **un grupo de gases concreto por sector**: filtrar `Sector !=
+  "TOTAL"` y la `Substance` de interés, sin mezclarla con `GWP_100_AR5_GHG`.
+- Para **rankings por país**: excluir `International Aviation`, `International
+  Shipping`, `GLOBAL TOTAL` y `EU27` (no son países), y decidir si interesa que
+  las cifras de `Spain and Andorra` y demás entidades fusionadas incluyan al
+  país pequeño fusionado.
+
+## Descripción de las variables de la tabla GHG_normalizado
+
+Tabla independiente de `GHG` (novedad de la versión 2026), con las emisiones
+**per cápita** y **por PIB** de cada país/entidad y año. Es una tabla distinta
+porque tiene otra granularidad (solo país × año, ya son totales del país: no
+hay `Sector` ni `Substance`) y otra unidad según la fila.
+
+- **`EDGAR_Country_Code`** / **`Country`** — mismas columnas y mismos matices
+  que en `GHG` (entidades fusionadas, `GLOBAL TOTAL`/`EU27`...), con una
+  diferencia: **tiene 210 entidades, 2 menos que `GHG`** (`International
+  Aviation` e `International Shipping` no tienen población ni PIB propios, así
+  que EDGAR no las incluye aquí).
+- **`indicador`** *(texto)* — `per_capita` o `per_gdp` (ver la tabla de
+  descripciones más arriba). **Ojo con la cobertura temporal, no es la misma
+  para los dos**: `per_capita` cubre 1970–2025 igual que `GHG`, pero
+  `per_gdp` **solo cubre 1990–2025** (el PIB no está disponible antes). Filtrar
+  por años anteriores a 1990 sin fijarse en `indicador` deja la tabla
+  `per_gdp` vacía sin ningún aviso.
+- **`date`** *(entero)* — Año de la observación.
+- **`value`** *(numérico)* — El valor depende de `indicador`: **t
+  CO2-equivalente/cápita/año** si `indicador == "per_capita"`, **t
+  CO2-equivalente/kUSD de PIB/año** si `indicador == "per_gdp"`. Son unidades
+  distintas entre sí y distintas de `value` en la tabla `GHG` (que está en Mt,
+  no en toneladas): **no cruzar ambas tablas sumando o dividiendo `value`
+  directamente sin fijarse en las unidades**.

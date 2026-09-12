@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-09-10" />
+<meta name="date" content="2026-09-12" />
 
 <title>Selección de datasets para el proyecto de AEDV</title>
 
@@ -1614,7 +1614,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Selección de datasets para el proyecto de
 AEDV</h1>
-<h4 class="date">2026-09-10</h4>
+<h4 class="date">2026-09-12</h4>
 
 </div>
 
@@ -1766,7 +1766,7 @@ original.</p>
 <tr class="odd">
 <td>EDGAR</td>
 <td><em>(dataset único, solo sirve para un alumno)</em></td>
-<td>Mundial: emisiones GHG 1970–2024</td>
+<td>Mundial: emisiones GHG 1970–2025, por sector y grupo de gases</td>
 </tr>
 <tr class="even">
 <td>CLIMA (AdapteCCa)</td>
@@ -3073,47 +3073,71 @@ estudiante)</h2>
 que buscar, el dataset es uno solo. Por lo demás,
 <code>EDGAR_GHG/EDGAR_GHG.Rmd</code> está organizado igual que los
 <code>*_DatasetSelection.Rmd</code> del resto de fuentes, en dos partes:
-primero descarga y guarda en disco (<code>EDGAR_GHG.rds</code> con los
-datos y <code>EDGAR_GHG_metadatos.xlsx</code> con su ficha), y después
-analiza leyendo esos dos ficheros. La sección <strong>Análisis del
-dataset</strong> vuelve a ser autocontenida, así que puedes copiarla tal
-cual en tu memoria.</p>
+primero descarga y guarda en disco (<code>EDGAR_GHG.rds</code> y
+<code>EDGAR_GHG_normalizado.rds</code> con los datos,
+<code>EDGAR_GHG_metadatos.xlsx</code> con su ficha), y después analiza
+leyendo esos ficheros. La sección <strong>Análisis del dataset</strong>
+vuelve a ser autocontenida, así que puedes copiarla tal cual en tu
+memoria.</p>
 <p>El dataset ya está descargado y procesado, y <strong>la descarga solo
-se ejecuta si falta el <code>.rds</code></strong>: compilar el documento
-no vuelve a bajar los varios GB de ficheros de EDGAR. Para actualizar a
-una versión más reciente hay que borrar <code>EDGAR_GHG.rds</code> y
-cambiar los nombres de fichero de las URL.</p>
+se ejecuta si falta <code>EDGAR_GHG.rds</code></strong>: compilar el
+documento no vuelve a bajar el fichero de EDGAR. Para actualizar a una
+versión más reciente hay que borrar los dos <code>.rds</code> y
+actualizar el año en la URL.</p>
 <p>Como EDGAR no publica una descripción de sus indicadores, el
-<code>EDGAR_GHG_metadatos.xlsx</code> la trae en <strong>tres
-hojas</strong>: <code>dataset</code> (ficha general), <code>ipcc</code>
-(qué es cada sector) y <code>Substance</code> (qué es cada gas, con su
-unidad y su potencial de calentamiento). Es el equivalente al
+<code>EDGAR_GHG_metadatos.xlsx</code> la trae en <strong>cuatro
+hojas</strong>: <code>dataset</code> (ficha general),
+<code>Sector</code> (qué es cada sector), <code>Substance</code> (qué es
+cada grupo de gases, con su unidad) e <code>Indicador</code> (qué es
+cada vista normalizada, con su unidad). Es el equivalente al
 <code>Indicator_desc</code> del Banco Mundial o al <code>topic</code> de
 EUROSTAT.</p>
-<p>Cubre <strong>225 países y territorios</strong>, <strong>38 sectores
-IPCC</strong> (más el <code>TOTAL</code>), <strong>35
-sustancias</strong> entre gases individuales y agregados en
-CO₂-equivalente, y <strong>55 años</strong> (1970–2024), con 1,2
-millones de filas.</p>
+<p><code>EDGAR_GHG.rds</code> cubre <strong>212 países y
+entidades</strong>, <strong>9 sectores</strong> (más el
+<code>TOTAL</code>), <strong>5 grupos de sustancias</strong> —todos ya
+expresados en CO₂-equivalente— y <strong>56 años</strong> (1970–2025),
+con unas 280.000 filas. <code>EDGAR_GHG_normalizado.rds</code> (novedad
+de 2026) añade las emisiones <strong>per cápita</strong> (1970–2025) y
+<strong>por PIB</strong> (solo 1990–2025, el PIB no está disponible
+antes) para <strong>210 países y entidades</strong> — 2 menos que el
+dataset principal, porque <code>International Aviation</code> e
+<code>International Shipping</code> no tienen población ni PIB
+propios.</p>
+<blockquote>
+<p><strong>Desde 2026 EDGAR distribuye menos detalle que antes</strong>:
+hasta la versión 2025 el dataset traía 38 sectores IPCC y 35 sustancias
+individuales en sus unidades físicas; EDGAR retiró esa distribución y
+ahora solo publica mapas en rejilla (sin agregar por país) o este
+resumen por país con 9 sectores y 5 grupos de gases. A cambio, ya no
+hace falta vigilar unidades distintas por sustancia (todo está en Mt
+CO₂-equivalente/año), hay dos entidades nuevas precalculadas
+(<code>GLOBAL TOTAL</code> y <code>EU27</code>) y se incorporan las
+vistas per cápita/PIB que antes no existían.</p>
+</blockquote>
 <p>Los análisis que permite realizar son:</p>
 <ul>
 <li>Evolución histórica de emisiones totales por país o región.</li>
-<li>Comparación entre países en un año concreto (rankings).</li>
+<li>Comparación entre países en un año concreto (rankings), en absoluto
+o normalizado por población/PIB.</li>
 <li>Análisis sectorial: qué sectores emiten más en un país (energía,
 transporte, industria, agricultura, residuos).</li>
-<li>Análisis por gas: CO₂ fósil, metano (CH₄), óxido nitroso (N₂O),
-gases fluorados.</li>
+<li>Análisis por grupo de gases: CO₂ fósil, metano (CH₄), óxido nitroso
+(N₂O), gases fluorados (agregados).</li>
 <li>Relación entre emisiones y otros indicadores del Banco Mundial (PIB,
-población, energía), combinando ambas fuentes mediante el código de país
-ISO.</li>
+población, energía), combinando ambas fuentes mediante el código de
+país.</li>
 </ul>
 <blockquote>
-<p>Para usar EDGAR correctamente, filtra siempre por
-<code>Substance</code> antes de hacer sumas. Mezclar gases individuales
-con sus agregados en CO₂-equivalente (<code>GWP_100_AR5_*</code>)
-duplicaría o triplicaría los valores. Consulta la sección
-<em>Descripción de las variables de la tabla</em> en el documento
-compilado para más detalles.</p>
+<p>Para usar EDGAR correctamente, filtra siempre por <code>Sector</code>
+y <code>Substance</code> antes de hacer sumas: las filas
+<code>Sector == &quot;TOTAL&quot;</code> (con
+<code>Substance == &quot;GWP_100_AR5_GHG&quot;</code>) ya son la suma del resto,
+así que sumarlas junto con las demás duplicaría los valores. Ten en
+cuenta también que algunos países pequeños aparecen fusionados con un
+vecino (p. ej. España incluye a Andorra bajo el código <code>ESP</code>)
+y que <code>GLOBAL TOTAL</code>/<code>EU27</code> no son países.
+Consulta la sección <em>Descripción de las variables de la tabla</em> en
+el documento compilado para más detalles.</p>
 </blockquote>
 <hr />
 </div>

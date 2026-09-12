@@ -11,7 +11,7 @@
 
 <meta name="author" content="Luis Alvarez" />
 
-<meta name="date" content="2026-08-28" />
+<meta name="date" content="2026-09-12" />
 
 <title>Análisis de datasets seleccionados de Eurostat</title>
 
@@ -365,7 +365,7 @@ display: none;
 <h1 class="title toc-ignore">Análisis de datasets seleccionados de
 Eurostat</h1>
 <h4 class="author">Luis Alvarez</h4>
-<h4 class="date">2026-08-28</h4>
+<h4 class="date">2026-09-12</h4>
 
 </div>
 
@@ -542,7 +542,7 @@ NUTS 3 region</td>
 </tr>
 <tr class="even">
 <td align="left">N.observaciones</td>
-<td align="left">736792</td>
+<td align="left">735652</td>
 </tr>
 <tr class="odd">
 <td align="left">N.regiones</td>
@@ -594,7 +594,7 @@ NUTS 3 region</td>
 </tr>
 <tr class="odd">
 <td align="left">last.update.of.data</td>
-<td align="left">25.08.2026</td>
+<td align="left">28.08.2026</td>
 </tr>
 <tr class="even">
 <td align="left">last.table.structure.change</td>
@@ -704,7 +704,7 @@ population density indicator is computed using the new data on area
 </div>
 <pre class="r"><code>data &lt;- readRDS(paste0(filename, &quot;.rds&quot;))</code></pre>
 <p><strong>data</strong></p>
-<pre><code>## # A tibble: 736,849 × 5
+<pre><code>## # A tibble: 735,709 × 5
 ##    sex   age    geo   TIME_PERIOD  values
 ##    &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt; &lt;date&gt;        &lt;dbl&gt;
 ##  1 T     TOTAL  AL    1990-01-01  3286500
@@ -717,7 +717,7 @@ population density indicator is computed using the new data on area
 ##  8 M     TOTAL  AT    1990-01-01  3654915
 ##  9 M     UNK    AT    1990-01-01        0
 ## 10 M     Y15-64 AT    1990-01-01  2575106
-## # ℹ 736,839 more rows</code></pre>
+## # ℹ 735,699 more rows</code></pre>
 <div id="información-sobre-las-columnas-de-la-tabla-descargada" class="section level2" number="2.1">
 <h2><span class="header-section-number">2.1</span> Información sobre las
 columnas de la tabla descargada</h2>
@@ -725,16 +725,16 @@ columnas de la tabla descargada</h2>
 posibles y el nº de observaciones.</p>
 <p><strong>COLUMNA: sex (3 opciones)</strong></p>
 <pre><code>     sex N.Observ full_name
-[1,] T   245627   Total    
-[2,] F   245611   Females  
-[3,] M   245611   Males    </code></pre>
+[1,] T   245247   Total    
+[2,] F   245231   Females  
+[3,] M   245231   Males    </code></pre>
 <p><strong>COLUMNA: age (5 opciones)</strong></p>
 <pre><code>     age    N.Observ full_name          
-[1,] TOTAL  166143   Total              
-[2,] UNK    145288   Unknown            
-[3,] Y_GE65 141822   65 years or over   
-[4,] Y15-64 141798   From 15 to 64 years
-[5,] Y_LT15 141798   Less than 15 years </code></pre>
+[1,] TOTAL  165915   Total              
+[2,] UNK    145060   Unknown            
+[3,] Y_GE65 141594   65 years or over   
+[4,] Y15-64 141570   From 15 to 64 years
+[5,] Y_LT15 141570   Less than 15 years </code></pre>
 <p><strong>CONTABILIZACIÓN Nº REGIONES NUTS A PARTIR DE LA COLUMNA geo
 (2195 opciones)</strong></p>
 <pre><code>      NUTS      Number of Regions
@@ -777,10 +777,10 @@ posibles y el nº de observaciones.</p>
 [25,] 2014-01-01  30688   
 [26,] 2015-01-01  31623   
 [27,] 2016-01-01  31623   
-[28,] 2017-01-01  31785   
-[29,] 2018-01-01  31827   
-[30,] 2019-01-01  31749   
-[31,] 2020-01-01  28271   
+[28,] 2017-01-01  31500   
+[29,] 2018-01-01  31542   
+[30,] 2019-01-01  31464   
+[31,] 2020-01-01  27986   
 [32,] 2021-01-01  27426   
 [33,] 2022-01-01  27615   
 [34,] 2023-01-01  27234   
@@ -903,7 +903,7 @@ región).</p>
 <td align="right">1338</td>
 <td align="right">1</td>
 <td align="right">18</td>
-<td align="right">20</td>
+<td align="right">19</td>
 <td align="right">26</td>
 <td align="right">36</td>
 </tr>
@@ -917,7 +917,7 @@ región).</p>
 <td align="right">1338</td>
 <td align="right">1</td>
 <td align="right">18</td>
-<td align="right">20</td>
+<td align="right">19</td>
 <td align="right">26</td>
 <td align="right">36</td>
 </tr>
@@ -931,7 +931,7 @@ región).</p>
 <td align="right">1338</td>
 <td align="right">1</td>
 <td align="right">18</td>
-<td align="right">20</td>
+<td align="right">19</td>
 <td align="right">26</td>
 <td align="right">36</td>
 </tr>
@@ -959,7 +959,7 @@ región).</p>
 <td align="right">1338</td>
 <td align="right">1</td>
 <td align="right">18</td>
-<td align="right">20</td>
+<td align="right">19</td>
 <td align="right">26</td>
 <td align="right">36</td>
 </tr>
@@ -973,7 +973,7 @@ región).</p>
 <td align="right">1338</td>
 <td align="right">1</td>
 <td align="right">18</td>
-<td align="right">20</td>
+<td align="right">19</td>
 <td align="right">26</td>
 <td align="right">36</td>
 </tr>
@@ -987,7 +987,7 @@ región).</p>
 <td align="right">1338</td>
 <td align="right">1</td>
 <td align="right">18</td>
-<td align="right">20</td>
+<td align="right">19</td>
 <td align="right">26</td>
 <td align="right">36</td>
 </tr>
@@ -1015,7 +1015,7 @@ región).</p>
 <td align="right">1338</td>
 <td align="right">1</td>
 <td align="right">18</td>
-<td align="right">20</td>
+<td align="right">19</td>
 <td align="right">26</td>
 <td align="right">36</td>
 </tr>
@@ -1029,7 +1029,7 @@ región).</p>
 <td align="right">1338</td>
 <td align="right">1</td>
 <td align="right">18</td>
-<td align="right">20</td>
+<td align="right">19</td>
 <td align="right">26</td>
 <td align="right">36</td>
 </tr>
@@ -1043,7 +1043,7 @@ región).</p>
 <td align="right">1338</td>
 <td align="right">1</td>
 <td align="right">18</td>
-<td align="right">20</td>
+<td align="right">19</td>
 <td align="right">26</td>
 <td align="right">36</td>
 </tr>
