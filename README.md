@@ -1,7 +1,7 @@
 # Proyecto Personal — AEDV
 
 Material del **proyecto personal** de la asignatura *Análisis Exploratorio de Datos y
-Visualización* (AEDV), Grado en Ciencias de Datos, Universidad de Las Palmas de Gran Canaria.
+Visualización* (AEDV), Grado en Ciencia e Ingeniería de Datos, Universidad de Las Palmas de Gran Canaria.
 Autor: Luis Álvarez.
 
 **Sitio web: <https://lalvarezmat.github.io/AEDV-proyecto-personal/>**
