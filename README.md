@@ -10,7 +10,7 @@ Autor: Luis Álvarez.
 
 | Fichero / carpeta | Para qué sirve |
 |---|---|
-| `README.html` | **Empieza aquí** — guía de trabajo: entregas, seguimiento y rúbrica |
+| `README_Proyecto_Personal.html` | **Empieza aquí** — guía de trabajo: entregas, seguimiento y rúbrica |
 | `ModeloMemoriaProyectoPersonalAEDV.Rmd` / `.html` | Plantilla de memoria que copia y rellena cada alumno |
 | `RubricaEvaluaciónProyectoPersonal.xlsx` | Criterios de evaluación (27 criterios en 7 áreas) |
 | `estilos.css` | Estilos de la memoria; debe acompañar al `.Rmd` |

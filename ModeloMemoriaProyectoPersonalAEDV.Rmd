@@ -552,7 +552,7 @@ tablas de conteo o gráficas de barras de frecuencias absolutas sin transformaci
 <div class="nota">
 <strong class="bloque-titulo">Inclusión datasets </strong>
 
-Usando los Rmd **\_DatasetSelection** de las carpetas de ISTAC, INE, WORLD_BANK y EUROSTAT seleccionamos los datasets y los incorporamos aquí en la memoria según se explica en los ficheros `README.Rmd` de la carpeta `ProyectoPersonal` y la subcarpeta `SelecciónDatasetsProyecto`. Es **muy importante** tener en cuenta lo siguiente: 
+Usando los Rmd **\_DatasetSelection** de las carpetas de ISTAC, INE, WORLD_BANK y EUROSTAT seleccionamos los datasets y los incorporamos aquí en la memoria según se explica en los ficheros `README_Proyecto_Personal.Rmd` (carpeta `ProyectoPersonal`) y `README_Selección_Tema.Rmd` (subcarpeta `SelecciónDatasetsProyecto`). Es **muy importante** tener en cuenta lo siguiente:
 
 *  La información automática que se genera hay que perfeccionarla añadiendo texto explicativo. 
 

@@ -25,12 +25,12 @@ Esta carpeta contiene todo lo que necesitas para desarrollar el **Proyecto Perso
 
 | Fichero / Carpeta | Para qué sirve |
 |---|---|
-| `README.html` | **Empieza aquí** — esta guía en formato legible |
+| `README_Proyecto_Personal.html` | **Empieza aquí** — esta guía en formato legible |
 | `ModeloMemoriaProyectoPersonalAEDV.html` | Vista previa de la plantilla de memoria |
 | `ModeloMemoriaProyectoPersonalAEDV.Rmd` | Plantilla que abres en RStudio para escribir tu proyecto |
 | `RubricaEvaluaciónProyectoPersonal.xlsx` | Criterios de evaluación de las tres entregas |
 | `SelecciónDatasetsProyecto/` | Herramientas para elegir y validar tus datos |
-| `SelecciónDatasetsProyecto/README.html` | guía para la elección del tema del proyecto |
+| `SelecciónDatasetsProyecto/README_Selección_Tema.html` | guía para la elección del tema del proyecto |
 | `estilos.css` | Estilos visuales — no modificar |
 
 <div class="nota">
@@ -108,7 +108,7 @@ La columna `ACTIVITY` debe coincidir exactamente con los valores del vector `act
 
 Antes de escribir una sola línea de código, necesitas tener claros los datos que vas a usar.
 
-**Abre y lee** el documento `SelecciónDatasetsProyecto/README.Rmd` (o su versión compilada `.html`). Ese documento explica cómo explorar siete fuentes de datos públicas — INE, ISTAC, EUROSTAT, Banco Mundial, EDGAR GHG, CLIMA (AdapteCCa/AEMET) e INFORME PISA (resultados educativos con contexto de pobreza y desigualdad) — y cómo comprobar que los datasets elegidos cumplen los requisitos de AEDV.
+**Abre y lee** el documento `SelecciónDatasetsProyecto/README_Selección_Tema.Rmd` (o su versión compilada `.html`). Ese documento explica cómo explorar siete fuentes de datos públicas — INE, ISTAC, EUROSTAT, Banco Mundial, EDGAR GHG, CLIMA (AdapteCCa/AEMET) e INFORME PISA (resultados educativos con contexto de pobreza y desigualdad) — y cómo comprobar que los datasets elegidos cumplen los requisitos de AEDV.
 
 <div class="metodo">
 <strong class="bloque-titulo">Requisitos que deben cumplir tus datasets</strong>
