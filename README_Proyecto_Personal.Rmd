@@ -135,11 +135,11 @@ Antes de escribir una sola línea de código, necesitas tener claros los datos q
 **Flujo concreto.** Las cuatro fuentes con API —INE, ISTAC, EUROSTAT y Banco Mundial— se abordan **exactamente igual**, en cuatro etapas. Cambia el organismo y el nombre de los ficheros, no el procedimiento; lo que produce cada etapa es justo de lo que parte la siguiente:
 
 ```
-  ETAPA 1   inventario de todos los datasets que se guarda en la hoja excel "*.datasets.xlsx" (ya está hecho)
+  ETAPA 1   catálogo (inventario) de todos los datasets, que se guarda en la hoja excel <FUENTE>.datasets.xlsx (ya está hecho)
                      ▼
   ETAPA 2   buscas en ese Excel, con ayuda de una IA, los datasets de tu tema
                      ▼
-  ETAPA 3   descarga y valida los que has elegido usando "*_DatasetSelection.Rmd"
+  ETAPA 3   descarga y valida los que has elegido usando <FUENTE>_DatasetSelection.Rmd
                      ▼
   ETAPA 4   copias a tu memoria de proyecto personal los ficheros que ha guardado y su análisis
 ```

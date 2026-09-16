@@ -23,18 +23,18 @@ Las cuatro fuentes con API —**INE**, **ISTAC**, **EUROSTAT** y **Banco Mundial
 La idea de fondo es ir **de los miles de datasets que publica un organismo a unos pocos que acabarán en tu memoria**, estrechando el embudo en cada paso:
 
 ```
-  PASO 1   inventario de todos los datasets que se guarda en la hoja excel "*.datasets.xlsx" (ya está hecho)
+  PASO 1   catálogo (inventario) de todos los datasets, que se guarda en la hoja excel <FUENTE>.datasets.xlsx (ya está hecho)
                     ▼
   PASO 2   buscas en ese Excel, con ayuda de una IA, los datasets de tu tema
                     ▼
-  PASO 3   descarga y valida los que has elegido usando "*_DatasetSelection.Rmd"
+  PASO 3   descarga y valida los que has elegido usando <FUENTE>_DatasetSelection.Rmd
                     ▼
   PASO 4   copias a tu memoria de proyecto personal los ficheros que ha guardado y su análisis
 ```
 
 | Paso | Con qué se hace y qué produce | ¿Lo ejecutas tú? |
 |---|---|---|
-| **1. Inventario** *(ya hecho)* — recorrer la API del organismo y anotar la ficha básica de **todos** sus datasets | `<FUENTE>_TableDatasetGeneration.Rmd` → el **catálogo** `<fuente>.datasets.xlsx`, una fila por dataset | No |
+| **1. Inventario** *(ya hecho)* — recorrer la API del organismo y anotar la ficha básica de **todos** sus datasets | `<FUENTE>_TableDatasetGeneration.Rmd` → el **catálogo** `<FUENTE>.datasets.xlsx`, una fila por dataset | No |
 | **2. Búsqueda del tema** — localizar en el catálogo los datasets de un tema que te interese | el `.xlsx` del catálogo y una IA (ChatGPT, Claude…) → una lista de **identificadores** candidatos | Sí |
 | **3. Descarga y validación** — descargar esos datasets y comprobar si cumplen los requisitos AEDV | `<FUENTE>_DatasetSelection.Rmd` → `<nombre>.rds` (datos) y `<nombre>_metadatos.xlsx` (ficha), más el análisis de validación | Sí |
 | **4. Incorporación** — llevar los datos **y el análisis** a la memoria del proyecto | los ficheros del paso 3 y su código → la sección *Comprensión de los datos* de tu memoria | Sí |

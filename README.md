@@ -29,18 +29,18 @@ abordan **exactamente igual**. Cambia el organismo y el nombre de los ficheros, 
 procedimiento; lo que produce cada etapa es justo de lo que parte la siguiente:
 
 ```
-  ETAPA 1   inventario de todos los datasets que se guarda en la hoja excel "*.datasets.xlsx" (ya está hecho)
+  ETAPA 1   catálogo (inventario) de todos los datasets, que se guarda en la hoja excel <FUENTE>.datasets.xlsx (ya está hecho)
                      ▼
   ETAPA 2   buscas en ese Excel, con ayuda de una IA, los datasets de tu tema
                      ▼
-  ETAPA 3   descarga y valida los que has elegido usando "*_DatasetSelection.Rmd"
+  ETAPA 3   descarga y valida los que has elegido usando <FUENTE>_DatasetSelection.Rmd
                      ▼
   ETAPA 4   copias a tu memoria de proyecto personal los ficheros que ha guardado y su análisis
 ```
 
 | Etapa | Con qué se hace y qué produce | ¿La ejecuta el alumno? |
 |---|---|---|
-| **1. Inventario** *(ya hecho)* — recorrer la API del organismo y anotar la ficha básica de **todos** sus datasets | `<FUENTE>_TableDatasetGeneration.Rmd` → el **catálogo** `<fuente>.datasets.xlsx`, una fila por dataset | No |
+| **1. Inventario** *(ya hecho)* — recorrer la API del organismo y anotar la ficha básica de **todos** sus datasets | `<FUENTE>_TableDatasetGeneration.Rmd` → el **catálogo** `<FUENTE>.datasets.xlsx`, una fila por dataset | No |
 | **2. Búsqueda del tema** — localizar en el catálogo los datasets de un tema de interés | el `.xlsx` del catálogo y una IA → una lista de **identificadores** candidatos | Sí |
 | **3. Descarga y validación** — descargar esos datasets y comprobar si cumplen los requisitos AEDV | `<FUENTE>_DatasetSelection.Rmd` → `<nombre>.rds` (datos) y `<nombre>_metadatos.xlsx` (ficha), más el análisis de validación | Sí |
 | **4. Incorporación** — llevar los datos **y el análisis** a la memoria del proyecto | los ficheros de la etapa 3 y su código → la sección *Comprensión de los datos* de la memoria | Sí |
