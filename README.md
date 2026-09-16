@@ -26,12 +26,34 @@ analiza los datasets elegidos (`*_DatasetSelection`) y los datos correspondiente
 
 Las cuatro fuentes con API —**INE**, **ISTAC**, **EUROSTAT** y **Banco Mundial**— se
 abordan **exactamente igual**. Cambia el organismo y el nombre de los ficheros, no el
-procedimiento:
+procedimiento; lo que produce cada etapa es justo de lo que parte la siguiente:
 
 ```
- catálogo .xlsx  ──►  identificadores  ──►  .rds + _metadatos.xlsx  ──►  la memoria
-  1. inventario       2. búsqueda del      3. descarga y validación     4. incorporación
-    (ya hecho)          tema, con IA          (al hacer Knit)
+                        ── Ejemplo: el INE ──
+
+  ETAPA 1  Inventariar todo lo que publica la fuente        (ya hecho)
+           INE_TableDatasetGeneration.Rmd
+                      │  recorre la API dataset a dataset
+                      ▼
+           INE.datasets.xlsx      el catálogo: 1.678 filas, una por dataset
+                      │
+  ETAPA 2  Buscar el tema dentro del catálogo, con ayuda de una IA
+                      │  «de este Excel, ¿qué datasets hablan de turismo?»
+                      ▼
+           Dataset.Id <- 76136    el identificador del dataset elegido
+                      │
+  ETAPA 3  Descargar y validar ese dataset
+           INE_DatasetSelection.Rmd, en dos mitades:
+                      │
+                      ├─ 3a  descarga  ──►  76136.rds + 76136_metadatos.xlsx
+                      │
+                      └─ 3b  análisis  ◄──  lee del disco esos dos ficheros
+                                            y valida los requisitos AEDV
+                      │
+  ETAPA 4  Incorporarlo al proyecto
+                      ▼
+           se copian esos dos ficheros junto a la memoria y se pega en ella
+           el código de la mitad 3b («Análisis del dataset»)
 ```
 
 | Etapa | Qué se hace | Con qué | Qué produce | ¿La ejecuta el alumno? |

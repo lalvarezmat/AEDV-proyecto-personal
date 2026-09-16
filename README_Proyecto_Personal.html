@@ -1851,10 +1851,33 @@ varios.</p></li>
 <p><strong>Flujo concreto.</strong> Las cuatro fuentes con API —INE,
 ISTAC, EUROSTAT y Banco Mundial— se abordan <strong>exactamente
 igual</strong>, en cuatro etapas. Cambia el organismo y el nombre de los
-ficheros, no el procedimiento:</p>
-<pre><code> catálogo .xlsx  ──►  identificadores  ──►  .rds + _metadatos.xlsx  ──►  tu memoria
-  1. inventario       2. búsqueda del      3. descarga y validación     4. incorporación
-    (ya hecho)          tema, con IA          (al hacer Knit)</code></pre>
+ficheros, no el procedimiento; lo que produce cada etapa es justo de lo
+que parte la siguiente:</p>
+<pre><code>                        ── Ejemplo: el INE ──
+
+  ETAPA 1  Inventariar todo lo que publica la fuente        (ya hecho)
+           INE_TableDatasetGeneration.Rmd
+                      │  recorre la API dataset a dataset
+                      ▼
+           INE.datasets.xlsx      el catálogo: 1.678 filas, una por dataset
+                      │
+  ETAPA 2  Buscar tu tema dentro del catálogo, con ayuda de una IA
+                      │  «de este Excel, ¿qué datasets hablan de turismo?»
+                      ▼
+           Dataset.Id &lt;- 76136    el identificador del dataset elegido
+                      │
+  ETAPA 3  Descargar y validar ese dataset
+           INE_DatasetSelection.Rmd, en dos mitades:
+                      │
+                      ├─ 3a  descarga  ──►  76136.rds + 76136_metadatos.xlsx
+                      │
+                      └─ 3b  análisis  ◄──  lee del disco esos dos ficheros
+                                            y valida los requisitos AEDV
+                      │
+  ETAPA 4  Incorporarlo a tu proyecto
+                      ▼
+           copias esos dos ficheros junto a tu memoria y pegas en ella el
+           código de la mitad 3b («Análisis del dataset»)</code></pre>
 <p><strong>1. Inventario — el catálogo ya está hecho.</strong> Abre el
 catálogo Excel de la fuente que te interese:
 <code>SelecciónDatasetsProyecto/INE/INE.datasets.xlsx</code>,

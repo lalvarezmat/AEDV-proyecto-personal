@@ -132,12 +132,34 @@ Antes de escribir una sola línea de código, necesitas tener claros los datos q
 * **Mínimo de 4 atributos** válidos (que cumplan los criterios anteriores de tamaño de series temporales y representación de España/Canarias). INE y EUROSTAT suelen tener más de 4 en un solo dataset; ISTAC y Banco Mundial tienen uno por dataset, así que necesitas varios.
 </div>
 
-**Flujo concreto.** Las cuatro fuentes con API —INE, ISTAC, EUROSTAT y Banco Mundial— se abordan **exactamente igual**, en cuatro etapas. Cambia el organismo y el nombre de los ficheros, no el procedimiento:
+**Flujo concreto.** Las cuatro fuentes con API —INE, ISTAC, EUROSTAT y Banco Mundial— se abordan **exactamente igual**, en cuatro etapas. Cambia el organismo y el nombre de los ficheros, no el procedimiento; lo que produce cada etapa es justo de lo que parte la siguiente:
 
 ```
- catálogo .xlsx  ──►  identificadores  ──►  .rds + _metadatos.xlsx  ──►  tu memoria
-  1. inventario       2. búsqueda del      3. descarga y validación     4. incorporación
-    (ya hecho)          tema, con IA          (al hacer Knit)
+                        ── Ejemplo: el INE ──
+
+  ETAPA 1  Inventariar todo lo que publica la fuente        (ya hecho)
+           INE_TableDatasetGeneration.Rmd
+                      │  recorre la API dataset a dataset
+                      ▼
+           INE.datasets.xlsx      el catálogo: 1.678 filas, una por dataset
+                      │
+  ETAPA 2  Buscar tu tema dentro del catálogo, con ayuda de una IA
+                      │  «de este Excel, ¿qué datasets hablan de turismo?»
+                      ▼
+           Dataset.Id <- 76136    el identificador del dataset elegido
+                      │
+  ETAPA 3  Descargar y validar ese dataset
+           INE_DatasetSelection.Rmd, en dos mitades:
+                      │
+                      ├─ 3a  descarga  ──►  76136.rds + 76136_metadatos.xlsx
+                      │
+                      └─ 3b  análisis  ◄──  lee del disco esos dos ficheros
+                                            y valida los requisitos AEDV
+                      │
+  ETAPA 4  Incorporarlo a tu proyecto
+                      ▼
+           copias esos dos ficheros junto a tu memoria y pegas en ella el
+           código de la mitad 3b («Análisis del dataset»)
 ```
 
 **1. Inventario — el catálogo ya está hecho.** Abre el catálogo Excel de la fuente que te interese: `SelecciónDatasetsProyecto/INE/INE.datasets.xlsx`, `SelecciónDatasetsProyecto/ISTAC/ISTAC_datasets.xlsx`, `SelecciónDatasetsProyecto/EUROSTAT/Eurostat.datasets.xlsx` o `SelecciónDatasetsProyecto/WORLD_BANK/wb.datasets.xlsx`. Cada catálogo lo generó el `*_TableDatasetGeneration.Rmd` de su carpeta recorriendo la API del organismo dataset a dataset; **tú no tienes que ejecutarlo**, solo leer el Excel. Es un índice —una fila por dataset con su ficha: identificador, nombre, frecuencia, cobertura geográfica, fechas—, **no contiene los datos**.

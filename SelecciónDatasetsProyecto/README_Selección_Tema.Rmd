@@ -20,7 +20,7 @@ Esta carpeta contiene herramientas para explorar y descargar datasets de siete f
 
 Las cuatro fuentes con API —**INE**, **ISTAC**, **EUROSTAT** y **Banco Mundial**— se abordan **exactamente igual**: la misma cadena de cuatro pasos, con los mismos dos documentos y los mismos tipos de fichero. Cambia el organismo y el nombre de los ficheros, no el procedimiento; si entiendes el flujo en una fuente, lo entiendes en las cuatro.
 
-La idea de fondo es ir **de los miles de datasets que publica un organismo a los dos o tres que acabarán en tu memoria**, estrechando el embudo en cada paso:
+La idea de fondo es ir **de los miles de datasets que publica un organismo a unos pocos que acabarán en tu memoria**, estrechando el embudo en cada paso:
 
 ```
                         ── Ejemplo: el INE ──
