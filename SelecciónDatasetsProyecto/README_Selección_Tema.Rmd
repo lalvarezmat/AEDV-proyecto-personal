@@ -41,7 +41,7 @@ La idea de fondo es ir **de los miles de datasets que publica un organismo a uno
 
 Dos ideas explican por qué el flujo está partido justo así:
 
-* **El catálogo no contiene datos, solo fichas.** Es un índice de lo que existe: nombre, identificador, frecuencia, cobertura geográfica, fechas, dimensiones. Los datos no se descargan hasta el paso 3.
+* **El catálogo, con el inventario, no contiene datos, solo fichas.** Es un índice de lo que existe: nombre, identificador, frecuencia, cobertura geográfica, fechas, dimensiones. Los datos no se descargan hasta el paso 3.
 * **El paso 3 descarga antes de analizar, y eso es deliberado.** Primero guarda en disco el `.rds` y el `_metadatos.xlsx`; después analiza **leyendo esos ficheros**, no la API. De ahí que su análisis se pueda trasplantar tal cual a tu memoria (paso 4) y que tu proyecto deje de depender de que el organismo mantenga el dataset disponible.
 
 Las otras tres fuentes (**EDGAR**, **CLIMA** e **INFORME PISA**) son datasets únicos ya construidos: no tienen catálogo y por tanto **no tienen pasos 1 y 2**, pero sus documentos conservan la misma estructura interna 3a/3b, así que el paso 4 se hace igual.

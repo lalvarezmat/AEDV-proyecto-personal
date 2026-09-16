@@ -47,7 +47,7 @@ procedimiento; lo que produce cada etapa es justo de lo que parte la siguiente:
 
 Dos detalles explican por qué el flujo está partido así:
 
-- **El catálogo no contiene datos, solo fichas** (identificador, nombre, frecuencia,
+- **El catálogo, con el inventario, no contiene datos, solo fichas** (identificador, nombre, frecuencia,
   cobertura geográfica, fechas, dimensiones). Los datos no se descargan hasta la etapa 3.
 - **La etapa 3 descarga antes de analizar, a propósito.** El `*_DatasetSelection.Rmd`
   primero guarda en disco el `.rds` y el `_metadatos.xlsx` (3a) y después analiza
