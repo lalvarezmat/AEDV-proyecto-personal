@@ -82,42 +82,26 @@ con los mismos dos documentos y los mismos tipos de fichero. Cambia el organismo
 no el procedimiento. La idea es ir <strong>de los miles de datasets que publica un organismo a unos pocos
 que acaban en la memoria del proyecto</strong>, estrechando el embudo en cada etapa:</p>
 
-<pre class="flujo">                        ── Ejemplo: el INE ──
+<pre class="flujo">                     ── Ejemplo: el INE ──
 
-  ETAPA 1  Inventariar todo lo que publica la fuente        (ya hecho)
-           INE_TableDatasetGeneration.Rmd
-                      │  recorre la API dataset a dataset
-                      ▼
-           INE.datasets.xlsx      el catálogo: 1.678 filas, una por dataset
-                      │
-  ETAPA 2  Buscar el tema dentro del catálogo, con ayuda de una IA
-                      │  «de este Excel, ¿qué datasets hablan de turismo?»
-                      ▼
-           Dataset.Id &lt;- 76136    el identificador del dataset elegido
-                      │
-  ETAPA 3  Descargar y validar ese dataset
-           INE_DatasetSelection.Rmd, en dos mitades:
-                      │
-                      ├─ 3a  descarga  ──►  76136.rds + 76136_metadatos.xlsx
-                      │
-                      └─ 3b  análisis  ◄──  lee del disco esos dos ficheros
-                                            y valida los requisitos AEDV
-                      │
-  ETAPA 4  Incorporarlo al proyecto
-                      ▼
-           se copian esos dos ficheros junto a la memoria y se pega en ella
-           el código de la mitad 3b («Análisis del dataset»)</pre>
+  ETAPA 1   el catálogo INE.datasets.xlsx ya está hecho
+                     ▼
+  ETAPA 2   buscas en ese Excel, con ayuda de una IA, los datasets de tu tema
+                     ▼
+  ETAPA 3   INE_DatasetSelection.Rmd descarga y valida los que has elegido
+                     ▼
+  ETAPA 4   copias a tu memoria los ficheros que ha guardado y su análisis</pre>
 
 <div class="tabla-scroll">
 <table class="flujo">
   <thead>
-    <tr><th>Etapa</th><th>Qué se hace</th><th>Con qué</th><th>Qué produce</th><th>¿La ejecuta el alumno?</th></tr>
+    <tr><th>Etapa</th><th>Con qué se hace y qué produce</th><th>¿La ejecuta el alumno?</th></tr>
   </thead>
   <tbody>
-    <tr><td><strong>1. Inventario</strong></td><td>recorrer la API del organismo y anotar la ficha básica de <strong>todos</strong> sus datasets</td><td><code>&lt;FUENTE&gt;_TableDatasetGeneration.Rmd</code></td><td>el <strong>catálogo</strong> <code>&lt;fuente&gt;.datasets.xlsx</code>: una fila por dataset</td><td><strong>No</strong> — ya está hecho; solo sirve para descubrir datasets nuevos</td></tr>
-    <tr><td><strong>2. Búsqueda del tema</strong></td><td>localizar en el catálogo los datasets de un tema de interés</td><td>el <code>.xlsx</code> del catálogo + una IA</td><td>una lista de <strong>identificadores</strong> candidatos</td><td>Sí</td></tr>
-    <tr><td><strong>3. Descarga y validación</strong></td><td>descargar esos datasets y comprobar si cumplen los requisitos AEDV</td><td><code>&lt;FUENTE&gt;_DatasetSelection.Rmd</code></td><td><code>&lt;nombre&gt;.rds</code> (datos) + <code>&lt;nombre&gt;_metadatos.xlsx</code> (ficha) + el análisis de validación</td><td>Sí</td></tr>
-    <tr><td><strong>4. Incorporación</strong></td><td>llevar los datos <strong>y el análisis</strong> a la memoria</td><td>los ficheros de la etapa 3 + copiar su código</td><td>la sección <em>Comprensión de los datos</em> de la memoria</td><td>Sí</td></tr>
+    <tr><td><strong>1. Inventario</strong> <em>(ya hecho)</em> — recorrer la API del organismo y anotar la ficha básica de <strong>todos</strong> sus datasets</td><td><code>&lt;FUENTE&gt;_TableDatasetGeneration.Rmd</code> → el <strong>catálogo</strong> <code>&lt;fuente&gt;.datasets.xlsx</code>, una fila por dataset</td><td>No</td></tr>
+    <tr><td><strong>2. Búsqueda del tema</strong> — localizar en el catálogo los datasets de un tema de interés</td><td>el <code>.xlsx</code> del catálogo y una IA → una lista de <strong>identificadores</strong> candidatos</td><td>Sí</td></tr>
+    <tr><td><strong>3. Descarga y validación</strong> — descargar esos datasets y comprobar si cumplen los requisitos AEDV</td><td><code>&lt;FUENTE&gt;_DatasetSelection.Rmd</code> → <code>&lt;nombre&gt;.rds</code> (datos) y <code>&lt;nombre&gt;_metadatos.xlsx</code> (ficha), más el análisis de validación</td><td>Sí</td></tr>
+    <tr><td><strong>4. Incorporación</strong> — llevar los datos <strong>y el análisis</strong> a la memoria</td><td>los ficheros de la etapa 3 y su código → la sección <em>Comprensión de los datos</em> de la memoria</td><td>Sí</td></tr>
   </tbody>
 </table>
 </div>

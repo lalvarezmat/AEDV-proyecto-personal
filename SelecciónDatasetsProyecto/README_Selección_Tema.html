@@ -1656,84 +1656,60 @@ cuatro.</p>
 <p>La idea de fondo es ir <strong>de los miles de datasets que publica
 un organismo a unos pocos que acabarán en tu memoria</strong>,
 estrechando el embudo en cada paso:</p>
-<pre><code>                        ── Ejemplo: el INE ──
+<pre><code>                     ── Ejemplo: el INE ──
 
-  PASO 1   Inventariar todo lo que publica la fuente        (ya hecho)
-           INE_TableDatasetGeneration.Rmd
-                      │  recorre la API dataset a dataset
-                      ▼
-           INE.datasets.xlsx      el catálogo: 1.678 filas, una por dataset
-                      │
-  PASO 2   Buscar tu tema dentro del catálogo, con ayuda de una IA
-                      │  «de este Excel, ¿qué datasets hablan de turismo?»
-                      ▼
-           Dataset.Id &lt;- 76136    el identificador del dataset elegido
-                      │
-  PASO 3   Descargar y validar ese dataset
-           INE_DatasetSelection.Rmd, en dos mitades:
-                      │
-                      ├─ 3a  descarga  ──►  76136.rds + 76136_metadatos.xlsx
-                      │
-                      └─ 3b  análisis  ◄──  lee del disco esos dos ficheros
-                                            y valida los requisitos AEDV
-                      │
-  PASO 4   Incorporarlo a tu proyecto
-                      ▼
-           copias esos dos ficheros junto a tu memoria y pegas en ella el
-           código de la mitad 3b («Análisis del dataset»)</code></pre>
+  PASO 1   el catálogo INE.datasets.xlsx ya está hecho
+                     ▼
+  PASO 2   buscas en ese Excel, con ayuda de una IA, los datasets de tu tema
+                     ▼
+  PASO 3   INE_DatasetSelection.Rmd descarga y valida los que has elegido
+                     ▼
+  PASO 4   copias a tu memoria los ficheros que ha guardado y su análisis</code></pre>
 <table>
 <colgroup>
-<col width="20%" />
-<col width="20%" />
-<col width="20%" />
-<col width="20%" />
-<col width="20%" />
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
 </colgroup>
 <thead>
 <tr class="header">
 <th>Paso</th>
-<th>Qué se hace</th>
-<th>Con qué</th>
-<th>Qué produce</th>
+<th>Con qué se hace y qué produce</th>
 <th>¿Lo ejecutas tú?</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><strong>1. Inventario</strong></td>
-<td>recorrer la API del organismo y anotar la ficha básica de
-<strong>todos</strong> sus datasets</td>
-<td><code>&lt;FUENTE&gt;_TableDatasetGeneration.Rmd</code></td>
-<td>el <strong>catálogo</strong>
-<code>&lt;fuente&gt;.datasets.xlsx</code>: una fila por dataset</td>
-<td><strong>No</strong> — ya está hecho; solo sirve para descubrir
-datasets nuevos</td>
+<td><strong>1. Inventario</strong> <em>(ya hecho)</em> — recorrer la API
+del organismo y anotar la ficha básica de <strong>todos</strong> sus
+datasets</td>
+<td><code>&lt;FUENTE&gt;_TableDatasetGeneration.Rmd</code> → el
+<strong>catálogo</strong> <code>&lt;fuente&gt;.datasets.xlsx</code>, una
+fila por dataset</td>
+<td>No</td>
 </tr>
 <tr class="even">
-<td><strong>2. Búsqueda del tema</strong></td>
-<td>localizar en el catálogo los datasets de un tema que te
-interese</td>
-<td>el <code>.xlsx</code> del catálogo + una IA (ChatGPT, Claude…)</td>
-<td>una lista de <strong>identificadores</strong> candidatos</td>
-<td><strong>Sí</strong></td>
+<td><strong>2. Búsqueda del tema</strong> — localizar en el catálogo los
+datasets de un tema que te interese</td>
+<td>el <code>.xlsx</code> del catálogo y una IA (ChatGPT, Claude…) → una
+lista de <strong>identificadores</strong> candidatos</td>
+<td>Sí</td>
 </tr>
 <tr class="odd">
-<td><strong>3. Descarga y validación</strong></td>
-<td>descargar esos datasets y comprobar si cumplen los requisitos
-AEDV</td>
-<td><code>&lt;FUENTE&gt;_DatasetSelection.Rmd</code></td>
-<td><code>&lt;nombre&gt;.rds</code> (datos) +
-<code>&lt;nombre&gt;_metadatos.xlsx</code> (ficha) + el análisis de
+<td><strong>3. Descarga y validación</strong> — descargar esos datasets
+y comprobar si cumplen los requisitos AEDV</td>
+<td><code>&lt;FUENTE&gt;_DatasetSelection.Rmd</code> →
+<code>&lt;nombre&gt;.rds</code> (datos) y
+<code>&lt;nombre&gt;_metadatos.xlsx</code> (ficha), más el análisis de
 validación</td>
-<td><strong>Sí</strong></td>
+<td>Sí</td>
 </tr>
 <tr class="even">
-<td><strong>4. Incorporación</strong></td>
-<td>llevar los datos <strong>y el análisis</strong> a la memoria del
-proyecto</td>
-<td>los ficheros del paso 3 + copiar su código</td>
-<td>la sección <em>Comprensión de los datos</em> de tu memoria</td>
-<td><strong>Sí</strong></td>
+<td><strong>4. Incorporación</strong> — llevar los datos <strong>y el
+análisis</strong> a la memoria del proyecto</td>
+<td>los ficheros del paso 3 y su código → la sección <em>Comprensión de
+los datos</em> de tu memoria</td>
+<td>Sí</td>
 </tr>
 </tbody>
 </table>

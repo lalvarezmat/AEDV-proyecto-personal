@@ -29,39 +29,23 @@ abordan **exactamente igual**. Cambia el organismo y el nombre de los ficheros, 
 procedimiento; lo que produce cada etapa es justo de lo que parte la siguiente:
 
 ```
-                        ── Ejemplo: el INE ──
+                     ── Ejemplo: el INE ──
 
-  ETAPA 1  Inventariar todo lo que publica la fuente        (ya hecho)
-           INE_TableDatasetGeneration.Rmd
-                      │  recorre la API dataset a dataset
-                      ▼
-           INE.datasets.xlsx      el catálogo: 1.678 filas, una por dataset
-                      │
-  ETAPA 2  Buscar el tema dentro del catálogo, con ayuda de una IA
-                      │  «de este Excel, ¿qué datasets hablan de turismo?»
-                      ▼
-           Dataset.Id <- 76136    el identificador del dataset elegido
-                      │
-  ETAPA 3  Descargar y validar ese dataset
-           INE_DatasetSelection.Rmd, en dos mitades:
-                      │
-                      ├─ 3a  descarga  ──►  76136.rds + 76136_metadatos.xlsx
-                      │
-                      └─ 3b  análisis  ◄──  lee del disco esos dos ficheros
-                                            y valida los requisitos AEDV
-                      │
-  ETAPA 4  Incorporarlo al proyecto
-                      ▼
-           se copian esos dos ficheros junto a la memoria y se pega en ella
-           el código de la mitad 3b («Análisis del dataset»)
+  ETAPA 1   el catálogo INE.datasets.xlsx ya está hecho
+                     ▼
+  ETAPA 2   se busca en ese Excel, con ayuda de una IA, los datasets del tema
+                     ▼
+  ETAPA 3   INE_DatasetSelection.Rmd descarga y valida los elegidos
+                     ▼
+  ETAPA 4   se copian a la memoria los ficheros guardados y su análisis
 ```
 
-| Etapa | Qué se hace | Con qué | Qué produce | ¿La ejecuta el alumno? |
-|---|---|---|---|---|
-| **1. Inventario** | recorrer la API del organismo y anotar la ficha básica de **todos** sus datasets | `<FUENTE>_TableDatasetGeneration.Rmd` | el **catálogo** `<fuente>.datasets.xlsx`: una fila por dataset | **No** — ya está hecho; solo sirve para descubrir datasets nuevos |
-| **2. Búsqueda del tema** | localizar en el catálogo los datasets de un tema de interés, con ayuda de una IA | el `.xlsx` del catálogo | una lista de **identificadores** candidatos | Sí |
-| **3. Descarga y validación** | descargar esos datasets y comprobar si cumplen los requisitos AEDV | `<FUENTE>_DatasetSelection.Rmd` | `<nombre>.rds` (datos) + `<nombre>_metadatos.xlsx` (ficha) + el análisis de validación | Sí |
-| **4. Incorporación** | llevar los datos **y el análisis** a la memoria del proyecto | los ficheros de la etapa 3 + copiar su código | la sección *Comprensión de los datos* de la memoria | Sí |
+| Etapa | Con qué se hace y qué produce | ¿La ejecuta el alumno? |
+|---|---|---|
+| **1. Inventario** *(ya hecho)* — recorrer la API del organismo y anotar la ficha básica de **todos** sus datasets | `<FUENTE>_TableDatasetGeneration.Rmd` → el **catálogo** `<fuente>.datasets.xlsx`, una fila por dataset | No |
+| **2. Búsqueda del tema** — localizar en el catálogo los datasets de un tema de interés | el `.xlsx` del catálogo y una IA → una lista de **identificadores** candidatos | Sí |
+| **3. Descarga y validación** — descargar esos datasets y comprobar si cumplen los requisitos AEDV | `<FUENTE>_DatasetSelection.Rmd` → `<nombre>.rds` (datos) y `<nombre>_metadatos.xlsx` (ficha), más el análisis de validación | Sí |
+| **4. Incorporación** — llevar los datos **y el análisis** a la memoria del proyecto | los ficheros de la etapa 3 y su código → la sección *Comprensión de los datos* de la memoria | Sí |
 
 Dos detalles explican por qué el flujo está partido así:
 

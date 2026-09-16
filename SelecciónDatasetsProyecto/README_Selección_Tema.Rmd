@@ -23,39 +23,23 @@ Las cuatro fuentes con API —**INE**, **ISTAC**, **EUROSTAT** y **Banco Mundial
 La idea de fondo es ir **de los miles de datasets que publica un organismo a unos pocos que acabarán en tu memoria**, estrechando el embudo en cada paso:
 
 ```
-                        ── Ejemplo: el INE ──
+                     ── Ejemplo: el INE ──
 
-  PASO 1   Inventariar todo lo que publica la fuente        (ya hecho)
-           INE_TableDatasetGeneration.Rmd
-                      │  recorre la API dataset a dataset
-                      ▼
-           INE.datasets.xlsx      el catálogo: 1.678 filas, una por dataset
-                      │
-  PASO 2   Buscar tu tema dentro del catálogo, con ayuda de una IA
-                      │  «de este Excel, ¿qué datasets hablan de turismo?»
-                      ▼
-           Dataset.Id <- 76136    el identificador del dataset elegido
-                      │
-  PASO 3   Descargar y validar ese dataset
-           INE_DatasetSelection.Rmd, en dos mitades:
-                      │
-                      ├─ 3a  descarga  ──►  76136.rds + 76136_metadatos.xlsx
-                      │
-                      └─ 3b  análisis  ◄──  lee del disco esos dos ficheros
-                                            y valida los requisitos AEDV
-                      │
-  PASO 4   Incorporarlo a tu proyecto
-                      ▼
-           copias esos dos ficheros junto a tu memoria y pegas en ella el
-           código de la mitad 3b («Análisis del dataset»)
+  PASO 1   el catálogo INE.datasets.xlsx ya está hecho
+                     ▼
+  PASO 2   buscas en ese Excel, con ayuda de una IA, los datasets de tu tema
+                     ▼
+  PASO 3   INE_DatasetSelection.Rmd descarga y valida los que has elegido
+                     ▼
+  PASO 4   copias a tu memoria los ficheros que ha guardado y su análisis
 ```
 
-| Paso | Qué se hace | Con qué | Qué produce | ¿Lo ejecutas tú? |
-|---|---|---|---|---|
-| **1. Inventario** | recorrer la API del organismo y anotar la ficha básica de **todos** sus datasets | `<FUENTE>_TableDatasetGeneration.Rmd` | el **catálogo** `<fuente>.datasets.xlsx`: una fila por dataset | **No** — ya está hecho; solo sirve para descubrir datasets nuevos |
-| **2. Búsqueda del tema** | localizar en el catálogo los datasets de un tema que te interese | el `.xlsx` del catálogo + una IA (ChatGPT, Claude…) | una lista de **identificadores** candidatos | **Sí** |
-| **3. Descarga y validación** | descargar esos datasets y comprobar si cumplen los requisitos AEDV | `<FUENTE>_DatasetSelection.Rmd` | `<nombre>.rds` (datos) + `<nombre>_metadatos.xlsx` (ficha) + el análisis de validación | **Sí** |
-| **4. Incorporación** | llevar los datos **y el análisis** a la memoria del proyecto | los ficheros del paso 3 + copiar su código | la sección *Comprensión de los datos* de tu memoria | **Sí** |
+| Paso | Con qué se hace y qué produce | ¿Lo ejecutas tú? |
+|---|---|---|
+| **1. Inventario** *(ya hecho)* — recorrer la API del organismo y anotar la ficha básica de **todos** sus datasets | `<FUENTE>_TableDatasetGeneration.Rmd` → el **catálogo** `<fuente>.datasets.xlsx`, una fila por dataset | No |
+| **2. Búsqueda del tema** — localizar en el catálogo los datasets de un tema que te interese | el `.xlsx` del catálogo y una IA (ChatGPT, Claude…) → una lista de **identificadores** candidatos | Sí |
+| **3. Descarga y validación** — descargar esos datasets y comprobar si cumplen los requisitos AEDV | `<FUENTE>_DatasetSelection.Rmd` → `<nombre>.rds` (datos) y `<nombre>_metadatos.xlsx` (ficha), más el análisis de validación | Sí |
+| **4. Incorporación** — llevar los datos **y el análisis** a la memoria del proyecto | los ficheros del paso 3 y su código → la sección *Comprensión de los datos* de tu memoria | Sí |
 
 Dos ideas explican por qué el flujo está partido justo así:
 
