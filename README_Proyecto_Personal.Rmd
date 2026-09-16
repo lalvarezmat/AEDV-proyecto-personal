@@ -135,15 +135,13 @@ Antes de escribir una sola línea de código, necesitas tener claros los datos q
 **Flujo concreto.** Las cuatro fuentes con API —INE, ISTAC, EUROSTAT y Banco Mundial— se abordan **exactamente igual**, en cuatro etapas. Cambia el organismo y el nombre de los ficheros, no el procedimiento; lo que produce cada etapa es justo de lo que parte la siguiente:
 
 ```
-                     ── Ejemplo: el INE ──
-
-  ETAPA 1   el catálogo INE.datasets.xlsx ya está hecho
+  ETAPA 1   inventario de todos los datasets que se guarda en la hoja excel "*.datasets.xlsx" (ya está hecho)
                      ▼
   ETAPA 2   buscas en ese Excel, con ayuda de una IA, los datasets de tu tema
                      ▼
-  ETAPA 3   INE_DatasetSelection.Rmd descarga y valida los que has elegido
+  ETAPA 3   descarga y valida los que has elegido usando "*_DatasetSelection.Rmd"
                      ▼
-  ETAPA 4   copias a tu memoria los ficheros que ha guardado y su análisis
+  ETAPA 4   copias a tu memoria de proyecto personal los ficheros que ha guardado y su análisis
 ```
 
 **1. Inventario — el catálogo ya está hecho.** Abre el catálogo Excel de la fuente que te interese: `SelecciónDatasetsProyecto/INE/INE.datasets.xlsx`, `SelecciónDatasetsProyecto/ISTAC/ISTAC_datasets.xlsx`, `SelecciónDatasetsProyecto/EUROSTAT/Eurostat.datasets.xlsx` o `SelecciónDatasetsProyecto/WORLD_BANK/wb.datasets.xlsx`. Cada catálogo lo generó el `*_TableDatasetGeneration.Rmd` de su carpeta recorriendo la API del organismo dataset a dataset; **tú no tienes que ejecutarlo**, solo leer el Excel. Es un índice —una fila por dataset con su ficha: identificador, nombre, frecuencia, cobertura geográfica, fechas—, **no contiene los datos**.

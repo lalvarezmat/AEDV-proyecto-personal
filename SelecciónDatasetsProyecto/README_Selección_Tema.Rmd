@@ -23,15 +23,13 @@ Las cuatro fuentes con API —**INE**, **ISTAC**, **EUROSTAT** y **Banco Mundial
 La idea de fondo es ir **de los miles de datasets que publica un organismo a unos pocos que acabarán en tu memoria**, estrechando el embudo en cada paso:
 
 ```
-                     ── Ejemplo: el INE ──
-
-  PASO 1   el catálogo INE.datasets.xlsx ya está hecho
-                     ▼
+  PASO 1   inventario de todos los datasets que se guarda en la hoja excel "*.datasets.xlsx" (ya está hecho)
+                    ▼
   PASO 2   buscas en ese Excel, con ayuda de una IA, los datasets de tu tema
-                     ▼
-  PASO 3   INE_DatasetSelection.Rmd descarga y valida los que has elegido
-                     ▼
-  PASO 4   copias a tu memoria los ficheros que ha guardado y su análisis
+                    ▼
+  PASO 3   descarga y valida los que has elegido usando "*_DatasetSelection.Rmd"
+                    ▼
+  PASO 4   copias a tu memoria de proyecto personal los ficheros que ha guardado y su análisis
 ```
 
 | Paso | Con qué se hace y qué produce | ¿Lo ejecutas tú? |

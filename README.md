@@ -29,15 +29,13 @@ abordan **exactamente igual**. Cambia el organismo y el nombre de los ficheros, 
 procedimiento; lo que produce cada etapa es justo de lo que parte la siguiente:
 
 ```
-                     ── Ejemplo: el INE ──
-
-  ETAPA 1   el catálogo INE.datasets.xlsx ya está hecho
+  ETAPA 1   inventario de todos los datasets que se guarda en la hoja excel "*.datasets.xlsx" (ya está hecho)
                      ▼
-  ETAPA 2   se busca en ese Excel, con ayuda de una IA, los datasets del tema
+  ETAPA 2   buscas en ese Excel, con ayuda de una IA, los datasets de tu tema
                      ▼
-  ETAPA 3   INE_DatasetSelection.Rmd descarga y valida los elegidos
+  ETAPA 3   descarga y valida los que has elegido usando "*_DatasetSelection.Rmd"
                      ▼
-  ETAPA 4   se copian a la memoria los ficheros guardados y su análisis
+  ETAPA 4   copias a tu memoria de proyecto personal los ficheros que ha guardado y su análisis
 ```
 
 | Etapa | Con qué se hace y qué produce | ¿La ejecuta el alumno? |
