@@ -16,15 +16,55 @@ Esta carpeta contiene herramientas para explorar y descargar datasets de siete f
 
 > Cuando empieces a trabajar con un dataset, el primer paso es verificar en el Campus Virtual que ningún otro alumno ha elegido ya ese tema. En ese caso apunta al final de la lista el título y código identificativo del dataset. En caso de solape con otros alumnos consultar con el profesor. Si después de analizar el dataset no te convence recuerda eliminarlo del Campus Virtual; cuando apuntes otro, lo harás al final de la lista.
 
-## El flujo de trabajo en dos pasos
+## El flujo de trabajo, de principio a fin
 
-Cada fuente de datos sigue el mismo esquema:
+Las cuatro fuentes con API —**INE**, **ISTAC**, **EUROSTAT** y **Banco Mundial**— se abordan **exactamente igual**: la misma cadena de cuatro pasos, con los mismos dos documentos y los mismos tipos de fichero. Cambia el organismo y el nombre de los ficheros, no el procedimiento; si entiendes el flujo en una fuente, lo entiendes en las cuatro.
+
+La idea de fondo es ir **de los miles de datasets que publica un organismo a los dos o tres que acabarán en tu memoria**, estrechando el embudo en cada paso:
 
 ```
-Paso 1 — Catálogo Excel con información básica de los datasets 
-         ↓
-Paso 2 — Exploración del dataset concreto
+                        ── Ejemplo: el INE ──
+
+  PASO 1   Inventariar todo lo que publica la fuente        (ya hecho)
+           INE_TableDatasetGeneration.Rmd
+                      │  recorre la API dataset a dataset
+                      ▼
+           INE.datasets.xlsx      el catálogo: 1.678 filas, una por dataset
+                      │
+  PASO 2   Buscar tu tema dentro del catálogo, con ayuda de una IA
+                      │  «de este Excel, ¿qué datasets hablan de turismo?»
+                      ▼
+           Dataset.Id <- 76136    el identificador del dataset elegido
+                      │
+  PASO 3   Descargar y validar ese dataset
+           INE_DatasetSelection.Rmd, en dos mitades:
+                      │
+                      ├─ 3a  descarga  ──►  76136.rds + 76136_metadatos.xlsx
+                      │
+                      └─ 3b  análisis  ◄──  lee del disco esos dos ficheros
+                                            y valida los requisitos AEDV
+                      │
+  PASO 4   Incorporarlo a tu proyecto
+                      ▼
+           copias esos dos ficheros junto a tu memoria y pegas en ella el
+           código de la mitad 3b («Análisis del dataset»)
 ```
+
+| Paso | Qué se hace | Con qué | Qué produce | ¿Lo ejecutas tú? |
+|---|---|---|---|---|
+| **1. Inventario** | recorrer la API del organismo y anotar la ficha básica de **todos** sus datasets | `<FUENTE>_TableDatasetGeneration.Rmd` | el **catálogo** `<fuente>.datasets.xlsx`: una fila por dataset | **No** — ya está hecho; solo sirve para descubrir datasets nuevos |
+| **2. Búsqueda del tema** | localizar en el catálogo los datasets de un tema que te interese | el `.xlsx` del catálogo + una IA (ChatGPT, Claude…) | una lista de **identificadores** candidatos | **Sí** |
+| **3. Descarga y validación** | descargar esos datasets y comprobar si cumplen los requisitos AEDV | `<FUENTE>_DatasetSelection.Rmd` | `<nombre>.rds` (datos) + `<nombre>_metadatos.xlsx` (ficha) + el análisis de validación | **Sí** |
+| **4. Incorporación** | llevar los datos **y el análisis** a la memoria del proyecto | los ficheros del paso 3 + copiar su código | la sección *Comprensión de los datos* de tu memoria | **Sí** |
+
+Dos ideas explican por qué el flujo está partido justo así:
+
+* **El catálogo no contiene datos, solo fichas.** Es un índice de lo que existe: nombre, identificador, frecuencia, cobertura geográfica, fechas, dimensiones. Los datos no se descargan hasta el paso 3.
+* **El paso 3 descarga antes de analizar, y eso es deliberado.** Primero guarda en disco el `.rds` y el `_metadatos.xlsx`; después analiza **leyendo esos ficheros**, no la API. De ahí que su análisis se pueda trasplantar tal cual a tu memoria (paso 4) y que tu proyecto deje de depender de que el organismo mantenga el dataset disponible.
+
+Las otras tres fuentes (**EDGAR**, **CLIMA** e **INFORME PISA**) son datasets únicos ya construidos: no tienen catálogo y por tanto **no tienen pasos 1 y 2**, pero sus documentos conservan la misma estructura interna 3a/3b, así que el paso 4 se hace igual.
+
+## Paso 1 — el catálogo de la fuente, que ya viene generado
 
 Los catálogos ya están generados y disponibles como archivos Excel en cada subcarpeta. **No necesitas ejecutar los archivos `*_TableDatasetGeneration.Rmd`**: su única utilidad es **descubrir datasets nuevos** que la fuente haya publicado desde que se generó el catálogo.
 
@@ -39,7 +79,7 @@ Conviene saberlo porque regenerar un catálogo es un proceso **largo**: recorre 
 | INE | 5.521 | ~3 h 20 min |
 | Banco Mundial | 16.643 | **~13 horas** |
 
-Los documentos de **EDGAR**, los dos **CLIMA** e **INFORME PISA** son un caso distinto: no recorren un catálogo de una API para que elijas, sino que construyen un dataset ya fijado (en CLIMA, descargando unos 10 GB de NetCDF de AdapteCCa; en PISA, reconstruyendo de Wikipedia y de Banco Mundial/INE) para generar los `.rds`. Tampoco hay que ejecutarlos, porque esos `.rds` se distribuyen ya hechos en sus carpetas.
+Los documentos de **EDGAR**, los dos **CLIMA** e **INFORME PISA** no recorren un catálogo de una API para que elijas: construyen un dataset ya fijado (en CLIMA, descargando unos 10 GB de NetCDF de AdapteCCa; en PISA, reconstruyendo de Wikipedia y de Banco Mundial/INE) para generar los `.rds`. Tampoco hay que ejecutarlos, porque esos `.rds` se distribuyen ya hechos en sus carpetas.
 
 <div class="nota">
 <strong class="bloque-titulo">Los catálogos son una fotografía, no una fuente permanente</strong>
@@ -59,6 +99,10 @@ Por eso es importante **no depender del catálogo Excel para tu proyecto**: una 
 | EDGAR | *(dataset único, solo sirve para un alumno)* | Mundial: emisiones GHG 1970–2025, por sector y grupo de gases |
 | CLIMA (AdapteCCa) | *(proyecto propio, sin catálogo Excel; 14 variables climáticas)* | España (provincias) y Canarias (municipios): clima mensual 1951/1990–2022 + proyecciones CMIP6 |
 | INFORME PISA | *(dataset único, solo sirve para un alumno)* | Mundial (105 países, PISA 2000–2025) y España (19 CCAA, 2009–2025): resultados educativos + pobreza/desigualdad/gasto |
+
+## Qué tiene que cumplir un dataset para servir en AEDV
+
+Este apartado es la referencia que usan los pasos 2 y 3: en el paso 2 sirve para descartar candidatos de un vistazo mirando el catálogo, y en el paso 3 es lo que comprueba automáticamente la tabla de validación.
 
 Los datasets que usamos en AEDV siempre tienen una variable (columna) con un dato temporal que puede estar en años, cuatrimestres, meses o semanas, una variable con datos de áreas geográficas que pueden ser países, CCAA, provincias o municipios, una o varias variables categóricas que identifican qué se está midiendo y una variable numérica con el valor observado de lo que se mide.
 
@@ -89,7 +133,30 @@ Los datasets que usamos en AEDV siempre tienen una variable (columna) con un dat
 
 </div>
 
-## Explorar un dataset en detalle
+## Paso 2 — Buscar en el catálogo los datasets de tu tema
+
+Un catálogo tiene entre 400 y 2.468 filas, así que no se lee de arriba abajo: **se busca dentro de él**. Hay dos maneras y lo razonable es combinarlas.
+
+**Con una IA, que es lo más rápido.** Súbele el `.xlsx` de la fuente (`ISTAC_datasets.xlsx`, `wb.datasets.xlsx`, `Eurostat.datasets.xlsx` o `INE.datasets.xlsx`) a ChatGPT, Claude o similar y pídele los identificadores relacionados con tu tema: *«de este catálogo, dame los datasets sobre vivienda y alquiler, con su identificador y su nombre»*. Después pídele que **descarte los que no vayan a cumplir los requisitos**, apoyándose en las columnas que los anticipan:
+
+| Fuente | Columnas que anticipan si el dataset cumplirá los requisitos |
+|---|---|
+| **ISTAC** | `area` (nivel geográfico: `MUNI`, `ISLA`, `CCAA`…) y `freq` (frecuencia) |
+| **Banco Mundial** | `Ncountries` y `dateEnd` |
+| **INE** | `Codigo` (desglose geográfico) y `Periodicidad` |
+| **EUROSTAT** | `topic` (familia temática), `NUTS0`–`NUTS3` (cobertura por nivel), `N.atrib.combinados` y las columnas `ESPAÑA`/`CANARIAS` |
+
+**A mano en Excel**, filtrando por la columna temática de cada fuente: `OPER.Nombre` en el INE, `subject` en el ISTAC, `Topic` en el Banco Mundial y el prefijo del `code` en EUROSTAT. La sección [Descripción de los catálogos de datasets](#catalogos) de este mismo documento trae, fuente por fuente, el reparto por temas con el número de datasets de cada uno, la descripción de todas las columnas y las trampas concretas al filtrar.
+
+Los identificadores que salgan de aquí son la entrada del paso 3: se copian en `IDS` (ISTAC y Banco Mundial), en `Dataset.Id` (INE) o en `dataset.name` (EUROSTAT).
+
+<div class="nota">
+<strong class="bloque-titulo">La IA acota la búsqueda, pero no elige por ti</strong>
+
+Lo que produce el paso 2 es una **lista de candidatos**, no una decisión. Quien dice si un dataset sirve es el paso 3, porque la IA no ha visto los datos: solo el índice, y las columnas del catálogo son indicios, no garantías (el `N.atrib.combinados` de EUROSTAT, por ejemplo, es una cota superior: no todas las combinaciones tienen datos). Cuenta con validar **varios** candidatos antes de quedarte con los definitivos.
+</div>
+
+## Paso 3 — Descargar, validar y analizar el dataset
 
 Abre el archivo `*_DatasetSelection.Rmd` de la fuente correspondiente y localiza la línea donde se especifican los datasets a analizar:
 
@@ -112,9 +179,9 @@ IDS <- c("MATRICULA_VEHICULOS", "PARQUE_VEHICULOS")
 IDS <- c("SP.POP.TOTL", "SP.POP.TOTL.FE.IN")
 ```
 
-A continuación haz **Knit** (`Ctrl+Shift+K`). Todos los `*_DatasetSelection.Rmd` siguen la misma estructura, en dos partes:
+A continuación haz **Knit** (`Ctrl+Shift+K`). Todos los `*_DatasetSelection.Rmd` siguen la misma estructura, en las dos mitades del esquema de arriba:
 
-**1. Descarga, limpieza y guardado.** Descarga los datos, elimina las columnas que no aportan nada (las que tienen siempre el mismo valor) y **guarda en disco dos ficheros**, antes de analizar nada:
+**Mitad 3a — descarga, limpieza y guardado.** Descarga los datos, elimina las columnas que no aportan nada (las que tienen siempre el mismo valor) y **guarda en disco dos ficheros**, antes de analizar nada:
 
 | Fichero | Contenido |
 |---------|-----------|
@@ -123,7 +190,7 @@ A continuación haz **Knit** (`Ctrl+Shift+K`). Todos los `*_DatasetSelection.Rmd
 
 El `<nombre>` es el **código del dataset** en INE (`76136.rds`) y EUROSTAT (`demo_r_pjanaggr3.rds`), y un nombre fijo en las fuentes que combinan varios indicadores: `ISTAC_Selected` y `WB_Selected`.
 
-**2. Análisis del dataset.** Vuelve a **leer esos dos ficheros del disco** y a partir de ahí hace todo el análisis:
+**Mitad 3b — análisis del dataset.** Vuelve a **leer esos dos ficheros del disco** y a partir de ahí hace todo el análisis:
 
 - La ficha de metadatos y, en EUROSTAT, la descripción completa del tema al que pertenece el dataset.
 - Las dimensiones del dataset, cada una con sus valores posibles y su nº de observaciones.
@@ -132,24 +199,26 @@ El `<nombre>` es el **código del dataset** en INE (`76136.rds`) y EUROSTAT (`de
 - **Una tabla de validación** que marca en verde/rojo si cada atributo (o combinación de atributos) cumple los criterios AEDV: cobertura geográfica, datos actualizados, tamaño de las series temporales y representación de España/Canarias.
 - **Un veredicto final** que cuenta cuántos atributos válidos hay e indica si se alcanza el mínimo de 4.
 
-<div class="metodo">
-<strong class="bloque-titulo">Cómo se aprovecha esto en la memoria del proyecto</strong>
+## Paso 4 — Incorporar el dataset a la memoria del proyecto
 
-Que el guardado vaya **primero** y el análisis **después** no es casualidad: está pensado para que puedas reutilizar el trabajo directamente.
+Que en el paso 3 el guardado vaya **primero** y el análisis **después** no es casualidad: está pensado para que el trabajo hecho al validar el dataset se reutilice, en vez de repetirse.
 
 1. Compila el `*_DatasetSelection.Rmd` con tus datasets y comprueba que cumplen los requisitos.
 2. **Copia el `.rds` y el `_metadatos.xlsx` a la carpeta de tu proyecto**, junto a tu memoria.
-3. A partir de ahí puedes hacer **copy/paste del código de la sección "Análisis del dataset"** directamente en tu memoria: esa parte está escrita para no depender de nada de la sección anterior — arranca leyendo los dos ficheros del disco, así que funciona tal cual en tu documento sin volver a descargar nada de internet.
+3. Haz **copy/paste del código de la sección «Análisis del dataset» (la mitad 3b)** en la sección *Comprensión de los datos* de tu memoria: esa parte está escrita para no depender de la anterior — arranca leyendo del disco los dos ficheros que acabas de copiar, así que funciona tal cual en tu documento sin volver a descargar nada de internet.
 
-Es decir: la primera parte (descarga) **no** va en la memoria; la segunda (análisis) sí puede ir, entera o por trozos, y como punto de partida para tu propio análisis.
+Es decir: la mitad 3a (descarga) **no** va en la memoria; la 3b (análisis) sí puede ir, entera o por trozos, y como punto de partida de tu propio análisis. Con eso la memoria queda, de golpe, con los datos importados y con su validación documentada.
 
-Ten en cuenta que ese código usa las clases CSS del curso (`tabla-scroll`, `caja-scroll`, `tabla-scroll-xy` y las celdas verde/rojo de la tabla de validación). Ya están todas en el fichero `estilos.css` que acompaña al modelo de memoria, así que **si tu memoria lo referencia** (`css: estilos.css` en la cabecera) las tablas se verán igual que aquí.
+Si combinas datasets de varias fuentes, repite la operación una vez por fuente dentro de la memoria; en los datasets secundarios puedes recortar la parte de validación para no alargarla en exceso.
+
+<div class="nota">
+<strong class="bloque-titulo">El `estilos.css` tiene que acompañar a la memoria</strong>
+
+El código de la mitad 3b usa las clases CSS del curso (`tabla-scroll`, `caja-scroll`, `tabla-scroll-xy` y las celdas verde/rojo de la tabla de validación). Ya están todas en el fichero `estilos.css` que acompaña al modelo de memoria, así que **si tu memoria lo referencia** (`css: estilos.css` en la cabecera) las tablas se verán igual que aquí.
 </div>
 
-> **Cómo buscar datasets por tema.** Lo habitual es localizar datasets concretos de un tema que te interese ayudándote de una IA (ChatGPT, Claude, etc.) sobre los catálogos Excel: súbele el `.xlsx` de la fuente (`ISTAC_datasets.xlsx`, `wb.datasets.xlsx`, `Eurostat.datasets.xlsx` o `INE.datasets.xlsx`) y pídele que te liste los identificadores relacionados con tu tema. Para afinar, fíjate además en las columnas que anticipan si cumplirán los requisitos: en **ISTAC**, `area` (nivel geográfico: `MUNI`, `ISLA`, `CCAA`…) y `freq` (frecuencia); en **Banco Mundial**, `Ncountries` y `dateEnd`; en **INE**, `Codigo` (desglose geográfico) y `Periodicidad`; en **EUROSTAT**, `topic` (familia temática), `NUTS0`–`NUTS3` (cobertura por nivel), `N.atrib.combinados` y las columnas `ESPAÑA`/`CANARIAS`. Copia los identificadores resultantes en `IDS` (o en `Dataset.Id` para el INE y `dataset.name` para EUROSTAT).
 
-
-# Descripción de los catálogos de datasets
+# Descripción de los catálogos de datasets {#catalogos}
 
 ## INE — `INE/INE.datasets.xlsx` (1.678 datasets)
 
@@ -417,7 +486,7 @@ Los análisis que permite realizar son:
 
 ## CLIMA — variables climáticas de AdapteCCa (dos proyectos posibles, para dos ámbitos geográficos)
 
-Al igual que EDGAR, **CLIMA no sigue el flujo de dos pasos** (no hay catálogo Excel): los "datasets" son un conjunto fijo de **14 variables climáticas** (temperatura, precipitación y varios índices derivados) medidas **por región y mes** con **dos ámbitos geográficos** a elegir:
+Al igual que EDGAR, **CLIMA no tiene pasos 1 y 2** (no hay catálogo Excel que recorrer ni en el que buscar): los "datasets" son un conjunto fijo de **14 variables climáticas** (temperatura, precipitación y varios índices derivados) medidas **por región y mes** con **dos ámbitos geográficos** a elegir:
 
 | Ámbito | Carpeta | Regiones | Fuente / rejilla |
 |--------|---------|----------|------------------|

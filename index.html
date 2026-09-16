@@ -32,6 +32,10 @@
   th, td { border-bottom:1px solid var(--linea); padding:.42rem .8rem; text-align:left; white-space:nowrap; }
   th { font-weight:600; }
   td.num { text-align:right; }
+  pre.flujo { background:var(--caja); border:1px solid var(--linea); border-radius:6px;
+              padding:1rem; margin:1.3rem 0; overflow-x:auto; font-size:.84rem; line-height:1.5; }
+  table.flujo { width:100%; font-size:.9rem; }
+  table.flujo th, table.flujo td { white-space:normal; vertical-align:top; }
   footer { margin-top:3rem; padding-top:1rem; border-top:1px solid var(--linea); color:var(--suave); font-size:.9rem; }
 </style>
 </head>
@@ -73,8 +77,65 @@
 <p><a href="Selecci%C3%B3nDatasetsProyecto/README_Selecci%C3%B3n_Tema.html">Guía para la elección del tema y de los datos</a> —
 criterios AEDV que deben cumplir los datasets del proyecto.</p>
 
-<p>Para cada fuente hay dos documentos: <em>TableDatasetGeneration</em> construye el catálogo completo recorriendo la API,
-y <em>DatasetSelection</em> filtra, valida y analiza el dataset elegido.</p>
+<p>Las cuatro fuentes con API —<strong>INE</strong>, <strong>ISTAC</strong>, <strong>Eurostat</strong> y
+<strong>Banco Mundial</strong>— se abordan <strong>exactamente igual</strong>: la misma cadena de cuatro etapas,
+con los mismos dos documentos y los mismos tipos de fichero. Cambia el organismo y el nombre de los ficheros,
+no el procedimiento. La idea es ir <strong>de los miles de datasets que publica un organismo a los dos o tres
+que acaban en la memoria del proyecto</strong>, estrechando el embudo en cada etapa:</p>
+
+<pre class="flujo">                        ── Ejemplo: el INE ──
+
+  ETAPA 1  Inventariar todo lo que publica la fuente        (ya hecho)
+           INE_TableDatasetGeneration.Rmd
+                      │  recorre la API dataset a dataset
+                      ▼
+           INE.datasets.xlsx      el catálogo: 1.678 filas, una por dataset
+                      │
+  ETAPA 2  Buscar el tema dentro del catálogo, con ayuda de una IA
+                      │  «de este Excel, ¿qué datasets hablan de turismo?»
+                      ▼
+           Dataset.Id &lt;- 76136    el identificador del dataset elegido
+                      │
+  ETAPA 3  Descargar y validar ese dataset
+           INE_DatasetSelection.Rmd, en dos mitades:
+                      │
+                      ├─ 3a  descarga  ──►  76136.rds + 76136_metadatos.xlsx
+                      │
+                      └─ 3b  análisis  ◄──  lee del disco esos dos ficheros
+                                            y valida los requisitos AEDV
+                      │
+  ETAPA 4  Incorporarlo al proyecto
+                      ▼
+           se copian esos dos ficheros junto a la memoria y se pega en ella
+           el código de la mitad 3b («Análisis del dataset»)</pre>
+
+<div class="tabla-scroll">
+<table class="flujo">
+  <thead>
+    <tr><th>Etapa</th><th>Qué se hace</th><th>Con qué</th><th>Qué produce</th><th>¿La ejecuta el alumno?</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>1. Inventario</strong></td><td>recorrer la API del organismo y anotar la ficha básica de <strong>todos</strong> sus datasets</td><td><code>&lt;FUENTE&gt;_TableDatasetGeneration.Rmd</code></td><td>el <strong>catálogo</strong> <code>&lt;fuente&gt;.datasets.xlsx</code>: una fila por dataset</td><td><strong>No</strong> — ya está hecho; solo sirve para descubrir datasets nuevos</td></tr>
+    <tr><td><strong>2. Búsqueda del tema</strong></td><td>localizar en el catálogo los datasets de un tema de interés</td><td>el <code>.xlsx</code> del catálogo + una IA</td><td>una lista de <strong>identificadores</strong> candidatos</td><td>Sí</td></tr>
+    <tr><td><strong>3. Descarga y validación</strong></td><td>descargar esos datasets y comprobar si cumplen los requisitos AEDV</td><td><code>&lt;FUENTE&gt;_DatasetSelection.Rmd</code></td><td><code>&lt;nombre&gt;.rds</code> (datos) + <code>&lt;nombre&gt;_metadatos.xlsx</code> (ficha) + el análisis de validación</td><td>Sí</td></tr>
+    <tr><td><strong>4. Incorporación</strong></td><td>llevar los datos <strong>y el análisis</strong> a la memoria</td><td>los ficheros de la etapa 3 + copiar su código</td><td>la sección <em>Comprensión de los datos</em> de la memoria</td><td>Sí</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Dos detalles explican por qué el flujo está partido justo así:</p>
+<ul>
+  <li><strong>El catálogo no contiene datos, solo fichas</strong> — identificador, nombre, frecuencia, cobertura
+      geográfica, fechas, dimensiones. Los datos no se descargan hasta la etapa 3.</li>
+  <li><strong>La etapa 3 descarga antes de analizar, y es deliberado</strong>: primero guarda en disco el
+      <code>.rds</code> y el <code>_metadatos.xlsx</code> (3a) y después analiza <strong>leyendo esos ficheros</strong> (3b).
+      De ahí que el código de la sección <em>Análisis del dataset</em> se pueda pegar tal cual en la memoria, y que el
+      proyecto deje de depender de que el organismo mantenga el dataset disponible.</li>
+</ul>
+
+<p><strong>EDGAR</strong>, los dos <strong>CLIMA</strong> e <strong>INFORME PISA</strong> son datasets únicos ya
+construidos: <strong>no tienen etapas 1 y 2</strong> (no hay catálogo en el que buscar), pero conservan la misma
+estructura 3a/3b, así que la incorporación a la memoria se hace igual.</p>
 
 <div class="aviso">
   <p><strong>No hace falta que ejecutes los <em>TableDatasetGeneration</em>.</strong> Los catálogos ya están

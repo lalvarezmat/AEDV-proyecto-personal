@@ -17,9 +17,45 @@ Autor: Luis Álvarez.
 | `SelecciónDatasetsProyecto/` | Catálogos y validadores de datasets por fuente |
 
 En `SelecciónDatasetsProyecto/` hay una carpeta por fuente (INE, ISTAC, EUROSTAT,
-WORLD_BANK, EDGAR_GHG, CLIMA_CANARIAS, CLIMA_SPAIN). Cada una contiene el documento que
-genera el catálogo (`*_TableDatasetGeneration`), el que selecciona y valida el dataset
-elegido (`*_DatasetSelection`) y los datos correspondientes (`.xlsx` de catálogo o `.rds`).
+WORLD_BANK, EDGAR_GHG, CLIMA_CANARIAS, CLIMA_SPAIN, INFORME_PISA). Cada una contiene el
+documento que genera el catálogo (`*_TableDatasetGeneration`), el que descarga, valida y
+analiza los datasets elegidos (`*_DatasetSelection`) y los datos correspondientes
+(`.xlsx` de catálogo o `.rds`).
+
+## Cómo se eligen los datasets: las cuatro etapas
+
+Las cuatro fuentes con API —**INE**, **ISTAC**, **EUROSTAT** y **Banco Mundial**— se
+abordan **exactamente igual**. Cambia el organismo y el nombre de los ficheros, no el
+procedimiento:
+
+```
+ catálogo .xlsx  ──►  identificadores  ──►  .rds + _metadatos.xlsx  ──►  la memoria
+  1. inventario       2. búsqueda del      3. descarga y validación     4. incorporación
+    (ya hecho)          tema, con IA          (al hacer Knit)
+```
+
+| Etapa | Qué se hace | Con qué | Qué produce | ¿La ejecuta el alumno? |
+|---|---|---|---|---|
+| **1. Inventario** | recorrer la API del organismo y anotar la ficha básica de **todos** sus datasets | `<FUENTE>_TableDatasetGeneration.Rmd` | el **catálogo** `<fuente>.datasets.xlsx`: una fila por dataset | **No** — ya está hecho; solo sirve para descubrir datasets nuevos |
+| **2. Búsqueda del tema** | localizar en el catálogo los datasets de un tema de interés, con ayuda de una IA | el `.xlsx` del catálogo | una lista de **identificadores** candidatos | Sí |
+| **3. Descarga y validación** | descargar esos datasets y comprobar si cumplen los requisitos AEDV | `<FUENTE>_DatasetSelection.Rmd` | `<nombre>.rds` (datos) + `<nombre>_metadatos.xlsx` (ficha) + el análisis de validación | Sí |
+| **4. Incorporación** | llevar los datos **y el análisis** a la memoria del proyecto | los ficheros de la etapa 3 + copiar su código | la sección *Comprensión de los datos* de la memoria | Sí |
+
+Dos detalles explican por qué el flujo está partido así:
+
+- **El catálogo no contiene datos, solo fichas** (identificador, nombre, frecuencia,
+  cobertura geográfica, fechas, dimensiones). Los datos no se descargan hasta la etapa 3.
+- **La etapa 3 descarga antes de analizar, a propósito.** El `*_DatasetSelection.Rmd`
+  primero guarda en disco el `.rds` y el `_metadatos.xlsx` (3a) y después analiza
+  **leyendo esos ficheros** (3b). Por eso el código de la sección *Análisis del dataset*
+  se puede pegar tal cual en la memoria —arranca leyendo del disco— y por eso el proyecto
+  deja de depender de que el organismo mantenga el dataset disponible.
+
+EDGAR, CLIMA e INFORME PISA son datasets únicos ya construidos: **no tienen etapas 1 y 2**
+(no hay catálogo en el que buscar), pero conservan la misma estructura 3a/3b.
+
+El detalle completo está en
+[`SelecciónDatasetsProyecto/README_Selección_Tema.html`](https://lalvarezmat.github.io/AEDV-proyecto-personal/Selecci%C3%B3nDatasetsProyecto/README_Selecci%C3%B3n_Tema.html).
 
 ## Cómo obtener los ficheros
 

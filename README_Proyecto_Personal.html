@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-09-15" />
+<meta name="date" content="2026-09-16" />
 
 <title>Proyecto Personal AEDV — Guía de trabajo</title>
 
@@ -1614,7 +1614,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Proyecto Personal AEDV — Guía de
 trabajo</h1>
-<h4 class="date">2026-09-15</h4>
+<h4 class="date">2026-09-16</h4>
 
 </div>
 
@@ -1848,29 +1848,58 @@ dataset; ISTAC y Banco Mundial tienen uno por dataset, así que necesitas
 varios.</p></li>
 </ul>
 </div>
-<p><strong>Flujo concreto:</strong></p>
-<ol style="list-style-type: decimal">
-<li><p>Abre el catálogo Excel de la fuente que te interese:
+<p><strong>Flujo concreto.</strong> Las cuatro fuentes con API —INE,
+ISTAC, EUROSTAT y Banco Mundial— se abordan <strong>exactamente
+igual</strong>, en cuatro etapas. Cambia el organismo y el nombre de los
+ficheros, no el procedimiento:</p>
+<pre><code> catálogo .xlsx  ──►  identificadores  ──►  .rds + _metadatos.xlsx  ──►  tu memoria
+  1. inventario       2. búsqueda del      3. descarga y validación     4. incorporación
+    (ya hecho)          tema, con IA          (al hacer Knit)</code></pre>
+<p><strong>1. Inventario — el catálogo ya está hecho.</strong> Abre el
+catálogo Excel de la fuente que te interese:
 <code>SelecciónDatasetsProyecto/INE/INE.datasets.xlsx</code>,
 <code>SelecciónDatasetsProyecto/ISTAC/ISTAC_datasets.xlsx</code>,
 <code>SelecciónDatasetsProyecto/EUROSTAT/Eurostat.datasets.xlsx</code> o
-<code>SelecciónDatasetsProyecto/WORLD_BANK/wb.datasets.xlsx</code>.</p></li>
-<li><p>Busca datasets de tu tema — puedes subirle el Excel a una IA y
-pedirle que te liste los identificadores relacionados con tu
-tema.</p></li>
-<li><p>Copia los identificadores en el fichero
-<code>*_DatasetSelection.Rmd</code> de la fuente correspondiente:</p>
-<ul>
-<li>INE: <code>Dataset.Id &lt;- 76136</code></li>
-<li>EUROSTAT: <code>dataset.name &lt;- &quot;nama_10r_2hhinc&quot;</code></li>
-<li>ISTAC/WB: <code>IDS &lt;- c(&quot;ID1&quot;, &quot;ID2&quot;, ...)</code></li>
-</ul></li>
-<li><p>Haz Knit (<code>Ctrl+Shift+K</code>) y revisa la tabla de
-validación: verde = cumple el criterio, rojo = no cumple.</p></li>
-<li><p>Los datos quedan guardados automáticamente en disco
-(<code>.rds</code>), también se guardan algunos metadatos en formato
-excel (<code>.xlsx</code>) listos para importar en tu memoria.</p></li>
-</ol>
+<code>SelecciónDatasetsProyecto/WORLD_BANK/wb.datasets.xlsx</code>. Cada
+catálogo lo generó el <code>*_TableDatasetGeneration.Rmd</code> de su
+carpeta recorriendo la API del organismo dataset a dataset; <strong>tú
+no tienes que ejecutarlo</strong>, solo leer el Excel. Es un índice —una
+fila por dataset con su ficha: identificador, nombre, frecuencia,
+cobertura geográfica, fechas—, <strong>no contiene los
+datos</strong>.</p>
+<p><strong>2. Búsqueda del tema.</strong> Busca dentro del catálogo los
+datasets de tu tema: súbele el <code>.xlsx</code> a una IA y pídele los
+identificadores relacionados, y que descarte los que no vayan a cumplir
+los requisitos de arriba (<code>README_Selección_Tema</code> detalla qué
+columna los anticipa en cada fuente). Lo que sale es una <strong>lista
+de candidatos</strong>, no una elección: quien dice si un dataset sirve
+es la etapa 3.</p>
+<p><strong>3. Descarga y validación.</strong> Copia los identificadores
+en el fichero <code>*_DatasetSelection.Rmd</code> de la fuente
+correspondiente: - INE: <code>Dataset.Id &lt;- 76136</code> - EUROSTAT:
+<code>dataset.name &lt;- &quot;nama_10r_2hhinc&quot;</code> - ISTAC/WB:
+<code>IDS &lt;- c(&quot;ID1&quot;, &quot;ID2&quot;, ...)</code></p>
+<p>y haz Knit (<code>Ctrl+Shift+K</code>). El documento hace <strong>dos
+cosas, en este orden</strong>: primero (3a) descarga los datos y los
+<strong>guarda en disco</strong> —<code>&lt;nombre&gt;.rds</code> con
+los datos ya limpios y <code>&lt;nombre&gt;_metadatos.xlsx</code> con la
+ficha del dataset—; después (3b) los <strong>analiza leyendo esos dos
+ficheros</strong>, y termina en una tabla de validación (verde = cumple
+el criterio, rojo = no cumple) y un veredicto sobre el mínimo de 4
+atributos.</p>
+<p><strong>4. Incorporación a la memoria.</strong> Los dos ficheros que
+ha guardado la etapa 3a y el código de la etapa 3b se trasplantan a tu
+memoria; se explica más abajo, en <em>Cómo importar los datos en la
+memoria</em> (Paso 3 de esta guía). Que la descarga vaya primero y el
+análisis después es justo lo que hace posible ese trasplante: la etapa
+3b arranca leyendo del disco, así que funciona tal cual en tu documento
+sin volver a descargar nada.</p>
+<blockquote>
+<p>EDGAR, CLIMA e INFORME PISA son datasets únicos ya construidos:
+<strong>no tienen etapas 1 y 2</strong> (no hay catálogo en el que
+buscar), pero sus documentos conservan la misma estructura 3a/3b, así
+que la incorporación a la memoria se hace igual.</p>
+</blockquote>
 <blockquote>
 <p><strong>Antes de confirmar un dataset</strong>, verifica en el Campus
 Virtual que ningún otro alumno lo haya elegido ya. Si hay solapamiento,
@@ -1967,6 +1996,10 @@ Modelado, Evaluación y Despliegue. Esto es coherente con CRISP-DM.</p>
 <div id="cómo-importar-los-datos-en-la-memoria" class="section level3" number="3.4.1">
 <h3><span class="header-section-number">3.4.1</span> Cómo importar los
 datos en la memoria</h3>
+<p>Esta es la <strong>etapa 4 (incorporación)</strong> del flujo de
+selección de datos del Paso 1, y consiste en trasplantar lo que ya
+produjo el <code>*_DatasetSelection.Rmd</code>: sus dos ficheros y su
+código de análisis.</p>
 <ul>
 <li><p>Mueve a la carpeta donde está
 <code>ModeloMemoriaProyectoPersonalAEDV.Rmd</code> los ficheros
@@ -1975,10 +2008,15 @@ datasets obtenidos en el <strong>Paso 1</strong>.</p></li>
 <li><p>Copia en la sección <strong>Comprensión de los datos</strong> de
 la memoria el código que aparece en el
 <code>*_DatasetSelection.Rmd</code> a partir de la sección
-<strong>Análisis del dataset</strong>. Con esto importarás los datos a
-la memoria para empezar a trabajar con ellos y además se incorporará el
-análisis de validación que aparece en dicho documento</p></li>
+<strong>Análisis del dataset</strong> (la etapa 3b). Con esto importarás
+los datos a la memoria para empezar a trabajar con ellos y además se
+incorporará el análisis de validación que aparece en dicho documento.
+Ese código no depende de la parte de descarga: arranca leyendo del disco
+los dos ficheros que acabas de mover, así que funciona tal cual sin
+descargar nada de internet.</p></li>
 </ul>
+<p>La parte de descarga (etapa 3a) <strong>no</strong> va en la
+memoria.</p>
 <p>Si combinamos varios datasets de diferentes fuentes repetiremos esta
 operación dentro del modelo de memoria. Para los datasets auxiliares
 podemos eliminar la parte de validación para no alargar en exceso la
