@@ -79,6 +79,9 @@ Este documento analiza en detalle los **indicadores** del Banco Mundial ya elegi
 
 A diferencia del INE o de Eurostat, aquí no se analiza un único dataset sino un **conjunto de indicadores** que se descargan y se combinan en una sola tabla: cada indicador es un atributo que se sigue en el tiempo para cada país.
 
+
+<!--  ================  PARA PROBAR TUS PROPIOS DATASETS EDITA EL CÓDIGO SIGUIENTE  ============ -->
+
 Para analizar otros indicadores basta con cambiar sus códigos en el chunk de abajo y volver a compilar.
 
 ```{r,echo=TRUE}
@@ -90,6 +93,8 @@ IDS <- c("ER.H2O.FWTL.K3", "ER.H2O.FWTL.ZS")
 # nombre base de los ficheros que se guardan en disco
 filename <- "WB_Selected"
 ```
+
+<!--  ================  FIN EDICIÓN CÓDIGO PARA PROBAR TUS PROPIOS DATASETS ============ -->
 
 <!--IMPORTANTE: Si cambiamos los indicadores, si se tiene activada la opción cache=TRUE para los chunks, hay que borrar la carpeta que se genera con la extensión "_cache" para obligar a recompilar todos los chunks con los nuevos datos. Al hacer `knit` se compilarán todos los chunks, aunque obviamente, los textos fuera de los chunks no se actualizarán-->
 

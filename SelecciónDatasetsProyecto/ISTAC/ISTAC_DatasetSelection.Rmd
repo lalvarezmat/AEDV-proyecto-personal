@@ -78,6 +78,9 @@ Este documento analiza en detalle los **indicadores** del ISTAC ya elegidos a pa
 
 A diferencia del INE o de Eurostat, aquí no se analiza un único dataset sino un **conjunto de indicadores** que se descargan y se combinan en una sola tabla: cada indicador es un atributo que se sigue en el tiempo para cada región de Canarias.
 
+
+<!--  ================  PARA PROBAR TUS PROPIOS DATASETS EDITA EL CÓDIGO SIGUIENTE  ============ --> 
+
 Para analizar otros indicadores basta con cambiar sus códigos en el chunk de abajo y volver a compilar.
 
 ```{r,echo=TRUE}
@@ -88,6 +91,34 @@ IDS <- c("MATRICULA_VEHICULOS", "MATRICULA_VEHICULOS_TURISMOS", "PARQUE_VEHICULO
 # nombre base de los ficheros que se guardan en disco
 filename <- "ISTAC_Selected"
 ```
+
+> **Nota:** la columna `description` de los metadatos se genera mediante consulta a IA a partir de fuentes oficiales del ISTAC. No proviene directamente de la API del ISTAC. Si se cambian los indicadores seleccionados habrá que rehacer la consulta a la IA pidiendo que se adapten las descripciones a los nuevos indicadores: 
+
+```{r,echo=TRUE}
+# DESCRIPCIONES GENERADAS POR IA para los indicadores de vehículos (el ejemplo
+# por defecto es TURISTAS_*, que no tiene descripción propia todavía: sale
+# "BUSCAR DESCRIPCIÓN" más abajo hasta que se redacte)
+desc_ia <- tibble(
+  id = c(
+    "MATRICULA_VEHICULOS",
+    "MATRICULA_VEHICULOS_TURISMOS",
+    "PARQUE_VEHICULOS",
+    "PARQUE_VEHICULOS_HABITANTE",
+    "PARQUE_VEHICULOS_TURISMOS",
+    "PARQUE_VEHICULOS_TURISMOS_HABITANTE"
+  ),
+  description = c(
+    "Número de vehículos ordinarios nuevos matriculados en circulación en cada municipio e isla de Canarias en un período. Excluye vehículos usados y rematriculaciones.",
+    "Número de turismos (automóviles para transporte de pasajeros) nuevos matriculados en circulación. Desglose del indicador MATRICULA_VEHICULOS restringido a vehículos de tipo turismo.",
+    "Número total de vehículos en circulación en un municipio o isla de Canarias en un momento dado. Cifra acumulada de todos los vehículos actualmente registrados en uso.",
+    "Número de vehículos en circulación por cada 1.000 habitantes. Mide la intensidad de motorización y permite comparar el nivel de motorización entre territorios.",
+    "Número total de turismos en circulación en un municipio o isla de Canarias. Desglose del parque total de vehículos restringido a automóviles de pasajeros.",
+    "Número de turismos en circulación por cada 1.000 habitantes. Permite analizar los patrones de motorización por tipo de vehículo y comparar entre territorios."
+  )
+)
+```
+
+<!--  ================  FIN EDICIÓN CÓDIGO PARA PROBAR TUS PROPIOS DATASETS ============ --> 
 
 # Descarga, limpieza y guardado de los datos
 
@@ -114,31 +145,7 @@ istac.regions <- read_csv("ISTAC_AREAS_GEOGRAFICAS.csv", show_col_types = FALSE)
   as_tibble()
 ```
 
-> **Nota:** la columna `description` de los metadatos se genera más abajo mediante consulta a IA a partir de fuentes oficiales del ISTAC. No proviene directamente de la API del ISTAC. Si se cambian los indicadores seleccionados habrá que rehacer la consulta a la IA pidiendo que se adapten las descripciones a los nuevos indicadores.
 
-```{r,echo=TRUE}
-# DESCRIPCIONES GENERADAS POR IA para los indicadores de vehículos (el ejemplo
-# por defecto es TURISTAS_*, que no tiene descripción propia todavía: sale
-# "BUSCAR DESCRIPCIÓN" más abajo hasta que se redacte)
-desc_ia <- tibble(
-  id = c(
-    "MATRICULA_VEHICULOS",
-    "MATRICULA_VEHICULOS_TURISMOS",
-    "PARQUE_VEHICULOS",
-    "PARQUE_VEHICULOS_HABITANTE",
-    "PARQUE_VEHICULOS_TURISMOS",
-    "PARQUE_VEHICULOS_TURISMOS_HABITANTE"
-  ),
-  description = c(
-    "Número de vehículos ordinarios nuevos matriculados en circulación en cada municipio e isla de Canarias en un período. Excluye vehículos usados y rematriculaciones.",
-    "Número de turismos (automóviles para transporte de pasajeros) nuevos matriculados en circulación. Desglose del indicador MATRICULA_VEHICULOS restringido a vehículos de tipo turismo.",
-    "Número total de vehículos en circulación en un municipio o isla de Canarias en un momento dado. Cifra acumulada de todos los vehículos actualmente registrados en uso.",
-    "Número de vehículos en circulación por cada 1.000 habitantes. Mide la intensidad de motorización y permite comparar el nivel de motorización entre territorios.",
-    "Número total de turismos en circulación en un municipio o isla de Canarias. Desglose del parque total de vehículos restringido a automóviles de pasajeros.",
-    "Número de turismos en circulación por cada 1.000 habitantes. Permite analizar los patrones de motorización por tipo de vehículo y comparar entre territorios."
-  )
-)
-```
 
 Descargamos cada indicador y los combinamos en una única tabla, añadiendo la columna `INDICATOR` para saber de cuál procede cada fila.
 

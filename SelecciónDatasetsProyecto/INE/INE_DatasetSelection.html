@@ -11,7 +11,7 @@
 
 <meta name="author" content="Luis Alvarez" />
 
-<meta name="date" content="2026-08-28" />
+<meta name="date" content="2026-09-21" />
 
 <title>Análisis de datasets seleccionados del INE</title>
 
@@ -365,7 +365,7 @@ display: none;
 <h1 class="title toc-ignore">Análisis de datasets seleccionados del
 INE</h1>
 <h4 class="author">Luis Alvarez</h4>
-<h4 class="date">2026-08-28</h4>
+<h4 class="date">2026-09-21</h4>
 
 </div>
 
@@ -411,10 +411,12 @@ INE, ya elegido a partir de la tabla que genera
 <strong>INE_TableDatasetGeneration.Rmd</strong>, y comprueba si cumple
 los requisitos para ser el dataset principal del proyecto personal de
 <strong>AEDV</strong>.</p>
+<!--  ================  PARA PROBAR TUS PROPIOS DATASETS EDITA EL CÓDIGO SIGUIENTE  ============ -->
 <p>Para analizar otro dataset basta con cambiar su identificador en el
 chunk de abajo y volver a compilar.</p>
 <pre class="r"><code># IDENTIFICADOR DEL DATASET QUE VAMOS A ANALIZAR
 Dataset.Id &lt;- 76136 #(IPC CCAA) #35176   # 35177 #  56940 (población CCAA)</code></pre>
+<!--  ================  FIN EDICIÓN CÓDIGO PARA PROBAR TUS PROPIOS DATASETS ============ -->
 <!--IMPORTANTE: Si cambiamos el dataset, si se tiene activada la opción cache=TRUE para los chunks, hay que borrar la carpeta que se genera con la extensión "_cache" para obligar a recompilar todos los chunks con el nuevo dataset. Al hacer `knit` se compilarán todos los chunks, aunque obviamente, los textos fuera de los chunks no se actualizarán-->
 <div id="descarga-limpieza-y-guardado-del-dataset" class="section level1" number="1">
 <h1><span class="header-section-number">1</span> Descarga, limpieza y
@@ -605,11 +607,11 @@ ECOICOP ver.2</td>
 </tr>
 <tr class="odd">
 <td align="left">LastUpdate</td>
-<td align="left">2026-08-13</td>
+<td align="left">2026-08-28</td>
 </tr>
 <tr class="even">
 <td align="left">N.obs</td>
-<td align="left">330400</td>
+<td align="left">330402</td>
 </tr>
 <tr class="odd">
 <td align="left">Freq</td>
@@ -617,11 +619,11 @@ ECOICOP ver.2</td>
 </tr>
 <tr class="even">
 <td align="left">N.periodos</td>
-<td align="left">295</td>
+<td align="left">296</td>
 </tr>
 <tr class="odd">
 <td align="left">DIM</td>
-<td align="left">Periodo 295 - Tipo.de.dato 4 - Grupos.ECOICOP.ver.2 14
+<td align="left">Periodo 296 - Tipo.de.dato 4 - Grupos.ECOICOP.ver.2 14
 - Comunidades.y.Ciudad 20</td>
 </tr>
 <tr class="even">
@@ -633,20 +635,20 @@ ECOICOP ver.2</td>
 </div>
 <pre class="r"><code>data &lt;- readRDS(paste0(filename, &quot;.rds&quot;))</code></pre>
 <p><strong>data</strong></p>
-<pre><code>## # A tibble: 330,400 × 5
+<pre><code>## # A tibble: 331,520 × 5
 ##    Periodo Tipo.de.dato Grupos.ECOICOP.ver.2 Comunidades.y.Ciudades.Autó…¹ value
 ##    &lt;fct&gt;   &lt;fct&gt;        &lt;fct&gt;                &lt;fct&gt;                         &lt;dbl&gt;
-##  1 2026M07 Índice       Índice general       Nacional                       104.
-##  2 2026M06 Índice       Índice general       Nacional                       104.
-##  3 2026M05 Índice       Índice general       Nacional                       103.
-##  4 2026M04 Índice       Índice general       Nacional                       103.
-##  5 2026M03 Índice       Índice general       Nacional                       102.
-##  6 2026M02 Índice       Índice general       Nacional                       101.
-##  7 2026M01 Índice       Índice general       Nacional                       101.
-##  8 2025M12 Índice       Índice general       Nacional                       101.
-##  9 2025M11 Índice       Índice general       Nacional                       101.
-## 10 2025M10 Índice       Índice general       Nacional                       101.
-## # ℹ 330,390 more rows
+##  1 2026M08 Índice       Índice general       Nacional                       105.
+##  2 2026M07 Índice       Índice general       Nacional                       104.
+##  3 2026M06 Índice       Índice general       Nacional                       104.
+##  4 2026M05 Índice       Índice general       Nacional                       103.
+##  5 2026M04 Índice       Índice general       Nacional                       103.
+##  6 2026M03 Índice       Índice general       Nacional                       102.
+##  7 2026M02 Índice       Índice general       Nacional                       101.
+##  8 2026M01 Índice       Índice general       Nacional                       101.
+##  9 2025M12 Índice       Índice general       Nacional                       101.
+## 10 2025M11 Índice       Índice general       Nacional                       101.
+## # ℹ 331,510 more rows
 ## # ℹ abbreviated name: ¹​Comunidades.y.Ciudades.Autónomas</code></pre>
 <pre class="r"><code># COLUMNA GEOGRÁFICA: se guardó en los metadatos (geo.col.name) al construir el
 # rds, así que no hace falta volver a detectarla a partir de los datos
@@ -662,355 +664,356 @@ columnas de la tabla descargada</h2>
 posibles y el nº de observaciones. A diferencia de Eurostat, el INE
 entrega los valores ya con su nombre completo, así que no hace falta
 traducir ningún código.</p>
-<p><strong>COLUMNA: Periodo (295 opciones)</strong></p>
+<p><strong>COLUMNA: Periodo (296 opciones)</strong></p>
 <div class="caja-scroll">
 <pre><code>       Periodo N.observ
-  [1,] 2026M07 1120    
-  [2,] 2026M06 1120    
-  [3,] 2026M05 1120    
-  [4,] 2026M04 1120    
-  [5,] 2026M03 1120    
-  [6,] 2026M02 1120    
-  [7,] 2026M01 1120    
-  [8,] 2025M12 1120    
-  [9,] 2025M11 1120    
- [10,] 2025M10 1120    
- [11,] 2025M09 1120    
- [12,] 2025M08 1120    
- [13,] 2025M07 1120    
- [14,] 2025M06 1120    
- [15,] 2025M05 1120    
- [16,] 2025M04 1120    
- [17,] 2025M03 1120    
- [18,] 2025M02 1120    
- [19,] 2025M01 1120    
- [20,] 2024M12 1120    
- [21,] 2024M11 1120    
- [22,] 2024M10 1120    
- [23,] 2024M09 1120    
- [24,] 2024M08 1120    
- [25,] 2024M07 1120    
- [26,] 2024M06 1120    
- [27,] 2024M05 1120    
- [28,] 2024M04 1120    
- [29,] 2024M03 1120    
- [30,] 2024M02 1120    
- [31,] 2024M01 1120    
- [32,] 2023M12 1120    
- [33,] 2023M11 1120    
- [34,] 2023M10 1120    
- [35,] 2023M09 1120    
- [36,] 2023M08 1120    
- [37,] 2023M07 1120    
- [38,] 2023M06 1120    
- [39,] 2023M05 1120    
- [40,] 2023M04 1120    
- [41,] 2023M03 1120    
- [42,] 2023M02 1120    
- [43,] 2023M01 1120    
- [44,] 2022M12 1120    
- [45,] 2022M11 1120    
- [46,] 2022M10 1120    
- [47,] 2022M09 1120    
- [48,] 2022M08 1120    
- [49,] 2022M07 1120    
- [50,] 2022M06 1120    
- [51,] 2022M05 1120    
- [52,] 2022M04 1120    
- [53,] 2022M03 1120    
- [54,] 2022M02 1120    
- [55,] 2022M01 1120    
- [56,] 2021M12 1120    
- [57,] 2021M11 1120    
- [58,] 2021M10 1120    
- [59,] 2021M09 1120    
- [60,] 2021M08 1120    
- [61,] 2021M07 1120    
- [62,] 2021M06 1120    
- [63,] 2021M05 1120    
- [64,] 2021M04 1120    
- [65,] 2021M03 1120    
- [66,] 2021M02 1120    
- [67,] 2021M01 1120    
- [68,] 2020M12 1120    
- [69,] 2020M11 1120    
- [70,] 2020M10 1120    
- [71,] 2020M09 1120    
- [72,] 2020M08 1120    
- [73,] 2020M07 1120    
- [74,] 2020M06 1120    
- [75,] 2020M05 1120    
- [76,] 2020M04 1120    
- [77,] 2020M03 1120    
- [78,] 2020M02 1120    
- [79,] 2020M01 1120    
- [80,] 2019M12 1120    
- [81,] 2019M11 1120    
- [82,] 2019M10 1120    
- [83,] 2019M09 1120    
- [84,] 2019M08 1120    
- [85,] 2019M07 1120    
- [86,] 2019M06 1120    
- [87,] 2019M05 1120    
- [88,] 2019M04 1120    
- [89,] 2019M03 1120    
- [90,] 2019M02 1120    
- [91,] 2019M01 1120    
- [92,] 2018M12 1120    
- [93,] 2018M11 1120    
- [94,] 2018M10 1120    
- [95,] 2018M09 1120    
- [96,] 2018M08 1120    
- [97,] 2018M07 1120    
- [98,] 2018M06 1120    
- [99,] 2018M05 1120    
-[100,] 2018M04 1120    
-[101,] 2018M03 1120    
-[102,] 2018M02 1120    
-[103,] 2018M01 1120    
-[104,] 2017M12 1120    
-[105,] 2017M11 1120    
-[106,] 2017M10 1120    
-[107,] 2017M09 1120    
-[108,] 2017M08 1120    
-[109,] 2017M07 1120    
-[110,] 2017M06 1120    
-[111,] 2017M05 1120    
-[112,] 2017M04 1120    
-[113,] 2017M03 1120    
-[114,] 2017M02 1120    
-[115,] 2017M01 1120    
-[116,] 2016M12 1120    
-[117,] 2016M11 1120    
-[118,] 2016M10 1120    
-[119,] 2016M09 1120    
-[120,] 2016M08 1120    
-[121,] 2016M07 1120    
-[122,] 2016M06 1120    
-[123,] 2016M05 1120    
-[124,] 2016M04 1120    
-[125,] 2016M03 1120    
-[126,] 2016M02 1120    
-[127,] 2016M01 1120    
-[128,] 2015M12 1120    
-[129,] 2015M11 1120    
-[130,] 2015M10 1120    
-[131,] 2015M09 1120    
-[132,] 2015M08 1120    
-[133,] 2015M07 1120    
-[134,] 2015M06 1120    
-[135,] 2015M05 1120    
-[136,] 2015M04 1120    
-[137,] 2015M03 1120    
-[138,] 2015M02 1120    
-[139,] 2015M01 1120    
-[140,] 2014M12 1120    
-[141,] 2014M11 1120    
-[142,] 2014M10 1120    
-[143,] 2014M09 1120    
-[144,] 2014M08 1120    
-[145,] 2014M07 1120    
-[146,] 2014M06 1120    
-[147,] 2014M05 1120    
-[148,] 2014M04 1120    
-[149,] 2014M03 1120    
-[150,] 2014M02 1120    
-[151,] 2014M01 1120    
-[152,] 2013M12 1120    
-[153,] 2013M11 1120    
-[154,] 2013M10 1120    
-[155,] 2013M09 1120    
-[156,] 2013M08 1120    
-[157,] 2013M07 1120    
-[158,] 2013M06 1120    
-[159,] 2013M05 1120    
-[160,] 2013M04 1120    
-[161,] 2013M03 1120    
-[162,] 2013M02 1120    
-[163,] 2013M01 1120    
-[164,] 2012M12 1120    
-[165,] 2012M11 1120    
-[166,] 2012M10 1120    
-[167,] 2012M09 1120    
-[168,] 2012M08 1120    
-[169,] 2012M07 1120    
-[170,] 2012M06 1120    
-[171,] 2012M05 1120    
-[172,] 2012M04 1120    
-[173,] 2012M03 1120    
-[174,] 2012M02 1120    
-[175,] 2012M01 1120    
-[176,] 2011M12 1120    
-[177,] 2011M11 1120    
-[178,] 2011M10 1120    
-[179,] 2011M09 1120    
-[180,] 2011M08 1120    
-[181,] 2011M07 1120    
-[182,] 2011M06 1120    
-[183,] 2011M05 1120    
-[184,] 2011M04 1120    
-[185,] 2011M03 1120    
-[186,] 2011M02 1120    
-[187,] 2011M01 1120    
-[188,] 2010M12 1120    
-[189,] 2010M11 1120    
-[190,] 2010M10 1120    
-[191,] 2010M09 1120    
-[192,] 2010M08 1120    
-[193,] 2010M07 1120    
-[194,] 2010M06 1120    
-[195,] 2010M05 1120    
-[196,] 2010M04 1120    
-[197,] 2010M03 1120    
-[198,] 2010M02 1120    
-[199,] 2010M01 1120    
-[200,] 2009M12 1120    
-[201,] 2009M11 1120    
-[202,] 2009M10 1120    
-[203,] 2009M09 1120    
-[204,] 2009M08 1120    
-[205,] 2009M07 1120    
-[206,] 2009M06 1120    
-[207,] 2009M05 1120    
-[208,] 2009M04 1120    
-[209,] 2009M03 1120    
-[210,] 2009M02 1120    
-[211,] 2009M01 1120    
-[212,] 2008M12 1120    
-[213,] 2008M11 1120    
-[214,] 2008M10 1120    
-[215,] 2008M09 1120    
-[216,] 2008M08 1120    
-[217,] 2008M07 1120    
-[218,] 2008M06 1120    
-[219,] 2008M05 1120    
-[220,] 2008M04 1120    
-[221,] 2008M03 1120    
-[222,] 2008M02 1120    
-[223,] 2008M01 1120    
-[224,] 2007M12 1120    
-[225,] 2007M11 1120    
-[226,] 2007M10 1120    
-[227,] 2007M09 1120    
-[228,] 2007M08 1120    
-[229,] 2007M07 1120    
-[230,] 2007M06 1120    
-[231,] 2007M05 1120    
-[232,] 2007M04 1120    
-[233,] 2007M03 1120    
-[234,] 2007M02 1120    
-[235,] 2007M01 1120    
-[236,] 2006M12 1120    
-[237,] 2006M11 1120    
-[238,] 2006M10 1120    
-[239,] 2006M09 1120    
-[240,] 2006M08 1120    
-[241,] 2006M07 1120    
-[242,] 2006M06 1120    
-[243,] 2006M05 1120    
-[244,] 2006M04 1120    
-[245,] 2006M03 1120    
-[246,] 2006M02 1120    
-[247,] 2006M01 1120    
-[248,] 2005M12 1120    
-[249,] 2005M11 1120    
-[250,] 2005M10 1120    
-[251,] 2005M09 1120    
-[252,] 2005M08 1120    
-[253,] 2005M07 1120    
-[254,] 2005M06 1120    
-[255,] 2005M05 1120    
-[256,] 2005M04 1120    
-[257,] 2005M03 1120    
-[258,] 2005M02 1120    
-[259,] 2005M01 1120    
-[260,] 2004M12 1120    
-[261,] 2004M11 1120    
-[262,] 2004M10 1120    
-[263,] 2004M09 1120    
-[264,] 2004M08 1120    
-[265,] 2004M07 1120    
-[266,] 2004M06 1120    
-[267,] 2004M05 1120    
-[268,] 2004M04 1120    
-[269,] 2004M03 1120    
-[270,] 2004M02 1120    
-[271,] 2004M01 1120    
-[272,] 2003M12 1120    
-[273,] 2003M11 1120    
-[274,] 2003M10 1120    
-[275,] 2003M09 1120    
-[276,] 2003M08 1120    
-[277,] 2003M07 1120    
-[278,] 2003M06 1120    
-[279,] 2003M05 1120    
-[280,] 2003M04 1120    
-[281,] 2003M03 1120    
-[282,] 2003M02 1120    
-[283,] 2003M01 1120    
-[284,] 2002M12 1120    
-[285,] 2002M11 1120    
-[286,] 2002M10 1120    
-[287,] 2002M09 1120    
-[288,] 2002M08 1120    
-[289,] 2002M07 1120    
-[290,] 2002M06 1120    
-[291,] 2002M05 1120    
-[292,] 2002M04 1120    
-[293,] 2002M03 1120    
-[294,] 2002M02 1120    
-[295,] 2002M01 1120    </code></pre>
+  [1,] 2026M08 1120    
+  [2,] 2026M07 1120    
+  [3,] 2026M06 1120    
+  [4,] 2026M05 1120    
+  [5,] 2026M04 1120    
+  [6,] 2026M03 1120    
+  [7,] 2026M02 1120    
+  [8,] 2026M01 1120    
+  [9,] 2025M12 1120    
+ [10,] 2025M11 1120    
+ [11,] 2025M10 1120    
+ [12,] 2025M09 1120    
+ [13,] 2025M08 1120    
+ [14,] 2025M07 1120    
+ [15,] 2025M06 1120    
+ [16,] 2025M05 1120    
+ [17,] 2025M04 1120    
+ [18,] 2025M03 1120    
+ [19,] 2025M02 1120    
+ [20,] 2025M01 1120    
+ [21,] 2024M12 1120    
+ [22,] 2024M11 1120    
+ [23,] 2024M10 1120    
+ [24,] 2024M09 1120    
+ [25,] 2024M08 1120    
+ [26,] 2024M07 1120    
+ [27,] 2024M06 1120    
+ [28,] 2024M05 1120    
+ [29,] 2024M04 1120    
+ [30,] 2024M03 1120    
+ [31,] 2024M02 1120    
+ [32,] 2024M01 1120    
+ [33,] 2023M12 1120    
+ [34,] 2023M11 1120    
+ [35,] 2023M10 1120    
+ [36,] 2023M09 1120    
+ [37,] 2023M08 1120    
+ [38,] 2023M07 1120    
+ [39,] 2023M06 1120    
+ [40,] 2023M05 1120    
+ [41,] 2023M04 1120    
+ [42,] 2023M03 1120    
+ [43,] 2023M02 1120    
+ [44,] 2023M01 1120    
+ [45,] 2022M12 1120    
+ [46,] 2022M11 1120    
+ [47,] 2022M10 1120    
+ [48,] 2022M09 1120    
+ [49,] 2022M08 1120    
+ [50,] 2022M07 1120    
+ [51,] 2022M06 1120    
+ [52,] 2022M05 1120    
+ [53,] 2022M04 1120    
+ [54,] 2022M03 1120    
+ [55,] 2022M02 1120    
+ [56,] 2022M01 1120    
+ [57,] 2021M12 1120    
+ [58,] 2021M11 1120    
+ [59,] 2021M10 1120    
+ [60,] 2021M09 1120    
+ [61,] 2021M08 1120    
+ [62,] 2021M07 1120    
+ [63,] 2021M06 1120    
+ [64,] 2021M05 1120    
+ [65,] 2021M04 1120    
+ [66,] 2021M03 1120    
+ [67,] 2021M02 1120    
+ [68,] 2021M01 1120    
+ [69,] 2020M12 1120    
+ [70,] 2020M11 1120    
+ [71,] 2020M10 1120    
+ [72,] 2020M09 1120    
+ [73,] 2020M08 1120    
+ [74,] 2020M07 1120    
+ [75,] 2020M06 1120    
+ [76,] 2020M05 1120    
+ [77,] 2020M04 1120    
+ [78,] 2020M03 1120    
+ [79,] 2020M02 1120    
+ [80,] 2020M01 1120    
+ [81,] 2019M12 1120    
+ [82,] 2019M11 1120    
+ [83,] 2019M10 1120    
+ [84,] 2019M09 1120    
+ [85,] 2019M08 1120    
+ [86,] 2019M07 1120    
+ [87,] 2019M06 1120    
+ [88,] 2019M05 1120    
+ [89,] 2019M04 1120    
+ [90,] 2019M03 1120    
+ [91,] 2019M02 1120    
+ [92,] 2019M01 1120    
+ [93,] 2018M12 1120    
+ [94,] 2018M11 1120    
+ [95,] 2018M10 1120    
+ [96,] 2018M09 1120    
+ [97,] 2018M08 1120    
+ [98,] 2018M07 1120    
+ [99,] 2018M06 1120    
+[100,] 2018M05 1120    
+[101,] 2018M04 1120    
+[102,] 2018M03 1120    
+[103,] 2018M02 1120    
+[104,] 2018M01 1120    
+[105,] 2017M12 1120    
+[106,] 2017M11 1120    
+[107,] 2017M10 1120    
+[108,] 2017M09 1120    
+[109,] 2017M08 1120    
+[110,] 2017M07 1120    
+[111,] 2017M06 1120    
+[112,] 2017M05 1120    
+[113,] 2017M04 1120    
+[114,] 2017M03 1120    
+[115,] 2017M02 1120    
+[116,] 2017M01 1120    
+[117,] 2016M12 1120    
+[118,] 2016M11 1120    
+[119,] 2016M10 1120    
+[120,] 2016M09 1120    
+[121,] 2016M08 1120    
+[122,] 2016M07 1120    
+[123,] 2016M06 1120    
+[124,] 2016M05 1120    
+[125,] 2016M04 1120    
+[126,] 2016M03 1120    
+[127,] 2016M02 1120    
+[128,] 2016M01 1120    
+[129,] 2015M12 1120    
+[130,] 2015M11 1120    
+[131,] 2015M10 1120    
+[132,] 2015M09 1120    
+[133,] 2015M08 1120    
+[134,] 2015M07 1120    
+[135,] 2015M06 1120    
+[136,] 2015M05 1120    
+[137,] 2015M04 1120    
+[138,] 2015M03 1120    
+[139,] 2015M02 1120    
+[140,] 2015M01 1120    
+[141,] 2014M12 1120    
+[142,] 2014M11 1120    
+[143,] 2014M10 1120    
+[144,] 2014M09 1120    
+[145,] 2014M08 1120    
+[146,] 2014M07 1120    
+[147,] 2014M06 1120    
+[148,] 2014M05 1120    
+[149,] 2014M04 1120    
+[150,] 2014M03 1120    
+[151,] 2014M02 1120    
+[152,] 2014M01 1120    
+[153,] 2013M12 1120    
+[154,] 2013M11 1120    
+[155,] 2013M10 1120    
+[156,] 2013M09 1120    
+[157,] 2013M08 1120    
+[158,] 2013M07 1120    
+[159,] 2013M06 1120    
+[160,] 2013M05 1120    
+[161,] 2013M04 1120    
+[162,] 2013M03 1120    
+[163,] 2013M02 1120    
+[164,] 2013M01 1120    
+[165,] 2012M12 1120    
+[166,] 2012M11 1120    
+[167,] 2012M10 1120    
+[168,] 2012M09 1120    
+[169,] 2012M08 1120    
+[170,] 2012M07 1120    
+[171,] 2012M06 1120    
+[172,] 2012M05 1120    
+[173,] 2012M04 1120    
+[174,] 2012M03 1120    
+[175,] 2012M02 1120    
+[176,] 2012M01 1120    
+[177,] 2011M12 1120    
+[178,] 2011M11 1120    
+[179,] 2011M10 1120    
+[180,] 2011M09 1120    
+[181,] 2011M08 1120    
+[182,] 2011M07 1120    
+[183,] 2011M06 1120    
+[184,] 2011M05 1120    
+[185,] 2011M04 1120    
+[186,] 2011M03 1120    
+[187,] 2011M02 1120    
+[188,] 2011M01 1120    
+[189,] 2010M12 1120    
+[190,] 2010M11 1120    
+[191,] 2010M10 1120    
+[192,] 2010M09 1120    
+[193,] 2010M08 1120    
+[194,] 2010M07 1120    
+[195,] 2010M06 1120    
+[196,] 2010M05 1120    
+[197,] 2010M04 1120    
+[198,] 2010M03 1120    
+[199,] 2010M02 1120    
+[200,] 2010M01 1120    
+[201,] 2009M12 1120    
+[202,] 2009M11 1120    
+[203,] 2009M10 1120    
+[204,] 2009M09 1120    
+[205,] 2009M08 1120    
+[206,] 2009M07 1120    
+[207,] 2009M06 1120    
+[208,] 2009M05 1120    
+[209,] 2009M04 1120    
+[210,] 2009M03 1120    
+[211,] 2009M02 1120    
+[212,] 2009M01 1120    
+[213,] 2008M12 1120    
+[214,] 2008M11 1120    
+[215,] 2008M10 1120    
+[216,] 2008M09 1120    
+[217,] 2008M08 1120    
+[218,] 2008M07 1120    
+[219,] 2008M06 1120    
+[220,] 2008M05 1120    
+[221,] 2008M04 1120    
+[222,] 2008M03 1120    
+[223,] 2008M02 1120    
+[224,] 2008M01 1120    
+[225,] 2007M12 1120    
+[226,] 2007M11 1120    
+[227,] 2007M10 1120    
+[228,] 2007M09 1120    
+[229,] 2007M08 1120    
+[230,] 2007M07 1120    
+[231,] 2007M06 1120    
+[232,] 2007M05 1120    
+[233,] 2007M04 1120    
+[234,] 2007M03 1120    
+[235,] 2007M02 1120    
+[236,] 2007M01 1120    
+[237,] 2006M12 1120    
+[238,] 2006M11 1120    
+[239,] 2006M10 1120    
+[240,] 2006M09 1120    
+[241,] 2006M08 1120    
+[242,] 2006M07 1120    
+[243,] 2006M06 1120    
+[244,] 2006M05 1120    
+[245,] 2006M04 1120    
+[246,] 2006M03 1120    
+[247,] 2006M02 1120    
+[248,] 2006M01 1120    
+[249,] 2005M12 1120    
+[250,] 2005M11 1120    
+[251,] 2005M10 1120    
+[252,] 2005M09 1120    
+[253,] 2005M08 1120    
+[254,] 2005M07 1120    
+[255,] 2005M06 1120    
+[256,] 2005M05 1120    
+[257,] 2005M04 1120    
+[258,] 2005M03 1120    
+[259,] 2005M02 1120    
+[260,] 2005M01 1120    
+[261,] 2004M12 1120    
+[262,] 2004M11 1120    
+[263,] 2004M10 1120    
+[264,] 2004M09 1120    
+[265,] 2004M08 1120    
+[266,] 2004M07 1120    
+[267,] 2004M06 1120    
+[268,] 2004M05 1120    
+[269,] 2004M04 1120    
+[270,] 2004M03 1120    
+[271,] 2004M02 1120    
+[272,] 2004M01 1120    
+[273,] 2003M12 1120    
+[274,] 2003M11 1120    
+[275,] 2003M10 1120    
+[276,] 2003M09 1120    
+[277,] 2003M08 1120    
+[278,] 2003M07 1120    
+[279,] 2003M06 1120    
+[280,] 2003M05 1120    
+[281,] 2003M04 1120    
+[282,] 2003M03 1120    
+[283,] 2003M02 1120    
+[284,] 2003M01 1120    
+[285,] 2002M12 1120    
+[286,] 2002M11 1120    
+[287,] 2002M10 1120    
+[288,] 2002M09 1120    
+[289,] 2002M08 1120    
+[290,] 2002M07 1120    
+[291,] 2002M06 1120    
+[292,] 2002M05 1120    
+[293,] 2002M04 1120    
+[294,] 2002M03 1120    
+[295,] 2002M02 1120    
+[296,] 2002M01 1120    </code></pre>
 </div>
 <p><strong>COLUMNA: Tipo.de.dato (4 opciones)</strong></p>
 <div class="caja-scroll">
 <pre><code>     Tipo.de.dato                  N.observ
-[1,] Índice                        82600   
-[2,] Variación mensual             82600   
-[3,] Variación anual               82600   
-[4,] Variación en lo que va de año 82600   </code></pre>
+[1,] Índice                        82880   
+[2,] Variación mensual             82880   
+[3,] Variación anual               82880   
+[4,] Variación en lo que va de año 82880   </code></pre>
 </div>
 <p><strong>COLUMNA: Grupos.ECOICOP.ver.2 (14 opciones)</strong></p>
 <div class="caja-scroll">
 <pre><code>      Grupos.ECOICOP.ver.2                                    N.observ
- [1,] Índice general                                          23600   
- [2,] 01 Alimentos y bebidas no alcohólicas                   23600   
- [3,] 02 Bebidas alcohólicas y tabaco                         23600   
- [4,] 03 Vestido y calzado                                    23600   
- [5,] 04 Vivienda, agua, electricidad, gas y otros combustibl 23600   
- [6,] 05 Muebles, artículos del hogar y artículos para el man 23600   
- [7,] 06 Sanidad                                              23600   
- [8,] 07 Transporte                                           23600   
- [9,] 08 Información y comunicaciones                         23600   
-[10,] 09 Actividades recreativas, deporte y cultura           23600   
-[11,] 10 Enseñanza                                            23600   
-[12,] 11 Restaurantes y servicios de alojamiento              23600   
-[13,] 12 Seguros y servicios financieros                      23600   
-[14,] 13 Cuidado personal, protección social, y bienes y serv 23600   </code></pre>
+ [1,] Índice general                                          23680   
+ [2,] 01 Alimentos y bebidas no alcohólicas                   23680   
+ [3,] 02 Bebidas alcohólicas y tabaco                         23680   
+ [4,] 03 Vestido y calzado                                    23680   
+ [5,] 04 Vivienda, agua, electricidad, gas y otros combustibl 23680   
+ [6,] 05 Muebles, artículos del hogar y artículos para el man 23680   
+ [7,] 06 Sanidad                                              23680   
+ [8,] 07 Transporte                                           23680   
+ [9,] 08 Información y comunicaciones                         23680   
+[10,] 09 Actividades recreativas, deporte y cultura           23680   
+[11,] 10 Enseñanza                                            23680   
+[12,] 11 Restaurantes y servicios de alojamiento              23680   
+[13,] 12 Seguros y servicios financieros                      23680   
+[14,] 13 Cuidado personal, protección social, y bienes y serv 23680   </code></pre>
 </div>
 <p><strong>COLUMNA: Comunidades.y.Ciudades.Autónomas (20
 opciones)</strong></p>
 <div class="caja-scroll">
 <pre><code>      Comunidades.y.Ciudades.Autónomas N.observ
- [1,] Nacional                         16520   
- [2,] 01 Andalucía                     16520   
- [3,] 02 Aragón                        16520   
- [4,] 03 Asturias, Principado de       16520   
- [5,] 04 Balears, Illes                16520   
- [6,] 05 Canarias                      16520   
- [7,] 06 Cantabria                     16520   
- [8,] 07 Castilla y León               16520   
- [9,] 08 Castilla - La Mancha          16520   
-[10,] 09 Cataluña                      16520   
-[11,] 10 Comunitat Valenciana          16520   
-[12,] 11 Extremadura                   16520   
-[13,] 12 Galicia                       16520   
-[14,] 13 Madrid, Comunidad de          16520   
-[15,] 14 Murcia, Región de             16520   
-[16,] 15 Navarra, Comunidad Foral de   16520   
-[17,] 16 País Vasco                    16520   
-[18,] 17 Rioja, La                     16520   
-[19,] 18 Ceuta                         16520   
-[20,] 19 Melilla                       16520   </code></pre>
+ [1,] Nacional                         16576   
+ [2,] 01 Andalucía                     16576   
+ [3,] 02 Aragón                        16576   
+ [4,] 03 Asturias, Principado de       16576   
+ [5,] 04 Balears, Illes                16576   
+ [6,] 05 Canarias                      16576   
+ [7,] 06 Cantabria                     16576   
+ [8,] 07 Castilla y León               16576   
+ [9,] 08 Castilla - La Mancha          16576   
+[10,] 09 Cataluña                      16576   
+[11,] 10 Comunitat Valenciana          16576   
+[12,] 11 Extremadura                   16576   
+[13,] 12 Galicia                       16576   
+[14,] 13 Madrid, Comunidad de          16576   
+[15,] 14 Murcia, Región de             16576   
+[16,] 15 Navarra, Comunidad Foral de   16576   
+[17,] 16 País Vasco                    16576   
+[18,] 17 Rioja, La                     16576   
+[19,] 18 Ceuta                         16576   
+[20,] 19 Melilla                       16576   </code></pre>
 </div>
 </div>
 <div id="nº-de-observaciones-en-canarias" class="section level2" number="2.2">
@@ -1024,7 +1027,7 @@ provincias (<code>35 Palmas, Las</code> y
 <code>38 Santa Cruz de Tenerife</code>) o como municipios con código
 <code>35xxx</code>/<code>38xxx</code>.</p>
 <pre><code>##  Comunidades.y.Ciudades.Autónomas N.Observ
-##                       05 Canarias    16520</code></pre>
+##                       05 Canarias    16576</code></pre>
 </div>
 <div id="validación-de-requisitos-aedv" class="section level2" number="2.3">
 <h2><span class="header-section-number">2.3</span> Validación de
@@ -1098,44 +1101,44 @@ región).</p>
 <td align="left">Índice general</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Índice</td>
 <td align="left">01 Alimentos y bebidas no alcohólicas</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Índice</td>
 <td align="left">02 Bebidas alcohólicas y tabaco</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Índice</td>
 <td align="left">03 Vestido y calzado</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Índice</td>
@@ -1143,11 +1146,11 @@ región).</p>
 combustibles</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Índice</td>
@@ -1155,88 +1158,88 @@ combustibles</td>
 mantenimiento corriente del hogar</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Índice</td>
 <td align="left">06 Sanidad</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Índice</td>
 <td align="left">07 Transporte</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Índice</td>
 <td align="left">08 Información y comunicaciones</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Índice</td>
 <td align="left">09 Actividades recreativas, deporte y cultura</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Índice</td>
 <td align="left">10 Enseñanza</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Índice</td>
 <td align="left">11 Restaurantes y servicios de alojamiento</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Índice</td>
 <td align="left">12 Seguros y servicios financieros</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Índice</td>
@@ -1244,55 +1247,55 @@ mantenimiento corriente del hogar</td>
 servicios diversos</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Variación mensual</td>
 <td align="left">Índice general</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Variación mensual</td>
 <td align="left">01 Alimentos y bebidas no alcohólicas</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Variación mensual</td>
 <td align="left">02 Bebidas alcohólicas y tabaco</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Variación mensual</td>
 <td align="left">03 Vestido y calzado</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Variación mensual</td>
@@ -1300,11 +1303,11 @@ servicios diversos</td>
 combustibles</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Variación mensual</td>
@@ -1312,88 +1315,88 @@ combustibles</td>
 mantenimiento corriente del hogar</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Variación mensual</td>
 <td align="left">06 Sanidad</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Variación mensual</td>
 <td align="left">07 Transporte</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Variación mensual</td>
 <td align="left">08 Información y comunicaciones</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Variación mensual</td>
 <td align="left">09 Actividades recreativas, deporte y cultura</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Variación mensual</td>
 <td align="left">10 Enseñanza</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Variación mensual</td>
 <td align="left">11 Restaurantes y servicios de alojamiento</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Variación mensual</td>
 <td align="left">12 Seguros y servicios financieros</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Variación mensual</td>
@@ -1401,55 +1404,55 @@ mantenimiento corriente del hogar</td>
 servicios diversos</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Variación anual</td>
 <td align="left">Índice general</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Variación anual</td>
 <td align="left">01 Alimentos y bebidas no alcohólicas</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Variación anual</td>
 <td align="left">02 Bebidas alcohólicas y tabaco</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Variación anual</td>
 <td align="left">03 Vestido y calzado</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Variación anual</td>
@@ -1457,11 +1460,11 @@ servicios diversos</td>
 combustibles</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Variación anual</td>
@@ -1469,88 +1472,88 @@ combustibles</td>
 mantenimiento corriente del hogar</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Variación anual</td>
 <td align="left">06 Sanidad</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Variación anual</td>
 <td align="left">07 Transporte</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Variación anual</td>
 <td align="left">08 Información y comunicaciones</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Variación anual</td>
 <td align="left">09 Actividades recreativas, deporte y cultura</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Variación anual</td>
 <td align="left">10 Enseñanza</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Variación anual</td>
 <td align="left">11 Restaurantes y servicios de alojamiento</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Variación anual</td>
 <td align="left">12 Seguros y servicios financieros</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Variación anual</td>
@@ -1558,55 +1561,55 @@ mantenimiento corriente del hogar</td>
 servicios diversos</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Variación en lo que va de año</td>
 <td align="left">Índice general</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Variación en lo que va de año</td>
 <td align="left">01 Alimentos y bebidas no alcohólicas</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Variación en lo que va de año</td>
 <td align="left">02 Bebidas alcohólicas y tabaco</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Variación en lo que va de año</td>
 <td align="left">03 Vestido y calzado</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Variación en lo que va de año</td>
@@ -1614,11 +1617,11 @@ servicios diversos</td>
 combustibles</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Variación en lo que va de año</td>
@@ -1626,88 +1629,88 @@ combustibles</td>
 mantenimiento corriente del hogar</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Variación en lo que va de año</td>
 <td align="left">06 Sanidad</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Variación en lo que va de año</td>
 <td align="left">07 Transporte</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Variación en lo que va de año</td>
 <td align="left">08 Información y comunicaciones</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Variación en lo que va de año</td>
 <td align="left">09 Actividades recreativas, deporte y cultura</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Variación en lo que va de año</td>
 <td align="left">10 Enseñanza</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Variación en lo que va de año</td>
 <td align="left">11 Restaurantes y servicios de alojamiento</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="odd">
 <td align="left">Variación en lo que va de año</td>
 <td align="left">12 Seguros y servicios financieros</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 <tr class="even">
 <td align="left">Variación en lo que va de año</td>
@@ -1715,11 +1718,11 @@ mantenimiento corriente del hogar</td>
 servicios diversos</td>
 <td align="left">M</td>
 <td align="right">20</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
-<td align="right">295</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
+<td align="right">296</td>
 </tr>
 </tbody>
 </table>

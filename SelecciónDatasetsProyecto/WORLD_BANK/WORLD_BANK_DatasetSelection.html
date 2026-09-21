@@ -11,7 +11,7 @@
 
 <meta name="author" content="Luis Alvarez" />
 
-<meta name="date" content="2026-08-27" />
+<meta name="date" content="2026-09-21" />
 
 <title>Análisis de datasets seleccionados del Banco Mundial</title>
 
@@ -365,7 +365,7 @@ display: none;
 <h1 class="title toc-ignore">Análisis de datasets seleccionados del
 Banco Mundial</h1>
 <h4 class="author">Luis Alvarez</h4>
-<h4 class="date">2026-08-27</h4>
+<h4 class="date">2026-09-21</h4>
 
 </div>
 
@@ -415,6 +415,7 @@ los requisitos para ser el dataset principal del proyecto personal de
 dataset sino un <strong>conjunto de indicadores</strong> que se
 descargan y se combinan en una sola tabla: cada indicador es un atributo
 que se sigue en el tiempo para cada país.</p>
+<!--  ================  PARA PROBAR TUS PROPIOS DATASETS EDITA EL CÓDIGO SIGUIENTE  ============ -->
 <p>Para analizar otros indicadores basta con cambiar sus códigos en el
 chunk de abajo y volver a compilar.</p>
 <pre class="r"><code># CÓDIGOS DE LOS INDICADORES QUE VAMOS A ANALIZAR
@@ -424,6 +425,7 @@ IDS &lt;- c(&quot;ER.H2O.FWTL.K3&quot;, &quot;ER.H2O.FWTL.ZS&quot;)
 
 # nombre base de los ficheros que se guardan en disco
 filename &lt;- &quot;WB_Selected&quot;</code></pre>
+<!--  ================  FIN EDICIÓN CÓDIGO PARA PROBAR TUS PROPIOS DATASETS ============ -->
 <!--IMPORTANTE: Si cambiamos los indicadores, si se tiene activada la opción cache=TRUE para los chunks, hay que borrar la carpeta que se genera con la extensión "_cache" para obligar a recompilar todos los chunks con los nuevos datos. Al hacer `knit` se compilarán todos los chunks, aunque obviamente, los textos fuera de los chunks no se actualizarán-->
 <div id="descarga-limpieza-y-guardado-de-los-datos" class="section level1" number="1">
 <h1><span class="header-section-number">1</span> Descarga, limpieza y

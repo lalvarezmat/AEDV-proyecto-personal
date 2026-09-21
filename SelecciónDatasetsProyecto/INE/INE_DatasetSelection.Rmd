@@ -77,12 +77,17 @@ rename <- dplyr::rename
 
 Este documento analiza en detalle **un** dataset del INE, ya elegido a partir de la tabla que genera **INE_TableDatasetGeneration.Rmd**, y comprueba si cumple los requisitos para ser el dataset principal del proyecto personal de **AEDV**.
 
+
+<!--  ================  PARA PROBAR TUS PROPIOS DATASETS EDITA EL CÓDIGO SIGUIENTE  ============ -->
+
 Para analizar otro dataset basta con cambiar su identificador en el chunk de abajo y volver a compilar.
 
 ```{r,echo=TRUE}
 # IDENTIFICADOR DEL DATASET QUE VAMOS A ANALIZAR
 Dataset.Id <- 76136 #(IPC CCAA) #35176   # 35177 #  56940 (población CCAA)
 ```
+
+<!--  ================  FIN EDICIÓN CÓDIGO PARA PROBAR TUS PROPIOS DATASETS ============ -->
 
 <!--IMPORTANTE: Si cambiamos el dataset, si se tiene activada la opción cache=TRUE para los chunks, hay que borrar la carpeta que se genera con la extensión "_cache" para obligar a recompilar todos los chunks con el nuevo dataset. Al hacer `knit` se compilarán todos los chunks, aunque obviamente, los textos fuera de los chunks no se actualizarán-->
 

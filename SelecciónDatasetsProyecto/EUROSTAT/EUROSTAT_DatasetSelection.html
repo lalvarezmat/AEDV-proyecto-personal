@@ -11,7 +11,7 @@
 
 <meta name="author" content="Luis Alvarez" />
 
-<meta name="date" content="2026-09-12" />
+<meta name="date" content="2026-09-21" />
 
 <title>Análisis de datasets seleccionados de Eurostat</title>
 
@@ -365,7 +365,7 @@ display: none;
 <h1 class="title toc-ignore">Análisis de datasets seleccionados de
 Eurostat</h1>
 <h4 class="author">Luis Alvarez</h4>
-<h4 class="date">2026-09-12</h4>
+<h4 class="date">2026-09-21</h4>
 
 </div>
 
@@ -411,10 +411,12 @@ Eurostat, ya elegido a partir de las tablas que genera
 <strong>EUROSTAT_TableDatasetGeneration.Rmd</strong>, y comprueba si
 cumple los requisitos para ser el dataset principal del proyecto
 personal de <strong>AEDV</strong>.</p>
+<!--  ================  PARA PROBAR TUS PROPIOS DATASETS EDITA EL CÓDIGO SIGUIENTE  ============ -->
 <p>Para analizar otro dataset basta con cambiar su código en el chunk de
 abajo y volver a compilar.</p>
 <pre class="r"><code># CÓDIGO DEL DATASET QUE VAMOS A ANALIZAR
 dataset.name &lt;- &quot;demo_r_pjanaggr3&quot;</code></pre>
+<!--  ================  FIN EDICIÓN CÓDIGO PARA PROBAR TUS PROPIOS DATASETS ============ -->
 <!--IMPORTANTE: Si cambiamos el dataset, si se tiene activada la opción cache=TRUE para los chunks, hay que borrar la carpeta que se genera con la extensión "_cache" para obligar a recompilar todos los chunks con el nuevo dataset. Al hacer `knit` se compilarán todos los chunks, aunque obviamente, los textos fuera de los chunks no se actualizarán-->
 <div id="descarga-limpieza-y-guardado-del-dataset" class="section level1" number="1">
 <h1><span class="header-section-number">1</span> Descarga, limpieza y
