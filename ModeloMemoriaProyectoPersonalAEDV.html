@@ -11,7 +11,7 @@
 
 <meta name="author" content="Mi nombre y apellidos" />
 
-<meta name="date" content="2026-09-15" />
+<meta name="date" content="2026-09-27" />
 
 <title>Mi título de Proyecto Personal</title>
 
@@ -4227,7 +4227,7 @@ display: none;
 
 <h1 class="title toc-ignore">Mi título de Proyecto Personal</h1>
 <h4 class="author">Mi nombre y apellidos</h4>
-<h4 class="date">2026-09-15</h4>
+<h4 class="date">2026-09-27</h4>
 
 </div>
 
@@ -4321,6 +4321,8 @@ ERRORES FRECUENTES A EVITAR:
   - Escribir una introducción demasiado genérica que valdría para cualquier proyecto.
   - Poner texto generado por la IA sin adaptarlo ni contrastarlo con fuentes primarias.
   - Enumerar los objetivos sin explicar el contexto que los justifica.
+  - Elegir el dataset solo porque cumple los requisitos de AEDV, sin saber qué
+    preguntas interesantes se quieren responder con él (ver "Objetivos").
 ================================================================================
 -->
 <div id="estado-actual" class="section level2" number="1.1">
@@ -4379,6 +4381,58 @@ EJEMPLO DE ESTRUCTURA:
     2. Comparar el comportamiento de X entre los grupos A y B.
     3. Construir un modelo predictivo de X para el horizonte temporal T.
     4. Diseñar un cuadro de mandos interactivo que permita explorar los resultados.
+
+PREGUNTAS DE INVESTIGACIÓN (IMPRESCINDIBLE):
+  Los objetivos deben concretarse en 3-5 PREGUNTAS DE INVESTIGACIÓN: las
+  preguntas concretas e interesantes que el proyecto pretende responder con los
+  datos. Son el hilo conductor de toda la memoria: justifican la elección de
+  los datasets (Comprensión del negocio), orientan el análisis (Modelado y
+  Evaluación) y se responden una a una en las Conclusiones.
+
+  Que un dataset cumpla los requisitos de AEDV (cobertura, series largas,
+  España/Canarias, 4 atributos) es CONDICIÓN NECESARIA PERO NO SUFICIENTE. Un
+  proyecto que empieza por "encontré un dataset que cumple los requisitos" y no
+  sabe qué quiere averiguar con él acaba siendo una descripción de gráficas sin
+  hallazgos. Lo razonable es partir de un tema que te interese, preguntarte qué
+  te gustaría saber sobre él y buscar después los datos que permitan responderlo.
+
+  Una buena pregunta de investigación:
+    - Es CONCRETA: se refiere a unas variables, unas regiones y un periodo.
+    - Se puede RESPONDER CON TUS DATOS (y con las técnicas de la asignatura:
+      series temporales, predicción, correlación, PCA, mapas...).
+    - Su respuesta NO ES OBVIA de antemano y tiene interés para alguien
+      (ciudadanía, administración, empresas...).
+    - Suele implicar una COMPARACIÓN, una RELACIÓN o un CAMBIO: entre regiones,
+      entre variables, antes/después de un acontecimiento, frente a una tendencia.
+
+  EJEMPLOS:
+    Débil:  "Analizar la evolución del paro en España."  (descriptivo, sin
+            pregunta: cualquier resultado "vale" y no hay nada que concluir)
+    Mejor:  "¿Se ha recuperado el empleo en Canarias tras la crisis de 2008 al
+            mismo ritmo que en el resto de comunidades? ¿Qué comunidades se
+            parecen más a Canarias en su evolución?"
+    Débil:  "Estudiar las emisiones de CO2 de los países."
+    Mejor:  "¿Qué países han conseguido reducir sus emisiones por habitante sin
+            dejar de crecer económicamente? ¿Está España entre ellos?"
+    Débil:  "Ver los datos de turismo de Canarias."
+    Mejor:  "¿Qué islas dependen más de un solo mercado emisor y cómo afectó esa
+            dependencia a su caída en 2020? ¿Qué nivel de llegadas cabe esperar
+            en los próximos dos años según los modelos ARIMA?"
+
+  Formúlalas como preguntas (con signos de interrogación) y numéralas (P1, P2...)
+  para poder citarlas en el resto de la memoria.
+
+  LAS PREGUNTAS EVOLUCIONAN POR ITERACIONES:
+  Las preguntas de la Entrega 1 (donde son obligatorias) son un PUNTO DE PARTIDA.
+  Igual que el resto de la metodología CRISP-DM, se trabajan por iteraciones: al
+  explorar, modelar y evaluar los datos aparecerán resultados que obligan a
+  matizar una pregunta, a descartar otra que los datos no permiten responder o
+  a plantear una nueva que no se veía al principio. Actualiza este apartado en
+  cada entrega: en la memoria final deben figurar las preguntas que el análisis
+  responde de verdad. En el texto final redacta directamente la versión
+  definitiva; si una reformulación es en sí misma un hallazgo (p. ej. "los datos
+  muestran que la pregunta relevante no era X sino Y"), explícalo en Evaluación
+  o en Conclusiones.
 -->
 </div>
 </div>
@@ -4783,9 +4837,11 @@ describimos con más detalle:</p>
 </p>
 </center>
 <ul>
-<li><p><strong>Comprensión del negocio</strong>. Se plantean los
-objetivos del proyecto y se realiza la búsqueda y evaluación de fuentes
-de información y datos.</p></li>
+<li><p><strong>Comprensión del negocio</strong>. A partir de los
+objetivos y las preguntas de investigación del proyecto, se realiza la
+búsqueda y evaluación de fuentes de información y datos, y se describe
+la estrategia seguida para seleccionar los datasets, incluido el uso de
+la IA.</p></li>
 <li><p><strong>Comprensión de los datos</strong>. Se analiza la
 estructura y organización de los datos obtenidos. Se identifican
 posibles problemas como datos faltantes, outliers o
@@ -4823,31 +4879,57 @@ FASE CRISP-DM 1: COMPRENSIÓN DEL NEGOCIO
 ================================================================================
 PROPÓSITO: Describir el proceso de búsqueda, evaluación y selección de fuentes
 de datos e información. NO repetir los objetivos del proyecto (ya están en la
-Introducción) ni describir los datos en detalle (eso va en la fase siguiente).
+Introducción) ni describir los datos en detalle (eso va en la fase siguiente),
+pero SÍ justificar la selección a partir de las preguntas de investigación
+planteadas en "Objetivos": el lector debe entender por qué estos datos, y no
+otros, permiten responderlas.
 
 CONTENIDO ESPERADO:
 
-1. BÚSQUEDA DE DATOS Y FUENTES CONSULTADAS
+1. ESTRATEGIA DE SELECCIÓN DE LOS DATASETS Y USO DE LA IA
+   Este es el lugar de la memoria donde se explica CÓMO se llegó a los datasets
+   elegidos. Describe el proceso real, incluidos los intentos fallidos:
+   - Punto de partida: qué tema y qué preguntas de investigación iniciales guiaron la
+     búsqueda (o, si partiste de explorar los catálogos, cómo surgieron las
+     preguntas a la vista de lo que había disponible).
+   - Catálogos y fuentes explorados (INE, ISTAC, EUROSTAT, Banco Mundial,
+     EDGAR, CLIMA, INFORME PISA u otras) y por qué te centraste en unos y no en otros.
+   - Uso de la IA en la selección: qué agentes usaste, qué les proporcionaste
+     (p. ej. el catálogo .xlsx de la fuente) y cuáles fueron las principales
+     peticiones (prompts) y respuestas. Por ejemplo: "de este catálogo, dame los
+     datasets sobre vivienda con datos por provincia", "descarta los que no
+     tengan datos de Canarias". Indica también qué propuestas de la IA
+     descartaste y por qué: la IA solo ve el índice, no los datos.
+   - Candidatos validados con los *_DatasetSelection.Rmd: cuáles cumplieron los
+     requisitos de AEDV y cuáles no (y por qué criterio fallaron).
+   - Justificación final: para cada dataset elegido, a qué pregunta(s) de
+     investigación (P1, P2...) ayuda a responder. Un dataset que no sirve para
+     ninguna pregunta sobra; una pregunta sin datos que la respalden hay que
+     reformularla.
+   El uso de la IA en esta fase se describe AQUÍ con detalle; en el Anexo I solo
+   se resume dentro de la visión global del uso de la IA en el proyecto.
+
+2. BÚSQUEDA DE DATOS Y FUENTES CONSULTADAS
    - ¿Dónde buscaste los datos? (portales open data, APIs, scraping, encuestas, etc.)
    - Enumera todas las fuentes consultadas, aunque no las hayas usado finalmente.
    - Para cada fuente usada, indica: nombre, organismo responsable, URL, formato
      del fichero descargado (CSV, Excel, JSON, shapefile...) y fecha de descarga.
    - Si los datos provienen de una API, describe brevemente cómo se accede a ella.
 
-2. DIFICULTADES E INCIDENCIAS EN LA OBTENCIÓN DE DATOS
+3. DIFICULTADES E INCIDENCIAS EN LA OBTENCIÓN DE DATOS
    - Fuentes que encontraste pero no pudiste usar (acceso restringido, formato
      incompatible, datos insuficientes, cobertura temporal inadecuada, etc.).
    - Limitaciones de las fuentes seleccionadas (actualización infrecuente, posibles
      sesgos en la recogida, cobertura geográfica parcial, etc.).
 
-3. ANÁLISIS DE LA FIABILIDAD Y CALIDAD ESPERADA DE LAS FUENTES
+4. ANÁLISIS DE LA FIABILIDAD Y CALIDAD ESPERADA DE LAS FUENTES
    - ¿Quién produce los datos? ¿Es un organismo oficial, una empresa privada,
      una comunidad de voluntarios (como OpenStreetMap)?
    - ¿Con qué frecuencia se actualizan?
    - ¿Hay documentación metodológica disponible? ¿Cómo se recogen los datos?
    - ¿Has encontrado discrepancias entre fuentes distintas sobre el mismo fenómeno?
 
-4. REVISIÓN BIBLIOGRÁFICA (si procede)
+5. REVISIÓN BIBLIOGRÁFICA (si procede)
    - Menciona brevemente los artículos, informes o libros más relevantes consultados
      para entender el contexto del problema.
 
@@ -5188,6 +5270,8 @@ ESTRUCTURA RECOMENDADA:
    - ¿Se ha alcanzado? ¿Parcialmente? ¿No se ha podido alcanzar?
    - ¿Cuál es el resultado concreto obtenido para ese objetivo?
    Esta correspondencia explícita objetivo→resultado es el núcleo de las conclusiones.
+   Responde también, una a una, a las preguntas de investigación (P1, P2...)
+   planteadas en "Objetivos", con la respuesta concreta que dan tus datos.
 
 2. HALLAZGOS MÁS RELEVANTES
    - Los 3-5 resultados más importantes del análisis, explicados en términos
@@ -5286,7 +5370,12 @@ del trabajo con la IA</h1>
 ================================================================================
 ANEXO: AGENTES DE IA Y ORGANIZACIÓN DEL TRABAJO
 ================================================================================
-PROPÓSITO: Describir la aportación de los agentes IA al desarrollo del proyecto. 
+PROPÓSITO: Describir la aportación de los agentes IA al desarrollo del proyecto.
+
+NOTA: el uso de la IA para buscar y seleccionar los datasets (peticiones
+realizadas, candidatos propuestos y descartados) se describe en detalle en la
+sección "Comprensión del negocio". Aquí basta con recogerlo en las tablas y en
+la reflexión global, sin repetirlo.
 -->
 <div id="herramientas-y-agentes-ia-utilizados" class="section level2 unnumbered">
 <h2 class="unnumbered">Herramientas y agentes IA utilizados</h2>
@@ -5491,18 +5580,18 @@ ESTRUCTURA DE LA GOOGLE SHEET (columnas esperadas):
 <p><strong>TOTAL HORAS TRABAJADAS EN EL PROYECTO:</strong> 4.9</p>
 <div id="horas-trabajadas-por-actividad" class="section level2 unnumbered">
 <h2 class="unnumbered">Horas trabajadas por actividad</h2>
-<div class="plotly html-widget html-fill-item" id="htmlwidget-3f2c90584ac300f93ad1" style="width:672px;height:480px;"></div>
-<script type="application/json" data-for="htmlwidget-3f2c90584ac300f93ad1">{"x":{"data":[{"orientation":"v","width":[0.90000000000000036,0.90000000000000013,0.89999999999999991],"base":[0,0,0],"x":[3,2,1],"y":[2.5,0.90000000000000002,1.5],"text":["ACTIVITY: Comprensión de los datos<br />HORAS: 2.5","ACTIVITY: Comprensión del negocio<br />HORAS: 0.9","ACTIVITY: Introducción<br />HORAS: 1.5"],"type":"bar","textposition":"none","marker":{"autocolorscale":false,"color":"rgba(89,89,89,1)","line":{"width":1.8897637795275593,"color":"transparent"}},"showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[3,2,1],"y":[2.7000000000000002,1.1000000000000001,1.7],"text":[2.5,0.90000000000000002,1.5],"hovertext":["ACTIVITY: Comprensión de los datos<br />HORAS: 2.5<br />HORAS: 2.5","ACTIVITY: Comprensión del negocio<br />HORAS: 0.9<br />HORAS: 0.9","ACTIVITY: Introducción<br />HORAS: 1.5<br />HORAS: 1.5"],"textfont":{"size":11.338582677165356,"color":"rgba(0,0,255,1)"},"type":"scatter","mode":"text","hoveron":"points","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":23.970112079701121,"r":7.9701120797011216,"b":92.621812684582764,"l":34.271481942714829},"plot_bgcolor":"rgba(255,255,255,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":15.940224159402243},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[0.40000000000000002,3.6000000000000001],"tickmode":"array","ticktext":["Introducción","Comprensión del negocio","Comprensión de los datos"],"tickvals":[1,2,3],"categoryorder":"array","categoryarray":["Introducción","Comprensión del negocio","Comprensión de los datos"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.9850560398505608,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":12.7521793275218},"tickangle":-45,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0,"zeroline":false,"anchor":"y","title":{"text":"","font":{"color":"rgba(0,0,0,1)","family":"","size":15.940224159402243}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[-0.13500000000000001,2.835],"tickmode":"array","ticktext":["0","1","2"],"tickvals":[0,1,1.9999999999999998],"categoryorder":"array","categoryarray":["0","1","2"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.9850560398505608,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":12.7521793275218},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0,"zeroline":false,"anchor":"x","title":{"text":"HORAS TRABAJADAS","font":{"color":"rgba(0,0,0,1)","family":"","size":15.940224159402243}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":"rgba(255,255,255,1)","line":{"color":"rgba(51,51,51,1)","width":0,"linetype":"solid"},"yref":"paper","xref":"paper","layer":"below","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":false,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":0,"font":{"color":"rgba(0,0,0,1)","family":"","size":12.7521793275218}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"source":"A","attrs":{"368c23684a5d":{"x":{},"y":{},"type":"bar"},"368c192d6fe4":{"x":{},"y":{},"label":{}}},"cur_data":"368c23684a5d","visdat":{"368c23684a5d":["function (y) ","x"],"368c192d6fe4":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<div class="plotly html-widget html-fill-item" id="htmlwidget-794f1ec61c8587c7287f" style="width:672px;height:480px;"></div>
+<script type="application/json" data-for="htmlwidget-794f1ec61c8587c7287f">{"x":{"data":[{"orientation":"v","width":[0.90000000000000036,0.90000000000000013,0.89999999999999991],"base":[0,0,0],"x":[3,2,1],"y":[2.5,0.90000000000000002,1.5],"text":["ACTIVITY: Comprensión de los datos<br />HORAS: 2.5","ACTIVITY: Comprensión del negocio<br />HORAS: 0.9","ACTIVITY: Introducción<br />HORAS: 1.5"],"type":"bar","textposition":"none","marker":{"autocolorscale":false,"color":"rgba(89,89,89,1)","line":{"width":1.8897637795275593,"color":"transparent"}},"showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[3,2,1],"y":[2.7000000000000002,1.1000000000000001,1.7],"text":[2.5,0.90000000000000002,1.5],"hovertext":["ACTIVITY: Comprensión de los datos<br />HORAS: 2.5<br />HORAS: 2.5","ACTIVITY: Comprensión del negocio<br />HORAS: 0.9<br />HORAS: 0.9","ACTIVITY: Introducción<br />HORAS: 1.5<br />HORAS: 1.5"],"textfont":{"size":11.338582677165356,"color":"rgba(0,0,255,1)"},"type":"scatter","mode":"text","hoveron":"points","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":23.970112079701121,"r":7.9701120797011216,"b":92.621812684582764,"l":34.271481942714829},"plot_bgcolor":"rgba(255,255,255,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":15.940224159402243},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[0.40000000000000002,3.6000000000000001],"tickmode":"array","ticktext":["Introducción","Comprensión del negocio","Comprensión de los datos"],"tickvals":[1,2,3],"categoryorder":"array","categoryarray":["Introducción","Comprensión del negocio","Comprensión de los datos"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.9850560398505608,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":12.7521793275218},"tickangle":-45,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0,"zeroline":false,"anchor":"y","title":{"text":"","font":{"color":"rgba(0,0,0,1)","family":"","size":15.940224159402243}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[-0.13500000000000001,2.835],"tickmode":"array","ticktext":["0","1","2"],"tickvals":[0,1,1.9999999999999998],"categoryorder":"array","categoryarray":["0","1","2"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.9850560398505608,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":12.7521793275218},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0,"zeroline":false,"anchor":"x","title":{"text":"HORAS TRABAJADAS","font":{"color":"rgba(0,0,0,1)","family":"","size":15.940224159402243}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":"rgba(255,255,255,1)","line":{"color":"rgba(51,51,51,1)","width":0,"linetype":"solid"},"yref":"paper","xref":"paper","layer":"below","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":false,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":0,"font":{"color":"rgba(0,0,0,1)","family":"","size":12.7521793275218}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"source":"A","attrs":{"6cf01edb199d":{"x":{},"y":{},"type":"bar"},"6cf039866be8":{"x":{},"y":{},"label":{}}},"cur_data":"6cf01edb199d","visdat":{"6cf01edb199d":["function (y) ","x"],"6cf039866be8":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="horas-trabajadas-por-semana" class="section level2 unnumbered">
 <h2 class="unnumbered">Horas trabajadas por semana</h2>
-<div class="plotly html-widget html-fill-item" id="htmlwidget-f7de484862bcad914d65" style="width:672px;height:480px;"></div>
-<script type="application/json" data-for="htmlwidget-f7de484862bcad914d65">{"x":{"data":[{"orientation":"v","width":[0.89999999999999991,0.90000000000000013],"base":[0,0],"x":[1,2],"y":[2.3999999999999999,2.5],"text":["etiqueta: 01 sep.<br />HORAS: 2.4","etiqueta: 08 sep.<br />HORAS: 2.5"],"type":"bar","textposition":"none","marker":{"autocolorscale":false,"color":"rgba(89,89,89,1)","line":{"width":1.8897637795275593,"color":"transparent"}},"showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[1,2],"y":[2.6000000000000001,2.7000000000000002],"text":[2.3999999999999999,2.5],"hovertext":["etiqueta: 01 sep.<br />HORAS: 2.4<br />HORAS: 2.4","etiqueta: 08 sep.<br />HORAS: 2.5<br />HORAS: 2.5"],"textfont":{"size":11.338582677165356,"color":"rgba(0,0,255,1)"},"type":"scatter","mode":"text","hoveron":"points","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":23.970112079701121,"r":7.9701120797011216,"b":52.280121103292835,"l":34.271481942714829},"plot_bgcolor":"rgba(255,255,255,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":15.940224159402243},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[0.40000000000000002,2.6000000000000001],"tickmode":"array","ticktext":["01 sep.","08 sep."],"tickvals":[1,2],"categoryorder":"array","categoryarray":["01 sep.","08 sep."],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.9850560398505608,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":12.7521793275218},"tickangle":-45,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0,"zeroline":false,"anchor":"y","title":{"text":"FECHA INICIO SEMANA","font":{"color":"rgba(0,0,0,1)","family":"","size":15.940224159402243}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[-0.13500000000000001,2.835],"tickmode":"array","ticktext":["0","1","2"],"tickvals":[0,1,1.9999999999999998],"categoryorder":"array","categoryarray":["0","1","2"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.9850560398505608,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":12.7521793275218},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0,"zeroline":false,"anchor":"x","title":{"text":"HORAS TRABAJADAS","font":{"color":"rgba(0,0,0,1)","family":"","size":15.940224159402243}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":"rgba(255,255,255,1)","line":{"color":"rgba(51,51,51,1)","width":0,"linetype":"solid"},"yref":"paper","xref":"paper","layer":"below","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":false,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":0,"font":{"color":"rgba(0,0,0,1)","family":"","size":12.7521793275218}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"source":"A","attrs":{"368ccda57f9":{"x":{},"y":{},"type":"bar"},"368c64e737ef":{"x":{},"y":{},"label":{}}},"cur_data":"368ccda57f9","visdat":{"368ccda57f9":["function (y) ","x"],"368c64e737ef":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<div class="plotly html-widget html-fill-item" id="htmlwidget-09044967cc95f3c01f6d" style="width:672px;height:480px;"></div>
+<script type="application/json" data-for="htmlwidget-09044967cc95f3c01f6d">{"x":{"data":[{"orientation":"v","width":[0.89999999999999991,0.90000000000000013],"base":[0,0],"x":[1,2],"y":[2.3999999999999999,2.5],"text":["etiqueta: 01 sep.<br />HORAS: 2.4","etiqueta: 08 sep.<br />HORAS: 2.5"],"type":"bar","textposition":"none","marker":{"autocolorscale":false,"color":"rgba(89,89,89,1)","line":{"width":1.8897637795275593,"color":"transparent"}},"showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[1,2],"y":[2.6000000000000001,2.7000000000000002],"text":[2.3999999999999999,2.5],"hovertext":["etiqueta: 01 sep.<br />HORAS: 2.4<br />HORAS: 2.4","etiqueta: 08 sep.<br />HORAS: 2.5<br />HORAS: 2.5"],"textfont":{"size":11.338582677165356,"color":"rgba(0,0,255,1)"},"type":"scatter","mode":"text","hoveron":"points","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":23.970112079701121,"r":7.9701120797011216,"b":52.280121103292835,"l":34.271481942714829},"plot_bgcolor":"rgba(255,255,255,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":15.940224159402243},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[0.40000000000000002,2.6000000000000001],"tickmode":"array","ticktext":["01 sep.","08 sep."],"tickvals":[1,2],"categoryorder":"array","categoryarray":["01 sep.","08 sep."],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.9850560398505608,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":12.7521793275218},"tickangle":-45,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0,"zeroline":false,"anchor":"y","title":{"text":"FECHA INICIO SEMANA","font":{"color":"rgba(0,0,0,1)","family":"","size":15.940224159402243}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[-0.13500000000000001,2.835],"tickmode":"array","ticktext":["0","1","2"],"tickvals":[0,1,1.9999999999999998],"categoryorder":"array","categoryarray":["0","1","2"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.9850560398505608,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":12.7521793275218},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0,"zeroline":false,"anchor":"x","title":{"text":"HORAS TRABAJADAS","font":{"color":"rgba(0,0,0,1)","family":"","size":15.940224159402243}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":"rgba(255,255,255,1)","line":{"color":"rgba(51,51,51,1)","width":0,"linetype":"solid"},"yref":"paper","xref":"paper","layer":"below","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":false,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":0,"font":{"color":"rgba(0,0,0,1)","family":"","size":12.7521793275218}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"source":"A","attrs":{"6cf052447f5d":{"x":{},"y":{},"type":"bar"},"6cf053b658ef":{"x":{},"y":{},"label":{}}},"cur_data":"6cf052447f5d","visdat":{"6cf052447f5d":["function (y) ","x"],"6cf053b658ef":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="desglose-detallado-por-sesión-de-trabajo" class="section level2 unnumbered">
 <h2 class="unnumbered">Desglose detallado por sesión de trabajo</h2>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-78815b78080f21c33765" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-78815b78080f21c33765">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4"],["2025-09-01T16:05:22Z","2025-09-02T18:22:20Z","2025-09-10T20:24:20Z","2025-09-11T10:50:43Z"],["2025-09-01T17:00:05Z","2025-09-02T19:50:14Z","2025-09-10T21:54:44Z","2025-09-11T11:51:56Z"],[54.7,87.90000000000001,90.40000000000001,61.2],["Comprensión del negocio","Comprensión de los datos","Introducción","Comprensión de los datos"],["búsqueda del tema","modelo validación tema","estado actual","incorporar a la memoria los datos de la propuesta de proyecto presentada para validación"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>START<\/th>\n      <th>END<\/th>\n      <th>MINUTES<\/th>\n      <th>ACTIVITY<\/th>\n      <th>FINAL COMMENT<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"scrollY":"400px","paging":false,"columnDefs":[{"className":"dt-right","targets":3},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"START","targets":1},{"name":"END","targets":2},{"name":"MINUTES","targets":3},{"name":"ACTIVITY","targets":4},{"name":"FINAL COMMENT","targets":5}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-c00466e6d4e40efc191a" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-c00466e6d4e40efc191a">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4"],["2025-09-01T16:05:22Z","2025-09-02T18:22:20Z","2025-09-10T20:24:20Z","2025-09-11T10:50:43Z"],["2025-09-01T17:00:05Z","2025-09-02T19:50:14Z","2025-09-10T21:54:44Z","2025-09-11T11:51:56Z"],[54.7,87.90000000000001,90.40000000000001,61.2],["Comprensión del negocio","Comprensión de los datos","Introducción","Comprensión de los datos"],["búsqueda del tema","modelo validación tema","estado actual","incorporar a la memoria los datos de la propuesta de proyecto presentada para validación"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>START<\/th>\n      <th>END<\/th>\n      <th>MINUTES<\/th>\n      <th>ACTIVITY<\/th>\n      <th>FINAL COMMENT<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"scrollY":"400px","paging":false,"columnDefs":[{"className":"dt-right","targets":3},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"START","targets":1},{"name":"END","targets":2},{"name":"MINUTES","targets":3},{"name":"ACTIVITY","targets":4},{"name":"FINAL COMMENT","targets":5}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 

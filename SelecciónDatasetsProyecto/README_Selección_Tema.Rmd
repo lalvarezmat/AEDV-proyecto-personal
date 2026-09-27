@@ -138,6 +138,14 @@ Los identificadores que salgan de aquí son la entrada del paso 3: se copian en 
 Lo que produce el paso 2 es una **lista de candidatos**, no una decisión. Quien dice si un dataset sirve es el paso 3, porque la IA no ha visto los datos: solo el índice, y las columnas del catálogo son indicios, no garantías (el `N.atrib.combinados` de EUROSTAT, por ejemplo, es una cota superior: no todas las combinaciones tienen datos). Cuenta con validar **varios** candidatos antes de quedarte con los definitivos.
 </div>
 
+<div class="discusion">
+<strong class="bloque-titulo">Cumplir los requisitos no basta: ¿qué quieres averiguar?</strong>
+
+Un dataset que pasa la validación del paso 3 es **utilizable**, pero no por eso da lugar a un buen proyecto. Antes de quedarte con él, tienes que poder decir **qué preguntas de investigación interesantes** vas a responder con esos datos (por ejemplo: *«¿se ha recuperado el empleo en Canarias tras la crisis de 2008 al mismo ritmo que en el resto de comunidades?»*, en lugar de *«analizar la evolución del paro»*). Si no se te ocurre ninguna, busca otro tema o combina el dataset con otros que den juego.
+
+Son preguntas **iniciales**, obligatorias ya en la Entrega 1, que irás refinando por iteraciones a medida que analices los datos. En la memoria, las preguntas van en el apartado *Objetivos*, y todo este proceso de búsqueda —catálogos explorados, peticiones hechas a la IA, candidatos validados y descartados, y a qué pregunta responde cada dataset elegido— se describe en la sección **Comprensión del negocio**.
+</div>
+
 ## Paso 3 — Descargar, validar y analizar el dataset
 
 Abre el archivo `*_DatasetSelection.Rmd` de la fuente correspondiente y localiza la línea donde se especifican los datasets a analizar:

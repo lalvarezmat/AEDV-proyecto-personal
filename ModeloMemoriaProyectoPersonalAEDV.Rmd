@@ -184,6 +184,8 @@ ERRORES FRECUENTES A EVITAR:
   - Escribir una introducción demasiado genérica que valdría para cualquier proyecto.
   - Poner texto generado por la IA sin adaptarlo ni contrastarlo con fuentes primarias.
   - Enumerar los objetivos sin explicar el contexto que los justifica.
+  - Elegir el dataset solo porque cumple los requisitos de AEDV, sin saber qué
+    preguntas interesantes se quieren responder con él (ver "Objetivos").
 ================================================================================
 -->
 
@@ -244,6 +246,58 @@ EJEMPLO DE ESTRUCTURA:
     2. Comparar el comportamiento de X entre los grupos A y B.
     3. Construir un modelo predictivo de X para el horizonte temporal T.
     4. Diseñar un cuadro de mandos interactivo que permita explorar los resultados.
+
+PREGUNTAS DE INVESTIGACIÓN (IMPRESCINDIBLE):
+  Los objetivos deben concretarse en 3-5 PREGUNTAS DE INVESTIGACIÓN: las
+  preguntas concretas e interesantes que el proyecto pretende responder con los
+  datos. Son el hilo conductor de toda la memoria: justifican la elección de
+  los datasets (Comprensión del negocio), orientan el análisis (Modelado y
+  Evaluación) y se responden una a una en las Conclusiones.
+
+  Que un dataset cumpla los requisitos de AEDV (cobertura, series largas,
+  España/Canarias, 4 atributos) es CONDICIÓN NECESARIA PERO NO SUFICIENTE. Un
+  proyecto que empieza por "encontré un dataset que cumple los requisitos" y no
+  sabe qué quiere averiguar con él acaba siendo una descripción de gráficas sin
+  hallazgos. Lo razonable es partir de un tema que te interese, preguntarte qué
+  te gustaría saber sobre él y buscar después los datos que permitan responderlo.
+
+  Una buena pregunta de investigación:
+    - Es CONCRETA: se refiere a unas variables, unas regiones y un periodo.
+    - Se puede RESPONDER CON TUS DATOS (y con las técnicas de la asignatura:
+      series temporales, predicción, correlación, PCA, mapas...).
+    - Su respuesta NO ES OBVIA de antemano y tiene interés para alguien
+      (ciudadanía, administración, empresas...).
+    - Suele implicar una COMPARACIÓN, una RELACIÓN o un CAMBIO: entre regiones,
+      entre variables, antes/después de un acontecimiento, frente a una tendencia.
+
+  EJEMPLOS:
+    Débil:  "Analizar la evolución del paro en España."  (descriptivo, sin
+            pregunta: cualquier resultado "vale" y no hay nada que concluir)
+    Mejor:  "¿Se ha recuperado el empleo en Canarias tras la crisis de 2008 al
+            mismo ritmo que en el resto de comunidades? ¿Qué comunidades se
+            parecen más a Canarias en su evolución?"
+    Débil:  "Estudiar las emisiones de CO2 de los países."
+    Mejor:  "¿Qué países han conseguido reducir sus emisiones por habitante sin
+            dejar de crecer económicamente? ¿Está España entre ellos?"
+    Débil:  "Ver los datos de turismo de Canarias."
+    Mejor:  "¿Qué islas dependen más de un solo mercado emisor y cómo afectó esa
+            dependencia a su caída en 2020? ¿Qué nivel de llegadas cabe esperar
+            en los próximos dos años según los modelos ARIMA?"
+
+  Formúlalas como preguntas (con signos de interrogación) y numéralas (P1, P2...)
+  para poder citarlas en el resto de la memoria.
+
+  LAS PREGUNTAS EVOLUCIONAN POR ITERACIONES:
+  Las preguntas de la Entrega 1 (donde son obligatorias) son un PUNTO DE PARTIDA.
+  Igual que el resto de la metodología CRISP-DM, se trabajan por iteraciones: al
+  explorar, modelar y evaluar los datos aparecerán resultados que obligan a
+  matizar una pregunta, a descartar otra que los datos no permiten responder o
+  a plantear una nueva que no se veía al principio. Actualiza este apartado en
+  cada entrega: en la memoria final deben figurar las preguntas que el análisis
+  responde de verdad. En el texto final redacta directamente la versión
+  definitiva; si una reformulación es en sí misma un hallazgo (p. ej. "los datos
+  muestran que la pregunta relevante no era X sino Y"), explícalo en Evaluación
+  o en Conclusiones.
 -->
 
 
@@ -415,7 +469,7 @@ Utilizaremos la metodología de desarrollo CRISP-DM (Cross Industry Standard Pro
 <p style="font-size: 14px; color: gray;"><em>Figura 2. Diagrama de la metodología de desarrollo CRISP-DM.</em></p>
 </center>
 
-* **Comprensión del negocio**. Se plantean los objetivos del proyecto y se realiza la búsqueda y evaluación de fuentes de información y datos.
+* **Comprensión del negocio**. A partir de los objetivos y las preguntas de investigación del proyecto, se realiza la búsqueda y evaluación de fuentes de información y datos, y se describe la estrategia seguida para seleccionar los datasets, incluido el uso de la IA.
 
 * **Comprensión de los datos**. Se analiza la estructura y organización de los datos obtenidos. Se identifican posibles problemas como datos faltantes, outliers o inconsistencias.
 
@@ -446,31 +500,57 @@ FASE CRISP-DM 1: COMPRENSIÓN DEL NEGOCIO
 ================================================================================
 PROPÓSITO: Describir el proceso de búsqueda, evaluación y selección de fuentes
 de datos e información. NO repetir los objetivos del proyecto (ya están en la
-Introducción) ni describir los datos en detalle (eso va en la fase siguiente).
+Introducción) ni describir los datos en detalle (eso va en la fase siguiente),
+pero SÍ justificar la selección a partir de las preguntas de investigación
+planteadas en "Objetivos": el lector debe entender por qué estos datos, y no
+otros, permiten responderlas.
 
 CONTENIDO ESPERADO:
 
-1. BÚSQUEDA DE DATOS Y FUENTES CONSULTADAS
+1. ESTRATEGIA DE SELECCIÓN DE LOS DATASETS Y USO DE LA IA
+   Este es el lugar de la memoria donde se explica CÓMO se llegó a los datasets
+   elegidos. Describe el proceso real, incluidos los intentos fallidos:
+   - Punto de partida: qué tema y qué preguntas de investigación iniciales guiaron la
+     búsqueda (o, si partiste de explorar los catálogos, cómo surgieron las
+     preguntas a la vista de lo que había disponible).
+   - Catálogos y fuentes explorados (INE, ISTAC, EUROSTAT, Banco Mundial,
+     EDGAR, CLIMA, INFORME PISA u otras) y por qué te centraste en unos y no en otros.
+   - Uso de la IA en la selección: qué agentes usaste, qué les proporcionaste
+     (p. ej. el catálogo .xlsx de la fuente) y cuáles fueron las principales
+     peticiones (prompts) y respuestas. Por ejemplo: "de este catálogo, dame los
+     datasets sobre vivienda con datos por provincia", "descarta los que no
+     tengan datos de Canarias". Indica también qué propuestas de la IA
+     descartaste y por qué: la IA solo ve el índice, no los datos.
+   - Candidatos validados con los *_DatasetSelection.Rmd: cuáles cumplieron los
+     requisitos de AEDV y cuáles no (y por qué criterio fallaron).
+   - Justificación final: para cada dataset elegido, a qué pregunta(s) de
+     investigación (P1, P2...) ayuda a responder. Un dataset que no sirve para
+     ninguna pregunta sobra; una pregunta sin datos que la respalden hay que
+     reformularla.
+   El uso de la IA en esta fase se describe AQUÍ con detalle; en el Anexo I solo
+   se resume dentro de la visión global del uso de la IA en el proyecto.
+
+2. BÚSQUEDA DE DATOS Y FUENTES CONSULTADAS
    - ¿Dónde buscaste los datos? (portales open data, APIs, scraping, encuestas, etc.)
    - Enumera todas las fuentes consultadas, aunque no las hayas usado finalmente.
    - Para cada fuente usada, indica: nombre, organismo responsable, URL, formato
      del fichero descargado (CSV, Excel, JSON, shapefile...) y fecha de descarga.
    - Si los datos provienen de una API, describe brevemente cómo se accede a ella.
 
-2. DIFICULTADES E INCIDENCIAS EN LA OBTENCIÓN DE DATOS
+3. DIFICULTADES E INCIDENCIAS EN LA OBTENCIÓN DE DATOS
    - Fuentes que encontraste pero no pudiste usar (acceso restringido, formato
      incompatible, datos insuficientes, cobertura temporal inadecuada, etc.).
    - Limitaciones de las fuentes seleccionadas (actualización infrecuente, posibles
      sesgos en la recogida, cobertura geográfica parcial, etc.).
 
-3. ANÁLISIS DE LA FIABILIDAD Y CALIDAD ESPERADA DE LAS FUENTES
+4. ANÁLISIS DE LA FIABILIDAD Y CALIDAD ESPERADA DE LAS FUENTES
    - ¿Quién produce los datos? ¿Es un organismo oficial, una empresa privada,
      una comunidad de voluntarios (como OpenStreetMap)?
    - ¿Con qué frecuencia se actualizan?
    - ¿Hay documentación metodológica disponible? ¿Cómo se recogen los datos?
    - ¿Has encontrado discrepancias entre fuentes distintas sobre el mismo fenómeno?
 
-4. REVISIÓN BIBLIOGRÁFICA (si procede)
+5. REVISIÓN BIBLIOGRÁFICA (si procede)
    - Menciona brevemente los artículos, informes o libros más relevantes consultados
      para entender el contexto del problema.
 
@@ -808,6 +888,8 @@ ESTRUCTURA RECOMENDADA:
    - ¿Se ha alcanzado? ¿Parcialmente? ¿No se ha podido alcanzar?
    - ¿Cuál es el resultado concreto obtenido para ese objetivo?
    Esta correspondencia explícita objetivo→resultado es el núcleo de las conclusiones.
+   Responde también, una a una, a las preguntas de investigación (P1, P2...)
+   planteadas en "Objetivos", con la respuesta concreta que dan tus datos.
 
 2. HALLAZGOS MÁS RELEVANTES
    - Los 3-5 resultados más importantes del análisis, explicados en términos
@@ -908,7 +990,12 @@ CON SU INDICADOR. Si la referencia es un enlace web hay que añadir las fechas d
 ================================================================================
 ANEXO: AGENTES DE IA Y ORGANIZACIÓN DEL TRABAJO
 ================================================================================
-PROPÓSITO: Describir la aportación de los agentes IA al desarrollo del proyecto. 
+PROPÓSITO: Describir la aportación de los agentes IA al desarrollo del proyecto.
+
+NOTA: el uso de la IA para buscar y seleccionar los datasets (peticiones
+realizadas, candidatos propuestos y descartados) se describe en detalle en la
+sección "Comprensión del negocio". Aquí basta con recogerlo en las tablas y en
+la reflexión global, sin repetirlo.
 -->
 
 ## Herramientas y agentes IA utilizados {-}

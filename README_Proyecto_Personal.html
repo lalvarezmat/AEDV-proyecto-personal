@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-09-16" />
+<meta name="date" content="2026-09-27" />
 
 <title>Proyecto Personal AEDV — Guía de trabajo</title>
 
@@ -1614,7 +1614,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Proyecto Personal AEDV — Guía de
 trabajo</h1>
-<h4 class="date">2026-09-16</h4>
+<h4 class="date">2026-09-27</h4>
 
 </div>
 
@@ -1698,16 +1698,28 @@ progresivas</strong>:</p>
 <p><strong class="bloque-titulo">Las tres entregas del
 proyecto</strong></p>
 <p><strong>Entrega 1 — Validación del tema y datasets</strong></p>
-<p>Acredita que el tema elegido es viable y que los datos seleccionados
-cumplen los criterios de AEDV. Hay que entregar el modelo de memoria con
-una primera versión de las secciones <strong>3.3 Comprensión del
-negocio</strong>, <strong>3.4 Comprensión de los datos</strong> y
+<p>Acredita que el tema elegido es viable e interesante y que los datos
+seleccionados cumplen los criterios de AEDV. Hay que entregar el modelo
+de memoria con una primera versión de las <strong>preguntas de
+investigación</strong> (en <strong>1.3 Objetivos</strong>), de las
+secciones <strong>3.3 Comprensión del negocio</strong> (incluida la
+estrategia seguida para seleccionar los datasets y el uso de la IA en
+esa búsqueda), <strong>3.4 Comprensión de los datos</strong> y
 <strong>Anexo II. Seguimiento temporal de actividades del
 proyecto</strong> cumplimentadas con una discusión de la adecuación de
 los datasets elegidos a los requisitos de AEDV tal y como lo hacen los
 scripts de selección de datasets del ISTAC, INE o World Bank. Hay que
 dedicar especial atención a explicar bien el significado de todas las
 unidades, variables (con sus opciones posibles).</p>
+<p><strong>Exigencia de la Entrega 1: las preguntas de
+investigación.</strong> No basta con que los datasets cumplan los
+requisitos de AEDV: la entrega debe plantear preguntas de investigación
+interesantes que se puedan responder con esos datos y justificar, en
+<em>Comprensión del negocio</em>, que los datasets elegidos permiten
+responderlas. Un tema sin preguntas de investigación interesantes no se
+valida aunque sus datasets cumplan todos los requisitos. Son preguntas
+<strong>iniciales</strong>: se irán refinando por iteraciones a medida
+que avance el análisis de los datos (ver el Paso 1).</p>
 <p><strong>Entrega 2 — Entrega intermedia</strong></p>
 <p>Corresponde a los contenidos del primer parcial del curso. Incluye la
 memoria con una primera versión que desarrolle los contenidos vistos en
@@ -1793,8 +1805,44 @@ etc.).</p>
 <div id="paso-1-elige-tus-datasets" class="section level2" number="3.2">
 <h2><span class="header-section-number">3.2</span> Paso 1 — Elige tus
 datasets</h2>
-<p>Antes de escribir una sola línea de código, necesitas tener claros
-los datos que vas a usar.</p>
+<p>Antes de escribir una sola línea de código, necesitas tener claro
+<strong>qué quieres averiguar</strong> y con qué datos vas a
+hacerlo.</p>
+<div class="discusion">
+<p><strong class="bloque-titulo">Primero las preguntas, después los
+datos</strong></p>
+<p>Que un dataset cumpla los requisitos de AEDV es <strong>condición
+necesaria, pero no suficiente</strong>. Un proyecto que parte de <em>«he
+encontrado un dataset que cumple los requisitos»</em> sin saber qué
+quiere averiguar con él acaba siendo una sucesión de gráficas sin
+hallazgos ni conclusiones.</p>
+<p>Parte de un tema que te interese y formula entre 3 y 5
+<strong>preguntas de investigación</strong>: preguntas concretas, que se
+puedan responder con los datos y con las técnicas de la asignatura, y
+cuya respuesta no sea obvia de antemano. Suelen implicar una
+comparación, una relación o un cambio:</p>
+<ul>
+<li>Débil: <em>«Analizar la evolución del paro en España»</em> —
+descriptivo; cualquier resultado vale y no hay nada que concluir.</li>
+<li>Mejor: <em>«¿Se ha recuperado el empleo en Canarias tras la crisis
+de 2008 al mismo ritmo que en el resto de comunidades? ¿Qué comunidades
+se parecen más a Canarias en su evolución?»</em></li>
+</ul>
+<p>Explorar los catálogos puede ayudarte a descubrir temas y a inspirar
+preguntas, pero antes de dar por elegido un dataset tienes que poder
+decir <strong>a qué pregunta ayuda a responder</strong>. Las preguntas
+se escriben en el apartado <em>Objetivos</em> de la memoria (el modelo
+trae más ejemplos en sus comentarios), guían todo el análisis y se
+responden en las <em>Conclusiones</em>.</p>
+<p>Las preguntas de la Entrega 1 son un <strong>punto de partida, no una
+versión definitiva</strong>. Igual que la metodología CRISP-DM, se
+trabajan <strong>por iteraciones</strong>: al explorar y modelar los
+datos aparecerán resultados que obligan a matizar una pregunta, a
+descartar otra que los datos no permiten responder o a plantear una
+nueva que no se veía al principio. Actualiza el apartado
+<em>Objetivos</em> en cada entrega para que las preguntas de la memoria
+final sean las que el análisis responde de verdad.</p>
+</div>
 <p><strong>Abre y lee</strong> el documento
 <code>SelecciónDatasetsProyecto/README_Selección_Tema.Rmd</code> (o su
 versión compilada <code>.html</code>). Ese documento explica cómo
@@ -1913,7 +1961,11 @@ consulta con el profesor.</p>
 <blockquote>
 <p><strong>Uso de la IA</strong>: un uso adecuado de los agentes IA
 puede facilitar mucho la exploración de los datasets y la búsqueda del
-tema del proyecto personal.</p>
+tema del proyecto personal. La <strong>estrategia que sigas para
+seleccionar los datasets</strong> —catálogos explorados, peticiones a la
+IA, candidatos validados y descartados, y a qué pregunta de
+investigación responde cada dataset elegido— se describe en la sección
+<strong>Comprensión del negocio</strong> de la memoria.</p>
 </blockquote>
 <hr />
 </div>
@@ -1974,14 +2026,15 @@ documento compilado</strong> pero te guían sobre qué escribir. La
 memoria se organiza a través de las siguientes secciones:</p>
 <ul>
 <li><strong>Introducción</strong> — Estado actual · Motivación ·
-Objetivos</li>
+Objetivos (con las preguntas de investigación)</li>
 <li><strong>Aportaciones del trabajo</strong> — Principales aportaciones
 · Alineamiento con ODS</li>
 <li><strong>Desarrollo</strong>
 <ul>
 <li>Herramientas empleadas</li>
 <li>Metodología (descripción general de CRISP-DM)</li>
-<li>Comprensión del negocio — fuentes de datos consultadas</li>
+<li>Comprensión del negocio — estrategia de selección de datasets
+(incluido el uso de la IA) y fuentes consultadas</li>
 <li>Comprensión de los datos — estructura, variables, problemas</li>
 <li>Preparación de los datos — limpieza, transformaciones, joins</li>
 <li>Modelado — modelos aplicados y resultados</li>
@@ -2060,6 +2113,10 @@ evitar</h1>
 <p><strong class="bloque-titulo">Errores comunes en el
 proyecto</strong></p>
 <ul>
+<li><strong>Elegir un dataset solo porque cumple los requisitos</strong>
+→ sin preguntas de investigación interesantes que lo justifiquen, el
+proyecto se queda en describir gráficas y no llega a ninguna
+conclusión.</li>
 <li><strong>Elegir un dataset sin validarlo</strong> con los 5 criterios
 → datasets demasiado cortos, sin cobertura suficiente o sin datos de
 España/Canarias llevan a análisis pobres.</li>
@@ -2092,7 +2149,7 @@ profesor durante el periodo lectivo.</p>
 <div id="rúbrica-de-evaluación-rubricaevaluaciónproyectopersonal.xlsx" class="section level1" number="5">
 <h1><span class="header-section-number">5</span> Rúbrica de evaluación
 (<code>RubricaEvaluaciónProyectoPersonal.xlsx</code>)</h1>
-<p>La evaluación del proyecto personal se estructura en torno a 27
+<p>La evaluación del proyecto personal se estructura en torno a 28
 criterios agrupados en siete áreas. Cada criterio se valora como
 <strong>No Satisfactorio</strong>, <strong>Satisfactorio</strong> o
 <strong>Sobresaliente</strong>. La columna E1/E2/E3 indica en qué
@@ -2130,76 +2187,84 @@ entregas se tiene en cuenta cada criterio.</p>
 <td align="center">✓</td>
 </tr>
 <tr class="odd">
+<td>2</td>
+<td>Preguntas de investigación interesantes que justifican los datasets
+y evolucionan con el análisis</td>
+<td align="center">✓</td>
+<td align="center">✓</td>
+<td align="center">✓</td>
+</tr>
+<tr class="even">
 <td></td>
 <td><strong><em>Entrega y formato técnico</em></strong></td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center"></td>
 </tr>
-<tr class="even">
-<td>2</td>
+<tr class="odd">
+<td>3</td>
 <td>Entrega memoria html + Rmd compilable, datos en RDS</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 </tr>
-<tr class="odd">
-<td>3</td>
+<tr class="even">
+<td>4</td>
 <td>Enlace al Dashboard en el servidor Shiny del DIS</td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center">✓</td>
 </tr>
-<tr class="even">
-<td>4</td>
+<tr class="odd">
+<td>5</td>
 <td>Nombre de archivos correcto (NombreApellido1)</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td></td>
 <td><strong><em>Texto y estructura de la memoria</em></strong></td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center"></td>
 </tr>
-<tr class="even">
-<td>5</td>
-<td>Texto atractivo, bien formateado, sin rastros de R</td>
-<td align="center">✓</td>
-<td align="center">✓</td>
-<td align="center">✓</td>
-</tr>
 <tr class="odd">
 <td>6</td>
-<td>Texto coherente con hilo conductor común</td>
+<td>Texto atractivo, bien formateado, sin rastros de R</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 </tr>
 <tr class="even">
 <td>7</td>
+<td>Texto coherente con hilo conductor común</td>
+<td align="center">✓</td>
+<td align="center">✓</td>
+<td align="center">✓</td>
+</tr>
+<tr class="odd">
+<td>8</td>
 <td>Todas las secciones completadas siguiendo CRISP-DM</td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center">✓</td>
 </tr>
-<tr class="odd">
-<td>8</td>
+<tr class="even">
+<td>9</td>
 <td>Cada cosa en la sección que le corresponde</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 </tr>
-<tr class="even">
-<td>9</td>
+<tr class="odd">
+<td>10</td>
 <td>Aportaciones y conclusiones coherentes con el trabajo</td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center">✓</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td></td>
 <td><strong><em>Comprensión y preparación de los
 datos</em></strong></td>
@@ -2207,149 +2272,149 @@ datos</em></strong></td>
 <td align="center"></td>
 <td align="center"></td>
 </tr>
-<tr class="even">
-<td>10</td>
+<tr class="odd">
+<td>11</td>
 <td>Información, origen y fiabilidad de los datasets</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 </tr>
-<tr class="odd">
-<td>11</td>
+<tr class="even">
+<td>12</td>
 <td>Descripción detallada del procesado inicial de datos</td>
 <td align="center"></td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 </tr>
-<tr class="even">
-<td>12</td>
+<tr class="odd">
+<td>13</td>
 <td>Conceptos manejados claros desde el principio</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 </tr>
-<tr class="odd">
-<td>13</td>
+<tr class="even">
+<td>14</td>
 <td>Elección correcta de atributos para PCA</td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center">✓</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td></td>
 <td><strong><em>Visualizaciones en la memoria</em></strong></td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center"></td>
 </tr>
-<tr class="odd">
-<td>14</td>
-<td>Primeras gráficas ilustran los conceptos de forma general</td>
-<td align="center"></td>
-<td align="center">✓</td>
-<td align="center">✓</td>
-</tr>
 <tr class="even">
 <td>15</td>
-<td>Gráficas de calidad profesional, sin solapamientos y
-autocontenidas</td>
+<td>Primeras gráficas ilustran los conceptos de forma general</td>
 <td align="center"></td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 </tr>
 <tr class="odd">
 <td>16</td>
+<td>Gráficas de calidad profesional, sin solapamientos y
+autocontenidas</td>
+<td align="center"></td>
+<td align="center">✓</td>
+<td align="center">✓</td>
+</tr>
+<tr class="even">
+<td>17</td>
 <td>Todas las gráficas dinámicas con identificación</td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center">✓</td>
 </tr>
-<tr class="even">
-<td>17</td>
+<tr class="odd">
+<td>18</td>
 <td>No repetir la misma gráfica con datos distintos</td>
 <td align="center"></td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 </tr>
-<tr class="odd">
-<td>18</td>
+<tr class="even">
+<td>19</td>
 <td>Tipos requeridos: disco, barra, HeatMap, caja</td>
 <td align="center"></td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td></td>
 <td><strong><em>Dashboard</em></strong></td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center"></td>
 </tr>
-<tr class="odd">
-<td>19</td>
-<td>Dashboard bien diseñado, cubre todas las variables</td>
-<td align="center"></td>
-<td align="center"></td>
-<td align="center">✓</td>
-</tr>
 <tr class="even">
 <td>20</td>
-<td>Dashboard: series temporales con <code>facet_wrap</code></td>
+<td>Dashboard bien diseñado, cubre todas las variables</td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center">✓</td>
 </tr>
 <tr class="odd">
 <td>21</td>
-<td>Dashboard: modelos ARIMA</td>
+<td>Dashboard: series temporales con <code>facet_wrap</code></td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center">✓</td>
 </tr>
 <tr class="even">
 <td>22</td>
-<td>Dashboard: mapas coropléticos</td>
+<td>Dashboard: modelos ARIMA</td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center">✓</td>
 </tr>
 <tr class="odd">
 <td>23</td>
-<td>Dashboard: comparación de atributos con Yeo-Johnson</td>
+<td>Dashboard: mapas coropléticos</td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center">✓</td>
 </tr>
 <tr class="even">
 <td>24</td>
-<td>Dashboard: matriz de correlación y PCA</td>
+<td>Dashboard: comparación de atributos con Yeo-Johnson</td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center">✓</td>
 </tr>
 <tr class="odd">
 <td>25</td>
-<td>Dashboard: variables fijadas dinámicamente con Inputs</td>
+<td>Dashboard: matriz de correlación y PCA</td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center">✓</td>
 </tr>
 <tr class="even">
+<td>26</td>
+<td>Dashboard: variables fijadas dinámicamente con Inputs</td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">✓</td>
+</tr>
+<tr class="odd">
 <td></td>
 <td><strong><em>Seguimiento y dedicación</em></strong></td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center"></td>
 </tr>
-<tr class="odd">
-<td>26</td>
+<tr class="even">
+<td>27</td>
 <td>Uso de Google Sheet para control de dedicación</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 </tr>
-<tr class="even">
-<td>27</td>
+<tr class="odd">
+<td>28</td>
 <td>Coherencia entre horas dedicadas y trabajo realizado</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
@@ -2369,6 +2434,17 @@ requisitos técnicos, sino de demostrar capacidad de análisis,
 pensamiento crítico y dominio del tema. Un proyecto técnicamente
 correcto pero superficial no alcanza la calificación máxima.</p>
 </div>
+<ul>
+<li><strong>Preguntas de investigación.</strong> El proyecto plantea
+preguntas de investigación interesantes, concretas y que se pueden
+responder con los datos, y la elección de los datasets se justifica a
+partir de ellas (la estrategia de selección y el uso de la IA se
+describen en <em>Comprensión del negocio</em>). Las preguntas iniciales
+de la Entrega 1 se van refinando por iteraciones a partir del análisis
+de los datos, y las de la memoria final se responden una a una en las
+<em>Conclusiones</em>. Un proyecto cuyo único argumento es que el
+dataset cumple los requisitos de AEDV no supera este criterio.</li>
+</ul>
 <p>Un proyecto de calidad sobresaliente integra los datos con una
 narrativa coherente, extrae conclusiones no triviales, aplica
 correctamente la metodología CRISP-DM y presenta los resultados de forma

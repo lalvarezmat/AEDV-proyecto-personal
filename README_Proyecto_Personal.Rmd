@@ -50,7 +50,9 @@ El proyecto personal se desarrolla en **tres entregas progresivas**:
 
 **Entrega 1 — Validación del tema y datasets**
 
-Acredita que el tema elegido es viable y que los datos seleccionados cumplen los criterios de AEDV. Hay que entregar el modelo de memoria con una primera versión de las secciones **3.3 Comprensión del negocio**, **3.4 Comprensión de los datos** y **Anexo II. Seguimiento temporal de actividades del proyecto** cumplimentadas con una discusión de la adecuación de los datasets elegidos a los requisitos de AEDV tal y como lo hacen los scripts de selección de datasets del ISTAC, INE o World Bank. Hay que dedicar especial atención a explicar bien el significado de todas las unidades, variables (con sus opciones posibles). 
+Acredita que el tema elegido es viable e interesante y que los datos seleccionados cumplen los criterios de AEDV. Hay que entregar el modelo de memoria con una primera versión de las **preguntas de investigación** (en **1.3 Objetivos**), de las secciones **3.3 Comprensión del negocio** (incluida la estrategia seguida para seleccionar los datasets y el uso de la IA en esa búsqueda), **3.4 Comprensión de los datos** y **Anexo II. Seguimiento temporal de actividades del proyecto** cumplimentadas con una discusión de la adecuación de los datasets elegidos a los requisitos de AEDV tal y como lo hacen los scripts de selección de datasets del ISTAC, INE o World Bank. Hay que dedicar especial atención a explicar bien el significado de todas las unidades, variables (con sus opciones posibles). 
+
+**Exigencia de la Entrega 1: las preguntas de investigación.** No basta con que los datasets cumplan los requisitos de AEDV: la entrega debe plantear preguntas de investigación interesantes que se puedan responder con esos datos y justificar, en *Comprensión del negocio*, que los datasets elegidos permiten responderlas. Un tema sin preguntas de investigación interesantes no se valida aunque sus datasets cumplan todos los requisitos. Son preguntas **iniciales**: se irán refinando por iteraciones a medida que avance el análisis de los datos (ver el Paso 1).
 
 **Entrega 2 — Entrega intermedia**
 
@@ -106,7 +108,22 @@ La columna `ACTIVITY` debe coincidir exactamente con los valores del vector `act
 
 ## Paso 1 — Elige tus datasets
 
-Antes de escribir una sola línea de código, necesitas tener claros los datos que vas a usar.
+Antes de escribir una sola línea de código, necesitas tener claro **qué quieres averiguar** y con qué datos vas a hacerlo.
+
+<div class="discusion">
+<strong class="bloque-titulo">Primero las preguntas, después los datos</strong>
+
+Que un dataset cumpla los requisitos de AEDV es **condición necesaria, pero no suficiente**. Un proyecto que parte de *«he encontrado un dataset que cumple los requisitos»* sin saber qué quiere averiguar con él acaba siendo una sucesión de gráficas sin hallazgos ni conclusiones.
+
+Parte de un tema que te interese y formula entre 3 y 5 **preguntas de investigación**: preguntas concretas, que se puedan responder con los datos y con las técnicas de la asignatura, y cuya respuesta no sea obvia de antemano. Suelen implicar una comparación, una relación o un cambio:
+
+* Débil: *«Analizar la evolución del paro en España»* — descriptivo; cualquier resultado vale y no hay nada que concluir.
+* Mejor: *«¿Se ha recuperado el empleo en Canarias tras la crisis de 2008 al mismo ritmo que en el resto de comunidades? ¿Qué comunidades se parecen más a Canarias en su evolución?»*
+
+Explorar los catálogos puede ayudarte a descubrir temas y a inspirar preguntas, pero antes de dar por elegido un dataset tienes que poder decir **a qué pregunta ayuda a responder**. Las preguntas se escriben en el apartado *Objetivos* de la memoria (el modelo trae más ejemplos en sus comentarios), guían todo el análisis y se responden en las *Conclusiones*.
+
+Las preguntas de la Entrega 1 son un **punto de partida, no una versión definitiva**. Igual que la metodología CRISP-DM, se trabajan **por iteraciones**: al explorar y modelar los datos aparecerán resultados que obligan a matizar una pregunta, a descartar otra que los datos no permiten responder o a plantear una nueva que no se veía al principio. Actualiza el apartado *Objetivos* en cada entrega para que las preguntas de la memoria final sean las que el análisis responde de verdad.
+</div>
 
 **Abre y lee** el documento `SelecciónDatasetsProyecto/README_Selección_Tema.Rmd` (o su versión compilada `.html`). Ese documento explica cómo explorar siete fuentes de datos públicas — INE, ISTAC, EUROSTAT, Banco Mundial, EDGAR GHG, CLIMA (AdapteCCa/AEMET) e INFORME PISA (resultados educativos con contexto de pobreza y desigualdad) — y cómo comprobar que los datasets elegidos cumplen los requisitos de AEDV.
 
@@ -161,7 +178,7 @@ Antes de escribir una sola línea de código, necesitas tener claros los datos q
 
 > **Antes de confirmar un dataset**, verifica en el Campus Virtual que ningún otro alumno lo haya elegido ya. Si hay solapamiento, consulta con el profesor.
 
-> **Uso de la IA**: un uso adecuado de los agentes IA puede facilitar mucho la exploración de los datasets y la búsqueda del tema del proyecto personal. 
+> **Uso de la IA**: un uso adecuado de los agentes IA puede facilitar mucho la exploración de los datasets y la búsqueda del tema del proyecto personal. La **estrategia que sigas para seleccionar los datasets** —catálogos explorados, peticiones a la IA, candidatos validados y descartados, y a qué pregunta de investigación responde cada dataset elegido— se describe en la sección **Comprensión del negocio** de la memoria.
 
 ---
 
@@ -194,12 +211,12 @@ Activa **"Knit on Save"** (checkbox en la barra de herramientas) para ver los ca
 
 La memoria sigue la metodología de desarrollo **CRISP-DM** (Cross Industry Standard Process for Data Mining). Cada sección tiene instrucciones detalladas en comentarios HTML (`<!-- ... -->`) que **no aparecen en el documento compilado** pero te guían sobre qué escribir. La memoria se organiza a través de las siguientes secciones: 
 
-- **Introducción** — Estado actual · Motivación · Objetivos
+- **Introducción** — Estado actual · Motivación · Objetivos (con las preguntas de investigación)
 - **Aportaciones del trabajo** — Principales aportaciones · Alineamiento con ODS
 - **Desarrollo**
   - Herramientas empleadas
   - Metodología (descripción general de CRISP-DM)
-  - Comprensión del negocio — fuentes de datos consultadas
+  - Comprensión del negocio — estrategia de selección de datasets (incluido el uso de la IA) y fuentes consultadas
   - Comprensión de los datos — estructura, variables, problemas
   - Preparación de los datos — limpieza, transformaciones, joins
   - Modelado — modelos aplicados y resultados
@@ -249,6 +266,7 @@ El dashboard es **el elemento más importante de la fase de Despliegue**. Crea u
 <div class="discusion">
 <strong class="bloque-titulo">Errores comunes en el proyecto</strong>
 
+* **Elegir un dataset solo porque cumple los requisitos** → sin preguntas de investigación interesantes que lo justifiquen, el proyecto se queda en describir gráficas y no llega a ninguna conclusión.
 * **Elegir un dataset sin validarlo** con los 5 criterios → datasets demasiado cortos, sin cobertura suficiente o sin datos de España/Canarias llevan a análisis pobres.
 * **Dashboard sin desplegar el día de la entrega** → es un requisito obligatorio; despliégalo con tiempo suficiente.
 * **Google Sheet sin actualizar** → las sesiones de trabajo deben registrarse en tiempo real, no reconstruirse al final.
@@ -266,44 +284,45 @@ Para superar la asignatura en un curso académico, todas las entregas deben real
 
 # Rúbrica de evaluación (`RubricaEvaluaciónProyectoPersonal.xlsx`)
 
-La evaluación del proyecto personal se estructura en torno a 27 criterios agrupados en siete áreas. Cada criterio se valora como **No Satisfactorio**, **Satisfactorio** o **Sobresaliente**. La columna E1/E2/E3 indica en qué entregas se tiene en cuenta cada criterio.
+La evaluación del proyecto personal se estructura en torno a 28 criterios agrupados en siete áreas. Cada criterio se valora como **No Satisfactorio**, **Satisfactorio** o **Sobresaliente**. La columna E1/E2/E3 indica en qué entregas se tiene en cuenta cada criterio.
 
 | # | Criterio | E1 | E2 | E3 |
 |---|---------|:--:|:--:|:--:|
 | | ***Alcance y calidad global*** | | | |
 | 1 | Alcance y calidad del trabajo realizado | ✓ | ✓ | ✓ |
+| 2 | Preguntas de investigación interesantes que justifican los datasets y evolucionan con el análisis | ✓ | ✓ | ✓ |
 | | ***Entrega y formato técnico*** | | | |
-| 2 | Entrega memoria html + Rmd compilable, datos en RDS | ✓ | ✓ | ✓ |
-| 3 | Enlace al Dashboard en el servidor Shiny del DIS | | | ✓ |
-| 4 | Nombre de archivos correcto (NombreApellido1) | ✓ | ✓ | ✓ |
+| 3 | Entrega memoria html + Rmd compilable, datos en RDS | ✓ | ✓ | ✓ |
+| 4 | Enlace al Dashboard en el servidor Shiny del DIS | | | ✓ |
+| 5 | Nombre de archivos correcto (NombreApellido1) | ✓ | ✓ | ✓ |
 | | ***Texto y estructura de la memoria*** | | | |
-| 5 | Texto atractivo, bien formateado, sin rastros de R | ✓ | ✓ | ✓ |
-| 6 | Texto coherente con hilo conductor común | ✓ | ✓ | ✓ |
-| 7 | Todas las secciones completadas siguiendo CRISP-DM | | | ✓ |
-| 8 | Cada cosa en la sección que le corresponde | ✓ | ✓ | ✓ |
-| 9 | Aportaciones y conclusiones coherentes con el trabajo | | | ✓ |
+| 6 | Texto atractivo, bien formateado, sin rastros de R | ✓ | ✓ | ✓ |
+| 7 | Texto coherente con hilo conductor común | ✓ | ✓ | ✓ |
+| 8 | Todas las secciones completadas siguiendo CRISP-DM | | | ✓ |
+| 9 | Cada cosa en la sección que le corresponde | ✓ | ✓ | ✓ |
+| 10 | Aportaciones y conclusiones coherentes con el trabajo | | | ✓ |
 | | ***Comprensión y preparación de los datos*** | | | |
-| 10 | Información, origen y fiabilidad de los datasets | ✓ | ✓ | ✓ |
-| 11 | Descripción detallada del procesado inicial de datos | | ✓ | ✓ |
-| 12 | Conceptos manejados claros desde el principio | ✓ | ✓ | ✓ |
-| 13 | Elección correcta de atributos para PCA | | | ✓ |
+| 11 | Información, origen y fiabilidad de los datasets | ✓ | ✓ | ✓ |
+| 12 | Descripción detallada del procesado inicial de datos | | ✓ | ✓ |
+| 13 | Conceptos manejados claros desde el principio | ✓ | ✓ | ✓ |
+| 14 | Elección correcta de atributos para PCA | | | ✓ |
 | | ***Visualizaciones en la memoria*** | | | |
-| 14 | Primeras gráficas ilustran los conceptos de forma general | | ✓ | ✓ |
-| 15 | Gráficas de calidad profesional, sin solapamientos y autocontenidas | | ✓ | ✓ |
-| 16 | Todas las gráficas dinámicas con identificación | | | ✓ |
-| 17 | No repetir la misma gráfica con datos distintos | | ✓ | ✓ |
-| 18 | Tipos requeridos: disco, barra, HeatMap, caja | | ✓ | ✓ |
+| 15 | Primeras gráficas ilustran los conceptos de forma general | | ✓ | ✓ |
+| 16 | Gráficas de calidad profesional, sin solapamientos y autocontenidas | | ✓ | ✓ |
+| 17 | Todas las gráficas dinámicas con identificación | | | ✓ |
+| 18 | No repetir la misma gráfica con datos distintos | | ✓ | ✓ |
+| 19 | Tipos requeridos: disco, barra, HeatMap, caja | | ✓ | ✓ |
 | | ***Dashboard*** | | | |
-| 19 | Dashboard bien diseñado, cubre todas las variables | | | ✓ |
-| 20 | Dashboard: series temporales con `facet_wrap` | | | ✓ |
-| 21 | Dashboard: modelos ARIMA | | | ✓ |
-| 22 | Dashboard: mapas coropléticos | | | ✓ |
-| 23 | Dashboard: comparación de atributos con Yeo-Johnson | | | ✓ |
-| 24 | Dashboard: matriz de correlación y PCA | | | ✓ |
-| 25 | Dashboard: variables fijadas dinámicamente con Inputs | | | ✓ |
+| 20 | Dashboard bien diseñado, cubre todas las variables | | | ✓ |
+| 21 | Dashboard: series temporales con `facet_wrap` | | | ✓ |
+| 22 | Dashboard: modelos ARIMA | | | ✓ |
+| 23 | Dashboard: mapas coropléticos | | | ✓ |
+| 24 | Dashboard: comparación de atributos con Yeo-Johnson | | | ✓ |
+| 25 | Dashboard: matriz de correlación y PCA | | | ✓ |
+| 26 | Dashboard: variables fijadas dinámicamente con Inputs | | | ✓ |
 | | ***Seguimiento y dedicación*** | | | |
-| 26 | Uso de Google Sheet para control de dedicación | ✓ | ✓ | ✓ |
-| 27 | Coherencia entre horas dedicadas y trabajo realizado | ✓ | ✓ | ✓ |
+| 27 | Uso de Google Sheet para control de dedicación | ✓ | ✓ | ✓ |
+| 28 | Coherencia entre horas dedicadas y trabajo realizado | ✓ | ✓ | ✓ |
 
 ---
 
@@ -314,6 +333,8 @@ La evaluación del proyecto personal se estructura en torno a 27 criterios agrup
 
 **Alcance y calidad del trabajo realizado** — Es el criterio con más peso en la evaluación. No se trata solo de cumplir los requisitos técnicos, sino de demostrar capacidad de análisis, pensamiento crítico y dominio del tema. Un proyecto técnicamente correcto pero superficial no alcanza la calificación máxima.
 </div>
+
+- **Preguntas de investigación.** El proyecto plantea preguntas de investigación interesantes, concretas y que se pueden responder con los datos, y la elección de los datasets se justifica a partir de ellas (la estrategia de selección y el uso de la IA se describen en *Comprensión del negocio*). Las preguntas iniciales de la Entrega 1 se van refinando por iteraciones a partir del análisis de los datos, y las de la memoria final se responden una a una en las *Conclusiones*. Un proyecto cuyo único argumento es que el dataset cumple los requisitos de AEDV no supera este criterio.
 
 Un proyecto de calidad sobresaliente integra los datos con una narrativa coherente, extrae conclusiones no triviales, aplica correctamente la metodología CRISP-DM y presenta los resultados de forma clara y profesional tanto en la memoria como en el dashboard.
 
