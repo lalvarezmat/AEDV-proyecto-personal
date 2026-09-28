@@ -1032,6 +1032,13 @@ no solo en el proyecto personal sino en cualquier aspecto del desarrollo de la a
   eran correctos? ¿Qué decidiste NO delegar y hacer por ti mismo, y por qué?
   Esta es la parte más importante: demuestra que entiendes lo que entregas.
 
+- LÍMITES. El uso de la IA tiene dos límites: entender todo lo que entregas
+  y usar solo las librerías que aparecen en el libro de la asignatura, con
+  un código comprensible teniendo en cuenta el contenido y el enfoque de la
+  asignatura. ¿Cómo te aseguraste de respetarlos? ¿Qué hiciste cuando la IA
+  te propuso un paquete que no está en el libro o un código que se alejaba
+  de lo visto en la asignatura?
+
 - VALORACIÓN. ¿Qué te aportó organizarte así frente a conversaciones sueltas?
   ¿Qué dificultades encontraste? ¿Qué cambiarías si empezaras de nuevo?
 -->

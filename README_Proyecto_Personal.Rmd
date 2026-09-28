@@ -201,7 +201,7 @@ Las preguntas de la Entrega 1 son un **punto de partida, no una versión definit
 
 > **Antes de confirmar un dataset**, verifica en el Campus Virtual que ningún otro alumno lo haya elegido ya. Si hay solapamiento, consulta con el profesor.
 
-> **Uso de la IA**: un uso adecuado de los agentes IA puede facilitar mucho la exploración de los datasets y la búsqueda del tema del proyecto personal. La **estrategia que sigas para seleccionar los datasets** —catálogos explorados, peticiones a la IA, candidatos validados y descartados, y a qué pregunta de investigación responde cada dataset elegido— se describe en la sección **Comprensión del negocio** de la memoria.
+> **Uso de la IA**: un uso adecuado de los agentes IA puede facilitar mucho la exploración de los datasets y la búsqueda del tema del proyecto personal. La **estrategia que sigas para seleccionar los datasets** —catálogos explorados, peticiones a la IA, candidatos validados y descartados, y a qué pregunta de investigación responde cada dataset elegido— se describe en la sección **Comprensión del negocio** de la memoria. En todo el proyecto, la IA se usa con dos límites: **entender lo que se hace** y **usar solo las librerías que aparecen en el libro de la asignatura, con un código comprensible teniendo en cuenta el contenido y el enfoque de la asignatura**.
 
 ---
 
@@ -294,6 +294,7 @@ El dashboard es **el elemento más importante de la fase de Despliegue**. Crea u
 * **Dashboard sin desplegar el día de la entrega** → es un requisito obligatorio; despliégalo con tiempo suficiente.
 * **Google Sheet sin actualizar** → las sesiones de trabajo deben registrarse en tiempo real, no reconstruirse al final.
 * **Usar la IA sin referenciar** → Utilizar la IA no es negativo en la evaluación del proyecto, de hecho, usarla bien se considera positivo en la evaluación. Hay que explicar cómo se ha usado, incluyendo los agentes de IA usados y las principales interacciones para abordar los diferentes aspectos planteados en el desarrollo del proyecto.
+* **Usar la IA sin respetar sus límites** → El uso de la IA tiene dos límites: **entender todo lo que se entrega** (debes poder explicar cada línea de código y cada resultado) y **usar solo las librerías que aparecen en el libro de la asignatura, con un código comprensible teniendo en cuenta el contenido y el enfoque de la asignatura**. Si la IA propone un paquete que no está en el libro o un código que se aleja de lo visto en la asignatura, pídele que resuelva el problema como se hace en el libro.
 </div>
 
 <div class="discusion">
@@ -367,7 +368,7 @@ Un proyecto de calidad sobresaliente integra los datos con una narrativa coheren
 
 Estos criterios son de carácter binario: o se cumplen o no se cumplen. Un fallo en cualquiera de ellos puede impedir la corrección del trabajo.
 
-- **Entrega memoria en HTML y código en Rmd compilable, con datos en RDS.** Se entrega el `.html` compilado más el `.Rmd` con los datos en formato `.rds` y metadatos (si hay) en formato `,xlsx`. El código debe funcionar en cualquier ordenador sin modificaciones: rutas relativas, sin dependencias externas y solo librerías del curso. Esto se verifica desde la Entrega 1; un `.Rmd` que no compila equivale a no entregado.
+- **Entrega memoria en HTML y código en Rmd compilable, con datos en RDS.** Se entrega el `.html` compilado más el `.Rmd` con los datos en formato `.rds` y metadatos (si hay) en formato `,xlsx`. El código debe funcionar en cualquier ordenador sin modificaciones: rutas relativas, sin dependencias externas y solo las librerías que aparecen en el libro de la asignatura. Esto se verifica desde la Entrega 1; un `.Rmd` que no compila equivale a no entregado.
 
 - **Enlace al Dashboard en el servidor Shiny del DIS** *(solo Entrega 3).* El enlace debe aparecer al inicio de la memoria y estar operativo en el momento de la corrección. Un dashboard caído o inaccesible sin VPN equivale a no entregado.
 
