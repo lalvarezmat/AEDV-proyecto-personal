@@ -175,6 +175,13 @@ if(nrow(fila_metadatos) == 0)
   stop("El dataset ", Dataset.Id, " no aparece en el catálogo del INE. ",
        "Comprueba el identificador o vuelve a generar el catálogo con INE_TableDatasetGeneration.Rmd")
 
+# una misma tabla .px puede aparecer bajo varias operaciones estadísticas del
+# INE (p. ej. la 2940 la comparten 5 encuestas de ocupación turística): el
+# resto de columnas es idéntico, solo cambian OPER/OPER.Nombre, así que basta
+# con quedarse con la primera fila
+if(nrow(fila_metadatos) > 1)
+  fila_metadatos <- fila_metadatos |> distinct(Id, .keep_all = TRUE)
+
 # LastUpdate viene del Excel como número de serie de fechas de Excel
 fila_metadatos <- fila_metadatos |>
   mutate(LastUpdate = as.character(as.Date(LastUpdate, origin = "1899-12-30")))
