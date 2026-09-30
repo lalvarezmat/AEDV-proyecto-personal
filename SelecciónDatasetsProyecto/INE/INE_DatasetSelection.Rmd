@@ -84,7 +84,7 @@ Para analizar otro dataset basta con cambiar su identificador en el chunk de aba
 
 ```{r,echo=TRUE}
 # IDENTIFICADOR DEL DATASET QUE VAMOS A ANALIZAR
-Dataset.Id <- 76136 #(IPC CCAA) #35176   # 35177 #  56940 (población CCAA)
+Dataset.Id <-  56940 #76136 #(IPC CCAA) #35176   # 35177 #  56940 (población CCAA)
 ```
 
 <!--  ================  FIN EDICIÓN CÓDIGO PARA PROBAR TUS PROPIOS DATASETS ============ -->
@@ -468,7 +468,18 @@ if(hay_datos){
   )
   umbral_cob <- unname(c(MUN = 500L, PROV = 40L, CCAA = 15L, OTRO = NA_integer_)[tipo_geo])
 
-  year_end <- max(as.integer(substr(data$Periodo, 1, 4)), na.rm = TRUE)
+  # substr(Periodo, 1, 4) solo da el año cuando el periodo EMPIEZA por él
+  # ("2020", "2020M01"...); las fechas literales en español ("1 de enero de
+  # 2025") no empiezan por año y quedan en NA. Se completan con
+  # fecha_literal_es_a_Date(), o el último año sale -Inf aunque el dataset esté
+  # actualizado.
+  anio_periodo <- suppressWarnings(as.integer(substr(data$Periodo, 1, 4)))
+  es_literal <- is.na(anio_periodo) &
+    stringr::str_detect(data$Periodo, "^[0-9]{1,2} de [[:alpha:]]+ de [0-9]{4}$")
+  if(any(es_literal))
+    anio_periodo[es_literal] <- as.integer(format(fecha_literal_es_a_Date(data$Periodo[es_literal]), "%Y"))
+
+  year_end <- max(anio_periodo, na.rm = TRUE)
   ok_fecha <- year_end >= 2024
 
   # Tamaño de la serie temporal en Canarias: por combinación de atributos y
