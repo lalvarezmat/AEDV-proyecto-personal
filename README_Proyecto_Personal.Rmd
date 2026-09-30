@@ -317,8 +317,8 @@ La evaluación del proyecto personal se estructura en torno a 28 criterios agrup
 | 2 | Preguntas de investigación interesantes que justifican los datasets y evolucionan con el análisis | ✓ | ✓ | ✓ |
 | | ***Entrega y formato técnico*** | | | |
 | 3 | Entrega memoria html + Rmd compilable, datos en RDS | ✓ | ✓ | ✓ |
-| 4 | Enlace al Dashboard en el servidor Shiny del DIS | | | ✓ |
-| 5 | Nombre de archivos correcto (NombreApellido1) | ✓ | ✓ | ✓ |
+| 4 | Enlace al Dashboard en el servidor Shiny del DIS + entrega de su `.Rmd` | | | ✓ |
+| 5 | Nombre de archivos correcto (`NombreApellido1Memoria`, `NombreApellido1Dashboard`) | ✓ | ✓ | ✓ |
 | | ***Texto y estructura de la memoria*** | | | |
 | 6 | Texto atractivo, bien formateado, sin rastros de R | ✓ | ✓ | ✓ |
 | 7 | Texto coherente con hilo conductor común | ✓ | ✓ | ✓ |
@@ -370,9 +370,9 @@ Estos criterios son de carácter binario: o se cumplen o no se cumplen. Un fallo
 
 - **Entrega memoria en HTML y código en Rmd compilable, con datos en RDS.** Se entrega el `.html` compilado más el `.Rmd` con los datos en formato `.rds` y metadatos (si hay) en formato `,xlsx`. El código debe funcionar en cualquier ordenador sin modificaciones: rutas relativas, sin dependencias externas y solo las librerías que aparecen en el libro de la asignatura. Esto se verifica desde la Entrega 1; un `.Rmd` que no compila equivale a no entregado.
 
-- **Enlace al Dashboard en el servidor Shiny del DIS** *(solo Entrega 3).* El enlace debe aparecer al inicio de la memoria y estar operativo en el momento de la corrección. Un dashboard caído o inaccesible sin VPN equivale a no entregado.
+- **Enlace al Dashboard en el servidor Shiny del DIS** *(solo Entrega 3).* El enlace debe aparecer al inicio de la memoria y estar operativo en el momento de la corrección. Un dashboard caído o inaccesible sin VPN equivale a no entregado. **Además del despliegue, hay que entregar también el `.Rmd` del dashboard** (el mismo fichero que subes al servidor Shiny), junto con el resto de ficheros.
 
-- **Nombre de archivos correcto.** El `.Rmd` y el `.html` entregados deben empezar por `NombreApellido1`. Esto facilita la gestión de entregas.
+- **Nombre de archivos correcto.** El `.Rmd` y el `.html` de la memoria, y también el `.Rmd` del dashboard, deben empezar por `NombreApellido1`. Por ejemplo: `LuisAlvarezMemoria.Rmd`, `LuisAlvarezMemoria.html` y `LuisAlvarezDashboard.Rmd`. Esto facilita la gestión de entregas.
 
 ---
 
