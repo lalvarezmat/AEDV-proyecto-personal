@@ -335,7 +335,7 @@ La evaluación del proyecto personal se estructura en torno a 28 criterios agrup
 | | ***Entrega y formato técnico*** | | | |
 | 3 | Entrega memoria html + Rmd compilable, datos en RDS | ✓ | ✓ | ✓ |
 | 4 | Enlace al Dashboard en el servidor Shiny del DIS + entrega de su `.Rmd` | | | ✓ |
-| 5 | Nombre de archivos correcto (`NombreApellido1Memoria`, `NombreApellido1Dashboard`) | ✓ | ✓ | ✓ |
+| 5 | Nombre de archivos correcto (`NombreApellido1Memoria`, `NombreApellido1Dashboard`), ficheros sueltos sin comprimir | ✓ | ✓ | ✓ |
 | | ***Texto y estructura de la memoria*** | | | |
 | 6 | Texto atractivo, bien formateado, sin rastros de R | ✓ | ✓ | ✓ |
 | 7 | Texto coherente con hilo conductor común | ✓ | ✓ | ✓ |
@@ -389,7 +389,7 @@ Estos criterios son de carácter binario: o se cumplen o no se cumplen. Un fallo
 
 - **Enlace al Dashboard en el servidor Shiny del DIS** *(solo Entrega 3).* El enlace debe aparecer al inicio de la memoria y estar operativo en el momento de la corrección. Un dashboard caído o inaccesible sin VPN equivale a no entregado. **Además del despliegue, hay que entregar también el `.Rmd` del dashboard** (el mismo fichero que subes al servidor Shiny), junto con el resto de ficheros.
 
-- **Nombre de archivos correcto.** El `.Rmd` y el `.html` de la memoria, y también el `.Rmd` del dashboard, deben empezar por `NombreApellido1`. Por ejemplo: `LuisAlvarezMemoria.Rmd`, `LuisAlvarezMemoria.html` y `LuisAlvarezDashboard.Rmd`. Esto facilita la gestión de entregas.
+- **Nombre de archivos correcto.** El `.Rmd` y el `.html` de la memoria, y también el `.Rmd` del dashboard, deben empezar por `NombreApellido1`. Por ejemplo: `LuisAlvarezMemoria.Rmd`, `LuisAlvarezMemoria.html` y `LuisAlvarezDashboard.Rmd`. Esto facilita la gestión de entregas. **Sube los ficheros sueltos al Campus Virtual, nunca comprimidos en un `.zip` o `.rar`**: el profesor necesita poder abrir cada fichero directamente para corregirlo.
 
 ---
 
