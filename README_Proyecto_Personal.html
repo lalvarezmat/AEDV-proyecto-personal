@@ -2610,14 +2610,17 @@ la memoria</h2>
 académico que debe leerse con fluidez de principio a fin.</p>
 <ul>
 <li><p><strong>Texto atractivo, bien formateado, sin rastros de
-R.</strong> El documento HTML no debe mostrar mensajes de carga de
-librerías, advertencias ni salidas de consola. El parámetro
-<code>message=FALSE, warning=FALSE</code> debe estar activo en los
-chunks que los generen. No se debe incluir <code>toc: true</code> en el
-cuerpo del texto — eso ya está configurado en la cabecera YAML. El uso
-de negritas, secciones bien delimitadas y párrafos cortos mejora la
-legibilidad. Usar bloques coloreados para enfatizar aspectos relevantes
-también ayuda mucho a la lectura.</p></li>
+R.</strong> El documento HTML no debe mostrar código R, mensajes de
+carga de librerías, advertencias ni salidas de consola. El modelo de
+memoria ya trae <code>echo=FALSE</code> por defecto en las opciones
+globales (<code>knitr::opts_chunk$set(...)</code>): no lo cambies a
+<code>echo=TRUE</code> salvo en algún chunk puntual que quieras mostrar
+a propósito. El parámetro <code>message=FALSE, warning=FALSE</code> debe
+estar activo en los chunks que los generen. No se debe incluir
+<code>toc: true</code> en el cuerpo del texto — eso ya está configurado
+en la cabecera YAML. El uso de negritas, secciones bien delimitadas y
+párrafos cortos mejora la legibilidad. Usar bloques coloreados para
+enfatizar aspectos relevantes también ayuda mucho a la lectura.</p></li>
 <li><p><strong>Texto coherente con hilo conductor común.</strong> Cada
 sección debe conectar con la anterior. La introducción plantea preguntas
 que el análisis responde; las conclusiones cierran esas preguntas. Evita

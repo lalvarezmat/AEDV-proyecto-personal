@@ -397,7 +397,7 @@ Estos criterios son de carácter binario: o se cumplen o no se cumplen. Un fallo
 
 La memoria no es un cuaderno de laboratorio: es un documento académico que debe leerse con fluidez de principio a fin.
 
-- **Texto atractivo, bien formateado, sin rastros de R.** El documento HTML no debe mostrar mensajes de carga de librerías, advertencias ni salidas de consola. El parámetro `message=FALSE, warning=FALSE` debe estar activo en los chunks que los generen. No se debe incluir `toc: true` en el cuerpo del texto — eso ya está configurado en la cabecera YAML. El uso de negritas, secciones bien delimitadas y párrafos cortos mejora la legibilidad. Usar bloques coloreados para enfatizar aspectos relevantes también ayuda mucho a la lectura. 
+- **Texto atractivo, bien formateado, sin rastros de R.** El documento HTML no debe mostrar código R, mensajes de carga de librerías, advertencias ni salidas de consola. El modelo de memoria ya trae `echo=FALSE` por defecto en las opciones globales (`knitr::opts_chunk$set(...)`): no lo cambies a `echo=TRUE` salvo en algún chunk puntual que quieras mostrar a propósito. El parámetro `message=FALSE, warning=FALSE` debe estar activo en los chunks que los generen. No se debe incluir `toc: true` en el cuerpo del texto — eso ya está configurado en la cabecera YAML. El uso de negritas, secciones bien delimitadas y párrafos cortos mejora la legibilidad. Usar bloques coloreados para enfatizar aspectos relevantes también ayuda mucho a la lectura.
 
 - **Texto coherente con hilo conductor común.** Cada sección debe conectar con la anterior. La introducción plantea preguntas que el análisis responde; las conclusiones cierran esas preguntas. Evita secciones que parezcan escritas de forma independiente y pegadas sin relación entre sí.
 
