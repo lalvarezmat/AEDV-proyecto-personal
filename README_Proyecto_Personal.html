@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-09-30" />
+<meta name="date" content="2026-10-02" />
 
 <title>Proyecto Personal AEDV — Guía de trabajo</title>
 
@@ -1614,7 +1614,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Proyecto Personal AEDV — Guía de
 trabajo</h1>
-<h4 class="date">2026-09-30</h4>
+<h4 class="date">2026-10-02</h4>
 
 </div>
 
@@ -1732,7 +1732,10 @@ requisitos de AEDV: la entrega debe plantear preguntas de investigación
 interesantes que se puedan responder con esos datos y justificar, en
 <em>Comprensión del negocio</em>, que los datasets elegidos permiten
 responderlas. Un tema sin preguntas de investigación interesantes no se
-valida aunque sus datasets cumplan todos los requisitos. Son preguntas
+valida aunque sus datasets cumplan todos los requisitos. <strong>Todos
+los datasets incorporados a la memoria deben estar referenciados por al
+menos una pregunta</strong>: no puede haber un dataset “suelto” que no
+ayude a responder ninguna de ellas. Son preguntas
 <strong>iniciales</strong>: se irán refinando por iteraciones a medida
 que avance el análisis de los datos (ver el Paso 1).</p>
 <p><strong>Entrega 2 — Entrega intermedia</strong></p>
@@ -1795,6 +1798,37 @@ compilar correctamente. De hecho, si estás leyendo este documento ya
 estás trabajando en el proyecto personal y deberías tener una sesión de
 trabajo abierta.</p>
 </blockquote>
+<div class="discusion">
+<p><strong class="bloque-titulo">La nota final depende de todas las
+entregas, no solo de la última</strong></p>
+<p>La calificación final del proyecto personal se basa en el conjunto de
+las tres entregas y en la calidad con la que se vayan realizando, no
+únicamente en la entrega final. Si el profesor rechaza una entrega y
+pide un nuevo envío por errores graves, eso influye negativamente en la
+nota final aunque la versión corregida se entregue después. Por eso
+conviene revisar bien cada entrega <strong>antes</strong> de enviarla,
+no después de que se rechace.</p>
+</div>
+<div class="metodo">
+<p><strong class="bloque-titulo">Verifica tu entrega con la IA antes de
+enviarla</strong></p>
+<p>Antes de enviar cualquier entrega, pide a un agente de IA que la
+revise contra la rúbrica. Dale acceso a tu <code>.Rmd</code> y a su
+<code>.html</code> ya compilado —así puede ver también el resultado
+final, no solo el código— y pídele que compruebe los criterios de esa
+entrega a partir de este documento. Por ejemplo, para la Entrega 1:</p>
+<blockquote>
+<p>Utiliza los ficheros <code>NombreApellido1Memoria.Rmd</code> y su
+compilado <code>NombreApellido1Memoria.html</code> (para que mires el
+resultado de la compilación) y verifica si cumple todos los criterios de
+la primera entrega del proyecto personal usando los criterios que
+figuran en <code>README_Proyecto_Personal.Rmd</code>.</p>
+</blockquote>
+<p>Adapta el número de entrega (1, 2 o 3) y repite la comprobación antes
+de cada envío. Esto no sustituye la revisión del profesor, pero ayuda a
+detectar a tiempo los errores graves que llevarían a un rechazo de la
+entrega.</p>
+</div>
 <hr />
 </div>
 <div id="flujo-de-trabajo-paso-a-paso" class="section level1" number="3">
@@ -1842,8 +1876,11 @@ breve</strong> de lo realizado. En ese momento la hoja calcula
 automáticamente los minutos transcurridos desde el inicio — tampoco
 tienes que escribirlos tú.</li>
 </ul>
-<p>No necesitas introducir a mano ni la hora de inicio ni la
-duración.</p>
+<p>No necesitas introducir a mano ni la hora de inicio ni la duración.
+<strong>Cierra siempre la actividad que has abierto</strong> antes de
+empezar otra o de dejarlo por hoy: una fila sin la nota final se queda
+sin minutos calculados y aparece como actividad incompleta, lo que hace
+que la hoja deje de ser coherente.</p>
 </div>
 <p>La columna <code>ACTIVITY</code> debe coincidir exactamente con los
 valores del vector <code>actividades</code> definido en el chunk
@@ -1880,10 +1917,13 @@ se parecen más a Canarias en su evolución?»</em></li>
 </ul>
 <p>Explorar los catálogos puede ayudarte a descubrir temas y a inspirar
 preguntas, pero antes de dar por elegido un dataset tienes que poder
-decir <strong>a qué pregunta ayuda a responder</strong>. Las preguntas
-se escriben en el apartado <em>Objetivos</em> de la memoria (el modelo
-trae más ejemplos en sus comentarios), guían todo el análisis y se
-responden en las <em>Conclusiones</em>.</p>
+decir <strong>a qué pregunta ayuda a responder</strong>. <strong>Ningún
+dataset debe quedar sin pregunta asociada</strong>: si tienes un dataset
+que no sirve para responder a ninguna de tus preguntas, o lo descartas o
+formulas una pregunta nueva que lo justifique. Las preguntas se escriben
+en el apartado <em>Objetivos</em> de la memoria (el modelo trae más
+ejemplos en sus comentarios), guían todo el análisis y se responden en
+las <em>Conclusiones</em>.</p>
 <p>Las preguntas de la Entrega 1 son un <strong>punto de partida, no una
 versión definitiva</strong>. Igual que la metodología CRISP-DM, se
 trabajan <strong>por iteraciones</strong>: al explorar y modelar los
@@ -2179,6 +2219,11 @@ un requisito obligatorio; despliégalo con tiempo suficiente.</li>
 <li><strong>Google Sheet sin actualizar</strong> → las sesiones de
 trabajo deben registrarse en tiempo real, no reconstruirse al
 final.</li>
+<li><strong>Google Sheet con huecos</strong> → la hoja debe estar
+operativa y dar resultados coherentes: ninguna actividad puede quedar
+sin fecha de inicio, sin fecha de fin o sin minutos calculados, y no
+debe haber valores <code>NA</code>. Una actividad empezada hay que
+terminarla (con su nota final) antes de pasar a la siguiente.</li>
 <li><strong>Usar la IA sin referenciar</strong> → Utilizar la IA no es
 negativo en la evaluación del proyecto, de hecho, usarla bien se
 considera positivo en la evaluación. Hay que explicar cómo se ha usado,
@@ -2250,8 +2295,8 @@ entregas se tiene en cuenta cada criterio.</p>
 </tr>
 <tr class="odd">
 <td>2</td>
-<td>Preguntas de investigación interesantes que justifican los datasets
-y evolucionan con el análisis</td>
+<td>Preguntas de investigación interesantes que justifican y cubren
+todos los datasets, y evolucionan con el análisis</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
@@ -2503,9 +2548,12 @@ correcto pero superficial no alcanza la calificación máxima.</p>
 preguntas de investigación interesantes, concretas y que se pueden
 responder con los datos, y la elección de los datasets se justifica a
 partir de ellas (la estrategia de selección y el uso de la IA se
-describen en <em>Comprensión del negocio</em>). Las preguntas iniciales
-de la Entrega 1 se van refinando por iteraciones a partir del análisis
-de los datos, y las de la memoria final se responden una a una en las
+describen en <em>Comprensión del negocio</em>). <strong>Todos los
+datasets de la memoria deben estar cubiertos por al menos una
+pregunta</strong>: un dataset que no responde a ninguna pregunta de
+investigación es un dataset sin justificar. Las preguntas iniciales de
+la Entrega 1 se van refinando por iteraciones a partir del análisis de
+los datos, y las de la memoria final se responden una a una en las
 <em>Conclusiones</em>. Un proyecto cuyo único argumento es que el
 dataset cumple los requisitos de AEDV no supera este criterio.</li>
 </ul>
@@ -2528,8 +2576,11 @@ datos en RDS.</strong> Se entrega el <code>.html</code> compilado más el
 (si hay) en formato <code>,xlsx</code>. El código debe funcionar en
 cualquier ordenador sin modificaciones: rutas relativas, sin
 dependencias externas y solo las librerías que aparecen en el libro de
-la asignatura. Esto se verifica desde la Entrega 1; un <code>.Rmd</code>
-que no compila equivale a no entregado.</p></li>
+la asignatura. La <strong>imagen de portada</strong> también debe ser un
+fichero local entregado junto al <code>.Rmd</code> (no un enlace a un
+servidor externo), para que se vea igual leyendo el documento localmente
+que a través de un enlace. Esto se verifica desde la Entrega 1; un
+<code>.Rmd</code> que no compila equivale a no entregado.</p></li>
 <li><p><strong>Enlace al Dashboard en el servidor Shiny del DIS</strong>
 <em>(solo Entrega 3).</em> El enlace debe aparecer al inicio de la
 memoria y estar operativo en el momento de la corrección. Un dashboard
@@ -2726,9 +2777,13 @@ de la entrega, no es creíble y se valora como No Satisfactorio.</p>
 <ul>
 <li><p><strong>Uso de Google Sheet para el control de
 dedicación.</strong> La hoja debe estar activa desde el principio del
-proyecto, con entradas regulares que reflejen el progreso real. La
-memoria la lee automáticamente para generar el Anexo II — si la hoja no
-está bien configurada, el documento no compila.</p></li>
+proyecto, con entradas regulares que reflejen el progreso real, y debe
+estar <strong>operativa y dar resultados coherentes</strong>: sin
+valores <code>NA</code> y sin actividades incompletas (sin fecha de
+inicio, sin fecha de fin o sin minutos calculados). La memoria la lee
+automáticamente para generar el Anexo II — si la hoja no está bien
+configurada o tiene actividades a medio registrar, el documento puede no
+compilar o el Anexo II puede salir con huecos.</p></li>
 <li><p><strong>Coherencia entre horas registradas y trabajo
 realizado.</strong> Un proyecto muy elaborado con pocas horas
 registradas, o muchas horas con un resultado pobre, genera

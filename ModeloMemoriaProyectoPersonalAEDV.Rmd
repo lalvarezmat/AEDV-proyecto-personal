@@ -127,9 +127,19 @@ operativa en el momento de la entrega final.
 
 <!--
 IMAGEN DE PORTADA:
-Sustituye la URL por una imagen representativa de tu tema de proyecto.
+Sustituye la imagen de abajo por una representativa de tu tema de proyecto.
 Puede ser una imagen propia, de dominio público o con licencia Creative Commons.
 El atributo width controla el tamaño relativo respecto al ancho del documento.
+
+IMPORTANTE: guarda tu imagen como un FICHERO LOCAL en la misma carpeta que
+este Rmd (por ejemplo "portada.png") y referencia esa ruta relativa, no una
+URL externa. Así la portada se ve igual si el documento se lee localmente
+(sin conexión a internet, por ejemplo al abrir el .html descargado) que si
+se lee a través de un enlace: una imagen que depende de un servidor externo
+no aparece si ese servidor no está disponible o no hay red en ese momento.
+La imagen de ejemplo de abajo SÍ es una URL externa a propósito, para que la
+plantilla se vea bien antes de que la sustituyas; cámbiala por tu fichero
+local antes de entregar.
 -->
 
 <center>

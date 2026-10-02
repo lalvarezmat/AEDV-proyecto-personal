@@ -59,7 +59,7 @@ Acredita que el tema elegido es viable e interesante y que los datos seleccionad
 * **3.4 Comprensión de los datos**, con los datasets incorporados a la memoria y la discusión de su adecuación a los requisitos de AEDV, tal y como lo hacen los scripts de selección de datasets del ISTAC, INE, EUROSTAT o Banco Mundial. Hay que dedicar especial atención a explicar bien el significado de todas las unidades y variables, con sus opciones posibles.
 * **Anexo II. Seguimiento temporal de actividades del proyecto**, que se genera solo a partir de la Google Sheet.
 
-**Exigencia de la Entrega 1: las preguntas de investigación.** No basta con que los datasets cumplan los requisitos de AEDV: la entrega debe plantear preguntas de investigación interesantes que se puedan responder con esos datos y justificar, en *Comprensión del negocio*, que los datasets elegidos permiten responderlas. Un tema sin preguntas de investigación interesantes no se valida aunque sus datasets cumplan todos los requisitos. Son preguntas **iniciales**: se irán refinando por iteraciones a medida que avance el análisis de los datos (ver el Paso 1).
+**Exigencia de la Entrega 1: las preguntas de investigación.** No basta con que los datasets cumplan los requisitos de AEDV: la entrega debe plantear preguntas de investigación interesantes que se puedan responder con esos datos y justificar, en *Comprensión del negocio*, que los datasets elegidos permiten responderlas. Un tema sin preguntas de investigación interesantes no se valida aunque sus datasets cumplan todos los requisitos. **Todos los datasets incorporados a la memoria deben estar referenciados por al menos una pregunta**: no puede haber un dataset "suelto" que no ayude a responder ninguna de ellas. Son preguntas **iniciales**: se irán refinando por iteraciones a medida que avance el análisis de los datos (ver el Paso 1).
 
 **Entrega 2 — Entrega intermedia**
 
@@ -88,6 +88,22 @@ El cuadro de mandos interactivo debe estar desplegado en el servidor Shiny del D
 </div>
 
 > La **Google Sheet de seguimiento de actividades** se revisa en las tres entregas. Debe estar activa desde el primer día: cada sesión de trabajo debe registrarse en el momento, y la memoria la lee automáticamente para generar el Anexo II. Sin ella el documento puede no compilar correctamente. De hecho, si estás leyendo este documento ya estás trabajando en el proyecto personal y deberías tener una sesión de trabajo abierta.
+
+<div class="discusion">
+<strong class="bloque-titulo">La nota final depende de todas las entregas, no solo de la última</strong>
+
+La calificación final del proyecto personal se basa en el conjunto de las tres entregas y en la calidad con la que se vayan realizando, no únicamente en la entrega final. Si el profesor rechaza una entrega y pide un nuevo envío por errores graves, eso influye negativamente en la nota final aunque la versión corregida se entregue después. Por eso conviene revisar bien cada entrega **antes** de enviarla, no después de que se rechace.
+</div>
+
+<div class="metodo">
+<strong class="bloque-titulo">Verifica tu entrega con la IA antes de enviarla</strong>
+
+Antes de enviar cualquier entrega, pide a un agente de IA que la revise contra la rúbrica. Dale acceso a tu `.Rmd` y a su `.html` ya compilado —así puede ver también el resultado final, no solo el código— y pídele que compruebe los criterios de esa entrega a partir de este documento. Por ejemplo, para la Entrega 1:
+
+> Utiliza los ficheros `NombreApellido1Memoria.Rmd` y su compilado `NombreApellido1Memoria.html` (para que mires el resultado de la compilación) y verifica si cumple todos los criterios de la primera entrega del proyecto personal usando los criterios que figuran en `README_Proyecto_Personal.Rmd`.
+
+Adapta el número de entrega (1, 2 o 3) y repite la comprobación antes de cada envío. Esto no sustituye la revisión del profesor, pero ayuda a detectar a tiempo los errores graves que llevarían a un rechazo de la entrega.
+</div>
 
 ---
 
@@ -122,7 +138,7 @@ SeguimientoActividadesProyecto <- read_sheet(
 - **Al empezar**: en una fila nueva selecciona la **actividad** en la que vas a trabajar. En ese momento la hoja registra automáticamente la hora de inicio y la fecha — no tienes que escribirlas tú.
 - **Al terminar**: escribe una **nota breve** de lo realizado. En ese momento la hoja calcula automáticamente los minutos transcurridos desde el inicio — tampoco tienes que escribirlos tú.
 
-No necesitas introducir a mano ni la hora de inicio ni la duración.
+No necesitas introducir a mano ni la hora de inicio ni la duración. **Cierra siempre la actividad que has abierto** antes de empezar otra o de dejarlo por hoy: una fila sin la nota final se queda sin minutos calculados y aparece como actividad incompleta, lo que hace que la hoja deje de ser coherente.
 </div>
 
 La columna `ACTIVITY` debe coincidir exactamente con los valores del vector `actividades` definido en el chunk `seguimiento-por-actividad` de la memoria (`"Introducción"`, `"Comprensión del negocio"`, etc.).
@@ -143,7 +159,7 @@ Parte de un tema que te interese y formula entre 3 y 5 **preguntas de investigac
 * Débil: *«Analizar la evolución del paro en España»* — descriptivo; cualquier resultado vale y no hay nada que concluir.
 * Mejor: *«¿Se ha recuperado el empleo en Canarias tras la crisis de 2008 al mismo ritmo que en el resto de comunidades? ¿Qué comunidades se parecen más a Canarias en su evolución?»*
 
-Explorar los catálogos puede ayudarte a descubrir temas y a inspirar preguntas, pero antes de dar por elegido un dataset tienes que poder decir **a qué pregunta ayuda a responder**. Las preguntas se escriben en el apartado *Objetivos* de la memoria (el modelo trae más ejemplos en sus comentarios), guían todo el análisis y se responden en las *Conclusiones*.
+Explorar los catálogos puede ayudarte a descubrir temas y a inspirar preguntas, pero antes de dar por elegido un dataset tienes que poder decir **a qué pregunta ayuda a responder**. **Ningún dataset debe quedar sin pregunta asociada**: si tienes un dataset que no sirve para responder a ninguna de tus preguntas, o lo descartas o formulas una pregunta nueva que lo justifique. Las preguntas se escriben en el apartado *Objetivos* de la memoria (el modelo trae más ejemplos en sus comentarios), guían todo el análisis y se responden en las *Conclusiones*.
 
 Las preguntas de la Entrega 1 son un **punto de partida, no una versión definitiva**. Igual que la metodología CRISP-DM, se trabajan **por iteraciones**: al explorar y modelar los datos aparecerán resultados que obligan a matizar una pregunta, a descartar otra que los datos no permiten responder o a plantear una nueva que no se veía al principio. Actualiza el apartado *Objetivos* en cada entrega para que las preguntas de la memoria final sean las que el análisis responde de verdad.
 </div>
@@ -293,6 +309,7 @@ El dashboard es **el elemento más importante de la fase de Despliegue**. Crea u
 * **Elegir un dataset sin validarlo** con los 5 criterios → datasets demasiado cortos, sin cobertura suficiente o sin datos de España/Canarias llevan a análisis pobres.
 * **Dashboard sin desplegar el día de la entrega** → es un requisito obligatorio; despliégalo con tiempo suficiente.
 * **Google Sheet sin actualizar** → las sesiones de trabajo deben registrarse en tiempo real, no reconstruirse al final.
+* **Google Sheet con huecos** → la hoja debe estar operativa y dar resultados coherentes: ninguna actividad puede quedar sin fecha de inicio, sin fecha de fin o sin minutos calculados, y no debe haber valores `NA`. Una actividad empezada hay que terminarla (con su nota final) antes de pasar a la siguiente.
 * **Usar la IA sin referenciar** → Utilizar la IA no es negativo en la evaluación del proyecto, de hecho, usarla bien se considera positivo en la evaluación. Hay que explicar cómo se ha usado, incluyendo los agentes de IA usados y las principales interacciones para abordar los diferentes aspectos planteados en el desarrollo del proyecto.
 * **Usar la IA sin respetar sus límites** → El uso de la IA tiene dos límites: **entender todo lo que se entrega** (debes poder explicar cada línea de código y cada resultado) y **usar solo las librerías que aparecen en el libro de la asignatura, con un código comprensible teniendo en cuenta el contenido y el enfoque de la asignatura**. Si la IA propone un paquete que no está en el libro o un código que se aleja de lo visto en la asignatura, pídele que resuelva el problema como se hace en el libro.
 </div>
@@ -314,7 +331,7 @@ La evaluación del proyecto personal se estructura en torno a 28 criterios agrup
 |---|---------|:--:|:--:|:--:|
 | | ***Alcance y calidad global*** | | | |
 | 1 | Alcance y calidad del trabajo realizado | ✓ | ✓ | ✓ |
-| 2 | Preguntas de investigación interesantes que justifican los datasets y evolucionan con el análisis | ✓ | ✓ | ✓ |
+| 2 | Preguntas de investigación interesantes que justifican y cubren todos los datasets, y evolucionan con el análisis | ✓ | ✓ | ✓ |
 | | ***Entrega y formato técnico*** | | | |
 | 3 | Entrega memoria html + Rmd compilable, datos en RDS | ✓ | ✓ | ✓ |
 | 4 | Enlace al Dashboard en el servidor Shiny del DIS + entrega de su `.Rmd` | | | ✓ |
@@ -358,7 +375,7 @@ La evaluación del proyecto personal se estructura en torno a 28 criterios agrup
 **Alcance y calidad del trabajo realizado** — Es el criterio con más peso en la evaluación. No se trata solo de cumplir los requisitos técnicos, sino de demostrar capacidad de análisis, pensamiento crítico y dominio del tema. Un proyecto técnicamente correcto pero superficial no alcanza la calificación máxima.
 </div>
 
-- **Preguntas de investigación.** El proyecto plantea preguntas de investigación interesantes, concretas y que se pueden responder con los datos, y la elección de los datasets se justifica a partir de ellas (la estrategia de selección y el uso de la IA se describen en *Comprensión del negocio*). Las preguntas iniciales de la Entrega 1 se van refinando por iteraciones a partir del análisis de los datos, y las de la memoria final se responden una a una en las *Conclusiones*. Un proyecto cuyo único argumento es que el dataset cumple los requisitos de AEDV no supera este criterio.
+- **Preguntas de investigación.** El proyecto plantea preguntas de investigación interesantes, concretas y que se pueden responder con los datos, y la elección de los datasets se justifica a partir de ellas (la estrategia de selección y el uso de la IA se describen en *Comprensión del negocio*). **Todos los datasets de la memoria deben estar cubiertos por al menos una pregunta**: un dataset que no responde a ninguna pregunta de investigación es un dataset sin justificar. Las preguntas iniciales de la Entrega 1 se van refinando por iteraciones a partir del análisis de los datos, y las de la memoria final se responden una a una en las *Conclusiones*. Un proyecto cuyo único argumento es que el dataset cumple los requisitos de AEDV no supera este criterio.
 
 Un proyecto de calidad sobresaliente integra los datos con una narrativa coherente, extrae conclusiones no triviales, aplica correctamente la metodología CRISP-DM y presenta los resultados de forma clara y profesional tanto en la memoria como en el dashboard.
 
@@ -368,7 +385,7 @@ Un proyecto de calidad sobresaliente integra los datos con una narrativa coheren
 
 Estos criterios son de carácter binario: o se cumplen o no se cumplen. Un fallo en cualquiera de ellos puede impedir la corrección del trabajo.
 
-- **Entrega memoria en HTML y código en Rmd compilable, con datos en RDS.** Se entrega el `.html` compilado más el `.Rmd` con los datos en formato `.rds` y metadatos (si hay) en formato `,xlsx`. El código debe funcionar en cualquier ordenador sin modificaciones: rutas relativas, sin dependencias externas y solo las librerías que aparecen en el libro de la asignatura. Esto se verifica desde la Entrega 1; un `.Rmd` que no compila equivale a no entregado.
+- **Entrega memoria en HTML y código en Rmd compilable, con datos en RDS.** Se entrega el `.html` compilado más el `.Rmd` con los datos en formato `.rds` y metadatos (si hay) en formato `,xlsx`. El código debe funcionar en cualquier ordenador sin modificaciones: rutas relativas, sin dependencias externas y solo las librerías que aparecen en el libro de la asignatura. La **imagen de portada** también debe ser un fichero local entregado junto al `.Rmd` (no un enlace a un servidor externo), para que se vea igual leyendo el documento localmente que a través de un enlace. Esto se verifica desde la Entrega 1; un `.Rmd` que no compila equivale a no entregado.
 
 - **Enlace al Dashboard en el servidor Shiny del DIS** *(solo Entrega 3).* El enlace debe aparecer al inicio de la memoria y estar operativo en el momento de la corrección. Un dashboard caído o inaccesible sin VPN equivale a no entregado. **Además del despliegue, hay que entregar también el `.Rmd` del dashboard** (el mismo fichero que subes al servidor Shiny), junto con el resto de ficheros.
 
@@ -460,6 +477,6 @@ El dashboard es el entregable técnico más exigente. Debe estar desplegado y ac
 Las fechas de la Google Sheet son verificables. Un registro reconstruido al final, con todas las sesiones en los últimos días antes de la entrega, no es creíble y se valora como No Satisfactorio.
 </div>
 
-- **Uso de Google Sheet para el control de dedicación.** La hoja debe estar activa desde el principio del proyecto, con entradas regulares que reflejen el progreso real. La memoria la lee automáticamente para generar el Anexo II — si la hoja no está bien configurada, el documento no compila.
+- **Uso de Google Sheet para el control de dedicación.** La hoja debe estar activa desde el principio del proyecto, con entradas regulares que reflejen el progreso real, y debe estar **operativa y dar resultados coherentes**: sin valores `NA` y sin actividades incompletas (sin fecha de inicio, sin fecha de fin o sin minutos calculados). La memoria la lee automáticamente para generar el Anexo II — si la hoja no está bien configurada o tiene actividades a medio registrar, el documento puede no compilar o el Anexo II puede salir con huecos.
 
 - **Coherencia entre horas registradas y trabajo realizado.** Un proyecto muy elaborado con pocas horas registradas, o muchas horas con un resultado pobre, genera inconsistencias que el evaluador detecta. El registro de actividades debe ser acorde al nivel de desarrollo de cada fase CRISP-DM.
