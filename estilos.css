@@ -104,13 +104,22 @@ p { font-size: 14px; margin-bottom: 10px; }
 }
 
 /* ============================================================
+   SALIDAS DE imprime_caja(): CABECERA + 5 FILAS
+   Uso:  <div class="caja-scroll caja-5"> ... </div>
+   Modificador de caja-scroll para la salida impresa de cada columna
+   (valores y nº de observaciones): deja a la vista la cabecera y 5
+   filas, y el resto se recorre con el scroll.
+   ============================================================ */
+.caja-scroll.caja-5 { max-height: 152px; }
+/* ============================================================
    TABLAS ANCHAS Y LARGAS: SCROLL EN LOS DOS EJES
    Uso:  <div class="tabla-scroll-xy"> (chunk con tabla ancha y larga) </div>
    Para tablas con muchas filas Y columnas (p. ej. una fila por
    combinación de atributos de un dataset). La cabecera queda fija
    arriba mientras se recorre la tabla.
    ============================================================ */
-.tabla-scroll-xy { overflow: auto; max-height: 450px; border: 1px solid #ddd; }
+/* max-height: cabecera + 5 filas a la vista; el resto se recorre con el scroll */
+.tabla-scroll-xy { overflow: auto; max-height: 190px; border: 1px solid #ddd; }
 .tabla-scroll-xy table { width: auto; min-width: 100%; margin-bottom: 0; }
 .tabla-scroll-xy table td, .tabla-scroll-xy table th { white-space: nowrap; }
 .tabla-scroll-xy thead th {
@@ -150,7 +159,7 @@ p { font-size: 14px; margin-bottom: 10px; }
   text-align: center;
   font-weight: bold;
   color: #fff;
-  padding: 2px 6px;
+  padding: 0 6px;
   border-radius: 3px;
 }
 .val-ok { background-color: #28a745; }

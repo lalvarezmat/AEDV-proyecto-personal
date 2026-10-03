@@ -34,16 +34,19 @@ p { font-size: 14px; margin-bottom: 10px;
    atributos): scroll en los dos ejes, con la fila de cabecera fija arriba
    mientras se recorre. Alternativa ligera a DT::datatable: HTML puro, sin
    JavaScript ni dependencias */
-.tabla-scroll-xy { overflow: auto; max-height: 450px; border: 1px solid #ddd; }
+/* max-height: cabecera + 5 filas a la vista; el resto se recorre con el scroll */
+.tabla-scroll-xy { overflow: auto; max-height: 190px; border: 1px solid #ddd; }
 .tabla-scroll-xy table { width: auto; min-width: 100%; margin-bottom: 0; }
 .tabla-scroll-xy table td, .tabla-scroll-xy table th { white-space: nowrap; }
 .tabla-scroll-xy thead th { position: sticky; top: 0; z-index: 1;
                             background-color: #fff; box-shadow: inset 0 -1px 0 #ddd; }
 /* Celdas de cumple/no cumple de la tabla de validación de requisitos */
 .val-ok, .val-no { display: block; text-align: center; font-weight: bold;
-                   color: #fff; padding: 2px 6px; border-radius: 3px; }
+                   color: #fff; padding: 0 6px; border-radius: 3px; }
 .val-ok { background-color: #28a745; }
 .val-no { background-color: #dc3545; }
+/* Salidas de imprime_caja(): cabecera + 5 filas a la vista; el resto con scroll */
+.caja-scroll.caja-5 { max-height: 152px; }
 </style>
 
 ```{r,echo=FALSE}
@@ -170,15 +173,17 @@ Una vez guardados en disco los metadatos (fichero xlsx) y los datos (fichero RDS
 
 # Análisis del dataset
 
+<!------------------------------------------------------------------------------- 
+LO SIGUIENTE, HASTA EL FINAL DEL CÓDIGO, ES LA PARTE QUE SE INCORPORA A LA MEMORIA DEL PROYECTO PERSONAL INCLUIR LOS DATOS EN LA SECCIÓN DE "COMPRENSIÓN DE LOS 
+DATOS". SI SE INCORPORAN VARIOS GRUPOS DE DATASETS HAY QUE HACER ESTO PARA CADA UNO. HAY QUE TENER EN CUENTA QUE EL DATASET SE CARGA EN UNA TABLA QUE SE LLAMA data. SI SE USA VARIAS VECES ESTE CÓDIGO PARA INCORPORAR VARIOS DATASETS HAY QUE ASIGNAR AL FINAL DE ESTE CÓDIGO UN NOMBRE DISTINTO A CADA UNO 
+--------------------------------------------------------------------------------->
 
-```{r,echo=TRUE}
-# se repite aquí (idéntico al de la sección "Descarga, limpieza y guardado") para
-# poder nombrar los ficheros sin depender de ningún chunk anterior
-#dataset.name <- "demo_r_pjanaggr3"   # poner el código del dataset que interese
+```{r}
+#dataset.name <- "demo_r_pjanaggr3" # AL LEER LOS DATOS DESDE AQUÍ HAY QUE DEFINIR DE NUEVO dataset.name
 filename     <- dataset.name
 ```
 
-```{r,echo=TRUE}
+```{r}
 metadatos <- openxlsx::read.xlsx(paste0(filename, "_metadatos.xlsx"))
 ```
 
@@ -206,14 +211,14 @@ cat(metadatos$Valor[metadatos$Campo == "Descripcion"])
 
 </div>
 
-```{r,echo=TRUE}
+```{r}
 data <- readRDS(paste0(filename, ".rds"))
 ```
 
 **data**
 
 ```{r}
-data
+data |> print(n=5)
 ```
 
 ## Información sobre las columnas de la tabla descargada
@@ -258,15 +263,15 @@ NUTS.computation <- function(s){
 
 ```{r, results='asis'}
 # results='asis' para poder envolver la salida de cada columna en HTML propio
-# (concretamente, la caja con scroll vertical de TIME_PERIOD). Sin 'asis' el
+# (la caja con scroll vertical, con 5 filas a la vista). Sin 'asis' el
 # <div>/<pre> se imprimirían como texto literal en vez de interpretarse.
-imprime_caja <- function(m, texto, scroll = FALSE){
+imprime_caja <- function(m, texto){
   cat("\n**", texto, "**\n\n", sep = "")
-  if(scroll) cat('<div class="caja-scroll">\n\n')
+  cat('<div class="caja-scroll caja-5">\n\n')
   cat("```\n")
   print(m)
   cat("```\n")
-  if(scroll) cat("\n</div>\n")
+  cat("\n</div>\n")
   cat("\n")
 }
 
@@ -283,9 +288,7 @@ for(col in colnames(data)){
       summarise(N.observ=dplyr::n()) |>
       as.matrix() |>
       noquote()
-    # el dataset puede tener muchas fechas distintas (mensuales, semanales...):
-    # se muestran en una caja con scroll vertical en vez de alargar la página
-    imprime_caja(tb, paste0("COLUMNA: TIME_PERIOD (", n_opciones, " opciones)"), scroll = TRUE)
+    imprime_caja(tb, paste0("COLUMNA: TIME_PERIOD (", n_opciones, " opciones)"))
     next
   }
  if(col=="geo"){
@@ -493,17 +496,6 @@ tb_val |>
 
 
 ## Validación de requisitos AEDV
-
-Esta sección resume, de un vistazo, si el dataset sirve como dataset principal del proyecto. Se comprueban los **cuatro criterios** de la asignatura sobre **cada combinación de atributos** (es decir, sobre cada serie temporal que el dataset permite seguir por región):
-
-* **Cobertura geográfica**: la combinación debe tener datos de al menos **25** países (NUTS 0), **90** regiones NUTS 1, **200** NUTS 2 o **500** NUTS 3. Basta con cumplirlo en **uno** de los cuatro niveles, porque un dataset por países no tiene por qué bajar a provincias.
-
-* **Datos actualizados**: el último dato debe ser de **2024** o posterior.
-
-* **Tamaño de las series temporales**: el **percentil 25 (P25)** del nº de fechas por región debe superar el umbral de su frecuencia: **10** para datos anuales, **20** para semestrales, **40** para trimestrales, **60** para mensuales, **200** para semanales y **1096** para diarios (tres años). Usar el P25 equivale a exigir que el **75 % de las regiones** alcance ese tamaño.
-
-* **Tamaño de las series temporales en España/Canarias**: el mismo umbral de arriba debe superarse también, de forma individual, en la serie de España (`ES`) o en alguna serie de Canarias (`ES7`, `ES70`, `ES703`..`ES709`). Basta con que se cumpla en **una de las dos**.
-
 
 <div class="tabla-scroll-xy">
 

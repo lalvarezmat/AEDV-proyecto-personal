@@ -11,7 +11,7 @@
 
 <meta name="author" content="Luis Alvarez" />
 
-<meta name="date" content="2026-09-21" />
+<meta name="date" content="2026-10-03" />
 
 <title>Análisis de datasets seleccionados del Banco Mundial</title>
 
@@ -365,7 +365,7 @@ display: none;
 <h1 class="title toc-ignore">Análisis de datasets seleccionados del
 Banco Mundial</h1>
 <h4 class="author">Luis Alvarez</h4>
-<h4 class="date">2026-09-21</h4>
+<h4 class="date">2026-10-03</h4>
 
 </div>
 
@@ -395,16 +395,19 @@ queden pegadas al texto que viene después (evita tener que poner <br> a mano
 /* Tablas que pueden ser anchas Y largas (p. ej. una fila por indicador): scroll
    en los dos ejes, con la fila de cabecera fija arriba mientras se recorre.
    Alternativa ligera a DT::datatable: HTML puro, sin JavaScript ni dependencias */
-.tabla-scroll-xy { overflow: auto; max-height: 450px; border: 1px solid #ddd; }
+/* max-height: cabecera + 5 filas a la vista; el resto se recorre con el scroll */
+.tabla-scroll-xy { overflow: auto; max-height: 190px; border: 1px solid #ddd; }
 .tabla-scroll-xy table { width: auto; min-width: 100%; margin-bottom: 0; }
 .tabla-scroll-xy table td, .tabla-scroll-xy table th { white-space: nowrap; }
 .tabla-scroll-xy thead th { position: sticky; top: 0; z-index: 1;
                             background-color: #fff; box-shadow: inset 0 -1px 0 #ddd; }
 /* Celdas de cumple/no cumple de la tabla de validación de requisitos */
 .val-ok, .val-no { display: block; text-align: center; font-weight: bold;
-                   color: #fff; padding: 2px 6px; border-radius: 3px; }
+                   color: #fff; padding: 0 6px; border-radius: 3px; }
 .val-ok { background-color: #28a745; }
 .val-no { background-color: #dc3545; }
+/* Salidas de imprime_caja(): cabecera + 5 filas a la vista; el resto con scroll */
+.caja-scroll.caja-5 { max-height: 152px; }
 </style>
 <p>Este documento analiza en detalle los <strong>indicadores</strong>
 del Banco Mundial ya elegidos a partir de la tabla que genera
@@ -536,10 +539,9 @@ de lo definido anteriormente es <code>filename</code>).</p>
 <div id="análisis-del-dataset" class="section level1" number="2">
 <h1><span class="header-section-number">2</span> Análisis del
 dataset</h1>
-<pre class="r"><code># se repite aquí (idéntico al de la sección anterior) para poder nombrar los
-# ficheros sin depender de ningún chunk anterior
-filename &lt;- &quot;WB_Selected&quot;</code></pre>
-<pre class="r"><code>metadatos &lt;- read.xlsx(paste0(filename, &quot;_metadatos.xlsx&quot;))</code></pre>
+<!------------------------------------------------------------------------------- 
+LO SIGUIENTE, HASTA EL FINAL DEL CÓDIGO, ES LA PARTE QUE SE INCORPORA A LA MEMORIA DEL PROYECTO PERSONAL INCLUIR LOS DATOS EN LA SECCIÓN DE "COMPRENSIÓN DE LOS DATOS". SI SE INCORPORAN VARIOS GRUPOS DE DATASETS HAY QUE HACER ESTO PARA CADA UNO. HAY QUE TENER EN CUENTA QUE EL DATASET SE CARGA EN UNA TABLA QUE SE LLAMA data. SI SE USA VARIAS VECES ESTE CÓDIGO PARA INCORPORAR VARIOS DATASETS HAY QUE ASIGNAR AL FINAL DE ESTE CÓDIGO UN NOMBRE DISTINTO A CADA UNO 
+--------------------------------------------------------------------------------->
 <p><strong>metadatos</strong></p>
 <div class="tabla-scroll-xy">
 <table>
@@ -636,29 +638,23 @@ for domestic uses include drinking water, municipal use or supply, and
 use for public services, commercial establishments, and homes. Data are
 for the most recent year available for 1987-2002.</p>
 </div>
-<pre class="r"><code>data &lt;- readRDS(paste0(filename, &quot;.rds&quot;))</code></pre>
 <p><strong>data</strong></p>
 <pre><code>## # A tibble: 13,379 × 5
-##    iso3c country                     indicator       date value
-##    &lt;chr&gt; &lt;chr&gt;                       &lt;chr&gt;          &lt;dbl&gt; &lt;dbl&gt;
-##  1 AFE   Africa Eastern and Southern ER.H2O.FWTL.K3  1990 37.1 
-##  2 AFE   Africa Eastern and Southern ER.H2O.FWTL.K3  1991 37.3 
-##  3 AFE   Africa Eastern and Southern ER.H2O.FWTL.K3  1992 39.2 
-##  4 AFE   Africa Eastern and Southern ER.H2O.FWTL.K3  1993 39.4 
-##  5 AFE   Africa Eastern and Southern ER.H2O.FWTL.K3  1994 42.0 
-##  6 AFE   Africa Eastern and Southern ER.H2O.FWTL.K3  1995 43.1 
-##  7 AFE   Africa Eastern and Southern ER.H2O.FWTL.ZS  1995  2.37
-##  8 AFE   Africa Eastern and Southern ER.H2O.FWTL.K3  1996 43.8 
-##  9 AFE   Africa Eastern and Southern ER.H2O.FWTL.ZS  1996  2.41
-## 10 AFE   Africa Eastern and Southern ER.H2O.FWTL.K3  1997 44.6 
-## # ℹ 13,369 more rows</code></pre>
+##   iso3c country                     indicator       date value
+##   &lt;chr&gt; &lt;chr&gt;                       &lt;chr&gt;          &lt;dbl&gt; &lt;dbl&gt;
+## 1 AFE   Africa Eastern and Southern ER.H2O.FWTL.K3  1990  37.1
+## 2 AFE   Africa Eastern and Southern ER.H2O.FWTL.K3  1991  37.3
+## 3 AFE   Africa Eastern and Southern ER.H2O.FWTL.K3  1992  39.2
+## 4 AFE   Africa Eastern and Southern ER.H2O.FWTL.K3  1993  39.4
+## 5 AFE   Africa Eastern and Southern ER.H2O.FWTL.K3  1994  42.0
+## # ℹ 13,374 more rows</code></pre>
 <div id="información-sobre-las-columnas-de-la-tabla-descargada" class="section level2" number="2.1">
 <h2><span class="header-section-number">2.1</span> Información sobre las
 columnas de la tabla descargada</h2>
 <p>Se presentan las diferentes dimensiones, cada una con sus valores
 posibles y el nº de observaciones.</p>
 <p><strong>COLUMNA: iso3c (227 opciones)</strong></p>
-<div class="caja-scroll">
+<div class="caja-scroll caja-5">
 <pre><code>       iso3c N.observ
   [1,] BRB   122     
   [2,] URY   116     
@@ -889,7 +885,7 @@ posibles y el nº de observaciones.</p>
 [227,] MNE    17     </code></pre>
 </div>
 <p><strong>COLUMNA: country (227 opciones)</strong></p>
-<div class="caja-scroll">
+<div class="caja-scroll caja-5">
 <pre><code>       country                                                 N.observ
   [1,] Barbados                                                122     
   [2,] Uruguay                                                 116     
@@ -1120,13 +1116,13 @@ posibles y el nº de observaciones.</p>
 [227,] Montenegro                                               17     </code></pre>
 </div>
 <p><strong>COLUMNA: indicator (2 opciones)</strong></p>
-<div class="caja-scroll">
+<div class="caja-scroll caja-5">
 <pre><code>     indicator      N.observ
 [1,] ER.H2O.FWTL.K3 6749    
 [2,] ER.H2O.FWTL.ZS 6630    </code></pre>
 </div>
 <p><strong>COLUMNA: date (61 opciones)</strong></p>
-<div class="caja-scroll">
+<div class="caja-scroll caja-5">
 <pre><code>      date N.observ
  [1,] 2014 450     
  [2,] 2015 450     
@@ -1194,9 +1190,6 @@ posibles y el nº de observaciones.</p>
 <div id="nº-de-observaciones-en-españa" class="section level2" number="2.2">
 <h2><span class="header-section-number">2.2</span> Nº de observaciones
 en España</h2>
-<p>Los datos del Banco Mundial son por países, así que aquí lo que
-interesa comprobar es que <strong>España</strong> (<code>ESP</code>)
-esté presente y bien representada en cada uno de los indicadores.</p>
 <pre><code>##       indicator N.Observ n_periodos date_min date_max
 ##  ER.H2O.FWTL.K3       48         48     1975     2022
 ##  ER.H2O.FWTL.ZS       48         48     1975     2022</code></pre>
@@ -1204,25 +1197,6 @@ esté presente y bien representada en cada uno de los indicadores.</p>
 <div id="validación-de-requisitos-aedv" class="section level2" number="2.3">
 <h2><span class="header-section-number">2.3</span> Validación de
 requisitos AEDV</h2>
-<p>Esta sección resume, de un vistazo, si los indicadores sirven como
-dataset principal del proyecto. Se comprueban los <strong>cuatro
-criterios</strong> de la asignatura sobre <strong>cada
-indicador</strong> (cada uno es un atributo que se sigue en el tiempo
-para cada país):</p>
-<ul>
-<li><p><strong>Cobertura geográfica</strong>: el indicador debe tener
-datos de al menos <strong>100</strong> países.</p></li>
-<li><p><strong>Datos actualizados</strong>: el último dato debe ser de
-<strong>2024</strong> o posterior.</p></li>
-<li><p><strong>Tamaño de las series temporales</strong>: los datos del
-Banco Mundial son siempre <strong>anuales</strong>, así que el umbral es
-de <strong>10</strong> años. Se exige que el <strong>percentil 25
-(P25)</strong> del nº de años por país sea ≥ 10, lo que equivale a pedir
-que el <strong>75 % de los países</strong> alcance ese tamaño.</p></li>
-<li><p><strong>Tamaño de la serie temporal en España</strong>: el mismo
-umbral de 10 años debe cumplirse también, de forma individual, en la
-serie de España.</p></li>
-</ul>
 <p><strong>Indicadores</strong>: nº de países, rango de fechas y
 percentiles del tamaño de la serie temporal (años por país).</p>
 <div class="tabla-scroll-xy">

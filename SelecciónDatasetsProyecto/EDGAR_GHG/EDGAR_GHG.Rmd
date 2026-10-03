@@ -37,7 +37,8 @@ p { font-size: 14px; margin-bottom: 10px;
    sustancia): scroll en los dos ejes, con la fila de cabecera fija arriba
    mientras se recorre. Alternativa ligera a DT::datatable: HTML puro, sin
    JavaScript ni dependencias */
-.tabla-scroll-xy { overflow: auto; max-height: 450px; border: 1px solid #ddd; }
+/* max-height: cabecera + 5 filas a la vista; el resto se recorre con el scroll */
+.tabla-scroll-xy { overflow: auto; max-height: 190px; border: 1px solid #ddd; }
 .tabla-scroll-xy table { width: auto; min-width: 100%; margin-bottom: 0; }
 .tabla-scroll-xy table td, .tabla-scroll-xy table th { white-space: nowrap; }
 .tabla-scroll-xy thead th { position: sticky; top: 0; z-index: 1;
@@ -47,6 +48,8 @@ p { font-size: 14px; margin-bottom: 10px;
    la tabla desmesuradamente ancha. Va con clase propia para no ensanchar las
    tablas cuya última columna es un número (p. ej. la de percentiles) */
 .tabla-scroll-xy.con-desc table td:last-child { white-space: normal; min-width: 420px; }
+/* Salidas de imprime_caja(): cabecera + 5 filas a la vista; el resto con scroll */
+.caja-scroll.caja-5 { max-height: 152px; }
 </style>
 
 
@@ -330,13 +333,17 @@ Una vez guardados en disco los metadatos (fichero xlsx) y los datos (fichero RDS
 
 # Análisis del dataset
 
-```{r,echo=TRUE}
-# se repite aquí (idéntico al de la sección anterior) para poder nombrar los
-# ficheros sin depender de ningún chunk anterior
+<!------------------------------------------------------------------------------- 
+LO SIGUIENTE, HASTA EL FINAL DEL CÓDIGO, ES LA PARTE QUE SE INCORPORA A LA MEMORIA DEL PROYECTO PERSONAL INCLUIR LOS DATOS EN LA SECCIÓN DE "COMPRENSIÓN DE LOS 
+DATOS". SI SE INCORPORAN VARIOS GRUPOS DE DATASETS HAY QUE HACER ESTO PARA CADA UNO. HAY QUE TENER EN CUENTA QUE EL DATASET SE CARGA EN DOS TABLAS QUE SE LLAMAN data (EMISIONES) Y data_norm (EMISIONES NORMALIZADAS). SI SE USA VARIAS VECES ESTE CÓDIGO PARA INCORPORAR VARIOS DATASETS HAY QUE ASIGNAR AL FINAL UN NOMBRE DISTINTO A CADA UNO 
+--------------------------------------------------------------------------------->
+
+```{r}
+# AL LEER LOS DATOS DESDE AQUÍ HAY QUE DEFINIR DE NUEVO filename (nombre con el que se guardaron los ficheros)
 filename <- "EDGAR_GHG"
 ```
 
-```{r,echo=TRUE}
+```{r}
 # las descripciones de los indicadores viven en las hojas `Sector`, `Substance`
 # e `Indicador` del fichero de metadatos, y la ficha general en `dataset`
 ficha          <- read.xlsx(paste0(filename, "_metadatos.xlsx"), sheet = "dataset")
@@ -355,14 +362,14 @@ knitr::kable(ficha)
 
 </div>
 
-```{r,echo=TRUE}
+```{r}
 data <- readRDS(paste0(filename, ".rds"))
 ```
 
 **data**
 
 ```{r}
-data
+data |> print(n=5)
 ```
 
 > **Aviso sobre la tabla combinada:** Esta tabla combina el desglose por sector con el total por país en una sola tabla, por lo que **NO debe sumarse a ciegas** sobre `Sector` ni sobre `Substance`. Las filas `Sector == "TOTAL"` (con `Substance == "GWP_100_AR5_GHG"`) ya son la suma de todos los sectores y sustancias: sumarlas junto con el resto duplicaría las emisiones. Ver la sección *Descripción de las variables de la tabla* más abajo.
@@ -375,13 +382,13 @@ Se presentan las diferentes dimensiones, cada una con sus valores posibles y el 
 # results='asis' para poder envolver la salida de cada columna en HTML propio
 # (la caja con scroll vertical). Sin 'asis' el <div>/<pre> se imprimirían como
 # texto literal en vez de interpretarse.
-imprime_caja <- function(m, texto, scroll = FALSE){
+imprime_caja <- function(m, texto){
   cat("\n**", texto, "**\n\n", sep = "")
-  if(scroll) cat('<div class="caja-scroll">\n\n')
+  cat('<div class="caja-scroll caja-5">\n\n')
   cat("```\n")
   print(m)
   cat("```\n")
-  if(scroll) cat("\n</div>\n")
+  cat("\n</div>\n")
   cat("\n")
 }
 
@@ -402,9 +409,7 @@ for(col in colnames(data)){
 
   texto <- paste0("COLUMNA: ", col, " (", n_opciones, " opciones)")
 
-  # cualquier columna puede tener muchas opciones (212 países/entidades...):
-  # se muestran TODAS, en una caja con scroll vertical en vez de alargar la página
-  imprime_caja(tb |> as.matrix() |> noquote(), texto, scroll = TRUE)
+  imprime_caja(tb |> as.matrix() |> noquote(), texto)
 }
 ```
 
@@ -492,14 +497,14 @@ data |>
 
 Novedad de la versión 2026 del dataset: junto a las emisiones absolutas, EDGAR publica ahora dos vistas normalizadas por país y año, en un fichero aparte (`EDGAR_GHG_normalizado.rds`) porque tienen otra unidad y otra granularidad — solo país × año, sin desglose por `Sector`/`Substance` (son siempre el total del país).
 
-```{r,echo=TRUE}
+```{r}
 data_norm <- readRDS(paste0(filename, "_normalizado.rds"))
 ```
 
 **data_normalizado**
 
 ```{r}
-data_norm
+data_norm |> print(n=5)
 ```
 
 <div class="tabla-scroll-xy con-desc">

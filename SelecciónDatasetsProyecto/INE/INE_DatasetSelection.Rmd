@@ -34,16 +34,19 @@ p { font-size: 14px; margin-bottom: 10px;
    atributos): scroll en los dos ejes, con la fila de cabecera fija arriba
    mientras se recorre. Alternativa ligera a DT::datatable: HTML puro, sin
    JavaScript ni dependencias */
-.tabla-scroll-xy { overflow: auto; max-height: 450px; border: 1px solid #ddd; }
+/* max-height: cabecera + 5 filas a la vista; el resto se recorre con el scroll */
+.tabla-scroll-xy { overflow: auto; max-height: 190px; border: 1px solid #ddd; }
 .tabla-scroll-xy table { width: auto; min-width: 100%; margin-bottom: 0; }
 .tabla-scroll-xy table td, .tabla-scroll-xy table th { white-space: nowrap; }
 .tabla-scroll-xy thead th { position: sticky; top: 0; z-index: 1;
                             background-color: #fff; box-shadow: inset 0 -1px 0 #ddd; }
 /* Celdas de cumple/no cumple de la tabla de validación de requisitos */
 .val-ok, .val-no { display: block; text-align: center; font-weight: bold;
-                   color: #fff; padding: 2px 6px; border-radius: 3px; }
+                   color: #fff; padding: 0 6px; border-radius: 3px; }
 .val-ok { background-color: #28a745; }
 .val-no { background-color: #dc3545; }
+/* Salidas de imprime_caja(): cabecera + 5 filas a la vista; el resto con scroll */
+.caja-scroll.caja-5 { max-height: 152px; }
 </style>
 
 ```{r,echo=FALSE}
@@ -221,16 +224,16 @@ Una vez guardados en disco los metadatos (fichero xlsx) y los datos (fichero RDS
 
 # Análisis del dataset
 
+<!------------------------------------------------------------------------------- 
+LO SIGUIENTE, HASTA EL FINAL DEL CÓDIGO, ES LA PARTE QUE SE INCORPORA A LA MEMORIA DEL PROYECTO PERSONAL INCLUIR LOS DATOS EN LA SECCIÓN DE "COMPRENSIÓN DE LOS DATOS". SI SE INCORPORAN VARIOS GRUPOS DE DATASETS HAY QUE HACER ESTO PARA CADA UNO. HAY QUE TENER EN CUENTA QUE EL DATASET SE CARGA EN UNA TABLA QUE SE LLAMA data. SI SE USA VARIAS VECES ESTE CÓDIGO PARA INCORPORAR VARIOS DATASETS HAY QUE ASIGNAR AL FINAL DE ESTE CÓDIGO UN NOMBRE DISTINTO A CADA UNO 
+--------------------------------------------------------------------------------->
 
-
-```{r,echo=TRUE}
-# se repite aquí (idéntico al de la sección "Descarga, limpieza y guardado") para
-# poder nombrar los ficheros sin depender de ningún chunk anterior
-#Dataset.Id <- 35176 # hay que poner el dataset ID real que use el alumno 
+```{r}
+#Dataset.Id <- 35176 # AL LEER LOS DATOS DESDE AQUI HAY QUE DEFINIR DE NUEVO Dataset.Id 
 filename   <- as.character(Dataset.Id)
 ```
 
-```{r,echo=TRUE}
+```{r}
 metadatos <- read.xlsx(paste0(filename, "_metadatos.xlsx"))
 ```
 
@@ -245,17 +248,17 @@ metadatos |>
 
 </div>
 
-```{r,echo=TRUE}
+```{r}
 data <- readRDS(paste0(filename, ".rds"))
 ```
 
 **data**
 
 ```{r}
-data
+data |> print(n=5)
 ```
 
-```{r,echo=TRUE}
+```{r}
 # COLUMNA GEOGRÁFICA: se guardó en los metadatos (geo.col.name) al construir el
 # rds, así que no hace falta volver a detectarla a partir de los datos
 geo_col <- metadatos$Valor[metadatos$Campo == "geo.col.name"]
@@ -270,15 +273,15 @@ Se presentan las diferentes dimensiones, cada una con sus valores posibles y el 
 
 ```{r, results='asis'}
 # results='asis' para poder envolver la salida de cada columna en HTML propio
-# (concretamente, la caja con scroll vertical de Periodo). Sin 'asis' el
+# (la caja con scroll vertical, con 5 filas a la vista). Sin 'asis' el
 # <div>/<pre> se imprimirían como texto literal en vez de interpretarse.
-imprime_caja <- function(m, texto, scroll = FALSE){
+imprime_caja <- function(m, texto){
   cat("\n**", texto, "**\n\n", sep = "")
-  if(scroll) cat('<div class="caja-scroll">\n\n')
+  cat('<div class="caja-scroll caja-5">\n\n')
   cat("```\n")
   print(m)
   cat("```\n")
-  if(scroll) cat("\n</div>\n")
+  cat("\n</div>\n")
   cat("\n")
 }
 
@@ -293,17 +296,13 @@ for(col in colnames(data)){
     mutate(!!col := substr(as.character(!!sym(col)), 1, 55))
 
   texto <- paste0("COLUMNA: ", col, " (", nrow(tb), " opciones)")
-
-  # cualquier columna puede tener muchas opciones (municipios, tipos de dato
-  # detallados...), no solo Periodo: se muestran TODAS, en una caja con scroll
-  # vertical en vez de truncar a 50 o alargar la página
-  imprime_caja(tb |> as.matrix() |> noquote(), texto, scroll = TRUE)
+  
+  imprime_caja(tb |> as.matrix() |> noquote(), texto)
 }
 ```
 
 ## Nº de observaciones en Canarias
 
-Todos los datos del INE se refieren a España, así que aquí lo que interesa comprobar es que **Canarias** esté bien representada. Según el nivel de desglose del dataset, Canarias aparece como la comunidad autónoma (`Canarias`), como sus dos provincias (`35 Palmas, Las` y `38 Santa Cruz de Tenerife`) o como municipios con código `35xxx`/`38xxx`.
 
 ```{r}
 # Detecta si un valor de la columna geográfica corresponde a Canarias. Se
@@ -337,17 +336,6 @@ if(is.null(geo_col)){
 
 ## Validación de requisitos AEDV
 
-Esta sección resume, de un vistazo, si el dataset sirve como dataset principal del proyecto. Se comprueban los **cuatro criterios** de la asignatura sobre **cada combinación de atributos** (es decir, sobre cada serie temporal que el dataset permite seguir por región):
-
-* **Cobertura geográfica**: el dataset debe tener datos de un número mínimo de regiones, según el nivel de desglose que indica su código: **500** para municipios (`MUN`), **40** para provincias (`PROV`) y **15** para comunidades autónomas (`CCAA`).
-
-* **Datos actualizados**: el último dato debe ser de **2024** o posterior.
-
-* **Tamaño de las series temporales**: el **percentil 25 (P25)** del nº de fechas por región debe superar el umbral de su frecuencia: **10** para datos anuales, **20** para semestrales, **40** para trimestrales, **60** para mensuales, **200** para semanales y **1096** para diarios (tres años). Usar el P25 equivale a exigir que el **75 % de las regiones** alcance ese tamaño.
-
-* **Tamaño de las series temporales en Canarias**: el mismo umbral debe superarse también, de forma individual, en alguna de las regiones canarias del dataset.
-
-La frecuencia se detecta automáticamente desde el formato de `Periodo` (`"2020"` → anual, `"2008S1"` → semestral, `"2020T1"` → trimestral, `"2020M01"` → mensual, `"2020SM01"` → semanal, `"1/1/2020"` → diario). También se reconocen fechas literales en español (`"1 de abril de 1971"`), clasificándolas por el salto entre fechas consecutivas. **Si el dataset mezcla frecuencias, aparecerá una fila por cada frecuencia detectada.**
 
 ```{r}
 # --- DETECCIÓN DE LA FRECUENCIA ----------------------------------------------

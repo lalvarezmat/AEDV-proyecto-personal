@@ -34,16 +34,19 @@ p { font-size: 14px; margin-bottom: 10px;
 /* Tablas que pueden ser anchas Y largas (p. ej. una fila por indicador): scroll
    en los dos ejes, con la fila de cabecera fija arriba mientras se recorre.
    Alternativa ligera a DT::datatable: HTML puro, sin JavaScript ni dependencias */
-.tabla-scroll-xy { overflow: auto; max-height: 450px; border: 1px solid #ddd; }
+/* max-height: cabecera + 5 filas a la vista; el resto se recorre con el scroll */
+.tabla-scroll-xy { overflow: auto; max-height: 190px; border: 1px solid #ddd; }
 .tabla-scroll-xy table { width: auto; min-width: 100%; margin-bottom: 0; }
 .tabla-scroll-xy table td, .tabla-scroll-xy table th { white-space: nowrap; }
 .tabla-scroll-xy thead th { position: sticky; top: 0; z-index: 1;
                             background-color: #fff; box-shadow: inset 0 -1px 0 #ddd; }
 /* Celdas de cumple/no cumple de la tabla de validación de requisitos */
 .val-ok, .val-no { display: block; text-align: center; font-weight: bold;
-                   color: #fff; padding: 2px 6px; border-radius: 3px; }
+                   color: #fff; padding: 0 6px; border-radius: 3px; }
 .val-ok { background-color: #28a745; }
 .val-no { background-color: #dc3545; }
+/* Salidas de imprime_caja(): cabecera + 5 filas a la vista; el resto con scroll */
+.caja-scroll.caja-5 { max-height: 152px; }
 </style>
 
 ```{r,echo=FALSE}
@@ -223,13 +226,16 @@ Una vez guardados en disco los metadatos (fichero xlsx) y los datos (fichero RDS
 
 # Análisis del dataset
 
-```{r,echo=TRUE}
-# se repite aquí (idéntico al de la sección anterior) para poder nombrar los
-# ficheros sin depender de ningún chunk anterior
+<!------------------------------------------------------------------------------- 
+LO SIGUIENTE, HASTA EL FINAL DEL CÓDIGO, ES LA PARTE QUE SE INCORPORA A LA MEMORIA DEL PROYECTO PERSONAL INCLUIR LOS DATOS EN LA SECCIÓN DE "COMPRENSIÓN DE LOS DATOS". SI SE INCORPORAN VARIOS GRUPOS DE DATASETS HAY QUE HACER ESTO PARA CADA UNO. HAY QUE TENER EN CUENTA QUE EL DATASET SE CARGA EN UNA TABLA QUE SE LLAMA data. SI SE USA VARIAS VECES ESTE CÓDIGO PARA INCORPORAR VARIOS DATASETS HAY QUE ASIGNAR AL FINAL DE ESTE CÓDIGO UN NOMBRE DISTINTO A CADA UNO 
+--------------------------------------------------------------------------------->
+
+```{r}
+# AL LEER LOS DATOS DESDE AQUÍ HAY QUE DEFINIR DE NUEVO filename (nombre con el que se guardaron los ficheros)
 filename <- "WB_Selected"
 ```
 
-```{r,echo=TRUE}
+```{r}
 metadatos <- read.xlsx(paste0(filename, "_metadatos.xlsx"))
 ```
 
@@ -265,14 +271,14 @@ if("Indicator_desc" %in% colnames(metadatos)){
 }
 ```
 
-```{r,echo=TRUE}
+```{r}
 data <- readRDS(paste0(filename, ".rds"))
 ```
 
 **data**
 
 ```{r}
-data
+data |> print(n=5)
 ```
 
 ## Información sobre las columnas de la tabla descargada
@@ -283,13 +289,13 @@ Se presentan las diferentes dimensiones, cada una con sus valores posibles y el 
 # results='asis' para poder envolver la salida de cada columna en HTML propio
 # (la caja con scroll vertical). Sin 'asis' el <div>/<pre> se imprimirían como
 # texto literal en vez de interpretarse.
-imprime_caja <- function(m, texto, scroll = FALSE){
+imprime_caja <- function(m, texto){
   cat("\n**", texto, "**\n\n", sep = "")
-  if(scroll) cat('<div class="caja-scroll">\n\n')
+  cat('<div class="caja-scroll caja-5">\n\n')
   cat("```\n")
   print(m)
   cat("```\n")
-  if(scroll) cat("\n</div>\n")
+  cat("\n</div>\n")
   cat("\n")
 }
 
@@ -311,15 +317,11 @@ for(col in colnames(data)){
 
   texto <- paste0("COLUMNA: ", col, " (", n_opciones, " opciones)")
 
-  # cualquier columna puede tener muchas opciones (227 países, 61 años...): se
-  # muestran TODAS, en una caja con scroll vertical en vez de alargar la página
-  imprime_caja(tb |> as.matrix() |> noquote(), texto, scroll = TRUE)
+  imprime_caja(tb |> as.matrix() |> noquote(), texto)
 }
 ```
 
 ## Nº de observaciones en España
-
-Los datos del Banco Mundial son por países, así que aquí lo que interesa comprobar es que **España** (`ESP`) esté presente y bien representada en cada uno de los indicadores.
 
 ```{r}
 data.esp <- data |>
@@ -339,16 +341,6 @@ if(nrow(data.esp) == 0){
 ```
 
 ## Validación de requisitos AEDV
-
-Esta sección resume, de un vistazo, si los indicadores sirven como dataset principal del proyecto. Se comprueban los **cuatro criterios** de la asignatura sobre **cada indicador** (cada uno es un atributo que se sigue en el tiempo para cada país):
-
-* **Cobertura geográfica**: el indicador debe tener datos de al menos **100** países.
-
-* **Datos actualizados**: el último dato debe ser de **2024** o posterior.
-
-* **Tamaño de las series temporales**: los datos del Banco Mundial son siempre **anuales**, así que el umbral es de **10** años. Se exige que el **percentil 25 (P25)** del nº de años por país sea ≥ 10, lo que equivale a pedir que el **75 % de los países** alcance ese tamaño.
-
-* **Tamaño de la serie temporal en España**: el mismo umbral de 10 años debe cumplirse también, de forma individual, en la serie de España.
 
 ```{r}
 # --- TAMAÑO DE LAS SERIES POR INDICADOR --------------------------------------

@@ -11,7 +11,7 @@
 
 <meta name="author" content="Luis Alvarez" />
 
-<meta name="date" content="2026-09-21" />
+<meta name="date" content="2026-10-03" />
 
 <title>Análisis de datasets seleccionados del ISTAC</title>
 
@@ -365,7 +365,7 @@ display: none;
 <h1 class="title toc-ignore">Análisis de datasets seleccionados del
 ISTAC</h1>
 <h4 class="author">Luis Alvarez</h4>
-<h4 class="date">2026-09-21</h4>
+<h4 class="date">2026-10-03</h4>
 
 </div>
 
@@ -394,16 +394,19 @@ queden pegadas al texto que viene después (evita tener que poner <br> a mano
 /* Tablas que pueden ser anchas Y largas (p. ej. una fila por indicador): scroll
    en los dos ejes, con la fila de cabecera fija arriba mientras se recorre.
    Alternativa ligera a DT::datatable: HTML puro, sin JavaScript ni dependencias */
-.tabla-scroll-xy { overflow: auto; max-height: 450px; border: 1px solid #ddd; }
+/* max-height: cabecera + 5 filas a la vista; el resto se recorre con el scroll */
+.tabla-scroll-xy { overflow: auto; max-height: 190px; border: 1px solid #ddd; }
 .tabla-scroll-xy table { width: auto; min-width: 100%; margin-bottom: 0; }
 .tabla-scroll-xy table td, .tabla-scroll-xy table th { white-space: nowrap; }
 .tabla-scroll-xy thead th { position: sticky; top: 0; z-index: 1;
                             background-color: #fff; box-shadow: inset 0 -1px 0 #ddd; }
 /* Celdas de cumple/no cumple de la tabla de validación de requisitos */
 .val-ok, .val-no { display: block; text-align: center; font-weight: bold;
-                   color: #fff; padding: 2px 6px; border-radius: 3px; }
+                   color: #fff; padding: 0 6px; border-radius: 3px; }
 .val-ok { background-color: #28a745; }
 .val-no { background-color: #dc3545; }
+/* Salidas de imprime_caja(): cabecera + 5 filas a la vista; el resto con scroll */
+.caja-scroll.caja-5 { max-height: 152px; }
 </style>
 <p>Este documento analiza en detalle los <strong>indicadores</strong>
 del ISTAC ya elegidos a partir de la tabla que genera
@@ -532,10 +535,10 @@ de lo definido anteriormente es <code>filename</code>).</p>
 <div id="análisis-del-dataset" class="section level1" number="2">
 <h1><span class="header-section-number">2</span> Análisis del
 dataset</h1>
-<pre class="r"><code># se repite aquí (idéntico al de la sección anterior) para poder nombrar los
-# ficheros sin depender de ningún chunk anterior
-filename &lt;- &quot;ISTAC_Selected&quot;</code></pre>
-<pre class="r"><code>metadatos &lt;- read.xlsx(paste0(filename, &quot;_metadatos.xlsx&quot;))</code></pre>
+<!------------------------------------------------------------------------------- 
+LO SIGUIENTE, HASTA EL FINAL DEL CÓDIGO, ES LA PARTE QUE SE INCORPORA A LA MEMORIA DEL PROYECTO PERSONAL INCLUIR LOS DATOS EN LA SECCIÓN DE "COMPRENSIÓN DE LOS 
+DATOS". SI SE INCORPORAN VARIOS GRUPOS DE DATASETS HAY QUE HACER ESTO PARA CADA UNO. HAY QUE TENER EN CUENTA QUE EL DATASET SE CARGA EN UNA TABLA QUE SE LLAMA data. SI SE USA VARIAS VECES ESTE CÓDIGO PARA INCORPORAR VARIOS DATASETS HAY QUE ASIGNAR AL FINAL DE ESTE CÓDIGO UN NOMBRE DISTINTO A CADA UNO 
+--------------------------------------------------------------------------------->
 <p><strong>metadatos</strong></p>
 <div class="tabla-scroll-xy">
 <table>
@@ -653,23 +656,17 @@ vehículo y comparar entre territorios.</td>
 </tbody>
 </table>
 </div>
-<pre class="r"><code>data &lt;- readRDS(paste0(filename, &quot;.rds&quot;))</code></pre>
 <p><strong>data</strong></p>
 <div class="tabla-scroll">
 <pre><code>## # A tibble: 6,716 × 5
-##    GEOGRAPHICAL NAME   INDICATOR                           TIME  VALUE
-##    &lt;chr&gt;        &lt;chr&gt;  &lt;chr&gt;                               &lt;chr&gt; &lt;dbl&gt;
-##  1 35001        Agaete PARQUE_VEHICULOS                    2010  3243 
-##  2 35001        Agaete PARQUE_VEHICULOS_HABITANTE          2010   562.
-##  3 35001        Agaete PARQUE_VEHICULOS_TURISMOS           2010  2058 
-##  4 35001        Agaete PARQUE_VEHICULOS_TURISMOS_HABITANTE 2010   356.
-##  5 35001        Agaete PARQUE_VEHICULOS                    2011  3288 
-##  6 35001        Agaete PARQUE_VEHICULOS_HABITANTE          2011   570.
-##  7 35001        Agaete PARQUE_VEHICULOS_TURISMOS           2011  2089 
-##  8 35001        Agaete PARQUE_VEHICULOS_TURISMOS_HABITANTE 2011   362.
-##  9 35001        Agaete PARQUE_VEHICULOS                    2012  3305 
-## 10 35001        Agaete PARQUE_VEHICULOS_HABITANTE          2012   570.
-## # ℹ 6,706 more rows</code></pre>
+##   GEOGRAPHICAL NAME   INDICATOR                           TIME  VALUE
+##   &lt;chr&gt;        &lt;chr&gt;  &lt;chr&gt;                               &lt;chr&gt; &lt;dbl&gt;
+## 1 35001        Agaete PARQUE_VEHICULOS                    2010  3243 
+## 2 35001        Agaete PARQUE_VEHICULOS_HABITANTE          2010   562.
+## 3 35001        Agaete PARQUE_VEHICULOS_TURISMOS           2010  2058 
+## 4 35001        Agaete PARQUE_VEHICULOS_TURISMOS_HABITANTE 2010   356.
+## 5 35001        Agaete PARQUE_VEHICULOS                    2011  3288 
+## # ℹ 6,711 more rows</code></pre>
 </div>
 <div id="información-sobre-las-columnas-de-la-tabla-descargada" class="section level2" number="2.1">
 <h2><span class="header-section-number">2.1</span> Información sobre las
@@ -677,7 +674,7 @@ columnas de la tabla descargada</h2>
 <p>Se presentan las diferentes dimensiones, cada una con sus valores
 posibles y el nº de observaciones.</p>
 <p><strong>COLUMNA: GEOGRAPHICAL (96 opciones)</strong></p>
-<div class="caja-scroll">
+<div class="caja-scroll caja-5">
 <pre><code>      GEOGRAPHICAL N.observ
  [1,] 35001        70      
  [2,] 35002        70      
@@ -777,7 +774,7 @@ posibles y el nº de observaciones.</p>
 [96,] 35007        68      </code></pre>
 </div>
 <p><strong>COLUMNA: NAME (96 opciones)</strong></p>
-<div class="caja-scroll">
+<div class="caja-scroll caja-5">
 <pre><code>      NAME                                N.observ
  [1,] Adeje                               70      
  [2,] Agaete                              70      
@@ -877,7 +874,7 @@ posibles y el nº de observaciones.</p>
 [96,] Betancuria                          68      </code></pre>
 </div>
 <p><strong>COLUMNA: INDICATOR (6 opciones)</strong></p>
-<div class="caja-scroll">
+<div class="caja-scroll caja-5">
 <pre><code>     INDICATOR                           N.observ
 [1,] PARQUE_VEHICULOS                    1536    
 [2,] PARQUE_VEHICULOS_HABITANTE          1536    
@@ -887,7 +884,7 @@ posibles y el nº de observaciones.</p>
 [6,] MATRICULA_VEHICULOS_TURISMOS         285    </code></pre>
 </div>
 <p><strong>COLUMNA: TIME (17 opciones)</strong></p>
-<div class="caja-scroll">
+<div class="caja-scroll caja-5">
 <pre><code>      TIME N.observ
  [1,] 2024 576     
  [2,] 2025 576     
@@ -1014,37 +1011,6 @@ observaciones</h2>
 <div id="validación-de-requisitos-aedv" class="section level2" number="2.3">
 <h2><span class="header-section-number">2.3</span> Validación de
 requisitos AEDV</h2>
-<p>Esta sección resume, de un vistazo, si los indicadores sirven como
-dataset principal del proyecto. Se comprueban los <strong>tres
-criterios</strong> de la asignatura sobre <strong>cada
-indicador</strong> (cada uno es un atributo que se sigue en el tiempo
-para cada región):</p>
-<ul>
-<li><p><strong>Cobertura geográfica</strong>: el umbral depende del
-nivel de desglose que indica <code>area</code> en el catálogo:
-<strong>80</strong> para municipios (<code>MUNI</code>),
-<strong>6</strong> para islas (<code>ISLA</code>), <strong>15</strong>
-para comunidades autónomas (<code>CCAA</code>) y <strong>40</strong>
-para provincias (<code>PROV</code>). Los indicadores a nivel de Canarias
-entera (<code>CANA</code>) no pueden cumplir este criterio, al ser una
-única región.</p></li>
-<li><p><strong>Datos actualizados</strong>: el último dato debe ser de
-<strong>2024</strong> o posterior.</p></li>
-<li><p><strong>Tamaño de las series temporales</strong>: el
-<strong>percentil 25 (P25)</strong> del nº de fechas por región debe
-superar el umbral de su frecuencia: <strong>10</strong> para datos
-anuales, <strong>20</strong> para semestrales, <strong>40</strong> para
-trimestrales, <strong>60</strong> para mensuales, <strong>200</strong>
-para semanales y <strong>1096</strong> para diarios (tres años). Usar el
-P25 equivale a exigir que el <strong>75 % de las regiones</strong>
-alcance ese tamaño.</p></li>
-</ul>
-<p>La frecuencia se detecta automáticamente desde el formato de
-<code>TIME</code> (<code>&quot;2020&quot;</code> → anual, <code>&quot;2020-01&quot;</code> →
-mensual, <code>&quot;2020-Q1&quot;</code> → trimestral, <code>&quot;2020-W01&quot;</code> →
-semanal, <code>&quot;2020-01-01&quot;</code> → diario). <strong>Si el indicador
-mezcla frecuencias, aparecerá una fila por cada frecuencia
-detectada.</strong></p>
 <p><strong>Indicadores</strong>: nº de regiones, rango de fechas y
 percentiles del tamaño de la serie temporal (periodos por región).</p>
 <div class="tabla-scroll-xy">
@@ -1236,16 +1202,6 @@ percentiles del tamaño de la serie temporal (periodos por región).</p>
 geográfica, datos actualizados y tamaño de las series temporales).</p>
 <p>El requisito de disponer de al menos 4 atributos válidos <strong>se
 cumple ✓</strong>.</p>
-<blockquote>
-<p>Para el requisito del nº de atributos hay que tener en cuenta que no
-cuentan como atributos distintos variantes calculadas a partir de un
-único atributo, como tener el valor de un indicador y su crecimiento
-anual, o el mismo indicador por meses o por años. Sin embargo, un
-indicador por habitante sí es un atributo distinto porque introduce otro
-atributo, que es la población. Estas cuestiones no se tienen en cuenta
-automáticamente en la conclusión y hay que valorarlas examinando los
-resultados.</p>
-</blockquote>
 </div>
 </div>
 

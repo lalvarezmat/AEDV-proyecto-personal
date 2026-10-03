@@ -11,7 +11,7 @@
 
 <meta name="author" content="Luis Alvarez" />
 
-<meta name="date" content="2026-09-21" />
+<meta name="date" content="2026-10-03" />
 
 <title>Análisis de datasets seleccionados de Eurostat</title>
 
@@ -365,7 +365,7 @@ display: none;
 <h1 class="title toc-ignore">Análisis de datasets seleccionados de
 Eurostat</h1>
 <h4 class="author">Luis Alvarez</h4>
-<h4 class="date">2026-09-21</h4>
+<h4 class="date">2026-10-03</h4>
 
 </div>
 
@@ -395,16 +395,19 @@ queden pegadas al texto que viene después (evita tener que poner <br> a mano
    atributos): scroll en los dos ejes, con la fila de cabecera fija arriba
    mientras se recorre. Alternativa ligera a DT::datatable: HTML puro, sin
    JavaScript ni dependencias */
-.tabla-scroll-xy { overflow: auto; max-height: 450px; border: 1px solid #ddd; }
+/* max-height: cabecera + 5 filas a la vista; el resto se recorre con el scroll */
+.tabla-scroll-xy { overflow: auto; max-height: 190px; border: 1px solid #ddd; }
 .tabla-scroll-xy table { width: auto; min-width: 100%; margin-bottom: 0; }
 .tabla-scroll-xy table td, .tabla-scroll-xy table th { white-space: nowrap; }
 .tabla-scroll-xy thead th { position: sticky; top: 0; z-index: 1;
                             background-color: #fff; box-shadow: inset 0 -1px 0 #ddd; }
 /* Celdas de cumple/no cumple de la tabla de validación de requisitos */
 .val-ok, .val-no { display: block; text-align: center; font-weight: bold;
-                   color: #fff; padding: 2px 6px; border-radius: 3px; }
+                   color: #fff; padding: 0 6px; border-radius: 3px; }
 .val-ok { background-color: #28a745; }
 .val-no { background-color: #dc3545; }
+/* Salidas de imprime_caja(): cabecera + 5 filas a la vista; el resto con scroll */
+.caja-scroll.caja-5 { max-height: 152px; }
 </style>
 <p>Este documento analiza en detalle <strong>un</strong> dataset de
 Eurostat, ya elegido a partir de las tablas que genera
@@ -494,11 +497,10 @@ anteriormente es el dataset.name)</p>
 <div id="análisis-del-dataset" class="section level1" number="2">
 <h1><span class="header-section-number">2</span> Análisis del
 dataset</h1>
-<pre class="r"><code># se repite aquí (idéntico al de la sección &quot;Descarga, limpieza y guardado&quot;) para
-# poder nombrar los ficheros sin depender de ningún chunk anterior
-#dataset.name &lt;- &quot;demo_r_pjanaggr3&quot;   # poner el código del dataset que interese
-filename     &lt;- dataset.name</code></pre>
-<pre class="r"><code>metadatos &lt;- openxlsx::read.xlsx(paste0(filename, &quot;_metadatos.xlsx&quot;))</code></pre>
+<!------------------------------------------------------------------------------- 
+LO SIGUIENTE, HASTA EL FINAL DEL CÓDIGO, ES LA PARTE QUE SE INCORPORA A LA MEMORIA DEL PROYECTO PERSONAL INCLUIR LOS DATOS EN LA SECCIÓN DE "COMPRENSIÓN DE LOS 
+DATOS". SI SE INCORPORAN VARIOS GRUPOS DE DATASETS HAY QUE HACER ESTO PARA CADA UNO. HAY QUE TENER EN CUENTA QUE EL DATASET SE CARGA EN UNA TABLA QUE SE LLAMA data. SI SE USA VARIAS VECES ESTE CÓDIGO PARA INCORPORAR VARIOS DATASETS HAY QUE ASIGNAR AL FINAL DE ESTE CÓDIGO UN NOMBRE DISTINTO A CADA UNO 
+--------------------------------------------------------------------------------->
 <p><strong>metadatos</strong></p>
 <div class="tabla-scroll">
 <table>
@@ -704,41 +706,40 @@ year 2015 included. 4) Starting with the reference year 2016, the
 population density indicator is computed using the new data on area
 ’Area by NUTS 3 region (reg_area3).</p>
 </div>
-<pre class="r"><code>data &lt;- readRDS(paste0(filename, &quot;.rds&quot;))</code></pre>
 <p><strong>data</strong></p>
 <pre><code>## # A tibble: 735,709 × 5
-##    sex   age    geo   TIME_PERIOD  values
-##    &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt; &lt;date&gt;        &lt;dbl&gt;
-##  1 T     TOTAL  AL    1990-01-01  3286500
-##  2 T     TOTAL  AL0   1990-01-01  3286500
-##  3 F     TOTAL  AT    1990-01-01  3989903
-##  4 F     UNK    AT    1990-01-01        0
-##  5 F     Y15-64 AT    1990-01-01  2589567
-##  6 F     Y_GE65 AT    1990-01-01   747525
-##  7 F     Y_LT15 AT    1990-01-01   652811
-##  8 M     TOTAL  AT    1990-01-01  3654915
-##  9 M     UNK    AT    1990-01-01        0
-## 10 M     Y15-64 AT    1990-01-01  2575106
-## # ℹ 735,699 more rows</code></pre>
+##   sex   age    geo   TIME_PERIOD  values
+##   &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt; &lt;date&gt;        &lt;dbl&gt;
+## 1 T     TOTAL  AL    1990-01-01  3286500
+## 2 T     TOTAL  AL0   1990-01-01  3286500
+## 3 F     TOTAL  AT    1990-01-01  3989903
+## 4 F     UNK    AT    1990-01-01        0
+## 5 F     Y15-64 AT    1990-01-01  2589567
+## # ℹ 735,704 more rows</code></pre>
 <div id="información-sobre-las-columnas-de-la-tabla-descargada" class="section level2" number="2.1">
 <h2><span class="header-section-number">2.1</span> Información sobre las
 columnas de la tabla descargada</h2>
 <p>Se presentan las diferentes dimensiones, cada una con sus valores
 posibles y el nº de observaciones.</p>
 <p><strong>COLUMNA: sex (3 opciones)</strong></p>
+<div class="caja-scroll caja-5">
 <pre><code>     sex N.Observ full_name
 [1,] T   245247   Total    
 [2,] F   245231   Females  
 [3,] M   245231   Males    </code></pre>
+</div>
 <p><strong>COLUMNA: age (5 opciones)</strong></p>
+<div class="caja-scroll caja-5">
 <pre><code>     age    N.Observ full_name          
 [1,] TOTAL  165915   Total              
 [2,] UNK    145060   Unknown            
 [3,] Y_GE65 141594   65 years or over   
 [4,] Y15-64 141570   From 15 to 64 years
 [5,] Y_LT15 141570   Less than 15 years </code></pre>
+</div>
 <p><strong>CONTABILIZACIÓN Nº REGIONES NUTS A PARTIR DE LA COLUMNA geo
 (2195 opciones)</strong></p>
+<div class="caja-scroll caja-5">
 <pre><code>      NUTS      Number of Regions
  [1,] 0           36             
  [2,] 1          113             
@@ -749,8 +750,9 @@ posibles y el nº de observaciones.</p>
  [7,] EU27_2020    1             
  [8,] EU28         1             
  [9,] OTHERS     409             </code></pre>
+</div>
 <p><strong>COLUMNA: TIME_PERIOD (36 opciones)</strong></p>
-<div class="caja-scroll">
+<div class="caja-scroll caja-5">
 <pre><code>      TIME_PERIOD N.observ
  [1,] 1990-01-01   4485   
  [2,] 1991-01-01   5432   
@@ -1056,35 +1058,6 @@ región).</p>
 <div id="validación-de-requisitos-aedv" class="section level2" number="2.2">
 <h2><span class="header-section-number">2.2</span> Validación de
 requisitos AEDV</h2>
-<p>Esta sección resume, de un vistazo, si el dataset sirve como dataset
-principal del proyecto. Se comprueban los <strong>cuatro
-criterios</strong> de la asignatura sobre <strong>cada combinación de
-atributos</strong> (es decir, sobre cada serie temporal que el dataset
-permite seguir por región):</p>
-<ul>
-<li><p><strong>Cobertura geográfica</strong>: la combinación debe tener
-datos de al menos <strong>25</strong> países (NUTS 0),
-<strong>90</strong> regiones NUTS 1, <strong>200</strong> NUTS 2 o
-<strong>500</strong> NUTS 3. Basta con cumplirlo en <strong>uno</strong>
-de los cuatro niveles, porque un dataset por países no tiene por qué
-bajar a provincias.</p></li>
-<li><p><strong>Datos actualizados</strong>: el último dato debe ser de
-<strong>2024</strong> o posterior.</p></li>
-<li><p><strong>Tamaño de las series temporales</strong>: el
-<strong>percentil 25 (P25)</strong> del nº de fechas por región debe
-superar el umbral de su frecuencia: <strong>10</strong> para datos
-anuales, <strong>20</strong> para semestrales, <strong>40</strong> para
-trimestrales, <strong>60</strong> para mensuales, <strong>200</strong>
-para semanales y <strong>1096</strong> para diarios (tres años). Usar el
-P25 equivale a exigir que el <strong>75 % de las regiones</strong>
-alcance ese tamaño.</p></li>
-<li><p><strong>Tamaño de las series temporales en
-España/Canarias</strong>: el mismo umbral de arriba debe superarse
-también, de forma individual, en la serie de España (<code>ES</code>) o
-en alguna serie de Canarias (<code>ES7</code>, <code>ES70</code>,
-<code>ES703</code>..<code>ES709</code>). Basta con que se cumpla en
-<strong>una de las dos</strong>.</p></li>
-</ul>
 <div class="tabla-scroll-xy">
 <table>
 <colgroup>

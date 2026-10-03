@@ -34,7 +34,8 @@ p { font-size: 14px; margin-bottom: 10px;
 /* Tablas que pueden ser anchas Y largas: scroll en los dos ejes, con la fila de
    cabecera fija arriba mientras se recorre. Alternativa ligera a DT::datatable:
    HTML puro, sin JavaScript ni dependencias */
-.tabla-scroll-xy { overflow: auto; max-height: 450px; border: 1px solid #ddd; }
+/* max-height: cabecera + 5 filas a la vista; el resto se recorre con el scroll */
+.tabla-scroll-xy { overflow: auto; max-height: 190px; border: 1px solid #ddd; }
 .tabla-scroll-xy table { width: auto; min-width: 100%; margin-bottom: 0; }
 .tabla-scroll-xy table td, .tabla-scroll-xy table th { white-space: nowrap; }
 .tabla-scroll-xy thead th { position: sticky; top: 0; z-index: 1;
@@ -806,9 +807,13 @@ la memoria del proyecto personal, así que tiene que poder ejecutarse sola (lo
 
 # Análisis del dataset
 
-```{r,echo=TRUE}
-# se repite aquí (idéntico al de las secciones anteriores) para poder nombrar los
-# ficheros sin depender de ningún chunk anterior
+<!------------------------------------------------------------------------------- 
+LO SIGUIENTE, HASTA EL FINAL DEL CÓDIGO, ES LA PARTE QUE SE INCORPORA A LA MEMORIA DEL PROYECTO PERSONAL INCLUIR LOS DATOS EN LA SECCIÓN DE "COMPRENSIÓN DE LOS 
+DATOS". SI SE INCORPORAN VARIOS GRUPOS DE DATASETS HAY QUE HACER ESTO PARA CADA UNO. HAY QUE TENER EN CUENTA QUE EL DATASET SE CARGA EN CUATRO TABLAS QUE SE LLAMAN pisa_paises, pisa_ccaa, contexto_paises Y contexto_ccaa. SI SE USA VARIAS VECES ESTE CÓDIGO PARA INCORPORAR VARIOS DATASETS HAY QUE ASIGNAR AL FINAL UN NOMBRE DISTINTO A CADA UNO 
+--------------------------------------------------------------------------------->
+
+```{r}
+# AL LEER LOS DATOS DESDE AQUÍ HAY QUE DEFINIR DE NUEVO filename y los f_* (nombres con los que se guardaron los ficheros)
 filename          <- "INFORME_PISA"
 f_paises          <- "pisa_paises_2000_2025.rds"
 f_ccaa            <- "pisa_ccaa_2009_2025.rds"
@@ -816,7 +821,7 @@ f_contexto_paises <- "contexto_paises.rds"
 f_contexto_ccaa   <- "contexto_ccaa.rds"
 ```
 
-```{r,echo=TRUE}
+```{r}
 # el resto de hojas del xlsx (entidades_especiales, nombres_normalizados, ciclos,
 # ccaa_geo, contexto_indicadores, contexto_fuentes) documentan el detalle de cada
 # aviso/normalización; no se repiten aquí, este análisis se limita a describir
@@ -849,7 +854,7 @@ tabla de PISA 2025 (`nombres_normalizados`); `entidad_parcial` marca 9
 sub-muestras no representativas del país completo (`entidades_especiales`).
 
 ```{r}
-pisa_paises
+pisa_paises |> print(n=5)
 ```
 
 **Tamaño de serie**: nº de los 9 ciclos posibles (2000-2025, trienal con
@@ -874,7 +879,7 @@ puntuacion · aviso_exclusion`. España no desagrega por CCAA antes de 2009.
 porcentaje de alumnado excluido de la muestra.
 
 ```{r}
-pisa_ccaa
+pisa_ccaa |> print(n=5)
 ```
 
 **Tamaño de serie**: nº de los 6 ciclos posibles (2009-2025) con dato, por región.
@@ -902,7 +907,7 @@ del propio país). Gini y pobreza relativa, aunque correlacionados (0,84), no
 son lo mismo: uno mide desigualdad, el otro pobreza.
 
 ```{r}
-contexto_paises
+contexto_paises |> print(n=5)
 ```
 
 **Tamaño de serie**: nº de años con dato por país, y periodo cubierto.
@@ -928,7 +933,7 @@ metodología aplicada uniformemente a las 19 CCAA, los 5 primeros indicadores
 valor absoluto sin normalizar por población: compara tamaño, no nivel de renta).
 
 ```{r}
-contexto_ccaa
+contexto_ccaa |> print(n=5)
 ```
 
 **Tamaño de serie**: nº de años con dato por región (panel completo: todas las
