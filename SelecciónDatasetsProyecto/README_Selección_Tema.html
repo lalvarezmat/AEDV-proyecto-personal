@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-10-02" />
+<meta name="date" content="2026-10-04" />
 
 <title>Selección de datasets para el proyecto de AEDV</title>
 
@@ -1411,7 +1411,10 @@ border: 1px solid #ddd;
 background-color: #fafafa;
 }
 
-.tabla-scroll-xy { overflow: auto; max-height: 450px; border: 1px solid #ddd; }
+.caja-scroll.caja-5 { max-height: 152px; }
+
+
+.tabla-scroll-xy { overflow: auto; max-height: 190px; border: 1px solid #ddd; }
 .tabla-scroll-xy table { width: auto; min-width: 100%; margin-bottom: 0; }
 .tabla-scroll-xy table td, .tabla-scroll-xy table th { white-space: nowrap; }
 .tabla-scroll-xy thead th {
@@ -1433,7 +1436,7 @@ display: block;
 text-align: center;
 font-weight: bold;
 color: #fff;
-padding: 2px 6px;
+padding: 0 6px;
 border-radius: 3px;
 }
 .val-ok { background-color: #28a745; }
@@ -1614,7 +1617,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Selección de datasets para el proyecto de
 AEDV</h1>
-<h4 class="date">2026-10-02</h4>
+<h4 class="date">2026-10-04</h4>
 
 </div>
 
@@ -2146,14 +2149,30 @@ datos</em> de tu memoria: esa parte está escrita para no depender de la
 anterior — arranca leyendo del disco los dos ficheros que acabas de
 copiar, así que funciona tal cual en tu documento sin volver a descargar
 nada de internet.</li>
+<li><strong>Al principio de ese código vuelve a definir el identificador
+del dataset</strong>, porque ya no tienes lo definido en la parte de
+descarga: en INE descomenta y ajusta <code>Dataset.Id &lt;- ...</code>;
+en EUROSTAT, <code>dataset.name &lt;- &quot;...&quot;</code>; en el resto (ISTAC,
+Banco Mundial, EDGAR, CLIMA, INFORME PISA) cambia el valor de
+<code>filename</code> (y de <code>f_obs</code>/<code>f_proy</code> en
+CLIMA, o de los <code>f_*</code> en INFORME PISA) por el nombre con el
+que guardaste tus ficheros.</li>
 </ol>
 <p>Es decir: la mitad 3a (descarga) <strong>no</strong> va en la
 memoria; la 3b (análisis) sí puede ir, entera o por trozos, y como punto
 de partida de tu propio análisis. Con eso la memoria queda, de golpe,
 con los datos importados y con su validación documentada.</p>
-<p>Si combinas datasets de varias fuentes, repite la operación una vez
-por fuente dentro de la memoria; en los datasets secundarios puedes
-recortar la parte de validación para no alargarla en exceso.</p>
+<p>Si incorporas <strong>varios datasets</strong> —de la misma fuente o
+de fuentes distintas—, repite este bloque una vez por cada uno dentro de
+la memoria, cambiando el identificador. Todos cargan el resultado en una
+tabla llamada <code>data</code> (<code>data</code> y
+<code>data_norm</code> en EDGAR; <code>pisa_paises</code>,
+<code>pisa_ccaa</code>, <code>contexto_paises</code> y
+<code>contexto_ccaa</code> en INFORME PISA): <strong>al final de cada
+bloque asigna ese resultado a un nombre distinto</strong> antes de
+copiar el bloque del siguiente dataset, o el siguiente sobrescribirá al
+anterior sin avisar. En los datasets secundarios puedes recortar la
+parte de validación para no alargarla en exceso.</p>
 <div class="nota">
 <p><strong class="bloque-titulo">El <code>estilos.css</code> tiene que
 acompañar a la memoria</strong></p>

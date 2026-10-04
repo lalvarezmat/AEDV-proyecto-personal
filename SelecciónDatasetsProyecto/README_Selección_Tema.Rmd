@@ -196,10 +196,11 @@ Que en el paso 3 el guardado vaya **primero** y el análisis **después** no es 
 1. Compila el `*_DatasetSelection.Rmd` con tus datasets y comprueba que cumplen los requisitos.
 2. **Copia el `.rds` y el `_metadatos.xlsx` a la carpeta de tu proyecto**, junto a tu memoria.
 3. Haz **copy/paste del código de la sección «Análisis del dataset» (la mitad 3b)** en la sección *Comprensión de los datos* de tu memoria: esa parte está escrita para no depender de la anterior — arranca leyendo del disco los dos ficheros que acabas de copiar, así que funciona tal cual en tu documento sin volver a descargar nada de internet.
+4. **Al principio de ese código vuelve a definir el identificador del dataset**, porque ya no tienes lo definido en la parte de descarga: en INE descomenta y ajusta `Dataset.Id <- ...`; en EUROSTAT, `dataset.name <- "..."`; en el resto (ISTAC, Banco Mundial, EDGAR, CLIMA, INFORME PISA) cambia el valor de `filename` (y de `f_obs`/`f_proy` en CLIMA, o de los `f_*` en INFORME PISA) por el nombre con el que guardaste tus ficheros.
 
 Es decir: la mitad 3a (descarga) **no** va en la memoria; la 3b (análisis) sí puede ir, entera o por trozos, y como punto de partida de tu propio análisis. Con eso la memoria queda, de golpe, con los datos importados y con su validación documentada.
 
-Si combinas datasets de varias fuentes, repite la operación una vez por fuente dentro de la memoria; en los datasets secundarios puedes recortar la parte de validación para no alargarla en exceso.
+Si incorporas **varios datasets** —de la misma fuente o de fuentes distintas—, repite este bloque una vez por cada uno dentro de la memoria, cambiando el identificador. Todos cargan el resultado en una tabla llamada `data` (`data` y `data_norm` en EDGAR; `pisa_paises`, `pisa_ccaa`, `contexto_paises` y `contexto_ccaa` en INFORME PISA): **al final de cada bloque asigna ese resultado a un nombre distinto** antes de copiar el bloque del siguiente dataset, o el siguiente sobrescribirá al anterior sin avisar. En los datasets secundarios puedes recortar la parte de validación para no alargarla en exceso.
 
 <div class="nota">
 <strong class="bloque-titulo">El `estilos.css` tiene que acompañar a la memoria</strong>

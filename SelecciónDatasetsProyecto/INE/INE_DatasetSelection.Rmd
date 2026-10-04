@@ -87,7 +87,7 @@ Para analizar otro dataset basta con cambiar su identificador en el chunk de aba
 
 ```{r,echo=TRUE}
 # IDENTIFICADOR DEL DATASET QUE VAMOS A ANALIZAR
-Dataset.Id <-  56940 #76136 #(IPC CCAA) #35176   # 35177 #  56940 (población CCAA)
+Dataset.Id <-  76136 #(IPC CCAA) #35176   # 35177 #  56940 (población CCAA)
 ```
 
 <!--  ================  FIN EDICIÓN CÓDIGO PARA PROBAR TUS PROPIOS DATASETS ============ -->

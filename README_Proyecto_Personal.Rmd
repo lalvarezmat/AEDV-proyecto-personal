@@ -277,9 +277,11 @@ Esta es la **etapa 4 (incorporación)** del flujo de selección de datos del Pas
 
 *  Copia en la sección **Comprensión de los datos** de la memoria el código que aparece en el `*_DatasetSelection.Rmd` a partir de la sección **Análisis del dataset** (la etapa 3b). Con esto importarás los datos a la memoria para empezar a trabajar con ellos y además se incorporará el análisis de validación que aparece en dicho documento. Ese código no depende de la parte de descarga: arranca leyendo del disco los dos ficheros que acabas de mover, así que funciona tal cual sin descargar nada de internet.
 
+* Al principio de ese código copiado hay que volver a indicar el identificador del dataset, porque ya no está disponible lo definido en la parte de descarga: en INE, descomenta y ajusta `Dataset.Id <- ...`; en EUROSTAT, `dataset.name <- "..."`; en el resto de fuentes (ISTAC, Banco Mundial, EDGAR, CLIMA, INFORME PISA), cambia el valor de `filename` (y de `f_obs`/`f_proy` en CLIMA, o de los `f_*` en INFORME PISA) por el nombre con el que se guardaron tus ficheros.
+
 La parte de descarga (etapa 3a) **no** va en la memoria.
 
-Si combinamos varios datasets de diferentes fuentes repetiremos esta operación dentro del modelo de memoria. Para los datasets auxiliares podemos eliminar la parte de validación para no alargar en exceso la memoria.
+Si incorporas **varios datasets** —de la misma fuente o de fuentes distintas— repite este bloque de código una vez por cada uno, cambiando el identificador. Todos cargan el resultado en una tabla llamada `data` (`data` y `data_norm` en EDGAR; `pisa_paises`, `pisa_ccaa`, `contexto_paises` y `contexto_ccaa` en INFORME PISA), así que **al final de cada bloque asigna ese resultado a un nombre distinto** antes de copiar el bloque del siguiente dataset — si no, el dataset siguiente sobrescribe al anterior sin avisar. Para los datasets auxiliares podemos eliminar la parte de validación para no alargar en exceso la memoria.
 
 
 ## Paso 4 — Construye y despliega el cuadro de mandos
