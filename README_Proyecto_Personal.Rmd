@@ -283,6 +283,18 @@ La parte de descarga (etapa 3a) **no** va en la memoria.
 
 Si incorporas **varios datasets** —de la misma fuente o de fuentes distintas— repite este bloque de código una vez por cada uno, cambiando el identificador. Todos cargan el resultado en una tabla llamada `data` (`data` y `data_norm` en EDGAR; `pisa_paises`, `pisa_ccaa`, `contexto_paises` y `contexto_ccaa` en INFORME PISA), así que **al final de cada bloque asigna ese resultado a un nombre distinto** antes de copiar el bloque del siguiente dataset — si no, el dataset siguiente sobrescribe al anterior sin avisar. Para los datasets auxiliares podemos eliminar la parte de validación para no alargar en exceso la memoria.
 
+<div class="nota">
+<strong class="bloque-titulo">Lo que falta por hacer tras pegar el código</strong>
+
+Copiar el código no es incorporar el dataset: solo es el primer paso. Antes de dar por completado el apartado *Comprensión de los datos*, es **muy importante** tener en cuenta lo siguiente:
+
+* **La información automática que se genera hay que perfeccionarla añadiendo texto explicativo.** El código produce tablas y un veredicto, no redacción: hay que comentar lo que muestran.
+* **Debe quedar claro que la colección de datos utilizada cumple con los requisitos de AEDV**, no solo que el código lo calcule.
+* Es especialmente **importante e indispensable** que todos los conceptos que aparecen en los datasets utilizados estén perfectamente explicados: contenido del dataset, qué se mide, significado de las variables categóricas y significado de **todas** las opciones de las variables categóricas, especialmente cuando son conceptos técnicos.
+
+Con frecuencia, para explicar el significado de las variables hace falta **recurrir a la IA**, dado que no viene en los metadatos: muchos datasets usan terminología técnica del organismo que los publica (códigos de clasificación, nombres de indicadores, categorías administrativas) que la ficha de metadatos no aclara, y preguntarle a una IA qué significa cada concepto o cada opción suele ser más rápido y más completo que buscarlo a mano.
+</div>
+
 
 ## Paso 4 — Construye y despliega el cuadro de mandos
 
