@@ -66,6 +66,7 @@ knitr::opts_chunk$set(
 
 ```{r, echo=FALSE}
 library(tidyverse)
+source("../../utilidades.R") # funciones de la asignatura (aedv_generar_analisis, al final)
 library(openxlsx)
 
 # asociamos funciones a determinadas librerías para evitar posibles errores
@@ -329,18 +330,21 @@ cat("Categorías sin descripción:", length(faltan_sector), "sectores,",
     length(faltan_subs), "sustancias,", length(faltan_indicador), "indicadores\n")
 ```
 
-Una vez guardados en disco los metadatos (fichero xlsx) y los datos (fichero RDS), iniciamos el proceso de análisis. A partir de aquí el documento se compila **solo** con los ficheros ya guardados en disco; no se usa ningún objeto de las secciones anteriores. Es a propósito: es la parte que el alumno incluye en la memoria del proyecto personal, así que tiene que poder ejecutarse sola (lo único que se usa de lo definido anteriormente es `filename`).
+Una vez guardados en disco los metadatos (fichero xlsx) y los datos (fichero RDS), iniciamos el proceso de análisis. A partir de aquí el documento se compila **solo** con los ficheros ya guardados en disco; no se usa ningún objeto de las secciones anteriores. Es a propósito: es la parte que se incorpora a la memoria del proyecto personal (ver la última sección, *Incorporación del dataset a la memoria*), así que tiene que poder ejecutarse sola (lo único que se usa de lo definido anteriormente es `filename`).
+
+<!------------------------------------------------------------------------------- 
+LA SECCIÓN SIGUIENTE, "Análisis del dataset", HASTA LA MARCA "FIN DE LA PARTE QUE SE INCORPORA A LA MEMORIA", ES LA QUE SE INCORPORA A LA MEMORIA DEL PROYECTO PERSONAL, EN LA SECCIÓN "COMPRENSIÓN DE LOS DATOS". AL COMPILAR ESTE DOCUMENTO SE GUARDA EN EL FICHERO EDGAR_GHG_analisis.Rmd, QUE SE INCLUYE EN LA MEMORIA CON aedv_incluir_dataset() (VER LA ÚLTIMA SECCIÓN).
+LAS MARCAS "INICIO/FIN DE LA VALIDACIÓN AEDV" DELIMITAN LO QUE OMITE aedv_incluir_dataset(validacion = FALSE): NO BORRARLAS.
+--------------------------------------------------------------------------------->
 
 # Análisis del dataset
 
-<!------------------------------------------------------------------------------- 
-LO SIGUIENTE, HASTA EL FINAL DEL CÓDIGO, ES LA PARTE QUE SE INCORPORA A LA MEMORIA DEL PROYECTO PERSONAL INCLUIR LOS DATOS EN LA SECCIÓN DE "COMPRENSIÓN DE LOS 
-DATOS". SI SE INCORPORAN VARIOS GRUPOS DE DATASETS HAY QUE HACER ESTO PARA CADA UNO. HAY QUE TENER EN CUENTA QUE EL DATASET SE CARGA EN DOS TABLAS QUE SE LLAMAN data (EMISIONES) Y data_norm (EMISIONES NORMALIZADAS). SI SE USA VARIAS VECES ESTE CÓDIGO PARA INCORPORAR VARIOS DATASETS HAY QUE ASIGNAR AL FINAL UN NOMBRE DISTINTO A CADA UNO 
---------------------------------------------------------------------------------->
-
 ```{r}
-# AL LEER LOS DATOS DESDE AQUÍ HAY QUE DEFINIR DE NUEVO filename (nombre con el que se guardaron los ficheros)
+# nombre con el que se guardaron los ficheros del dataset
 filename <- "EDGAR_GHG"
+
+# tablas que devuelve aedv_incluir_dataset() al incluir este análisis en la memoria
+tablas_exportadas <- c("data", "data_norm")
 ```
 
 ```{r}
@@ -466,6 +470,8 @@ if(data.esp$N.Observ == 0){
 }
 ```
 
+<!-- INICIO DE LA VALIDACIÓN AEDV -->
+
 ## Tamaño series temporales de atributos combinados
 
 Cada combinación de **sustancia × sector** es un atributo que se sigue en el tiempo para cada país/entidad. Se muestra, para cada una, el nº de países con datos y los percentiles del tamaño de su serie temporal (nº de años con dato no nulo por país).
@@ -492,6 +498,8 @@ data |>
 ```
 
 </div>
+
+<!-- FIN DE LA VALIDACIÓN AEDV -->
 
 ## Emisiones normalizadas: per cápita y por PIB
 
@@ -642,3 +650,22 @@ hay `Sector` ni `Substance`) y otra unidad según la fila.
   distintas entre sí y distintas de `value` en la tabla `GHG` (que está en Mt,
   no en toneladas): **no cruzar ambas tablas sumando o dividiendo `value`
   directamente sin fijarse en las unidades**.
+
+<!-- FIN DE LA PARTE QUE SE INCORPORA A LA MEMORIA -->
+
+# Incorporación del dataset a la memoria
+
+```{r, results='asis'}
+# genera EDGAR_GHG_analisis.Rmd con la sección "Análisis del dataset"
+# preparada para la memoria, y escribe las instrucciones para incorporarlo
+aedv_generar_analisis(
+  nombre        = filename,
+  titulo        = "Emisiones de gases de efecto invernadero por país (EDGAR)",
+  ficheros      = paste0(filename, c(".rds", "_normalizado.rds", "_metadatos.xlsx")),
+  tablas        = tablas_exportadas,
+  sugerencia    = "edgar",
+  desempaquetar = c(emisiones = "data", emisiones_norm = "data_norm"),
+  comentarios   = c(emisiones      = "emisiones por país, sector y gas",
+                    emisiones_norm = "emisiones per cápita y por unidad de PIB")
+)
+```

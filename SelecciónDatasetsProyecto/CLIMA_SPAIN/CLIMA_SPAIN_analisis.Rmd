@@ -1,0 +1,315 @@
+<!--
+Análisis del dataset "Variables climáticas por provincia de España (AdapteCCa)", generado por CLIMA_SPAIN_DatasetSelection.Rmd el 2026-10-08.
+Se incluye en la sección "Comprensión de los datos" de la memoria con este código, en un
+chunk con las opciones results='asis' y cache=FALSE:
+
+    clima <- aedv_incluir_dataset("CLIMA_SPAIN_analisis.Rmd")
+    # este dataset tiene 2 tablas: aedv_incluir_dataset() las devuelve en una lista
+    clima_obs  <- clima$data  # observaciones mensuales por provincia
+    clima_proy <- clima$proy  # proyecciones por escenario, modelo y horizonte
+
+No conviene editar este fichero: el texto explicativo del dataset se escribe en la memoria,
+antes o después del chunk que lo incluye.
+-->
+
+### Variables climáticas por provincia de España (AdapteCCa)
+
+```{r}
+# nombres con los que se guardaron los ficheros del dataset
+filename <- "CLIMA_SPAIN"
+f_obs    <- "observaciones_spain.rds"
+f_proy   <- "proyecciones_spain.rds"
+
+# tablas que devuelve aedv_incluir_dataset() al incluir este análisis en la memoria
+tablas_exportadas <- c("data", "proy")
+```
+
+```{r}
+# las explicaciones de los indicadores viven en las hojas `variables`,
+# `horizontes` y `escenarios` del fichero de metadatos; la ficha general en `dataset`
+ficha          <- read.xlsx(paste0(filename, "_metadatos.xlsx"), sheet = "dataset")
+variables_sel  <- read.xlsx(paste0(filename, "_metadatos.xlsx"), sheet = "variables")
+desc_horizonte <- read.xlsx(paste0(filename, "_metadatos.xlsx"), sheet = "horizontes")
+desc_escenario <- read.xlsx(paste0(filename, "_metadatos.xlsx"), sheet = "escenarios")
+
+# las variables a analizar salen de los propios metadatos: así esta sección no
+# depende del vector VARS definido en la sección anterior
+VARS <- variables_sel$variable
+```
+
+**metadatos**
+
+<div class="tabla-scroll">
+
+```{r}
+knitr::kable(ficha)
+```
+
+</div>
+
+#### Origen de los datos: AdapteCCa
+
+Todos los datos provienen del **Visor de Escenarios de Cambio Climático de
+AdapteCCa**, la plataforma oficial sobre adaptación al cambio climático en España
+(colección **Escenarios-PNACC**: OECC/MITECO, AEMET, CSIC y Fundación
+Biodiversidad; desarrollo IFCA-UC y Predictia). Se distribuyen en NetCDF vía
+**THREDDS**.
+
+España se cubre con **dos rejillas observacionales de AEMET** que aquí se
+combinan por provincia:
+
+- **ROCIO_IBEB (~5 km)** → Península, Baleares, Ceuta y Melilla.
+- **ROCIO+\_CAN (~2,5 km)** → Canarias.
+
+Cada provincia toma su valor de la rejilla que la cubre. Hay dos productos:
+
+##### Observaciones: el clima registrado
+
+Clima **realmente medido**: observaciones diarias de las estaciones de AEMET,
+interpoladas a rejilla y agregadas a valores mensuales (medias, conteos de días,
+máximos…). La cobertura temporal difiere por dominio: **Península/Baleares
+1951–2022** (2022 incompleto) y **Canarias 1990–2022**. Es la **línea base** real.
+
+##### Proyecciones: el clima simulado (siglo XXI)
+
+Clima **simulado**: se parte de los modelos globales **CMIP6** (IPCC-AR6, ~100 km)
+y se **regionaliza (downscaling) estadísticamente** con *machine learning* a la
+rejilla de AEMET, con dos métodos según la variable: **ESD-RegBA** (AEMET,
+temperatura) y **deepESD** (CSIC, precipitación). El resultado son **climatologías**
+(medias de 30 años) para los **4 escenarios SSP** × **4 horizontes**: la base
+histórica de referencia (1971–2000) y 3 horizontes futuros (2011–2040, 2041–2070,
+2071–2100). Detalle de escenarios al final.
+
+#### Variables (datasets) seleccionadas
+
+<div class="tabla-scroll-xy con-desc">
+
+```{r}
+# kable en vez de DT::datatable: aquí solo hace falta poder recorrer la tabla, no
+# filtrarla ni ordenarla. El contenedor .tabla-scroll-xy le da el scroll en los
+# dos ejes, con la cabecera fija arriba, y .con-desc deja que la última columna
+# (la descripción) reparta en varias líneas
+variables_sel |>
+  knitr::kable(col.names = c("variable", "categoría", "unidad", "área",
+                             "frecuencia", "descripción"))
+```
+
+</div>
+
+#### Datos: serie histórica observada
+
+```{r}
+hist <- readRDS(f_obs) |> as_tibble() |> filter(variable %in% VARS)
+
+# Estructura para el análisis: variable (atributo) · provincia (región) · fecha · value
+data <- hist |>
+  transmute(VARIABLE = variable, REGION = provincia, CPRO = cpro,
+            UNIDAD = unidad, TIME = fecha, VALUE = value) |>
+  arrange(VARIABLE, REGION, TIME)
+```
+
+**data**
+
+```{r}
+data |> print(n=5)
+```
+
+Muestra de las primeras 20 filas del histórico observado por provincia, variable y mes:
+
+<div class="tabla-scroll">
+
+```{r}
+data |> slice(1:20) |> knitr::kable()
+```
+
+</div>
+
+#### Análisis de series temporales por variable
+
+> Criterio de rango temporal: **P25** ≥ umbral según frecuencia (**≥ 10** anual,
+> **≥ 40** trimestral, **≥ 60** mensual). P25 es el tamaño de serie que supera el
+> 75 % de las provincias.
+
+```{r}
+classify_time <- function(t) dplyr::case_when(
+  stringr::str_detect(t, "^[0-9]{4}M[0-9]{2}$|^[0-9]{4}-[0-9]{2}$") ~ "M",
+  stringr::str_detect(t, "^[0-9]{4}[QT][0-9]$") ~ "Q",
+  stringr::str_detect(t, "^[0-9]{4}$")          ~ "Y",
+  TRUE                                          ~ "otro")
+
+tb_series <- data |>
+  mutate(freq_obs = classify_time(TIME)) |>
+  group_by(VARIABLE, REGION, freq_obs) |>
+  summarise(n_periodos = n_distinct(TIME), date_min = min(TIME), date_max = max(TIME), .groups = "drop") |>
+  group_by(VARIABLE, freq_obs) |>
+  summarise(n_regiones = n_distinct(REGION), date_start = min(date_min), date_end = max(date_max),
+            P0 = as.integer(min(n_periodos)), P25 = as.integer(quantile(n_periodos, 0.25)),
+            P50 = as.integer(quantile(n_periodos, 0.50)), P75 = as.integer(quantile(n_periodos, 0.75)),
+            P100 = as.integer(max(n_periodos)), .groups = "drop") |>
+  left_join(variables_sel |> select(variable, categoria), by = c("VARIABLE" = "variable")) |>
+  relocate(categoria, .after = VARIABLE) |> relocate(freq_obs, .after = categoria)
+```
+
+**Por variable**: nº de provincias, rango de fechas y percentiles del tamaño de
+serie temporal (periodos por provincia).
+
+<div class="tabla-scroll-xy">
+
+```{r}
+knitr::kable(tb_series)
+```
+
+</div>
+
+#### Provincias y número de observaciones
+
+<div class="tabla-scroll-xy">
+
+```{r}
+# son 52 provincias: se muestran TODAS y se recorren con el scroll del
+# contenedor, con la cabecera fija arriba
+data |>
+  group_by(CPRO, REGION) |>
+  summarise(n_obs = n(), .groups = "drop") |>
+  arrange(REGION) |>
+  knitr::kable()
+```
+
+</div>
+
+<!-- INICIO DE LA VALIDACIÓN AEDV -->
+
+#### Validación de requisitos AEDV
+
+```{r}
+umbral_freq <- c(Y = 10L, Q = 40L, M = 60L, otro = NA_integer_)
+anio_min    <- 2024L   # requisito AEDV "datos actualizados" (último dato ≥ anio_min)
+
+tb_val <- tb_series |>
+  mutate(umbral = umbral_freq[freq_obs], year_end = as.integer(substr(date_end, 1, 4)),
+         ok_cob = n_regiones > 40,                 # nivel provincia (PROV)
+         ok_fecha = year_end >= anio_min,
+         ok_temp = !is.na(umbral) & P25 >= umbral,
+         ok_total = ok_cob & ok_fecha & ok_temp,
+         etiqueta = paste0(VARIABLE, " [", freq_obs, "]"))
+```
+
+**Validación de requisitos AEDV** — umbrales: > 40 provincias, último dato ≥
+`r anio_min`, P25 ≥ 60 meses.
+
+<div class="tabla-scroll-xy">
+
+```{r}
+# Tabla de validación en HTML (antes era un heatmap de ggplot, pero al ser una
+# IMAGEN su altura crecía con el nº de variables). Como tabla se muestran TODAS
+# las filas y se recorren con el scroll del contenedor, con la cabecera fija
+# arriba. Las clases val-ok/val-no dan el color a cada celda.
+marca <- function(x)
+  ifelse(x, '<span class="val-ok">&#10004;</span>', '<span class="val-no">&#10008;</span>')
+
+tb_val |>
+  transmute(
+    Variable                        = etiqueta,
+    `Cobertura geográfica`          = marca(ok_cob),
+    `Datos actualizados (≥ 2024)`   = marca(ok_fecha),
+    `Tamaño series (P25 ≥ umbral)`  = marca(ok_temp),
+    `CUMPLE LOS 3`                  = marca(ok_total)
+  ) |>
+  # escape = FALSE para que el <span> de cada celda se interprete como HTML y
+  # no se imprima literalmente
+  knitr::kable(escape = FALSE, align = c("l", rep("c", 4)))
+```
+
+</div>
+
+```{r}
+n_total <- n_distinct(tb_val$VARIABLE); n_cob <- sum(tb_val$ok_cob)
+n_temp  <- sum(tb_val$ok_temp); n_fecha <- sum(tb_val$ok_fecha)
+```
+
+De las **`r n_total`** variables: **`r n_cob`** cumplen la **cobertura
+geográfica** (> 40 provincias), **`r n_temp`** el **tamaño de serie temporal**
+(P25 ≥ 60 meses) y **`r n_fecha`** la **actualización** (último dato ≥ `r anio_min`).
+
+> **Limitación de la fuente:** el producto observado de AdapteCCa llega a **2022**
+> (colección por versión, no serie que se actualice cada año). Con el umbral
+> estricto `anio_min = 2024` el criterio de "datos actualizados" no se cumple,
+> pese a la excelente cobertura (52 provincias) y longitud temporal. Bajando
+> `anio_min` a 2022 las 14 variables pasarían los tres criterios.
+
+<!-- FIN DE LA VALIDACIÓN AEDV -->
+
+#### Proyecciones (proyecciones_spain.rds)
+
+```{r}
+# el dataset de proyecciones se lee UNA sola vez y se reutiliza en todo lo que sigue
+proy <- readRDS(f_proy) |> as_tibble()
+```
+
+Mismas 14 variables, proyectadas con CMIP6 regionalizado. Son **climatologías**
+(un valor por mes, sin año), con tres dimensiones: **`escenario`** (SSP),
+**`modelo`** (11 GCMs de CMIP6 + `ensemble`, la media del conjunto) y
+**`horizonte`** (ventanas de 30 años):
+
+<div class="tabla-scroll">
+
+```{r}
+desc_horizonte |>
+  knitr::kable(col.names = c("horizonte", "periodo (años)", "denominación"))
+```
+
+</div>
+
+La base histórica de referencia del modelo (**1971–2000**, código `reference`)
+**sí** se incluye en el rds junto a los 3 horizontes futuros, permitiendo calcular
+anomalías futuro − referencia. Columnas:
+`provincia · cpro · variable · unidad · escenario · modelo · horizonte · mes · value`.
+
+<div class="tabla-scroll">
+
+```{r}
+# el periodo de cada horizonte sale de los metadatos, no se vuelve a escribir aquí
+periodo_horizonte <- setNames(desc_horizonte$periodo, desc_horizonte$horizonte)
+
+resumen_proy <- tibble(
+  Concepto = c("Variables", "Escenarios (SSP)", "Modelos (GCM + ensemble)",
+               "Horizontes (periodo)", "Provincias", "Meses", "Filas totales"),
+  Valor = c(
+    as.character(n_distinct(proy$variable)),
+    paste(sort(unique(as.character(proy$escenario))), collapse = ", "),
+    as.character(n_distinct(proy$modelo)),
+    paste(sprintf("%s (%s)", names(periodo_horizonte), periodo_horizonte),
+          collapse = "; "),
+    as.character(n_distinct(proy$provincia)),
+    as.character(n_distinct(proy$mes)),
+    format(nrow(proy), big.mark = ".", decimal.mark = ",")
+  )
+)
+
+knitr::kable(resumen_proy)
+```
+
+</div>
+
+#### Escenarios de emisión (GHG / SSP)
+
+Las 4 trayectorias **SSP** combinan un relato socioeconómico con un nivel de
+**forzamiento radiativo** (W/m²) en 2100, de menos a más emisiones.
+
+**Qué significa "Calentamiento 2100 (AR6)".** Aumento de la **temperatura media
+GLOBAL** a final de siglo (media **2081–2100**) respecto al **clima preindustrial
+(1850–1900)**, según el **IPCC AR6**. Es una cifra **global** de referencia, no el
+calentamiento de cada provincia. Se obtiene acotando el conjunto de modelos CMIP6
+con observaciones y paleoclima; se da una **mejor estimación** y un **rango muy
+probable** (percentil 5–95) entre paréntesis.
+
+<div class="tabla-scroll-xy con-desc">
+
+```{r}
+desc_escenario |>
+  knitr::kable(col.names = c("Escenario", "SSP", "Relato", "Forzamiento 2100",
+                             "Emisiones", "Calentamiento 2100 (AR6)", "Descripción"))
+```
+
+</div>
+

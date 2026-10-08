@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-09-10" />
+<meta name="date" content="2026-10-08" />
 
 <title>INFORME PISA: resultados históricos por país y por Comunidad Autónoma</title>
 
@@ -1492,7 +1492,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">INFORME PISA: resultados históricos por
 país y por Comunidad Autónoma</h1>
-<h4 class="date">2026-09-10</h4>
+<h4 class="date">2026-10-08</h4>
 
 </div>
 
@@ -1521,7 +1521,8 @@ queden pegadas al texto que viene después (evita tener que poner <br> a mano
 /* Tablas que pueden ser anchas Y largas: scroll en los dos ejes, con la fila de
    cabecera fija arriba mientras se recorre. Alternativa ligera a DT::datatable:
    HTML puro, sin JavaScript ni dependencias */
-.tabla-scroll-xy { overflow: auto; max-height: 450px; border: 1px solid #ddd; }
+/* max-height: cabecera + 5 filas a la vista; el resto se recorre con el scroll */
+.tabla-scroll-xy { overflow: auto; max-height: 190px; border: 1px solid #ddd; }
 .tabla-scroll-xy table { width: auto; min-width: 100%; margin-bottom: 0; }
 .tabla-scroll-xy table td, .tabla-scroll-xy table th { white-space: nowrap; }
 .tabla-scroll-xy thead th { position: sticky; top: 0; z-index: 1;
@@ -2264,31 +2265,19 @@ cat(&quot;Fichero guardado:&quot;, paste0(filename, &quot;_metadatos.xlsx&quot;)
 (los dos ficheros RDS), iniciamos el proceso de análisis. A partir de
 aquí el documento se compila <strong>solo</strong> con los ficheros ya
 guardados en disco; no se usa ningún objeto de las secciones anteriores.
-Es a propósito: es la parte que el alumno incluye en la memoria del
-proyecto personal, así que tiene que poder ejecutarse sola (lo único que
-se repite de lo definido antes son los nombres de fichero).</p>
+Es a propósito: es la parte que se incorpora a la memoria del proyecto
+personal (ver la última sección, <em>Incorporación del dataset a la
+memoria</em>), así que tiene que poder ejecutarse sola (lo único que se
+repite de lo definido antes son los nombres de fichero).</p>
+<!------------------------------------------------------------------------------- 
+LA SECCIÓN SIGUIENTE, "Análisis del dataset", HASTA LA MARCA "FIN DE LA PARTE QUE SE INCORPORA A LA MEMORIA", ES LA QUE SE INCORPORA A LA MEMORIA DEL PROYECTO PERSONAL, EN LA SECCIÓN "COMPRENSIÓN DE LOS DATOS". AL COMPILAR ESTE DOCUMENTO SE GUARDA EN EL FICHERO INFORME_PISA_analisis.Rmd, QUE SE INCLUYE EN LA MEMORIA CON aedv_incluir_dataset() (VER LA ÚLTIMA SECCIÓN).
+LAS MARCAS "INICIO/FIN DE LA VALIDACIÓN AEDV" DELIMITAN LO QUE OMITE aedv_incluir_dataset(validacion = FALSE): NO BORRARLAS.
+--------------------------------------------------------------------------------->
 </div>
 </div>
 <div id="análisis-del-dataset" class="section level1" number="2">
 <h1><span class="header-section-number">2</span> Análisis del
 dataset</h1>
-<pre class="r"><code># se repite aquí (idéntico al de las secciones anteriores) para poder nombrar los
-# ficheros sin depender de ningún chunk anterior
-filename          &lt;- &quot;INFORME_PISA&quot;
-f_paises          &lt;- &quot;pisa_paises_2000_2025.rds&quot;
-f_ccaa            &lt;- &quot;pisa_ccaa_2009_2025.rds&quot;
-f_contexto_paises &lt;- &quot;contexto_paises.rds&quot;
-f_contexto_ccaa   &lt;- &quot;contexto_ccaa.rds&quot;</code></pre>
-<pre class="r"><code># el resto de hojas del xlsx (entidades_especiales, nombres_normalizados, ciclos,
-# ccaa_geo, contexto_indicadores, contexto_fuentes) documentan el detalle de cada
-# aviso/normalización; no se repiten aquí, este análisis se limita a describir
-# cada tabla, su tamaño de serie y la validación global de requisitos AEDV
-ficha &lt;- read.xlsx(paste0(filename, &quot;_metadatos.xlsx&quot;), sheet = &quot;dataset&quot;)
-
-pisa_paises     &lt;- readRDS(f_paises) |&gt; as_tibble()
-pisa_ccaa       &lt;- readRDS(f_ccaa)   |&gt; as_tibble()
-contexto_paises &lt;- readRDS(f_contexto_paises) |&gt; as_tibble()
-contexto_ccaa   &lt;- readRDS(f_contexto_ccaa)   |&gt; as_tibble()</code></pre>
 <p><strong>metadatos</strong></p>
 <div class="tabla-scroll">
 <table>
@@ -2324,7 +2313,7 @@ es.wikipedia.org/wiki/Anexo:Resultados_del_Informe_PISA_en_España_por_Comunidad
 </tr>
 <tr class="odd">
 <td align="left">Fecha_de_generacion</td>
-<td align="left">2026-09-10</td>
+<td align="left">2026-10-08</td>
 </tr>
 <tr class="even">
 <td align="left">Fichero_paises</td>
@@ -2420,19 +2409,14 @@ tabla de PISA 2025 (<code>nombres_normalizados</code>);
 <code>entidad_parcial</code> marca 9 sub-muestras no representativas del
 país completo (<code>entidades_especiales</code>).</p>
 <pre><code>## # A tibble: 1,637 × 6
-##    pais    iso3c  anio asignatura puntuacion entidad_parcial
-##    &lt;chr&gt;   &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;           &lt;dbl&gt; &lt;lgl&gt;          
-##  1 Albania ALB    2009 ciencias          391 FALSE          
-##  2 Albania ALB    2012 ciencias          397 FALSE          
-##  3 Albania ALB    2015 ciencias          427 FALSE          
-##  4 Albania ALB    2018 ciencias          417 FALSE          
-##  5 Albania ALB    2022 ciencias          376 FALSE          
-##  6 Albania ALB    2025 ciencias          435 FALSE          
-##  7 Albania ALB    2000 lectura           349 FALSE          
-##  8 Albania ALB    2009 lectura           385 FALSE          
-##  9 Albania ALB    2012 lectura           394 FALSE          
-## 10 Albania ALB    2015 lectura           405 FALSE          
-## # ℹ 1,627 more rows</code></pre>
+##   pais    iso3c  anio asignatura puntuacion entidad_parcial
+##   &lt;chr&gt;   &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;           &lt;dbl&gt; &lt;lgl&gt;          
+## 1 Albania ALB    2009 ciencias          391 FALSE          
+## 2 Albania ALB    2012 ciencias          397 FALSE          
+## 3 Albania ALB    2015 ciencias          427 FALSE          
+## 4 Albania ALB    2018 ciencias          417 FALSE          
+## 5 Albania ALB    2022 ciencias          376 FALSE          
+## # ℹ 1,632 more rows</code></pre>
 <p><strong>Tamaño de serie</strong>: nº de los 9 ciclos posibles
 (2000-2025, trienal con huecos) con dato, por país.</p>
 <table>
@@ -2479,19 +2463,14 @@ España no desagrega por CCAA antes de 2009. <code>aviso_exclusion</code>
 marca 2 regiones en 2025 (Murcia, Cataluña) con alto porcentaje de
 alumnado excluido de la muestra.</p>
 <pre><code>## # A tibble: 366 × 6
-##    region    ambito  anio asignatura puntuacion aviso_exclusion
-##    &lt;chr&gt;     &lt;chr&gt;  &lt;int&gt; &lt;chr&gt;           &lt;dbl&gt; &lt;lgl&gt;          
-##  1 Andalucía CCAA    2009 ciencias          469 FALSE          
-##  2 Andalucía CCAA    2012 ciencias          486 FALSE          
-##  3 Andalucía CCAA    2015 ciencias          473 FALSE          
-##  4 Andalucía CCAA    2018 ciencias          471 FALSE          
-##  5 Andalucía CCAA    2022 ciencias          473 FALSE          
-##  6 Andalucía CCAA    2025 ciencias          462 FALSE          
-##  7 Andalucía CCAA    2009 lectura           461 FALSE          
-##  8 Andalucía CCAA    2012 lectura           477 FALSE          
-##  9 Andalucía CCAA    2015 lectura           479 FALSE          
-## 10 Andalucía CCAA    2018 lectura           466 FALSE          
-## # ℹ 356 more rows</code></pre>
+##   region    ambito  anio asignatura puntuacion aviso_exclusion
+##   &lt;chr&gt;     &lt;chr&gt;  &lt;int&gt; &lt;chr&gt;           &lt;dbl&gt; &lt;lgl&gt;          
+## 1 Andalucía CCAA    2009 ciencias          469 FALSE          
+## 2 Andalucía CCAA    2012 ciencias          486 FALSE          
+## 3 Andalucía CCAA    2015 ciencias          473 FALSE          
+## 4 Andalucía CCAA    2018 ciencias          471 FALSE          
+## 5 Andalucía CCAA    2022 ciencias          473 FALSE          
+## # ℹ 361 more rows</code></pre>
 <p><strong>Tamaño de serie</strong>: nº de los 6 ciclos posibles
 (2009-2025) con dato, por región.</p>
 <table>
@@ -2544,19 +2523,14 @@ debajo del 50% de la renta mediana del propio país). Gini y pobreza
 relativa, aunque correlacionados (0,84), no son lo mismo: uno mide
 desigualdad, el otro pobreza.</p>
 <pre><code>## # A tibble: 9,944 × 5
-##    pais        iso3c  anio indicador               valor
-##    &lt;chr&gt;       &lt;chr&gt; &lt;int&gt; &lt;chr&gt;                   &lt;dbl&gt;
-##  1 Afghanistan AFG    2010 gasto_educacion_pct_pib  3.48
-##  2 Afghanistan AFG    2011 gasto_educacion_pct_pib  3.46
-##  3 Afghanistan AFG    2012 gasto_educacion_pct_pib  2.60
-##  4 Afghanistan AFG    2013 gasto_educacion_pct_pib  3.45
-##  5 Afghanistan AFG    2014 gasto_educacion_pct_pib  3.70
-##  6 Afghanistan AFG    2015 gasto_educacion_pct_pib  3.26
-##  7 Afghanistan AFG    2016 gasto_educacion_pct_pib  4.54
-##  8 Afghanistan AFG    2017 gasto_educacion_pct_pib  4.34
-##  9 Albania     ALB    1994 gasto_educacion_pct_pib  3.45
-## 10 Albania     ALB    1995 gasto_educacion_pct_pib  3.14
-## # ℹ 9,934 more rows</code></pre>
+##   pais        iso3c  anio indicador               valor
+##   &lt;chr&gt;       &lt;chr&gt; &lt;int&gt; &lt;chr&gt;                   &lt;dbl&gt;
+## 1 Afghanistan AFG    2010 gasto_educacion_pct_pib  3.48
+## 2 Afghanistan AFG    2011 gasto_educacion_pct_pib  3.46
+## 3 Afghanistan AFG    2012 gasto_educacion_pct_pib  2.60
+## 4 Afghanistan AFG    2013 gasto_educacion_pct_pib  3.45
+## 5 Afghanistan AFG    2014 gasto_educacion_pct_pib  3.70
+## # ℹ 9,939 more rows</code></pre>
 <p><strong>Tamaño de serie</strong>: nº de años con dato por país, y
 periodo cubierto.</p>
 <table>
@@ -2613,19 +2587,14 @@ sin más; <code>pib_miles_eur</code> <strong>no</strong> (es un valor
 absoluto sin normalizar por población: compara tamaño, no nivel de
 renta).</p>
 <pre><code>## # A tibble: 2,320 × 5
-##    region    ambito  anio indicador                         valor
-##    &lt;chr&gt;     &lt;chr&gt;  &lt;int&gt; &lt;chr&gt;                             &lt;dbl&gt;
-##  1 Andalucía CCAA    2014 arope_baja_intensidad_trabajo_pct  27.4
-##  2 Andalucía CCAA    2015 arope_baja_intensidad_trabajo_pct  24.3
-##  3 Andalucía CCAA    2016 arope_baja_intensidad_trabajo_pct  23.9
-##  4 Andalucía CCAA    2017 arope_baja_intensidad_trabajo_pct  22.8
-##  5 Andalucía CCAA    2018 arope_baja_intensidad_trabajo_pct  19  
-##  6 Andalucía CCAA    2019 arope_baja_intensidad_trabajo_pct  18.4
-##  7 Andalucía CCAA    2020 arope_baja_intensidad_trabajo_pct  13.9
-##  8 Andalucía CCAA    2021 arope_baja_intensidad_trabajo_pct  18.4
-##  9 Andalucía CCAA    2022 arope_baja_intensidad_trabajo_pct  12.3
-## 10 Andalucía CCAA    2023 arope_baja_intensidad_trabajo_pct  12.1
-## # ℹ 2,310 more rows</code></pre>
+##   region    ambito  anio indicador                         valor
+##   &lt;chr&gt;     &lt;chr&gt;  &lt;int&gt; &lt;chr&gt;                             &lt;dbl&gt;
+## 1 Andalucía CCAA    2014 arope_baja_intensidad_trabajo_pct  27.4
+## 2 Andalucía CCAA    2015 arope_baja_intensidad_trabajo_pct  24.3
+## 3 Andalucía CCAA    2016 arope_baja_intensidad_trabajo_pct  23.9
+## 4 Andalucía CCAA    2017 arope_baja_intensidad_trabajo_pct  22.8
+## 5 Andalucía CCAA    2018 arope_baja_intensidad_trabajo_pct  19  
+## # ℹ 2,315 more rows</code></pre>
 <p><strong>Tamaño de serie</strong>: nº de años con dato por región
 (panel completo: todas las regiones tienen el mismo nº de años en cada
 indicador).</p>
@@ -2698,6 +2667,7 @@ indicador).</p>
 </tr>
 </tbody>
 </table>
+<!-- INICIO DE LA VALIDACIÓN AEDV -->
 </div>
 <div id="validación-global-de-requisitos-aedv" class="section level2" number="2.5">
 <h2><span class="header-section-number">2.5</span> Validación global de
@@ -2748,7 +2718,57 @@ contexto socioeconómico. No cumple el perfil de una serie temporal densa
 por país al estilo de los datasets anuales del curso — esa es una
 limitación de PISA en sí (trienal, con huecos), no de cómo se ha
 construido este dataset.</p>
+<!-- FIN DE LA VALIDACIÓN AEDV -->
+<!-- FIN DE LA PARTE QUE SE INCORPORA A LA MEMORIA -->
 </div>
+</div>
+<div id="incorporación-del-dataset-a-la-memoria" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> Incorporación del
+dataset a la memoria</h1>
+<p>Al compilar este documento se ha generado el fichero
+<strong><code>INFORME_PISA_analisis.Rmd</code></strong>: es la sección
+<em>Análisis del dataset</em> de arriba, preparada para la sección
+<strong>Comprensión de los datos</strong> de la memoria, con los títulos
+al nivel de esa sección. Para incorporar el dataset a la memoria:</p>
+<ol style="list-style-type: decimal">
+<li>Copia a la carpeta de la memoria estos ficheros de la carpeta
+<code>INFORME_PISA</code>: <code>pisa_paises_2000_2025.rds</code>,
+<code>pisa_ccaa_2009_2025.rds</code>, <code>contexto_paises.rds</code>,
+<code>contexto_ccaa.rds</code>, <code>INFORME_PISA_metadatos.xlsx</code>
+y <code>INFORME_PISA_analisis.Rmd</code>.</li>
+<li>Comprueba que en la carpeta de la memoria está también
+<code>utilidades.R</code> (viene en la carpeta
+<code>ProyectoPersonal</code>, junto al modelo de memoria) y que la
+memoria lo carga en el chunk de librerías:
+<code>source(&quot;utilidades.R&quot;)</code>.</li>
+<li>Pega este chunk en la sección <em>Comprensión de los datos</em> de
+la memoria, cambiando los nombres de las tablas por otros que describan
+el dataset:</li>
+</ol>
+<pre><code>```{r, results=&#39;asis&#39;, cache=FALSE}
+pisa &lt;- aedv_incluir_dataset(&quot;INFORME_PISA_analisis.Rmd&quot;)
+# este dataset tiene 4 tablas: aedv_incluir_dataset() las devuelve en una lista
+pisa_paises     &lt;- pisa$pisa_paises      # resultados PISA por país, 2000-2025
+pisa_ccaa       &lt;- pisa$pisa_ccaa        # resultados PISA por Comunidad Autónoma, 2009-2025
+contexto_paises &lt;- pisa$contexto_paises  # contexto socioeconómico por país
+contexto_ccaa   &lt;- pisa$contexto_ccaa    # contexto socioeconómico por Comunidad Autónoma
+```</code></pre>
+<p>Al compilar la memoria, el análisis aparece en el lugar del chunk y
+los datos quedan en las tablas <code>pisa_paises</code>,
+<code>pisa_ccaa</code>, <code>contexto_paises</code> y
+<code>contexto_ccaa</code> (tibbles), con las que se sigue trabajando en
+el resto de la memoria. Este dataset tiene 4 tablas:
+<code>aedv_incluir_dataset()</code> las devuelve juntas en una lista, y
+las líneas que siguen a la llamada las separan, cada una con su nombre.
+Si incorporas varios datasets, pega un chunk por cada uno, con nombres
+de tabla distintos. En un dataset auxiliar, que no tiene que cumplir los
+requisitos de AEDV,
+<code>aedv_incluir_dataset(&quot;INFORME_PISA_analisis.Rmd&quot;, validacion = FALSE)</code>
+omite la validación.</p>
+<p>El texto explicativo del dataset (qué mide, qué significa cada
+variable y cada una de sus opciones…) se escribe en la memoria, antes o
+después del chunk, no en <code>INFORME_PISA_analisis.Rmd</code>: ese
+fichero se sustituye cada vez que se vuelve a generar.</p>
 </div>
 
 

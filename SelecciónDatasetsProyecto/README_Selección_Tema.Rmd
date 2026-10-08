@@ -29,15 +29,15 @@ La idea de fondo es ir **de los miles de datasets que publica un organismo a uno
                     ▼
   PASO 3   descarga y valida los que has elegido usando <FUENTE>_DatasetSelection.Rmd
                     ▼
-  PASO 4   copias a tu memoria de proyecto personal los ficheros que ha guardado y su análisis
+  PASO 4   incorporas a tu memoria de proyecto personal los ficheros que ha guardado y su análisis
 ```
 
 | Paso | Con qué se hace y qué produce | ¿Lo ejecutas tú? |
 |---|---|---|
 | **1. Inventario** *(ya hecho)* — recorrer la API del organismo y anotar la ficha básica de **todos** sus datasets | `<FUENTE>_TableDatasetGeneration.Rmd` → el **catálogo** `<FUENTE>.datasets.xlsx`, una fila por dataset | No |
 | **2. Búsqueda del tema** — localizar en el catálogo los datasets de un tema que te interese | el `.xlsx` del catálogo y una IA (ChatGPT, Claude…) → una lista de **identificadores** candidatos | Sí |
-| **3. Descarga y validación** — descargar esos datasets y comprobar si cumplen los requisitos AEDV | `<FUENTE>_DatasetSelection.Rmd` → `<nombre>.rds` (datos) y `<nombre>_metadatos.xlsx` (ficha), más el análisis de validación | Sí |
-| **4. Incorporación** — llevar los datos **y el análisis** a la memoria del proyecto | los ficheros del paso 3 y su código → la sección *Comprensión de los datos* de tu memoria | Sí |
+| **3. Descarga y validación** — descargar esos datasets y comprobar si cumplen los requisitos AEDV | `<FUENTE>_DatasetSelection.Rmd` → `<nombre>.rds` (datos), `<nombre>_metadatos.xlsx` (ficha) y `<nombre>_analisis.Rmd` (el análisis de validación, preparado para la memoria) | Sí |
+| **4. Incorporación** — llevar los datos **y el análisis** a la memoria del proyecto | los ficheros del paso 3 y `aedv_incluir_dataset()` → la sección *Comprensión de los datos* de tu memoria | Sí |
 
 Dos ideas explican por qué el flujo está partido justo así:
 
@@ -193,19 +193,26 @@ El `<nombre>` es el **código del dataset** en INE (`76136.rds`) y EUROSTAT (`de
 
 Que en el paso 3 el guardado vaya **primero** y el análisis **después** no es casualidad: está pensado para que el trabajo hecho al validar el dataset se reutilice, en vez de repetirse.
 
-1. Compila el `*_DatasetSelection.Rmd` con tus datasets y comprueba que cumplen los requisitos.
-2. **Copia el `.rds` y el `_metadatos.xlsx` a la carpeta de tu proyecto**, junto a tu memoria.
-3. Haz **copy/paste del código de la sección «Análisis del dataset» (la mitad 3b)** en la sección *Comprensión de los datos* de tu memoria: esa parte está escrita para no depender de la anterior — arranca leyendo del disco los dos ficheros que acabas de copiar, así que funciona tal cual en tu documento sin volver a descargar nada de internet.
-4. **Al principio de ese código vuelve a definir el identificador del dataset**, porque ya no tienes lo definido en la parte de descarga: en INE descomenta y ajusta `Dataset.Id <- ...`; en EUROSTAT, `dataset.name <- "..."`; en el resto (ISTAC, Banco Mundial, EDGAR, CLIMA, INFORME PISA) cambia el valor de `filename` (y de `f_obs`/`f_proy` en CLIMA, o de los `f_*` en INFORME PISA) por el nombre con el que guardaste tus ficheros.
+1. Compila el `*_DatasetSelection.Rmd` con tus datasets y comprueba que cumplen los requisitos. Además del `.rds` y el `_metadatos.xlsx`, el documento guarda la sección «Análisis del dataset» (la mitad 3b) en un fichero **`<nombre>_analisis.Rmd`**, preparado para la memoria, y termina con una sección, *Incorporación del dataset a la memoria*, con las instrucciones exactas para tus ficheros.
+2. **Copia el `.rds`, el `_metadatos.xlsx` y el `_analisis.Rmd` a la carpeta de tu proyecto**, junto a tu memoria. En esa carpeta tiene que estar también `utilidades.R` (viene en la carpeta `ProyectoPersonal`), que la memoria carga con `source("utilidades.R")`.
+3. **Pega en la sección *Comprensión de los datos* de tu memoria el chunk que indica el documento**, cambiando el nombre de la tabla por uno que describa el dataset. Por ejemplo:
 
-Es decir: la mitad 3a (descarga) **no** va en la memoria; la 3b (análisis) sí puede ir, entera o por trozos, y como punto de partida de tu propio análisis. Con eso la memoria queda, de golpe, con los datos importados y con su validación documentada.
+````
+`r ''````{r, results='asis', cache=FALSE}
+ipc <- aedv_incluir_dataset("76136_analisis.Rmd")
+```
+````
 
-Si incorporas **varios datasets** —de la misma fuente o de fuentes distintas—, repite este bloque una vez por cada uno dentro de la memoria, cambiando el identificador. Todos cargan el resultado en una tabla llamada `data` (`data` y `data_norm` en EDGAR; `pisa_paises`, `pisa_ccaa`, `contexto_paises` y `contexto_ccaa` en INFORME PISA): **al final de cada bloque asigna ese resultado a un nombre distinto** antes de copiar el bloque del siguiente dataset, o el siguiente sobrescribirá al anterior sin avisar. En los datasets secundarios puedes recortar la parte de validación para no alargarla en exceso.
+Al compilar la memoria, el análisis aparece en el lugar del chunk y los datos quedan en la tabla que elijas (aquí `ipc`, un tibble). El análisis arranca leyendo del disco los ficheros que acabas de copiar, así que funciona sin volver a descargar nada de internet. Es decir: la mitad 3a (descarga) **no** va en la memoria; la 3b (análisis) sí, y la memoria queda, de golpe, con los datos importados y con su validación documentada.
+
+Si incorporas **varios datasets** —de la misma fuente o de fuentes distintas—, pega un chunk por cada uno, con nombres de tabla distintos. En los datasets secundarios, `aedv_incluir_dataset("...", validacion = FALSE)` omite la validación para no alargar la memoria. **EDGAR, CLIMA e INFORME PISA** tienen varias tablas, así que la función las devuelve en una lista que el chunk propuesto por su documento separa a continuación, cada una con su nombre (el detalle está en *Cómo importar los datos en la memoria*, en `README_Proyecto_Personal`).
+
+El fichero `_analisis.Rmd` no se edita: se vuelve a generar cada vez que compilas el `*_DatasetSelection.Rmd`. Tu texto va en la memoria, antes o después del chunk.
 
 <div class="nota">
 <strong class="bloque-titulo">El `estilos.css` tiene que acompañar a la memoria</strong>
 
-El código de la mitad 3b usa las clases CSS del curso (`tabla-scroll`, `caja-scroll`, `tabla-scroll-xy` y las celdas verde/rojo de la tabla de validación). Ya están todas en el fichero `estilos.css` que acompaña al modelo de memoria, así que **si tu memoria lo referencia** (`css: estilos.css` en la cabecera) las tablas se verán igual que aquí.
+El análisis que se incluye en la memoria usa las clases CSS del curso (`tabla-scroll`, `caja-scroll`, `tabla-scroll-xy` y las celdas verde/rojo de la tabla de validación). Ya están todas en el fichero `estilos.css` que acompaña al modelo de memoria, así que **si tu memoria lo referencia** (`css: estilos.css` en la cabecera) las tablas se verán igual que aquí.
 </div>
 
 
@@ -453,7 +460,7 @@ El **prefijo del `code`** (lo que va antes del primer guion bajo) identifica el 
 
 ## EDGAR — dataset único de emisiones de gases de efecto invernadero (solo sirve para un estudiante)
 
-EDGAR **no tiene catálogo Excel previo**: no hay nada que buscar, el dataset es uno solo. Por lo demás, `EDGAR_GHG/EDGAR_GHG.Rmd` está organizado igual que los `*_DatasetSelection.Rmd` del resto de fuentes, en dos partes: primero descarga y guarda en disco (`EDGAR_GHG.rds` y `EDGAR_GHG_normalizado.rds` con los datos, `EDGAR_GHG_metadatos.xlsx` con su ficha), y después analiza leyendo esos ficheros. La sección **Análisis del dataset** vuelve a ser autocontenida, así que puedes copiarla tal cual en tu memoria.
+EDGAR **no tiene catálogo Excel previo**: no hay nada que buscar, el dataset es uno solo. Por lo demás, `EDGAR_GHG/EDGAR_GHG.Rmd` está organizado igual que los `*_DatasetSelection.Rmd` del resto de fuentes, en dos partes: primero descarga y guarda en disco (`EDGAR_GHG.rds` y `EDGAR_GHG_normalizado.rds` con los datos, `EDGAR_GHG_metadatos.xlsx` con su ficha), y después analiza leyendo esos ficheros. La sección **Análisis del dataset** vuelve a ser autocontenida, y ya viene guardada para la memoria en `EDGAR_GHG_analisis.Rmd`, que se incluye con `aedv_incluir_dataset()` (paso 4).
 
 El dataset ya está descargado y procesado, y **la descarga solo se ejecuta si falta `EDGAR_GHG.rds`**: compilar el documento no vuelve a bajar el fichero de EDGAR. Para actualizar a una versión más reciente hay que borrar los dos `.rds` y actualizar el año en la URL.
 
@@ -487,7 +494,7 @@ Al igual que EDGAR, **CLIMA no tiene pasos 1 y 2** (no hay catálogo Excel que r
 Los datos provienen del **Visor de Escenarios de Cambio Climático de AdapteCCa** (colección Escenarios-PNACC: OECC/MITECO, AEMET, CSIC y Fundación Biodiversidad), distribuidos en NetCDF vía THREDDS. Cada ámbito tiene **dos documentos**:
 
 - `*_TableDatasetGeneration.Rmd` — descarga los NetCDF de AdapteCCa y **genera dos `.rds`**: las **observaciones** (histórico, serie mensual con fecha) y las **proyecciones** (CMIP6). Este fichero solo se compila (puede tardar bastante) si se quiere actualizar los datos, pero para ello tendrían que haberse publicado datos nuevos y los nombres de acceso a los ficheros cambiarían. Estos datos no se publican anualmente.
-- `*_DatasetSelection.Rmd` — explora y **valida** las variables con el mismo **heatmap de los tres criterios AEDV**, e incluye **mapas coropléticos** por región y, para las proyecciones, la **comparativa por modelo** (dispersión inter-modelo de los 11 GCMs frente al `ensemble`, por escenario y horizonte). Está organizado en dos partes, igual que los `*_DatasetSelection.Rmd` del resto de fuentes: primero elige las variables y guarda su ficha, y después analiza leyendo del disco, de modo que la sección **Análisis del dataset** es autocontenida y **puedes copiarla tal cual en tu memoria**.
+- `*_DatasetSelection.Rmd` — explora y **valida** las variables con la misma **tabla de los tres criterios AEDV**, e incluye **mapas coropléticos** por región y, para las proyecciones, la **comparativa por modelo** (dispersión inter-modelo de los 11 GCMs frente al `ensemble`, por escenario y horizonte). Está organizado en dos partes, igual que los `*_DatasetSelection.Rmd` del resto de fuentes: primero elige las variables y guarda su ficha, y después analiza leyendo del disco, de modo que la sección **Análisis del dataset** es autocontenida y ya viene guardada para la memoria en `CLIMA_<ámbito>_analisis.Rmd`, que se incluye con `aedv_incluir_dataset()` (paso 4). Los mapas y la comparativa por modelo van al final del documento y **no** se incorporan a la memoria: en *Comprensión de los datos* no van gráficos elaborados.
 
 Como AdapteCCa no publica un catálogo de sus variables, cada ámbito genera su propio `CLIMA_<ámbito>_metadatos.xlsx` con **cuatro hojas**: `dataset` (ficha general), `variables` (qué mide cada variable, con su unidad), `horizontes` (el periodo de 30 años de cada uno) y `escenarios` (las 4 trayectorias SSP). Es el equivalente al `Indicator_desc` del Banco Mundial o al `topic` de EUROSTAT.
 
@@ -505,7 +512,7 @@ Los análisis que permite realizar son:
 - Comparación entre regiones y rankings (climatologías).
 - **Proyecciones futuras** por escenario SSP, **modelo** (GCM individual o ensemble) y horizonte temporal, y su contraste con la línea base histórica; incluye la **incertidumbre inter-modelo** (dispersión entre los 11 GCMs).
 - **Mapas coropléticos** por región (municipios de Canarias / provincias de España).
-- **Validación AEDV** con heatmap de cobertura geográfica, actualización y tamaño de las series temporales.
+- **Validación AEDV** con una tabla de cobertura geográfica, actualización y tamaño de las series temporales.
 
 > **Atención al requisito de "datos actualizados".** El histórico observado de AdapteCCa llega hasta **2022** (es una colección por versión —Escenarios-PNACC 2024—, no una serie que se actualice cada año). La cobertura geográfica y la longitud de las series son excelentes, por ello, aunque la fecha del último dato es 2022 lo aceptamos como proyecto de AEDV.
 
@@ -513,7 +520,7 @@ Los análisis que permite realizar son:
 
 ## INFORME PISA — resultados educativos, pobreza y desigualdad (solo sirve para un estudiante)
 
-Como EDGAR y CLIMA, **INFORME_PISA no tiene catálogo Excel previo**: es un dataset único, ya construido, en `INFORME_PISA/INFORME_PISA.Rmd`, con la misma estructura en dos partes que el resto (descarga/limpieza primero, análisis autocontenido después, copiable tal cual en la memoria).
+Como EDGAR y CLIMA, **INFORME_PISA no tiene catálogo Excel previo**: es un dataset único, ya construido, en `INFORME_PISA/INFORME_PISA.Rmd`, con la misma estructura en dos partes que el resto (descarga/limpieza primero, análisis autocontenido después, ya guardado para la memoria en `INFORME_PISA_analisis.Rmd`).
 
 Combina **resultados del Informe PISA de la OCDE** con **contexto socioeconómico** (pobreza, desigualdad y gasto en educación), a dos niveles geográficos a la vez:
 

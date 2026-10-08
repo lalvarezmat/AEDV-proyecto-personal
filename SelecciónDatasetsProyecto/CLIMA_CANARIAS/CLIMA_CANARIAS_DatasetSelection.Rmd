@@ -65,6 +65,7 @@ knitr::opts_chunk$set(
 ```{r, echo=FALSE}
 library(openxlsx)
 library(tidyverse)
+source("../../utilidades.R") # funciones de la asignatura (aedv_generar_analisis, al final)
 library(sf)
 library(mapSpain)
 library(leaflet)
@@ -261,22 +262,25 @@ cat("Elementos sin descripción:", length(faltan_desc), "variables,",
 Una vez guardados en disco los metadatos (fichero xlsx) y estando ya los datos
 (los dos ficheros RDS), iniciamos el proceso de análisis. A partir de aquí el
 documento se compila **solo** con los ficheros ya guardados en disco; no se usa
-ningún objeto de la sección anterior. Es a propósito: es la parte que el alumno
-incluye en la memoria del proyecto personal, así que tiene que poder ejecutarse
+ningún objeto de la sección anterior. Es a propósito: es la parte que se incorpora a la memoria del proyecto personal (ver la última sección, *Incorporación del dataset a la memoria*), así que tiene que poder ejecutarse
 sola (lo único que se repite de lo definido antes son los nombres de fichero).
+
+<!------------------------------------------------------------------------------- 
+LA SECCIÓN SIGUIENTE, "Análisis del dataset", HASTA LA MARCA "FIN DE LA PARTE QUE SE INCORPORA A LA MEMORIA", ES LA QUE SE INCORPORA A LA MEMORIA DEL PROYECTO PERSONAL, EN LA SECCIÓN "COMPRENSIÓN DE LOS DATOS". AL COMPILAR ESTE DOCUMENTO SE GUARDA EN EL FICHERO CLIMA_CANARIAS_analisis.Rmd, QUE SE INCLUYE EN LA MEMORIA CON aedv_incluir_dataset() (VER LA ÚLTIMA SECCIÓN).
+LAS MARCAS "INICIO/FIN DE LA VALIDACIÓN AEDV" DELIMITAN LO QUE OMITE aedv_incluir_dataset(validacion = FALSE): NO BORRARLAS.
+LOS MAPAS COROPLÉTICOS VAN DESPUÉS DE ESA MARCA A PROPÓSITO: NO SE INCORPORAN A LA MEMORIA.
+--------------------------------------------------------------------------------->
 
 # Análisis del dataset
 
-<!------------------------------------------------------------------------------- 
-LO SIGUIENTE, HASTA EL FINAL DEL CÓDIGO, ES LA PARTE QUE SE INCORPORA A LA MEMORIA DEL PROYECTO PERSONAL INCLUIR LOS DATOS EN LA SECCIÓN DE "COMPRENSIÓN DE LOS 
-DATOS". SI SE INCORPORAN VARIOS GRUPOS DE DATASETS HAY QUE HACER ESTO PARA CADA UNO. HAY QUE TENER EN CUENTA QUE EL DATASET SE CARGA EN UNA TABLA QUE SE LLAMA data. SI SE USA VARIAS VECES ESTE CÓDIGO PARA INCORPORAR VARIOS DATASETS HAY QUE ASIGNAR AL FINAL UN NOMBRE DISTINTO A CADA UNO 
---------------------------------------------------------------------------------->
-
 ```{r}
-# AL LEER LOS DATOS DESDE AQUÍ HAY QUE DEFINIR DE NUEVO filename, f_obs y f_proy (nombres con los que se guardaron los ficheros)
+# nombres con los que se guardaron los ficheros del dataset
 filename <- "CLIMA_CANARIAS"
 f_obs    <- "observaciones_canarias_1990_2022.rds"
 f_proy   <- "proyecciones_canarias.rds"
+
+# tablas que devuelve aedv_incluir_dataset() al incluir este análisis en la memoria
+tablas_exportadas <- c("data", "proy")
 ```
 
 ```{r}
@@ -315,7 +319,7 @@ NetCDF mediante un servicio **THREDDS**.
 
 Para Canarias, AdapteCCa ofrece —por primera vez en su última actualización—
 datos **en rejilla de alta resolución (~2,5 km)**, tanto observados como
-proyectados, sobre la malla observacional **ROCIO+_CAN** de AEMET (antes solo
+proyectados, sobre la malla observacional **ROCIO+\_CAN** de AEMET (antes solo
 había datos puntuales por estación). Hay dos productos bien distintos:
 
 ### Observaciones: el clima registrado (1990–2022)
@@ -353,7 +357,7 @@ El resultado son **climatologías** (medias de 30 años, no series con fecha) pa
 los **4 escenarios de emisión SSP** × **4 horizontes**: la base histórica de
 referencia (**1971–2000**) y los 3 horizontes futuros (2011–2040, 2041–2070,
 2071–2100), calibradas con las observaciones de AEMET. El detalle de escenarios y
-horizontes está en la parte final del documento.
+horizontes está más abajo, en las secciones *Proyecciones* y *Escenarios de emisión (GHG / SSP)*.
 
 ## Variables (datasets) seleccionadas
 
@@ -479,6 +483,8 @@ data |>
 
 </div>
 
+<!-- INICIO DE LA VALIDACIÓN AEDV -->
+
 ## Validación de requisitos AEDV
 
 ```{r}
@@ -550,6 +556,121 @@ temporal** (P25 ≥ 60 meses) y **`r n_fecha`** la **actualización** (último d
 > 1990–2022), podremos usar este dataset para el proyecto personal de AEDV.
 
 
+<!-- FIN DE LA VALIDACIÓN AEDV -->
+
+## Proyecciones (proyecciones_canarias.rds)
+
+```{r}
+# el dataset de proyecciones se lee UNA sola vez y se reutiliza en todo lo que sigue
+proy <- readRDS(f_proy) |> as_tibble()
+```
+
+El segundo dataset, `proyecciones_canarias.rds`, es el **complemento prospectivo**
+del histórico: las mismas 14 variables, pero proyectadas al futuro con modelos
+CMIP6 regionalizados. Se diferencia del histórico en su estructura temporal:
+
+- **No tiene serie anual ni fechas**: son **climatologías** (un valor por mes),
+  así que la dimensión temporal son los 12 meses, no años. Cada valor es la
+  **media climatológica de 30 años** del horizonte correspondiente.
+- Añade tres dimensiones: **`escenario`** (4 trayectorias de emisión
+  SSP: `ssp126`, `ssp245`, `ssp370`, `ssp585`), **`modelo`** (los 11 GCMs de CMIP6
+  individuales más `ensemble`, la media del conjunto) y **`horizonte`** (4 ventanas
+  climáticas de 30 años: la base histórica de referencia y 3 horizontes futuros).
+- Columnas: `municipio · variable · unidad · escenario · modelo · horizonte · mes · value`.
+
+Los **horizontes** corresponden a estos periodos de 30 años, según la definición
+de AdapteCCa / Escenarios-PNACC:
+
+<div class="tabla-scroll">
+
+```{r}
+desc_horizonte |>
+  knitr::kable(col.names = c("horizonte", "periodo (años)", "denominación"))
+```
+
+</div>
+
+La **línea base de referencia** del modelo es el periodo histórico **1971–2000**
+(código interno `reference`). **Sí** se incluye en este rds, junto a los 3
+horizontes futuros, lo que permite calcular directamente las anomalías
+futuro − referencia. Al proceder del forzamiento histórico común de CMIP6, su
+valor es prácticamente idéntico en los 4 escenarios SSP (se repite en cada uno
+por simetría de la estructura).
+
+Los **escenarios** son trayectorias **SSP** (*Shared Socioeconomic Pathways*) del
+IPCC-AR6: cada una combina un relato socioeconómico (SSP1–5) con un nivel de
+**forzamiento radiativo** en 2100 —el número del código, p. ej. `2.6` = 2,6 W/m²—
+que resume el volumen de emisiones de gases de efecto invernadero (GHG). Van de
+menos a más emisiones: `ssp126` (bajas) → `ssp245` (medias) → `ssp370` (altas) →
+`ssp585` (muy altas). A mayor escenario, mayor calentamiento proyectado. El
+detalle de cada uno está en la tabla de la sección *Escenarios de emisión (GHG / SSP)*.
+
+Por eso los criterios AEDV de *series temporales* y *actualización* no aplican
+igual (no es una serie observada): su papel es **proyectar/comparar** frente a la
+línea base histórica ya validada. A continuación, un resumen de su contenido:
+
+<div class="tabla-scroll">
+
+```{r}
+# el periodo de cada horizonte sale de los metadatos, no se vuelve a escribir aquí
+periodo_horizonte <- setNames(desc_horizonte$periodo, desc_horizonte$horizonte)
+
+resumen_proy <- tibble(
+  Concepto = c("Variables", "Escenarios (SSP)", "Modelos (GCM + ensemble)",
+               "Horizontes (periodo)", "Municipios", "Meses", "Filas totales"),
+  Valor = c(
+    as.character(n_distinct(proy$variable)),
+    paste(sort(unique(as.character(proy$escenario))), collapse = ", "),
+    as.character(n_distinct(proy$modelo)),
+    paste(sprintf("%s (%s)", names(periodo_horizonte), periodo_horizonte),
+          collapse = "; "),
+    as.character(n_distinct(proy$municipio)),
+    as.character(n_distinct(proy$mes)),
+    format(nrow(proy), big.mark = ".", decimal.mark = ",")
+  )
+)
+
+knitr::kable(resumen_proy)
+```
+
+</div>
+
+## Escenarios de emisión (GHG / SSP)
+
+Detalle de las 4 trayectorias SSP presentes en el dataset de proyecciones.
+
+**Qué significa la columna "Calentamiento 2100 (AR6)".** Es el aumento estimado de
+la **temperatura media GLOBAL** del planeta a finales de siglo (media del periodo
+**2081–2100**) respecto al **clima preindustrial** (referencia **1850–1900**),
+según el **6º Informe de Evaluación del IPCC (AR6, Grupo de Trabajo I, 2021)**. Es
+una cifra de referencia que sitúa la severidad de cada escenario; **no** es el
+calentamiento concreto de Canarias —ese se obtiene de los datos regionalizados de
+este mismo dataset y suele diferir del valor global.
+
+**Cómo se obtiene.** El IPCC parte del conjunto de modelos climáticos globales
+**CMIP6** y, combinándolos con el calentamiento ya observado, el paleoclima y el
+conocimiento de los procesos físicos, *acota* la dispersión de los modelos para
+dar, en cada escenario:
+
+- una **mejor estimación** (el valor central), y
+- un **rango "muy probable"** (entre paréntesis) que, en el lenguaje calibrado del
+  IPCC, cubre del **percentil 5 al 95** (≈ 90 % de probabilidad).
+
+Así, `ssp585` → *~4,4 °C (3,3–5,7)* se lee: la mejor estimación es **+4,4 °C** y es
+muy probable que el calentamiento global en 2100 quede **entre +3,3 y +5,7 °C**.
+
+<div class="tabla-scroll-xy con-desc">
+
+```{r}
+desc_escenario |>
+  knitr::kable(col.names = c("Escenario", "SSP", "Relato", "Forzamiento 2100",
+                             "Emisiones", "Calentamiento 2100 (AR6)", "Descripción"))
+```
+
+</div>
+
+<!-- FIN DE LA PARTE QUE SE INCORPORA A LA MEMORIA -->
+
 ## Mapas coropléticos interactivos
 
 Mapas **interactivos** (`leaflet`: zoom, *hover* con el valor y leyenda) a nivel
@@ -585,11 +706,6 @@ mapa_obs <- data |>
 munic_map |>
   left_join(mapa_obs, by = c("name" = "MUNICIPIO")) |>
   mapa_lf("tasmax_jul", "name", "°C")
-```
-
-```{r}
-# el dataset de proyecciones se lee UNA sola vez y se reutiliza en todo lo que sigue
-proy <- readRDS(f_proy) |> as_tibble()
 ```
 
 **Tmáx media de julio proyectada — SSP5-8.5, futuro lejano (2071–2100):**
@@ -655,108 +771,19 @@ ggplot(evol_modelos, aes(horizonte, tasmax_jul, group = modelo,
   theme_minimal()
 ```
 
-## Proyecciones (proyecciones_canarias.rds)
+# Incorporación del dataset a la memoria
 
-El segundo dataset, `proyecciones_canarias.rds`, es el **complemento prospectivo**
-del histórico: las mismas 14 variables, pero proyectadas al futuro con modelos
-CMIP6 regionalizados. Se diferencia del histórico en su estructura temporal:
-
-- **No tiene serie anual ni fechas**: son **climatologías** (un valor por mes),
-  así que la dimensión temporal son los 12 meses, no años. Cada valor es la
-  **media climatológica de 30 años** del horizonte correspondiente.
-- Añade tres dimensiones: **`escenario`** (4 trayectorias de emisión
-  SSP: `ssp126`, `ssp245`, `ssp370`, `ssp585`), **`modelo`** (los 11 GCMs de CMIP6
-  individuales más `ensemble`, la media del conjunto) y **`horizonte`** (4 ventanas
-  climáticas de 30 años: la base histórica de referencia y 3 horizontes futuros).
-- Columnas: `municipio · variable · unidad · escenario · modelo · horizonte · mes · value`.
-
-Los **horizontes** corresponden a estos periodos de 30 años, según la definición
-de AdapteCCa / Escenarios-PNACC:
-
-<div class="tabla-scroll">
-
-```{r}
-desc_horizonte |>
-  knitr::kable(col.names = c("horizonte", "periodo (años)", "denominación"))
-```
-
-</div>
-
-La **línea base de referencia** del modelo es el periodo histórico **1971–2000**
-(código interno `reference`). **Sí** se incluye en este rds, junto a los 3
-horizontes futuros, lo que permite calcular directamente las anomalías
-futuro − referencia. Al proceder del forzamiento histórico común de CMIP6, su
-valor es prácticamente idéntico en los 4 escenarios SSP (se repite en cada uno
-por simetría de la estructura).
-
-Los **escenarios** son trayectorias **SSP** (*Shared Socioeconomic Pathways*) del
-IPCC-AR6: cada una combina un relato socioeconómico (SSP1–5) con un nivel de
-**forzamiento radiativo** en 2100 —el número del código, p. ej. `2.6` = 2,6 W/m²—
-que resume el volumen de emisiones de gases de efecto invernadero (GHG). Van de
-menos a más emisiones: `ssp126` (bajas) → `ssp245` (medias) → `ssp370` (altas) →
-`ssp585` (muy altas). A mayor escenario, mayor calentamiento proyectado. El
-detalle de cada uno está en la **tabla final** de este documento.
-
-Por eso los criterios AEDV de *series temporales* y *actualización* no aplican
-igual (no es una serie observada): su papel es **proyectar/comparar** frente a la
-línea base histórica ya validada. A continuación, un resumen de su contenido:
-
-<div class="tabla-scroll">
-
-```{r}
-# el periodo de cada horizonte sale de los metadatos, no se vuelve a escribir aquí
-periodo_horizonte <- setNames(desc_horizonte$periodo, desc_horizonte$horizonte)
-
-resumen_proy <- tibble(
-  Concepto = c("Variables", "Escenarios (SSP)", "Modelos (GCM + ensemble)",
-               "Horizontes (periodo)", "Municipios", "Meses", "Filas totales"),
-  Valor = c(
-    as.character(n_distinct(proy$variable)),
-    paste(sort(unique(as.character(proy$escenario))), collapse = ", "),
-    as.character(n_distinct(proy$modelo)),
-    paste(sprintf("%s (%s)", names(periodo_horizonte), periodo_horizonte),
-          collapse = "; "),
-    as.character(n_distinct(proy$municipio)),
-    as.character(n_distinct(proy$mes)),
-    format(nrow(proy), big.mark = ".", decimal.mark = ",")
-  )
+```{r, results='asis'}
+# genera CLIMA_CANARIAS_analisis.Rmd con la sección "Análisis del dataset"
+# preparada para la memoria, y escribe las instrucciones para incorporarlo
+aedv_generar_analisis(
+  nombre        = filename,
+  titulo        = "Variables climáticas por municipio de Canarias (AdapteCCa)",
+  ficheros      = c(f_obs, f_proy, paste0(filename, "_metadatos.xlsx")),
+  tablas        = tablas_exportadas,
+  sugerencia    = "clima",
+  desempaquetar = c(clima_obs = "data", clima_proy = "proy"),
+  comentarios   = c(clima_obs  = "observaciones mensuales por municipio, 1990-2022",
+                    clima_proy = "proyecciones por escenario, modelo y horizonte")
 )
-
-knitr::kable(resumen_proy)
 ```
-
-</div>
-
-## Escenarios de emisión (GHG / SSP)
-
-Detalle de las 4 trayectorias SSP presentes en el dataset de proyecciones.
-
-**Qué significa la columna "Calentamiento 2100 (AR6)".** Es el aumento estimado de
-la **temperatura media GLOBAL** del planeta a finales de siglo (media del periodo
-**2081–2100**) respecto al **clima preindustrial** (referencia **1850–1900**),
-según el **6º Informe de Evaluación del IPCC (AR6, Grupo de Trabajo I, 2021)**. Es
-una cifra de referencia que sitúa la severidad de cada escenario; **no** es el
-calentamiento concreto de Canarias —ese se obtiene de los datos regionalizados de
-este mismo dataset y suele diferir del valor global.
-
-**Cómo se obtiene.** El IPCC parte del conjunto de modelos climáticos globales
-**CMIP6** y, combinándolos con el calentamiento ya observado, el paleoclima y el
-conocimiento de los procesos físicos, *acota* la dispersión de los modelos para
-dar, en cada escenario:
-
-- una **mejor estimación** (el valor central), y
-- un **rango "muy probable"** (entre paréntesis) que, en el lenguaje calibrado del
-  IPCC, cubre del **percentil 5 al 95** (≈ 90 % de probabilidad).
-
-Así, `ssp585` → *~4,4 °C (3,3–5,7)* se lee: la mejor estimación es **+4,4 °C** y es
-muy probable que el calentamiento global en 2100 quede **entre +3,3 y +5,7 °C**.
-
-<div class="tabla-scroll-xy con-desc">
-
-```{r}
-desc_escenario |>
-  knitr::kable(col.names = c("Escenario", "SSP", "Relato", "Forzamiento 2100",
-                             "Emisiones", "Calentamiento 2100 (AR6)", "Descripción"))
-```
-
-</div>

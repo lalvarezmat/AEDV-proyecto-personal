@@ -14,6 +14,7 @@ Autor: Luis Álvarez.
 | `ModeloMemoriaProyectoPersonalAEDV.Rmd` / `.html` | Plantilla de memoria que copia y rellena cada alumno |
 | `RubricaEvaluaciónProyectoPersonal.xlsx` | Criterios de evaluación (28 criterios en 7 áreas) |
 | `estilos.css` | Estilos de la memoria; debe acompañar al `.Rmd` |
+| `utilidades.R` | Funciones de la asignatura, entre ellas `aedv_incluir_dataset()`, que incorpora los datasets a la memoria; debe acompañar al `.Rmd` |
 | `SelecciónDatasetsProyecto/` | Catálogos y validadores de datasets por fuente |
 
 En `SelecciónDatasetsProyecto/` hay una carpeta por fuente (INE, ISTAC, EUROSTAT,
@@ -35,15 +36,15 @@ procedimiento; lo que produce cada etapa es justo de lo que parte la siguiente:
                      ▼
   ETAPA 3   descarga y valida los que has elegido usando <FUENTE>_DatasetSelection.Rmd
                      ▼
-  ETAPA 4   copias a tu memoria de proyecto personal los ficheros que ha guardado y su análisis
+  ETAPA 4   incorporas a tu memoria de proyecto personal los ficheros que ha guardado y su análisis
 ```
 
 | Etapa | Con qué se hace y qué produce | ¿La ejecuta el alumno? |
 |---|---|---|
 | **1. Inventario** *(ya hecho)* — recorrer la API del organismo y anotar la ficha básica de **todos** sus datasets | `<FUENTE>_TableDatasetGeneration.Rmd` → el **catálogo** `<FUENTE>.datasets.xlsx`, una fila por dataset | No |
 | **2. Búsqueda del tema** — localizar en el catálogo los datasets de un tema de interés | el `.xlsx` del catálogo y una IA → una lista de **identificadores** candidatos | Sí |
-| **3. Descarga y validación** — descargar esos datasets y comprobar si cumplen los requisitos AEDV | `<FUENTE>_DatasetSelection.Rmd` → `<nombre>.rds` (datos) y `<nombre>_metadatos.xlsx` (ficha), más el análisis de validación | Sí |
-| **4. Incorporación** — llevar los datos **y el análisis** a la memoria del proyecto | los ficheros de la etapa 3 y su código → la sección *Comprensión de los datos* de la memoria | Sí |
+| **3. Descarga y validación** — descargar esos datasets y comprobar si cumplen los requisitos AEDV | `<FUENTE>_DatasetSelection.Rmd` → `<nombre>.rds` (datos), `<nombre>_metadatos.xlsx` (ficha) y `<nombre>_analisis.Rmd` (el análisis de validación, preparado para la memoria) | Sí |
+| **4. Incorporación** — llevar los datos **y el análisis** a la memoria del proyecto | los ficheros de la etapa 3 y `aedv_incluir_dataset()` → la sección *Comprensión de los datos* de la memoria | Sí |
 
 Dos detalles explican por qué el flujo está partido así:
 
@@ -51,8 +52,9 @@ Dos detalles explican por qué el flujo está partido así:
   cobertura geográfica, fechas, dimensiones). Los datos no se descargan hasta la etapa 3.
 - **La etapa 3 descarga antes de analizar, a propósito.** El `*_DatasetSelection.Rmd`
   primero guarda en disco el `.rds` y el `_metadatos.xlsx` (3a) y después analiza
-  **leyendo esos ficheros** (3b). Por eso el código de la sección *Análisis del dataset*
-  se puede pegar tal cual en la memoria —arranca leyendo del disco— y por eso el proyecto
+  **leyendo esos ficheros** (3b). Por eso ese análisis, que se guarda en `<nombre>_analisis.Rmd`,
+  se puede incluir tal cual en la memoria con `aedv_incluir_dataset()` —arranca leyendo del
+  disco— y por eso el proyecto
   deja de depender de que el organismo mantenga el dataset disponible.
 
 EDGAR, CLIMA e INFORME PISA son datasets únicos ya construidos: **no tienen etapas 1 y 2**

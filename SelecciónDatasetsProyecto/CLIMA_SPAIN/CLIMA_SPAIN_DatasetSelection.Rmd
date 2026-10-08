@@ -59,6 +59,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE, cache = FA
 ```{r, echo=FALSE}
 library(openxlsx)
 library(tidyverse)
+source("../../utilidades.R") # funciones de la asignatura (aedv_generar_analisis, al final)
 library(sf)
 library(mapSpain)
 library(leaflet)
@@ -248,22 +249,25 @@ cat("Elementos sin descripción:", length(faltan_desc), "variables,",
 Una vez guardados en disco los metadatos (fichero xlsx) y estando ya los datos
 (los dos ficheros RDS), iniciamos el proceso de análisis. A partir de aquí el
 documento se compila **solo** con los ficheros ya guardados en disco; no se usa
-ningún objeto de la sección anterior. Es a propósito: es la parte que el alumno
-incluye en la memoria del proyecto personal, así que tiene que poder ejecutarse
+ningún objeto de la sección anterior. Es a propósito: es la parte que se incorpora a la memoria del proyecto personal (ver la última sección, *Incorporación del dataset a la memoria*), así que tiene que poder ejecutarse
 sola (lo único que se repite de lo definido antes son los nombres de fichero).
+
+<!------------------------------------------------------------------------------- 
+LA SECCIÓN SIGUIENTE, "Análisis del dataset", HASTA LA MARCA "FIN DE LA PARTE QUE SE INCORPORA A LA MEMORIA", ES LA QUE SE INCORPORA A LA MEMORIA DEL PROYECTO PERSONAL, EN LA SECCIÓN "COMPRENSIÓN DE LOS DATOS". AL COMPILAR ESTE DOCUMENTO SE GUARDA EN EL FICHERO CLIMA_SPAIN_analisis.Rmd, QUE SE INCLUYE EN LA MEMORIA CON aedv_incluir_dataset() (VER LA ÚLTIMA SECCIÓN).
+LAS MARCAS "INICIO/FIN DE LA VALIDACIÓN AEDV" DELIMITAN LO QUE OMITE aedv_incluir_dataset(validacion = FALSE): NO BORRARLAS.
+LOS MAPAS COROPLÉTICOS VAN DESPUÉS DE ESA MARCA A PROPÓSITO: NO SE INCORPORAN A LA MEMORIA.
+--------------------------------------------------------------------------------->
 
 # Análisis del dataset
 
-<!------------------------------------------------------------------------------- 
-LO SIGUIENTE, HASTA EL FINAL DEL CÓDIGO, ES LA PARTE QUE SE INCORPORA A LA MEMORIA DEL PROYECTO PERSONAL INCLUIR LOS DATOS EN LA SECCIÓN DE "COMPRENSIÓN DE LOS 
-DATOS". SI SE INCORPORAN VARIOS GRUPOS DE DATASETS HAY QUE HACER ESTO PARA CADA UNO. HAY QUE TENER EN CUENTA QUE EL DATASET SE CARGA EN UNA TABLA QUE SE LLAMA data. SI SE USA VARIAS VECES ESTE CÓDIGO PARA INCORPORAR VARIOS DATASETS HAY QUE ASIGNAR AL FINAL UN NOMBRE DISTINTO A CADA UNO 
---------------------------------------------------------------------------------->
-
 ```{r}
-# AL LEER LOS DATOS DESDE AQUÍ HAY QUE DEFINIR DE NUEVO filename, f_obs y f_proy (nombres con los que se guardaron los ficheros)
+# nombres con los que se guardaron los ficheros del dataset
 filename <- "CLIMA_SPAIN"
 f_obs    <- "observaciones_spain.rds"
 f_proy   <- "proyecciones_spain.rds"
+
+# tablas que devuelve aedv_incluir_dataset() al incluir este análisis en la memoria
+tablas_exportadas <- c("data", "proy")
 ```
 
 ```{r}
@@ -301,7 +305,7 @@ España se cubre con **dos rejillas observacionales de AEMET** que aquí se
 combinan por provincia:
 
 - **ROCIO_IBEB (~5 km)** → Península, Baleares, Ceuta y Melilla.
-- **ROCIO+_CAN (~2,5 km)** → Canarias.
+- **ROCIO+\_CAN (~2,5 km)** → Canarias.
 
 Cada provincia toma su valor de la rejilla que la cubre. Hay dos productos:
 
@@ -419,6 +423,8 @@ data |>
 
 </div>
 
+<!-- INICIO DE LA VALIDACIÓN AEDV -->
+
 ## Validación de requisitos AEDV
 
 ```{r}
@@ -477,113 +483,14 @@ geográfica** (> 40 provincias), **`r n_temp`** el **tamaño de serie temporal**
 > pese a la excelente cobertura (52 provincias) y longitud temporal. Bajando
 > `anio_min` a 2022 las 14 variables pasarían los tres criterios.
 
-## Mapas coropléticos interactivos
+<!-- FIN DE LA VALIDACIÓN AEDV -->
 
-Mapas **interactivos** (`leaflet`: zoom, *hover* con el valor y leyenda) a nivel
-de provincia, **sin mapa base**, con la geometría de `mapSpain` en coordenadas
-reales (`moveCAN = FALSE`, Canarias en su posición real en el Atlántico). Unen
-los datos por el **código de provincia** `cpro`.
-
-```{r}
-prov_map <- mapSpain::esp_get_prov(moveCAN = FALSE, epsg = 4326)
-
-# Helper: coroplético interactivo con leaflet
-mapa_lf <- function(sf_obj, valor, etiqueta_col, unidad) {
-  v   <- sf_obj[[valor]]
-  pal <- leaflet::colorNumeric("YlOrRd", domain = v, na.color = "transparent")
-  etq <- sprintf("<b>%s</b><br/>%.1f %s", sf_obj[[etiqueta_col]], v, unidad)
-  leaflet::leaflet(sf_obj) |>
-    leaflet::addPolygons(
-      fillColor = pal(v), fillOpacity = 0.8, weight = 1, color = "white",
-      label = lapply(etq, htmltools::HTML),
-      highlightOptions = leaflet::highlightOptions(weight = 2, color = "#444",
-                                                   bringToFront = TRUE)) |>
-    leaflet::addLegend(pal = pal, values = v, title = unidad, position = "bottomright")
-}
-```
-
-**Tmáx media de julio observada por provincia (histórico):**
-
-```{r}
-mapa_obs <- data |>
-  filter(VARIABLE == "tasmax", stringr::str_detect(TIME, "-07$")) |>
-  group_by(CPRO) |>
-  summarise(tasmax_jul = round(mean(VALUE, na.rm = TRUE), 1), .groups = "drop")
-
-prov_map |>
-  left_join(mapa_obs, by = c("cpro" = "CPRO")) |>
-  mapa_lf("tasmax_jul", "ine.prov.name", "°C")
-```
+## Proyecciones (proyecciones_spain.rds)
 
 ```{r}
 # el dataset de proyecciones se lee UNA sola vez y se reutiliza en todo lo que sigue
 proy <- readRDS(f_proy) |> as_tibble()
 ```
-
-**Tmáx media de julio proyectada — SSP5-8.5, futuro lejano (2071–2100):**
-
-```{r}
-mapa_proy <- proy |>
-  filter(variable == "tasmax", escenario == "ssp585", modelo == "ensemble",
-         horizonte == "far_future", mes == 7) |>
-  group_by(cpro) |>
-  summarise(tasmax_jul = round(mean(value, na.rm = TRUE), 1), .groups = "drop")
-
-prov_map |>
-  left_join(mapa_proy, by = "cpro") |>
-  mapa_lf("tasmax_jul", "ine.prov.name", "°C")
-```
-
-**Proyecciones por modelo (dispersión inter-modelo):** el mapa anterior usa el
-`ensemble` (la media de los 11 GCMs), pero el dataset guarda **cada modelo por
-separado**. Para el mismo caso (tasmax de julio, SSP5-8.5, futuro lejano),
-promediando a toda España, el valor varía notablemente según el modelo; el
-`ensemble` (rojo) es la media del conjunto.
-
-```{r}
-spread_modelos <- proy |>
-  filter(variable == "tasmax", escenario == "ssp585",
-         horizonte == "far_future", mes == 7) |>
-  group_by(modelo) |>
-  summarise(tasmax_jul = round(mean(value, na.rm = TRUE), 1), .groups = "drop") |>
-  mutate(es_ensemble = modelo == "ensemble")
-
-ggplot(spread_modelos, aes(reorder(modelo, tasmax_jul), tasmax_jul,
-                           fill = es_ensemble)) +
-  geom_col() +
-  geom_text(aes(label = tasmax_jul), hjust = -0.15, size = 3) +
-  coord_flip() +
-  scale_fill_manual(values = c(`FALSE` = "grey70", `TRUE` = "firebrick"),
-                    guide = "none") +
-  scale_y_continuous(expand = expansion(mult = c(0, 0.08))) +
-  labs(title = "Tmáx media de julio — SSP5-8.5, futuro lejano (2071–2100)",
-       subtitle = "Media de España por modelo (rojo = ensemble)",
-       x = NULL, y = "°C") +
-  theme_minimal()
-```
-
-Series temporales por horizonte de cada modelo (tasmax, SSP5-8.5), promediadas a
-toda España: cada línea gris es un GCM y la roja el `ensemble`.
-
-```{r, fig.width = 9, fig.height = 4}
-evol_modelos <- proy |>
-  filter(variable == "tasmax", escenario == "ssp585", mes == 7) |>
-  group_by(modelo, horizonte) |>
-  summarise(tasmax_jul = mean(value, na.rm = TRUE), .groups = "drop") |>
-  mutate(es_ensemble = modelo == "ensemble")
-
-ggplot(evol_modelos, aes(horizonte, tasmax_jul, group = modelo,
-                         color = es_ensemble, linewidth = es_ensemble)) +
-  geom_line() +
-  scale_color_manual(values = c(`FALSE` = "grey70", `TRUE` = "firebrick"),
-                     labels = c("GCM individual", "ensemble"), name = NULL) +
-  scale_linewidth_manual(values = c(`FALSE` = 0.4, `TRUE` = 1.3), guide = "none") +
-  labs(title = "Tmáx de julio por horizonte y modelo (SSP5-8.5) — media de España",
-       x = NULL, y = "°C") +
-  theme_minimal()
-```
-
-## Proyecciones (proyecciones_spain.rds)
 
 Mismas 14 variables, proyectadas con CMIP6 regionalizado. Son **climatologías**
 (un valor por mes, sin año), con tres dimensiones: **`escenario`** (SSP),
@@ -651,3 +558,123 @@ desc_escenario |>
 ```
 
 </div>
+
+<!-- FIN DE LA PARTE QUE SE INCORPORA A LA MEMORIA -->
+
+## Mapas coropléticos interactivos
+
+Mapas **interactivos** (`leaflet`: zoom, *hover* con el valor y leyenda) a nivel
+de provincia, **sin mapa base**, con la geometría de `mapSpain` en coordenadas
+reales (`moveCAN = FALSE`, Canarias en su posición real en el Atlántico). Unen
+los datos por el **código de provincia** `cpro`.
+
+```{r}
+prov_map <- mapSpain::esp_get_prov(moveCAN = FALSE, epsg = 4326)
+
+# Helper: coroplético interactivo con leaflet
+mapa_lf <- function(sf_obj, valor, etiqueta_col, unidad) {
+  v   <- sf_obj[[valor]]
+  pal <- leaflet::colorNumeric("YlOrRd", domain = v, na.color = "transparent")
+  etq <- sprintf("<b>%s</b><br/>%.1f %s", sf_obj[[etiqueta_col]], v, unidad)
+  leaflet::leaflet(sf_obj) |>
+    leaflet::addPolygons(
+      fillColor = pal(v), fillOpacity = 0.8, weight = 1, color = "white",
+      label = lapply(etq, htmltools::HTML),
+      highlightOptions = leaflet::highlightOptions(weight = 2, color = "#444",
+                                                   bringToFront = TRUE)) |>
+    leaflet::addLegend(pal = pal, values = v, title = unidad, position = "bottomright")
+}
+```
+
+**Tmáx media de julio observada por provincia (histórico):**
+
+```{r}
+mapa_obs <- data |>
+  filter(VARIABLE == "tasmax", stringr::str_detect(TIME, "-07$")) |>
+  group_by(CPRO) |>
+  summarise(tasmax_jul = round(mean(VALUE, na.rm = TRUE), 1), .groups = "drop")
+
+prov_map |>
+  left_join(mapa_obs, by = c("cpro" = "CPRO")) |>
+  mapa_lf("tasmax_jul", "ine.prov.name", "°C")
+```
+
+**Tmáx media de julio proyectada — SSP5-8.5, futuro lejano (2071–2100):**
+
+```{r}
+mapa_proy <- proy |>
+  filter(variable == "tasmax", escenario == "ssp585", modelo == "ensemble",
+         horizonte == "far_future", mes == 7) |>
+  group_by(cpro) |>
+  summarise(tasmax_jul = round(mean(value, na.rm = TRUE), 1), .groups = "drop")
+
+prov_map |>
+  left_join(mapa_proy, by = "cpro") |>
+  mapa_lf("tasmax_jul", "ine.prov.name", "°C")
+```
+
+**Proyecciones por modelo (dispersión inter-modelo):** el mapa anterior usa el
+`ensemble` (la media de los 11 GCMs), pero el dataset guarda **cada modelo por
+separado**. Para el mismo caso (tasmax de julio, SSP5-8.5, futuro lejano),
+promediando a toda España, el valor varía notablemente según el modelo; el
+`ensemble` (rojo) es la media del conjunto.
+
+```{r}
+spread_modelos <- proy |>
+  filter(variable == "tasmax", escenario == "ssp585",
+         horizonte == "far_future", mes == 7) |>
+  group_by(modelo) |>
+  summarise(tasmax_jul = round(mean(value, na.rm = TRUE), 1), .groups = "drop") |>
+  mutate(es_ensemble = modelo == "ensemble")
+
+ggplot(spread_modelos, aes(reorder(modelo, tasmax_jul), tasmax_jul,
+                           fill = es_ensemble)) +
+  geom_col() +
+  geom_text(aes(label = tasmax_jul), hjust = -0.15, size = 3) +
+  coord_flip() +
+  scale_fill_manual(values = c(`FALSE` = "grey70", `TRUE` = "firebrick"),
+                    guide = "none") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.08))) +
+  labs(title = "Tmáx media de julio — SSP5-8.5, futuro lejano (2071–2100)",
+       subtitle = "Media de España por modelo (rojo = ensemble)",
+       x = NULL, y = "°C") +
+  theme_minimal()
+```
+
+Series temporales por horizonte de cada modelo (tasmax, SSP5-8.5), promediadas a
+toda España: cada línea gris es un GCM y la roja el `ensemble`.
+
+```{r, fig.width = 9, fig.height = 4}
+evol_modelos <- proy |>
+  filter(variable == "tasmax", escenario == "ssp585", mes == 7) |>
+  group_by(modelo, horizonte) |>
+  summarise(tasmax_jul = mean(value, na.rm = TRUE), .groups = "drop") |>
+  mutate(es_ensemble = modelo == "ensemble")
+
+ggplot(evol_modelos, aes(horizonte, tasmax_jul, group = modelo,
+                         color = es_ensemble, linewidth = es_ensemble)) +
+  geom_line() +
+  scale_color_manual(values = c(`FALSE` = "grey70", `TRUE` = "firebrick"),
+                     labels = c("GCM individual", "ensemble"), name = NULL) +
+  scale_linewidth_manual(values = c(`FALSE` = 0.4, `TRUE` = 1.3), guide = "none") +
+  labs(title = "Tmáx de julio por horizonte y modelo (SSP5-8.5) — media de España",
+       x = NULL, y = "°C") +
+  theme_minimal()
+```
+
+# Incorporación del dataset a la memoria
+
+```{r, results='asis'}
+# genera CLIMA_SPAIN_analisis.Rmd con la sección "Análisis del dataset"
+# preparada para la memoria, y escribe las instrucciones para incorporarlo
+aedv_generar_analisis(
+  nombre        = filename,
+  titulo        = "Variables climáticas por provincia de España (AdapteCCa)",
+  ficheros      = c(f_obs, f_proy, paste0(filename, "_metadatos.xlsx")),
+  tablas        = tablas_exportadas,
+  sugerencia    = "clima",
+  desempaquetar = c(clima_obs = "data", clima_proy = "proy"),
+  comentarios   = c(clima_obs  = "observaciones mensuales por provincia",
+                    clima_proy = "proyecciones por escenario, modelo y horizonte")
+)
+```

@@ -70,6 +70,7 @@
       <a href="ModeloMemoriaProyectoPersonalAEDV.Rmd">ModeloMemoriaProyectoPersonalAEDV.Rmd</a></span></li>
   <li><a href="RubricaEvaluaci%C3%B3nProyectoPersonal.xlsx">Rúbrica de evaluación (xlsx)</a> — <span class="desc">28 criterios en 7 áreas, por entrega</span></li>
   <li><a href="estilos.css">estilos.css</a> — <span class="desc">estilos de la memoria; se necesita junto al Rmd, no se modifica</span></li>
+  <li><a href="utilidades.R">utilidades.R</a> — <span class="desc">funciones de la asignatura, entre ellas <code>aedv_incluir_dataset()</code>, que incorpora los datasets a la memoria; se necesita junto al Rmd, no se modifica</span></li>
 </ul>
 
 <h2>Selección de datasets</h2>
@@ -98,8 +99,8 @@ que acaban en la memoria del proyecto</strong>, estrechando el embudo en cada et
   <tbody>
     <tr><td><strong>1. Inventario</strong> <em>(ya hecho)</em> — recorrer la API del organismo y anotar la ficha básica de <strong>todos</strong> sus datasets</td><td><code>&lt;FUENTE&gt;_TableDatasetGeneration.Rmd</code> → el <strong>catálogo</strong> <code>&lt;FUENTE&gt;.datasets.xlsx</code>, una fila por dataset</td><td>No</td></tr>
     <tr><td><strong>2. Búsqueda del tema</strong> — localizar en el catálogo los datasets de un tema de interés</td><td>el <code>.xlsx</code> del catálogo y una IA → una lista de <strong>identificadores</strong> candidatos</td><td>Sí</td></tr>
-    <tr><td><strong>3. Descarga y validación</strong> — descargar esos datasets y comprobar si cumplen los requisitos AEDV</td><td><code>&lt;FUENTE&gt;_DatasetSelection.Rmd</code> → <code>&lt;nombre&gt;.rds</code> (datos) y <code>&lt;nombre&gt;_metadatos.xlsx</code> (ficha), más el análisis de validación</td><td>Sí</td></tr>
-    <tr><td><strong>4. Incorporación</strong> — llevar los datos <strong>y el análisis</strong> a la memoria</td><td>los ficheros de la etapa 3 y su código → la sección <em>Comprensión de los datos</em> de la memoria</td><td>Sí</td></tr>
+    <tr><td><strong>3. Descarga y validación</strong> — descargar esos datasets y comprobar si cumplen los requisitos AEDV</td><td><code>&lt;FUENTE&gt;_DatasetSelection.Rmd</code> → <code>&lt;nombre&gt;.rds</code> (datos), <code>&lt;nombre&gt;_metadatos.xlsx</code> (ficha) y <code>&lt;nombre&gt;_analisis.Rmd</code> (el análisis de validación, preparado para la memoria)</td><td>Sí</td></tr>
+    <tr><td><strong>4. Incorporación</strong> — llevar los datos <strong>y el análisis</strong> a la memoria</td><td>los ficheros de la etapa 3 y <code>aedv_incluir_dataset()</code> → la sección <em>Comprensión de los datos</em> de la memoria</td><td>Sí</td></tr>
   </tbody>
 </table>
 </div>
@@ -110,7 +111,7 @@ que acaban en la memoria del proyecto</strong>, estrechando el embudo en cada et
       geográfica, fechas, dimensiones. Los datos no se descargan hasta la etapa 3.</li>
   <li><strong>La etapa 3 descarga antes de analizar, y es deliberado</strong>: primero guarda en disco el
       <code>.rds</code> y el <code>_metadatos.xlsx</code> (3a) y después analiza <strong>leyendo esos ficheros</strong> (3b).
-      De ahí que el código de la sección <em>Análisis del dataset</em> se pueda pegar tal cual en la memoria, y que el
+      De ahí que ese análisis, que se guarda en <code>&lt;nombre&gt;_analisis.Rmd</code>, se pueda incluir tal cual en la memoria con <code>aedv_incluir_dataset()</code>, y que el
       proyecto deje de depender de que el organismo mantenga el dataset disponible.</li>
 </ul>
 
@@ -193,6 +194,7 @@ estructura 3a/3b, así que la incorporación a la memoria se hace igual.</p>
   <li>Datos: <a href="Selecci%C3%B3nDatasetsProyecto/EDGAR_GHG/EDGAR_GHG.rds">EDGAR_GHG.rds</a> ·
       <a href="Selecci%C3%B3nDatasetsProyecto/EDGAR_GHG/EDGAR_GHG_normalizado.rds">EDGAR_GHG_normalizado.rds</a> ·
       <a href="Selecci%C3%B3nDatasetsProyecto/EDGAR_GHG/EDGAR_GHG_metadatos.xlsx">metadatos</a></li>
+  <li>Análisis para la memoria: <a href="Selecci%C3%B3nDatasetsProyecto/EDGAR_GHG/EDGAR_GHG_analisis.Rmd">EDGAR_GHG_analisis.Rmd</a></li>
 </ul>
 
 <h3>Clima de Canarias (por municipio)</h3>
@@ -202,6 +204,7 @@ estructura 3a/3b, así que la incorporación a la memoria se hace igual.</p>
   <li>Datos: <a href="Selecci%C3%B3nDatasetsProyecto/CLIMA_CANARIAS/observaciones_canarias_1990_2022.rds">observaciones 1990–2022</a> ·
       <a href="Selecci%C3%B3nDatasetsProyecto/CLIMA_CANARIAS/proyecciones_canarias.rds">proyecciones CMIP6</a> ·
       <a href="Selecci%C3%B3nDatasetsProyecto/CLIMA_CANARIAS/CLIMA_CANARIAS_metadatos.xlsx">metadatos</a></li>
+  <li>Análisis para la memoria: <a href="Selecci%C3%B3nDatasetsProyecto/CLIMA_CANARIAS/CLIMA_CANARIAS_analisis.Rmd">CLIMA_CANARIAS_analisis.Rmd</a></li>
 </ul>
 
 <h3>Clima de España (por provincia)</h3>
@@ -211,6 +214,7 @@ estructura 3a/3b, así que la incorporación a la memoria se hace igual.</p>
   <li>Datos: <a href="Selecci%C3%B3nDatasetsProyecto/CLIMA_SPAIN/observaciones_spain.rds">observaciones</a> ·
       <a href="Selecci%C3%B3nDatasetsProyecto/CLIMA_SPAIN/proyecciones_spain.rds">proyecciones CMIP6</a> ·
       <a href="Selecci%C3%B3nDatasetsProyecto/CLIMA_SPAIN/CLIMA_SPAIN_metadatos.xlsx">metadatos</a></li>
+  <li>Análisis para la memoria: <a href="Selecci%C3%B3nDatasetsProyecto/CLIMA_SPAIN/CLIMA_SPAIN_analisis.Rmd">CLIMA_SPAIN_analisis.Rmd</a></li>
 </ul>
 
 <h3>Informe PISA — resultados educativos, pobreza y desigualdad</h3>
@@ -223,6 +227,7 @@ estructura 3a/3b, así que la incorporación a la memoria se hace igual.</p>
       <a href="Selecci%C3%B3nDatasetsProyecto/INFORME_PISA/contexto_ccaa.rds">contexto_ccaa.rds</a>
       <span class="desc">(pobreza, AROPE, peso de la educación en el PIB regional)</span></li>
   <li>Metadatos: <a href="Selecci%C3%B3nDatasetsProyecto/INFORME_PISA/INFORME_PISA_metadatos.xlsx">INFORME_PISA_metadatos.xlsx</a></li>
+  <li>Análisis para la memoria: <a href="Selecci%C3%B3nDatasetsProyecto/INFORME_PISA/INFORME_PISA_analisis.Rmd">INFORME_PISA_analisis.Rmd</a></li>
 </ul>
 
 <footer>

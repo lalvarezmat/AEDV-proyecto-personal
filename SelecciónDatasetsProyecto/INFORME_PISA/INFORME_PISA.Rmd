@@ -54,6 +54,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE, cache = FA
 
 ```{r, echo=FALSE}
 library(tidyverse)
+source("../../utilidades.R") # funciones de la asignatura (aedv_generar_analisis, al final)
 library(openxlsx)
 library(mapSpain)
 library(leaflet)
@@ -801,24 +802,26 @@ cat("Entidades sin descripcion:", length(faltan_desc), "| regiones CCAA sin mape
 Una vez guardados en disco los metadatos (fichero xlsx) y los datos (los dos
 ficheros RDS), iniciamos el proceso de análisis. A partir de aquí el documento se
 compila **solo** con los ficheros ya guardados en disco; no se usa ningún objeto
-de las secciones anteriores. Es a propósito: es la parte que el alumno incluye en
-la memoria del proyecto personal, así que tiene que poder ejecutarse sola (lo
+de las secciones anteriores. Es a propósito: es la parte que se incorpora a la memoria del proyecto personal (ver la última sección, *Incorporación del dataset a la memoria*), así que tiene que poder ejecutarse sola (lo
 único que se repite de lo definido antes son los nombres de fichero).
+
+<!------------------------------------------------------------------------------- 
+LA SECCIÓN SIGUIENTE, "Análisis del dataset", HASTA LA MARCA "FIN DE LA PARTE QUE SE INCORPORA A LA MEMORIA", ES LA QUE SE INCORPORA A LA MEMORIA DEL PROYECTO PERSONAL, EN LA SECCIÓN "COMPRENSIÓN DE LOS DATOS". AL COMPILAR ESTE DOCUMENTO SE GUARDA EN EL FICHERO INFORME_PISA_analisis.Rmd, QUE SE INCLUYE EN LA MEMORIA CON aedv_incluir_dataset() (VER LA ÚLTIMA SECCIÓN).
+LAS MARCAS "INICIO/FIN DE LA VALIDACIÓN AEDV" DELIMITAN LO QUE OMITE aedv_incluir_dataset(validacion = FALSE): NO BORRARLAS.
+--------------------------------------------------------------------------------->
 
 # Análisis del dataset
 
-<!------------------------------------------------------------------------------- 
-LO SIGUIENTE, HASTA EL FINAL DEL CÓDIGO, ES LA PARTE QUE SE INCORPORA A LA MEMORIA DEL PROYECTO PERSONAL INCLUIR LOS DATOS EN LA SECCIÓN DE "COMPRENSIÓN DE LOS 
-DATOS". SI SE INCORPORAN VARIOS GRUPOS DE DATASETS HAY QUE HACER ESTO PARA CADA UNO. HAY QUE TENER EN CUENTA QUE EL DATASET SE CARGA EN CUATRO TABLAS QUE SE LLAMAN pisa_paises, pisa_ccaa, contexto_paises Y contexto_ccaa. SI SE USA VARIAS VECES ESTE CÓDIGO PARA INCORPORAR VARIOS DATASETS HAY QUE ASIGNAR AL FINAL UN NOMBRE DISTINTO A CADA UNO 
---------------------------------------------------------------------------------->
-
 ```{r}
-# AL LEER LOS DATOS DESDE AQUÍ HAY QUE DEFINIR DE NUEVO filename y los f_* (nombres con los que se guardaron los ficheros)
+# nombres con los que se guardaron los ficheros del dataset
 filename          <- "INFORME_PISA"
 f_paises          <- "pisa_paises_2000_2025.rds"
 f_ccaa            <- "pisa_ccaa_2009_2025.rds"
 f_contexto_paises <- "contexto_paises.rds"
 f_contexto_ccaa   <- "contexto_ccaa.rds"
+
+# tablas que devuelve aedv_incluir_dataset() al incluir este análisis en la memoria
+tablas_exportadas <- c("pisa_paises", "pisa_ccaa", "contexto_paises", "contexto_ccaa")
 ```
 
 ```{r}
@@ -948,6 +951,8 @@ contexto_ccaa |>
   knitr::kable()
 ```
 
+<!-- INICIO DE LA VALIDACIÓN AEDV -->
+
 ## Validación global de requisitos AEDV
 
 Los 4 ficheros son complementarios pero de naturaleza distinta, así que se
@@ -984,3 +989,28 @@ educativos con contexto socioeconómico. No cumple el perfil de una serie
 temporal densa por país al estilo de los datasets anuales del curso — esa es
 una limitación de PISA en sí (trienal, con huecos), no de cómo se ha construido
 este dataset.
+
+<!-- FIN DE LA VALIDACIÓN AEDV -->
+
+<!-- FIN DE LA PARTE QUE SE INCORPORA A LA MEMORIA -->
+
+# Incorporación del dataset a la memoria
+
+```{r, results='asis'}
+# genera INFORME_PISA_analisis.Rmd con la sección "Análisis del dataset"
+# preparada para la memoria, y escribe las instrucciones para incorporarlo
+aedv_generar_analisis(
+  nombre        = filename,
+  titulo        = "Informe PISA y contexto socioeconómico, por país y por Comunidad Autónoma",
+  ficheros      = c(f_paises, f_ccaa, f_contexto_paises, f_contexto_ccaa,
+                    paste0(filename, "_metadatos.xlsx")),
+  tablas        = tablas_exportadas,
+  sugerencia    = "pisa",
+  desempaquetar = c(pisa_paises = "pisa_paises", pisa_ccaa = "pisa_ccaa",
+                    contexto_paises = "contexto_paises", contexto_ccaa = "contexto_ccaa"),
+  comentarios   = c(pisa_paises     = "resultados PISA por país, 2000-2025",
+                    pisa_ccaa       = "resultados PISA por Comunidad Autónoma, 2009-2025",
+                    contexto_paises = "contexto socioeconómico por país",
+                    contexto_ccaa   = "contexto socioeconómico por Comunidad Autónoma")
+)
+```

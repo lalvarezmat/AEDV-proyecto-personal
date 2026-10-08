@@ -1,0 +1,328 @@
+<!--
+Análisis del dataset "Emisiones de gases de efecto invernadero por país (EDGAR)", generado por EDGAR_GHG.Rmd el 2026-10-08.
+Se incluye en la sección "Comprensión de los datos" de la memoria con este código, en un
+chunk con las opciones results='asis' y cache=FALSE:
+
+    edgar <- aedv_incluir_dataset("EDGAR_GHG_analisis.Rmd")
+    # este dataset tiene 2 tablas: aedv_incluir_dataset() las devuelve en una lista
+    emisiones      <- edgar$data       # emisiones por país, sector y gas
+    emisiones_norm <- edgar$data_norm  # emisiones per cápita y por unidad de PIB
+
+No conviene editar este fichero: el texto explicativo del dataset se escribe en la memoria,
+antes o después del chunk que lo incluye.
+-->
+
+### Emisiones de gases de efecto invernadero por país (EDGAR)
+
+```{r}
+# nombre con el que se guardaron los ficheros del dataset
+filename <- "EDGAR_GHG"
+
+# tablas que devuelve aedv_incluir_dataset() al incluir este análisis en la memoria
+tablas_exportadas <- c("data", "data_norm")
+```
+
+```{r}
+# las descripciones de los indicadores viven en las hojas `Sector`, `Substance`
+# e `Indicador` del fichero de metadatos, y la ficha general en `dataset`
+ficha          <- read.xlsx(paste0(filename, "_metadatos.xlsx"), sheet = "dataset")
+desc_sector    <- read.xlsx(paste0(filename, "_metadatos.xlsx"), sheet = "Sector")
+desc_substance <- read.xlsx(paste0(filename, "_metadatos.xlsx"), sheet = "Substance")
+desc_indicador <- read.xlsx(paste0(filename, "_metadatos.xlsx"), sheet = "Indicador")
+```
+
+**metadatos**
+
+<div class="tabla-scroll">
+
+```{r}
+knitr::kable(ficha)
+```
+
+</div>
+
+```{r}
+data <- readRDS(paste0(filename, ".rds"))
+```
+
+**data**
+
+```{r}
+data |> print(n=5)
+```
+
+> **Aviso sobre la tabla combinada:** Esta tabla combina el desglose por sector con el total por país en una sola tabla, por lo que **NO debe sumarse a ciegas** sobre `Sector` ni sobre `Substance`. Las filas `Sector == "TOTAL"` (con `Substance == "GWP_100_AR5_GHG"`) ya son la suma de todos los sectores y sustancias: sumarlas junto con el resto duplicaría las emisiones. Ver la sección *Descripción de las variables de la tabla* más abajo.
+
+#### Información sobre las columnas de la tabla descargada
+
+Se presentan las diferentes dimensiones, cada una con sus valores posibles y el nº de observaciones.
+
+```{r, results='asis'}
+# results='asis' para poder envolver la salida de cada columna en HTML propio
+# (la caja con scroll vertical). Sin 'asis' el <div>/<pre> se imprimirían como
+# texto literal en vez de interpretarse.
+imprime_caja <- function(m, texto){
+  cat("\n**", texto, "**\n\n", sep = "")
+  cat('<div class="caja-scroll caja-5">\n\n')
+  cat("```\n")
+  print(m)
+  cat("```\n")
+  cat("\n</div>\n")
+  cat("\n")
+}
+
+for(col in colnames(data)){
+  # se salta la columna del dato numérico, pero NO `date`, que aquí es el año y
+  # viene como número: es la dimensión temporal y hay que mostrarla como una más
+  if(is.numeric(data[[col]]) && col != "date") next
+
+  # nº de opciones (valores distintos) de la columna, siempre en la cabecera
+  n_opciones <- n_distinct(data[[col]])
+
+  tb <- data |>
+    group_by(!!sym(col)) |>
+    summarise(N.observ = dplyr::n(), .groups = "drop") |>
+    arrange(desc(N.observ)) |>
+    # los nombres de sector y de país pueden ser largos
+    mutate(!!col := substr(as.character(!!sym(col)), 1, 60))
+
+  texto <- paste0("COLUMNA: ", col, " (", n_opciones, " opciones)")
+
+  imprime_caja(tb |> as.matrix() |> noquote(), texto)
+}
+```
+
+#### Valores únicos de Sector y nº de observaciones en la tabla
+
+<div class="tabla-scroll-xy con-desc">
+
+```{r}
+# kable en vez de DT::datatable: aquí solo hace falta poder recorrer la tabla, no
+# filtrarla ni ordenarla. El contenedor .tabla-scroll-xy le da el scroll en los
+# dos ejes, con la cabecera fija arriba, y .con-desc deja que la última columna
+# (la descripción) reparta en varias líneas.
+data |>
+  count(Sector, name = "n_observaciones") |>
+  arrange(desc(n_observaciones)) |>
+  left_join(desc_sector, by = "Sector") |>
+  knitr::kable()
+```
+
+</div>
+
+#### Valores únicos de Sustancias / gases y nº de observaciones en la tabla
+
+<div class="tabla-scroll-xy con-desc">
+
+```{r}
+data |>
+  count(Substance, name = "n_observaciones") |>
+  arrange(desc(n_observaciones)) |>
+  left_join(desc_substance, by = "Substance") |>
+  knitr::kable()
+```
+
+</div>
+
+#### Nº de observaciones en España
+
+Los datos de EDGAR son por países, así que aquí lo que interesa comprobar es que **España** esté presente y bien representada. **Ojo**: desde la versión 2026, EDGAR ya no reporta España por separado, sino fusionada con Andorra bajo el código `ESP` (ver la sección de más abajo sobre la columna `Country`).
+
+```{r}
+data.esp <- data |>
+  filter(EDGAR_Country_Code == "ESP") |>
+  summarise(N.Observ    = dplyr::n(),
+            n_sectores  = n_distinct(Sector),
+            n_sustancias= n_distinct(Substance),
+            n_periodos  = n_distinct(date),
+            date_min    = min(date),
+            date_max    = max(date))
+
+if(data.esp$N.Observ == 0){
+  cat("El dataset NO contiene datos de España.\n")
+} else {
+  print(as.data.frame(data.esp), row.names = FALSE)
+}
+```
+
+<!-- INICIO DE LA VALIDACIÓN AEDV -->
+
+#### Tamaño series temporales de atributos combinados
+
+Cada combinación de **sustancia × sector** es un atributo que se sigue en el tiempo para cada país/entidad. Se muestra, para cada una, el nº de países con datos y los percentiles del tamaño de su serie temporal (nº de años con dato no nulo por país).
+
+<div class="tabla-scroll-xy">
+
+```{r}
+# Combinaciones Substance x Sector: nº de observaciones, percentiles y rango de años
+data |>
+  group_by(Substance, Sector, Country) |>
+  summarise(n_años = n_distinct(date), .groups = "drop") |>
+  group_by(Substance, Sector) |>
+  summarise(
+    n_paises = n_distinct(Country),
+    P0   = min(n_años),
+    P25  = quantile(n_años, 0.25),
+    P50  = quantile(n_años, 0.50),
+    P75  = quantile(n_años, 0.75),
+    P100 = max(n_años),
+    .groups = "drop"
+  ) |>
+  arrange(desc(n_paises), desc(P25)) |>
+  knitr::kable()
+```
+
+</div>
+
+<!-- FIN DE LA VALIDACIÓN AEDV -->
+
+#### Emisiones normalizadas: per cápita y por PIB
+
+Novedad de la versión 2026 del dataset: junto a las emisiones absolutas, EDGAR publica ahora dos vistas normalizadas por país y año, en un fichero aparte (`EDGAR_GHG_normalizado.rds`) porque tienen otra unidad y otra granularidad — solo país × año, sin desglose por `Sector`/`Substance` (son siempre el total del país).
+
+```{r}
+data_norm <- readRDS(paste0(filename, "_normalizado.rds"))
+```
+
+**data_normalizado**
+
+```{r}
+data_norm |> print(n=5)
+```
+
+<div class="tabla-scroll-xy con-desc">
+
+```{r}
+data_norm |>
+  count(indicador, name = "n_observaciones") |>
+  left_join(desc_indicador, by = "indicador") |>
+  knitr::kable()
+```
+
+</div>
+
+Como referencia, los 10 países/entidades con mayores emisiones **per cápita** en el último año disponible (excluyendo `GLOBAL TOTAL` y `EU27`, que no son países):
+
+<div class="tabla-scroll">
+
+```{r}
+data_norm |>
+  filter(indicador == "per_capita",
+         date == max(date),
+         !EDGAR_Country_Code %in% c("GLOBAL TOTAL", "EU27")) |>
+  arrange(desc(value)) |>
+  slice(1:10) |>
+  select(Country, date, value) |>
+  rename(t_CO2eq_per_capita = value) |>
+  knitr::kable()
+```
+
+</div>
+
+#### Descripción de las variables de la tabla GHG
+
+La tabla `GHG` está en **formato tidy**: cada fila representa una observación única
+*país/entidad × sector × grupo de sustancias × año*. Resulta de combinar las dos
+hojas por país del "booklet" del informe anual de EDGAR (desglose por sector y
+total), pivotar los 56 años a una columna `date` y eliminar los valores ausentes.
+La tabla tiene **6 columnas** y del orden de **250.000-300.000 filas** (combinaciones
+con dato no nulo) — bastantes menos que en versiones del curso anteriores a 2026
+(~1,2 millones), porque el booklet agrega mucho más que la distribución antigua
+(ver el aviso de cambio de formato al principio del documento).
+
+##### 1. Identificadores geográficos
+
+- **`EDGAR_Country_Code`** *(texto)* — Código de 3 letras que usa EDGAR para el país
+  o entidad (`AFG`, `ESP`, `CHN`…). **No es exactamente el ISO 3166-1 alfa-3 estándar**:
+  coincide en la mayoría de los casos, pero EDGAR fusiona algunos países pequeños
+  con un vecino mayor bajo un único código (ver más abajo). Es la clave recomendada
+  para cruzar con otras fuentes, con esa salvedad.
+- **`Country`** *(texto)* — Nombre legible del país o entidad. Hay 212 valores
+  distintos (225 en versiones del curso anteriores a 2026: EDGAR ha reducido el
+  nº de entidades al fusionar varias), con varios matices a tener en cuenta:
+    - **Varios países pequeños aparecen fusionados con un vecino**, bajo el código
+      de este último: `Spain and Andorra` (`ESP`), `Switzerland and Liechtenstein`
+      (`CHE`), `France and Monaco` (`FRA`), `Italy, San Marino and the Holy See`
+      (`ITA`), `Israel and Palestine, State of` (`ISR`), `Sudan and South Sudan`
+      (`SDN`). **Si el proyecto se centra en uno de estos países, conviene saber
+      que la cifra incluye también al vecino fusionado.**
+    - **Hay nombres históricos/obsoletos** en algún caso, como `Serbia and
+      Montenegro` (entidad ya disuelta). Por esto sigue siendo mejor unir por
+      `EDGAR_Country_Code` que por `Country`.
+    - **Dos entradas no son países, sino transporte internacional**: `International
+      Aviation` e `International Shipping` (búnkeres internacionales, no asignables
+      a un país). Conviene **excluirlas para rankings por país**.
+    - **Novedad de la versión 2026: sí hay agregados supranacionales ya
+      precalculados**: `GLOBAL TOTAL` (mundo) y `EU27` (Unión Europea de los 27).
+      En versiones anteriores del curso **no existían** y había que sumarlos a
+      mano; ahora existen, pero **hay que excluirlos igualmente de cualquier
+      ranking o promedio por país**, porque no son países.
+
+##### 2. Dimensiones de clasificación
+
+- **`Sector`** *(texto)* — Sector emisor, según la agrupación macro que usa EDGAR
+  en el informe anual (9 valores; ver la tabla de descripciones más arriba, tomada
+  directamente de la hoja `info` del booklet). El valor especial **`TOTAL`**
+  (añadido por este documento, no viene así en el fichero original de EDGAR) marca
+  las filas de la hoja de totales por país, es decir, la suma de los 9 sectores.
+  **Ojo:** en versiones del curso anteriores a 2026 esta columna se llamaba `ipcc`
+  y tenía 39 valores (la nomenclatura IPCC 2006 completa); EDGAR ya no publica ese
+  desglose fino en el booklet.
+- **`Substance`** *(texto)* — Grupo de gases de la fila. Todos están ya expresados
+  en **CO2-equivalente** (GWP-100, AR5), así que a diferencia de versiones
+  anteriores del curso **no hay que preocuparse de mezclar unidades físicas
+  distintas**: solo hay 5 valores posibles:
+    - `CO2` — dióxido de carbono de origen fósil (ya no se reporta el biogénico
+      por separado).
+    - `GWP_100_AR5_CH4`, `GWP_100_AR5_N2O` — metano y óxido nitroso, agregados.
+    - `GWP_100_AR5_F-gases` — TODOS los gases fluorados juntos (ya no se
+      desglosan por especie individual como en versiones anteriores del curso).
+    - `GWP_100_AR5_GHG` — el total de las 4 categorías anteriores. **Solo aparece
+      en las filas con `Sector == "TOTAL"`.**
+
+##### 3. Variables de medida
+
+- **`date`** *(entero)* — Año de la observación (1970–2025).
+- **`value`** *(numérico)* — Emisión anual de la combinación país/entidad × sector
+  × sustancia, en **Mt CO2-equivalente/año** (para `Substance == "CO2"` esto
+  coincide con Mt CO2/año, porque su GWP es 1). A diferencia de versiones
+  anteriores del curso, **todas las filas comparten la misma unidad**: no hace
+  falta consultar `Substance` para saber en qué unidad está expresado `value`.
+
+##### Cómo usar la tabla sin equivocarse
+
+- Para un **total comparable entre países/sectores**: filtrar `Sector == "TOTAL"`
+  y `Substance == "GWP_100_AR5_GHG"`.
+- Para analizar **un grupo de gases concreto por sector**: filtrar `Sector !=
+  "TOTAL"` y la `Substance` de interés, sin mezclarla con `GWP_100_AR5_GHG`.
+- Para **rankings por país**: excluir `International Aviation`, `International
+  Shipping`, `GLOBAL TOTAL` y `EU27` (no son países), y decidir si interesa que
+  las cifras de `Spain and Andorra` y demás entidades fusionadas incluyan al
+  país pequeño fusionado.
+
+#### Descripción de las variables de la tabla GHG_normalizado
+
+Tabla independiente de `GHG` (novedad de la versión 2026), con las emisiones
+**per cápita** y **por PIB** de cada país/entidad y año. Es una tabla distinta
+porque tiene otra granularidad (solo país × año, ya son totales del país: no
+hay `Sector` ni `Substance`) y otra unidad según la fila.
+
+- **`EDGAR_Country_Code`** / **`Country`** — mismas columnas y mismos matices
+  que en `GHG` (entidades fusionadas, `GLOBAL TOTAL`/`EU27`...), con una
+  diferencia: **tiene 210 entidades, 2 menos que `GHG`** (`International
+  Aviation` e `International Shipping` no tienen población ni PIB propios, así
+  que EDGAR no las incluye aquí).
+- **`indicador`** *(texto)* — `per_capita` o `per_gdp` (ver la tabla de
+  descripciones más arriba). **Ojo con la cobertura temporal, no es la misma
+  para los dos**: `per_capita` cubre 1970–2025 igual que `GHG`, pero
+  `per_gdp` **solo cubre 1990–2025** (el PIB no está disponible antes). Filtrar
+  por años anteriores a 1990 sin fijarse en `indicador` deja la tabla
+  `per_gdp` vacía sin ningún aviso.
+- **`date`** *(entero)* — Año de la observación.
+- **`value`** *(numérico)* — El valor depende de `indicador`: **t
+  CO2-equivalente/cápita/año** si `indicador == "per_capita"`, **t
+  CO2-equivalente/kUSD de PIB/año** si `indicador == "per_gdp"`. Son unidades
+  distintas entre sí y distintas de `value` en la tabla `GHG` (que está en Mt,
+  no en toneladas): **no cruzar ambas tablas sumando o dividiendo `value`
+  directamente sin fijarse en las unidades**.
+

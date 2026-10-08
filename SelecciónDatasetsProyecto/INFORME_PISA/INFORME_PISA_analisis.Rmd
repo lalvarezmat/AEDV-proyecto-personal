@@ -1,0 +1,198 @@
+<!--
+Análisis del dataset "Informe PISA y contexto socioeconómico, por país y por Comunidad Autónoma", generado por INFORME_PISA.Rmd el 2026-10-08.
+Se incluye en la sección "Comprensión de los datos" de la memoria con este código, en un
+chunk con las opciones results='asis' y cache=FALSE:
+
+    pisa <- aedv_incluir_dataset("INFORME_PISA_analisis.Rmd")
+    # este dataset tiene 4 tablas: aedv_incluir_dataset() las devuelve en una lista
+    pisa_paises     <- pisa$pisa_paises      # resultados PISA por país, 2000-2025
+    pisa_ccaa       <- pisa$pisa_ccaa        # resultados PISA por Comunidad Autónoma, 2009-2025
+    contexto_paises <- pisa$contexto_paises  # contexto socioeconómico por país
+    contexto_ccaa   <- pisa$contexto_ccaa    # contexto socioeconómico por Comunidad Autónoma
+
+No conviene editar este fichero: el texto explicativo del dataset se escribe en la memoria,
+antes o después del chunk que lo incluye.
+-->
+
+### Informe PISA y contexto socioeconómico, por país y por Comunidad Autónoma
+
+```{r}
+# nombres con los que se guardaron los ficheros del dataset
+filename          <- "INFORME_PISA"
+f_paises          <- "pisa_paises_2000_2025.rds"
+f_ccaa            <- "pisa_ccaa_2009_2025.rds"
+f_contexto_paises <- "contexto_paises.rds"
+f_contexto_ccaa   <- "contexto_ccaa.rds"
+
+# tablas que devuelve aedv_incluir_dataset() al incluir este análisis en la memoria
+tablas_exportadas <- c("pisa_paises", "pisa_ccaa", "contexto_paises", "contexto_ccaa")
+```
+
+```{r}
+# el resto de hojas del xlsx (entidades_especiales, nombres_normalizados, ciclos,
+# ccaa_geo, contexto_indicadores, contexto_fuentes) documentan el detalle de cada
+# aviso/normalización; no se repiten aquí, este análisis se limita a describir
+# cada tabla, su tamaño de serie y la validación global de requisitos AEDV
+ficha <- read.xlsx(paste0(filename, "_metadatos.xlsx"), sheet = "dataset")
+
+pisa_paises     <- readRDS(f_paises) |> as_tibble()
+pisa_ccaa       <- readRDS(f_ccaa)   |> as_tibble()
+contexto_paises <- readRDS(f_contexto_paises) |> as_tibble()
+contexto_ccaa   <- readRDS(f_contexto_ccaa)   |> as_tibble()
+```
+
+**metadatos**
+
+<div class="tabla-scroll">
+
+```{r}
+knitr::kable(ficha)
+```
+
+</div>
+
+#### `pisa_paises_2000_2025.rds`
+
+*País × asignatura × ciclo*. Columnas: `pais · iso3c · anio · asignatura ·
+puntuacion · entidad_parcial`. `iso3c` viene de un proceso auxiliar (no
+guardado como fichero propio, ver metadatos) que de paso permitió corregir 5
+países que Wikipedia partía en dos series por un cambio de nombre solo en la
+tabla de PISA 2025 (`nombres_normalizados`); `entidad_parcial` marca 9
+sub-muestras no representativas del país completo (`entidades_especiales`).
+
+```{r}
+pisa_paises |> print(n=5)
+```
+
+**Tamaño de serie**: nº de los 9 ciclos posibles (2000-2025, trienal con
+huecos) con dato, por país.
+
+```{r}
+pisa_paises |>
+  filter(!entidad_parcial) |>
+  group_by(asignatura) |>
+  summarise(n_paises = n_distinct(pais),
+            P25 = quantile(as.integer(table(pais)), 0.25),
+            P50 = median(as.integer(table(pais))),
+            P100 = max(table(pais)), .groups = "drop") |>
+  knitr::kable()
+```
+
+#### `pisa_ccaa_2009_2025.rds`
+
+*Región × asignatura × ciclo*. Columnas: `region · ambito · anio · asignatura ·
+puntuacion · aviso_exclusion`. España no desagrega por CCAA antes de 2009.
+`aviso_exclusion` marca 2 regiones en 2025 (Murcia, Cataluña) con alto
+porcentaje de alumnado excluido de la muestra.
+
+```{r}
+pisa_ccaa |> print(n=5)
+```
+
+**Tamaño de serie**: nº de los 6 ciclos posibles (2009-2025) con dato, por región.
+
+```{r}
+pisa_ccaa |>
+  filter(ambito == "CCAA") |>
+  group_by(asignatura) |>
+  summarise(n_regiones = n_distinct(region),
+            P25 = quantile(as.integer(table(region)), 0.25),
+            P50 = median(as.integer(table(region))),
+            P100 = max(table(region)), .groups = "drop") |>
+  knitr::kable()
+```
+
+#### `contexto_paises.rds`
+
+*País × indicador × año*, Banco Mundial. Columnas: `pais · iso3c · anio ·
+indicador · valor`. Tres indicadores, todos **comparables entre países**
+(columna `comparable` de la hoja `contexto_indicadores`, imprescindible al
+elegir un índice de contexto: no vale cualquiera, tiene que poder compararse
+entre regiones): `gasto_educacion_pct_pib`, `indice_gini` (desigualdad de
+ingresos) y `pobreza_relativa_pct` (% por debajo del 50% de la renta mediana
+del propio país). Gini y pobreza relativa, aunque correlacionados (0,84), no
+son lo mismo: uno mide desigualdad, el otro pobreza.
+
+```{r}
+contexto_paises |> print(n=5)
+```
+
+**Tamaño de serie**: nº de años con dato por país, y periodo cubierto.
+
+```{r}
+contexto_paises |>
+  group_by(indicador) |>
+  summarise(n_paises = n_distinct(pais), anio_min = min(anio), anio_max = max(anio),
+            P25 = quantile(as.integer(table(pais)), 0.25),
+            P50 = median(as.integer(table(pais))), .groups = "drop") |>
+  knitr::kable()
+```
+
+#### `contexto_ccaa.rds`
+
+*Región × indicador × año*, INE (ECV + Contabilidad Regional). Columnas:
+`region · ambito · anio · indicador · valor`. Seis indicadores: pobreza, AROPE
+y sus 3 componentes, y peso de la rama `O_Q` (administración pública +
+**educación** + sanidad + servicios sociales — no aísla solo educación) y PIB
+regional (detalle en `contexto_indicadores`). Al ser una misma encuesta/
+metodología aplicada uniformemente a las 19 CCAA, los 5 primeros indicadores
+**sí son comparables entre regiones** sin más; `pib_miles_eur` **no** (es un
+valor absoluto sin normalizar por población: compara tamaño, no nivel de renta).
+
+```{r}
+contexto_ccaa |> print(n=5)
+```
+
+**Tamaño de serie**: nº de años con dato por región (panel completo: todas las
+regiones tienen el mismo nº de años en cada indicador).
+
+```{r}
+contexto_ccaa |>
+  filter(ambito == "CCAA") |>
+  group_by(indicador) |>
+  summarise(n_regiones = n_distinct(region), anio_min = min(anio), anio_max = max(anio),
+            n_anios = n_distinct(anio), .groups = "drop") |>
+  knitr::kable()
+```
+
+<!-- INICIO DE LA VALIDACIÓN AEDV -->
+
+#### Validación global de requisitos AEDV
+
+Los 4 ficheros son complementarios pero de naturaleza distinta, así que se
+valoran en conjunto, no cada uno contra el umbral genérico de tamaño de serie
+del curso (pensado para frecuencias Y/Q/M/W/D regulares):
+
+- **`pisa_paises`**: frecuencia **trienal con huecos**, no encaja en Y/Q/M/W/D.
+  P25 ≈ 2-3 ciclos de 9 posibles — insuficiente para análisis de tendencia
+  propio (STL/ARIMA) salvo en el grupo reducido de países con los 9 ciclos
+  completos. Sí cumple sobradamente como dataset de **comparación
+  transversal** entre países o entre ciclos: 105 entidades, datos hasta el
+  ciclo más reciente (2025, publicado hace días).
+- **`pisa_ccaa`**: mismo régimen trienal, 19 regiones, 6 ciclos posibles desde
+  2009. Cobertura geográfica completa de España; tamaño de serie corto pero
+  suficiente para comparar CCAA en un ciclo dado.
+- **`contexto_paises`** y **`contexto_ccaa`**: frecuencia **anual (Y)**, que sí
+  es comparable al umbral del curso (P25 ≥ 10). `contexto_ccaa` lo cumple
+  holgadamente en 3 de sus 4 indicadores (pobreza: 18 años; peso
+  educación/PIB: 25 años) y por poco en AROPE (12 años); `contexto_paises`
+  depende del indicador y del país (el propio chunk anterior da el P25 exacto).
+  Cobertura geográfica: 20 áreas en `contexto_ccaa` (completa), variable por
+  país en `contexto_paises`.
+- **Fiabilidad de la fuente**: la descarga oficial de la OCDE está bloqueada
+  (403) y se reconstruye de Wikipedia, verificado cruzando España entre dos
+  parseos independientes; la Contabilidad Regional del INE se obtuvo por un
+  mecanismo distinto al resto del proyecto (descarga directa de INEbase, no la
+  API/catálogo ya generado). Ambas limitaciones están documentadas en los
+  metadatos, no ocultan datos.
+- **0 valores `NA`, 0 filas duplicadas** en los cuatro ficheros.
+
+**Conclusión**: el conjunto **cumple los requisitos de AEDV** para un proyecto
+de comparación entre países y entre Comunidades Autónomas, cruzando resultados
+educativos con contexto socioeconómico. No cumple el perfil de una serie
+temporal densa por país al estilo de los datasets anuales del curso — esa es
+una limitación de PISA en sí (trienal, con huecos), no de cómo se ha construido
+este dataset.
+
+<!-- FIN DE LA VALIDACIÓN AEDV -->
+

@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-10-04" />
+<meta name="date" content="2026-10-08" />
 
 <title>Selección de datasets para el proyecto de AEDV</title>
 
@@ -1617,7 +1617,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Selección de datasets para el proyecto de
 AEDV</h1>
-<h4 class="date">2026-10-04</h4>
+<h4 class="date">2026-10-08</h4>
 
 </div>
 
@@ -1665,7 +1665,7 @@ estrechando el embudo en cada paso:</p>
                     ▼
   PASO 3   descarga y valida los que has elegido usando &lt;FUENTE&gt;_DatasetSelection.Rmd
                     ▼
-  PASO 4   copias a tu memoria de proyecto personal los ficheros que ha guardado y su análisis</code></pre>
+  PASO 4   incorporas a tu memoria de proyecto personal los ficheros que ha guardado y su análisis</code></pre>
 <table>
 <colgroup>
 <col width="33%" />
@@ -1700,16 +1700,17 @@ lista de <strong>identificadores</strong> candidatos</td>
 <td><strong>3. Descarga y validación</strong> — descargar esos datasets
 y comprobar si cumplen los requisitos AEDV</td>
 <td><code>&lt;FUENTE&gt;_DatasetSelection.Rmd</code> →
-<code>&lt;nombre&gt;.rds</code> (datos) y
-<code>&lt;nombre&gt;_metadatos.xlsx</code> (ficha), más el análisis de
-validación</td>
+<code>&lt;nombre&gt;.rds</code> (datos),
+<code>&lt;nombre&gt;_metadatos.xlsx</code> (ficha) y
+<code>&lt;nombre&gt;_analisis.Rmd</code> (el análisis de validación,
+preparado para la memoria)</td>
 <td>Sí</td>
 </tr>
 <tr class="even">
 <td><strong>4. Incorporación</strong> — llevar los datos <strong>y el
 análisis</strong> a la memoria del proyecto</td>
-<td>los ficheros del paso 3 y su código → la sección <em>Comprensión de
-los datos</em> de tu memoria</td>
+<td>los ficheros del paso 3 y <code>aedv_incluir_dataset()</code> → la
+sección <em>Comprensión de los datos</em> de tu memoria</td>
 <td>Sí</td>
 </tr>
 </tbody>
@@ -2140,43 +2141,49 @@ que el trabajo hecho al validar el dataset se reutilice, en vez de
 repetirse.</p>
 <ol style="list-style-type: decimal">
 <li>Compila el <code>*_DatasetSelection.Rmd</code> con tus datasets y
-comprueba que cumplen los requisitos.</li>
-<li><strong>Copia el <code>.rds</code> y el <code>_metadatos.xlsx</code>
-a la carpeta de tu proyecto</strong>, junto a tu memoria.</li>
-<li>Haz <strong>copy/paste del código de la sección «Análisis del
-dataset» (la mitad 3b)</strong> en la sección <em>Comprensión de los
-datos</em> de tu memoria: esa parte está escrita para no depender de la
-anterior — arranca leyendo del disco los dos ficheros que acabas de
-copiar, así que funciona tal cual en tu documento sin volver a descargar
-nada de internet.</li>
-<li><strong>Al principio de ese código vuelve a definir el identificador
-del dataset</strong>, porque ya no tienes lo definido en la parte de
-descarga: en INE descomenta y ajusta <code>Dataset.Id &lt;- ...</code>;
-en EUROSTAT, <code>dataset.name &lt;- &quot;...&quot;</code>; en el resto (ISTAC,
-Banco Mundial, EDGAR, CLIMA, INFORME PISA) cambia el valor de
-<code>filename</code> (y de <code>f_obs</code>/<code>f_proy</code> en
-CLIMA, o de los <code>f_*</code> en INFORME PISA) por el nombre con el
-que guardaste tus ficheros.</li>
+comprueba que cumplen los requisitos. Además del <code>.rds</code> y el
+<code>_metadatos.xlsx</code>, el documento guarda la sección «Análisis
+del dataset» (la mitad 3b) en un fichero
+<strong><code>&lt;nombre&gt;_analisis.Rmd</code></strong>, preparado
+para la memoria, y termina con una sección, <em>Incorporación del
+dataset a la memoria</em>, con las instrucciones exactas para tus
+ficheros.</li>
+<li><strong>Copia el <code>.rds</code>, el <code>_metadatos.xlsx</code>
+y el <code>_analisis.Rmd</code> a la carpeta de tu proyecto</strong>,
+junto a tu memoria. En esa carpeta tiene que estar también
+<code>utilidades.R</code> (viene en la carpeta
+<code>ProyectoPersonal</code>), que la memoria carga con
+<code>source(&quot;utilidades.R&quot;)</code>.</li>
+<li><strong>Pega en la sección <em>Comprensión de los datos</em> de tu
+memoria el chunk que indica el documento</strong>, cambiando el nombre
+de la tabla por uno que describa el dataset. Por ejemplo:</li>
 </ol>
-<p>Es decir: la mitad 3a (descarga) <strong>no</strong> va en la
-memoria; la 3b (análisis) sí puede ir, entera o por trozos, y como punto
-de partida de tu propio análisis. Con eso la memoria queda, de golpe,
-con los datos importados y con su validación documentada.</p>
+<pre><code>```{r, results=&#39;asis&#39;, cache=FALSE}
+ipc &lt;- aedv_incluir_dataset(&quot;76136_analisis.Rmd&quot;)
+```</code></pre>
+<p>Al compilar la memoria, el análisis aparece en el lugar del chunk y
+los datos quedan en la tabla que elijas (aquí <code>ipc</code>, un
+tibble). El análisis arranca leyendo del disco los ficheros que acabas
+de copiar, así que funciona sin volver a descargar nada de internet. Es
+decir: la mitad 3a (descarga) <strong>no</strong> va en la memoria; la
+3b (análisis) sí, y la memoria queda, de golpe, con los datos importados
+y con su validación documentada.</p>
 <p>Si incorporas <strong>varios datasets</strong> —de la misma fuente o
-de fuentes distintas—, repite este bloque una vez por cada uno dentro de
-la memoria, cambiando el identificador. Todos cargan el resultado en una
-tabla llamada <code>data</code> (<code>data</code> y
-<code>data_norm</code> en EDGAR; <code>pisa_paises</code>,
-<code>pisa_ccaa</code>, <code>contexto_paises</code> y
-<code>contexto_ccaa</code> en INFORME PISA): <strong>al final de cada
-bloque asigna ese resultado a un nombre distinto</strong> antes de
-copiar el bloque del siguiente dataset, o el siguiente sobrescribirá al
-anterior sin avisar. En los datasets secundarios puedes recortar la
-parte de validación para no alargarla en exceso.</p>
+de fuentes distintas—, pega un chunk por cada uno, con nombres de tabla
+distintos. En los datasets secundarios,
+<code>aedv_incluir_dataset(&quot;...&quot;, validacion = FALSE)</code> omite la
+validación para no alargar la memoria. <strong>EDGAR, CLIMA e INFORME
+PISA</strong> tienen varias tablas, así que la función las devuelve en
+una lista que el chunk propuesto por su documento separa a continuación,
+cada una con su nombre (el detalle está en <em>Cómo importar los datos
+en la memoria</em>, en <code>README_Proyecto_Personal</code>).</p>
+<p>El fichero <code>_analisis.Rmd</code> no se edita: se vuelve a
+generar cada vez que compilas el <code>*_DatasetSelection.Rmd</code>. Tu
+texto va en la memoria, antes o después del chunk.</p>
 <div class="nota">
 <p><strong class="bloque-titulo">El <code>estilos.css</code> tiene que
 acompañar a la memoria</strong></p>
-<p>El código de la mitad 3b usa las clases CSS del curso
+<p>El análisis que se incluye en la memoria usa las clases CSS del curso
 (<code>tabla-scroll</code>, <code>caja-scroll</code>,
 <code>tabla-scroll-xy</code> y las celdas verde/rojo de la tabla de
 validación). Ya están todas en el fichero <code>estilos.css</code> que
@@ -3272,8 +3279,9 @@ primero descarga y guarda en disco (<code>EDGAR_GHG.rds</code> y
 <code>EDGAR_GHG_normalizado.rds</code> con los datos,
 <code>EDGAR_GHG_metadatos.xlsx</code> con su ficha), y después analiza
 leyendo esos ficheros. La sección <strong>Análisis del dataset</strong>
-vuelve a ser autocontenida, así que puedes copiarla tal cual en tu
-memoria.</p>
+vuelve a ser autocontenida, y ya viene guardada para la memoria en
+<code>EDGAR_GHG_analisis.Rmd</code>, que se incluye con
+<code>aedv_incluir_dataset()</code> (paso 4).</p>
 <p>El dataset ya está descargado y procesado, y <strong>la descarga solo
 se ejecuta si falta <code>EDGAR_GHG.rds</code></strong>: compilar el
 documento no vuelve a bajar el fichero de EDGAR. Para actualizar a una
@@ -3391,8 +3399,8 @@ las <strong>proyecciones</strong> (CMIP6). Este fichero solo se compila
 ello tendrían que haberse publicado datos nuevos y los nombres de acceso
 a los ficheros cambiarían. Estos datos no se publican anualmente.</li>
 <li><code>*_DatasetSelection.Rmd</code> — explora y
-<strong>valida</strong> las variables con el mismo <strong>heatmap de
-los tres criterios AEDV</strong>, e incluye <strong>mapas
+<strong>valida</strong> las variables con la misma <strong>tabla de los
+tres criterios AEDV</strong>, e incluye <strong>mapas
 coropléticos</strong> por región y, para las proyecciones, la
 <strong>comparativa por modelo</strong> (dispersión inter-modelo de los
 11 GCMs frente al <code>ensemble</code>, por escenario y horizonte).
@@ -3400,8 +3408,12 @@ Está organizado en dos partes, igual que los
 <code>*_DatasetSelection.Rmd</code> del resto de fuentes: primero elige
 las variables y guarda su ficha, y después analiza leyendo del disco, de
 modo que la sección <strong>Análisis del dataset</strong> es
-autocontenida y <strong>puedes copiarla tal cual en tu
-memoria</strong>.</li>
+autocontenida y ya viene guardada para la memoria en
+<code>CLIMA_&lt;ámbito&gt;_analisis.Rmd</code>, que se incluye con
+<code>aedv_incluir_dataset()</code> (paso 4). Los mapas y la comparativa
+por modelo van al final del documento y <strong>no</strong> se
+incorporan a la memoria: en <em>Comprensión de los datos</em> no van
+gráficos elaborados.</li>
 </ul>
 <p>Como AdapteCCa no publica un catálogo de sus variables, cada ámbito
 genera su propio <code>CLIMA_&lt;ámbito&gt;_metadatos.xlsx</code> con
@@ -3457,7 +3469,7 @@ temporal, y su contraste con la línea base histórica; incluye la
 GCMs).</li>
 <li><strong>Mapas coropléticos</strong> por región (municipios de
 Canarias / provincias de España).</li>
-<li><strong>Validación AEDV</strong> con heatmap de cobertura
+<li><strong>Validación AEDV</strong> con una tabla de cobertura
 geográfica, actualización y tamaño de las series temporales.</li>
 </ul>
 <blockquote>
@@ -3478,7 +3490,8 @@ estudiante)</h2>
 previo</strong>: es un dataset único, ya construido, en
 <code>INFORME_PISA/INFORME_PISA.Rmd</code>, con la misma estructura en
 dos partes que el resto (descarga/limpieza primero, análisis
-autocontenido después, copiable tal cual en la memoria).</p>
+autocontenido después, ya guardado para la memoria en
+<code>INFORME_PISA_analisis.Rmd</code>).</p>
 <p>Combina <strong>resultados del Informe PISA de la OCDE</strong> con
 <strong>contexto socioeconómico</strong> (pobreza, desigualdad y gasto
 en educación), a dos niveles geográficos a la vez:</p>

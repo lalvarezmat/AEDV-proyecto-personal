@@ -67,6 +67,7 @@ knitr::opts_chunk$set(
 library(pxR)
 library(openxlsx)
 library(tidyverse)
+source("../../utilidades.R") # funciones de la asignatura (aedv_generar_analisis, al final)
 
 # asociamos funciones a determinadas librerías para evitar posibles errores
 select <- dplyr::select
@@ -220,17 +221,21 @@ metadatos <- tibble(
 write.xlsx(metadatos, file = paste0(filename, "_metadatos.xlsx"), overwrite = TRUE)
 ```
 
-Una vez guardados en disco los metadatos (fichero xlsx) y los datos (fichero RDS), iniciamos el proceso de análisis. A partir de aquí el documento se compila **solo** con los ficheros ya guardados en disco (el `rds` y el `xlsx` de metadatos); no se usa ningún objeto de las secciones anteriores. Es a propósito: es la parte que el alumno incluye en la memoria del proyecto personal, así que tiene que poder ejecutarse sola (lo único que se usa de lo definido anteriormente es el Dataset.Id)
+Una vez guardados en disco los metadatos (fichero xlsx) y los datos (fichero RDS), iniciamos el proceso de análisis. A partir de aquí el documento se compila **solo** con los ficheros ya guardados en disco (el `rds` y el `xlsx` de metadatos); no se usa ningún objeto de las secciones anteriores. Es a propósito: es la parte que se incorpora a la memoria del proyecto personal (ver la última sección, *Incorporación del dataset a la memoria*), así que tiene que poder ejecutarse sola (lo único que se usa de lo definido anteriormente es el Dataset.Id)
+
+<!-------------------------------------------------------------------------------
+LA SECCIÓN SIGUIENTE, "Análisis del dataset", HASTA LA MARCA "FIN DE LA PARTE QUE SE INCORPORA A LA MEMORIA", ES LA QUE SE INCORPORA A LA MEMORIA DEL PROYECTO PERSONAL, EN LA SECCIÓN "COMPRENSIÓN DE LOS DATOS". AL COMPILAR ESTE DOCUMENTO SE GUARDA EN EL FICHERO <identificador>_analisis.Rmd, QUE SE INCLUYE EN LA MEMORIA CON aedv_incluir_dataset() (VER LA ÚLTIMA SECCIÓN).
+LAS MARCAS "INICIO/FIN DE LA VALIDACIÓN AEDV" DELIMITAN LO QUE OMITE aedv_incluir_dataset(validacion = FALSE): NO BORRARLAS.
+--------------------------------------------------------------------------------->
 
 # Análisis del dataset
 
-<!------------------------------------------------------------------------------- 
-LO SIGUIENTE, HASTA EL FINAL DEL CÓDIGO, ES LA PARTE QUE SE INCORPORA A LA MEMORIA DEL PROYECTO PERSONAL INCLUIR LOS DATOS EN LA SECCIÓN DE "COMPRENSIÓN DE LOS DATOS". SI SE INCORPORAN VARIOS GRUPOS DE DATASETS HAY QUE HACER ESTO PARA CADA UNO. HAY QUE TENER EN CUENTA QUE EL DATASET SE CARGA EN UNA TABLA QUE SE LLAMA data. SI SE USA VARIAS VECES ESTE CÓDIGO PARA INCORPORAR VARIOS DATASETS HAY QUE ASIGNAR AL FINAL DE ESTE CÓDIGO UN NOMBRE DISTINTO A CADA UNO 
---------------------------------------------------------------------------------->
-
 ```{r}
-#Dataset.Id <- 35176 # AL LEER LOS DATOS DESDE AQUI HAY QUE DEFINIR DE NUEVO Dataset.Id 
+#Dataset.Id <- 35176 # al copiar este código a mano en la memoria, descomentar y poner el identificador
 filename   <- as.character(Dataset.Id)
+
+# tablas que devuelve aedv_incluir_dataset() al incluir este análisis en la memoria
+tablas_exportadas <- "data"
 ```
 
 ```{r}
@@ -333,6 +338,8 @@ if(is.null(geo_col)){
     print(as.data.frame(regiones_canarias), row.names = FALSE)
 }
 ```
+
+<!-- INICIO DE LA VALIDACIÓN AEDV -->
 
 ## Validación de requisitos AEDV
 
@@ -572,3 +579,22 @@ if(hay_datos){
 De las **`r n_total`** combinaciones de atributos analizadas, **`r n_validos`** cumplen los cuatro criterios de validación (cobertura geográfica, datos actualizados, tamaño de las series temporales y tamaño de las series temporales en Canarias).
 
 El requisito de disponer de al menos 4 atributos válidos `r if(n_validos >= 4) "**se cumple ✓**" else paste0("**no se cumple ✗** — con la selección actual faltan ", 4 - n_validos, " combinación(es) válida(s) para alcanzar el mínimo de 4")`.
+
+<!-- FIN DE LA VALIDACIÓN AEDV -->
+
+<!-- FIN DE LA PARTE QUE SE INCORPORA A LA MEMORIA -->
+
+# Incorporación del dataset a la memoria
+
+```{r, results='asis'}
+# genera <identificador>_analisis.Rmd con la sección "Análisis del dataset"
+# preparada para la memoria, y escribe las instrucciones para incorporarlo
+aedv_generar_analisis(
+  nombre        = filename,
+  titulo        = paste0(fila_metadatos$Nombre[1], " (INE, tabla ", Dataset.Id, ")"),
+  ficheros      = paste0(filename, c(".rds", "_metadatos.xlsx")),
+  tablas        = tablas_exportadas,
+  # el identificador, comentado en el análisis, queda fijado
+  sustituciones = c("^#Dataset.Id <-" = paste0("Dataset.Id <- ", Dataset.Id, " # identificador del dataset"))
+)
+```

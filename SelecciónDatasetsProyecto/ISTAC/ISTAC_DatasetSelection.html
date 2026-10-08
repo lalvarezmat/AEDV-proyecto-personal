@@ -11,7 +11,7 @@
 
 <meta name="author" content="Luis Alvarez" />
 
-<meta name="date" content="2026-10-03" />
+<meta name="date" content="2026-10-08" />
 
 <title>Análisis de datasets seleccionados del ISTAC</title>
 
@@ -365,7 +365,7 @@ display: none;
 <h1 class="title toc-ignore">Análisis de datasets seleccionados del
 ISTAC</h1>
 <h4 class="author">Luis Alvarez</h4>
-<h4 class="date">2026-10-03</h4>
+<h4 class="date">2026-10-08</h4>
 
 </div>
 
@@ -528,17 +528,18 @@ write.xlsx(metadatos, file = paste0(filename, &quot;_metadatos.xlsx&quot;), over
 (fichero RDS), iniciamos el proceso de análisis. A partir de aquí el
 documento se compila <strong>solo</strong> con los ficheros ya guardados
 en disco; no se usa ningún objeto de las secciones anteriores. Es a
-propósito: es la parte que el alumno incluye en la memoria del proyecto
-personal, así que tiene que poder ejecutarse sola (lo único que se usa
-de lo definido anteriormente es <code>filename</code>).</p>
+propósito: es la parte que se incorpora a la memoria del proyecto
+personal (ver la última sección, <em>Incorporación del dataset a la
+memoria</em>), así que tiene que poder ejecutarse sola (lo único que se
+usa de lo definido anteriormente es <code>filename</code>).</p>
+<!------------------------------------------------------------------------------- 
+LA SECCIÓN SIGUIENTE, "Análisis del dataset", HASTA LA MARCA "FIN DE LA PARTE QUE SE INCORPORA A LA MEMORIA", ES LA QUE SE INCORPORA A LA MEMORIA DEL PROYECTO PERSONAL, EN LA SECCIÓN "COMPRENSIÓN DE LOS DATOS". AL COMPILAR ESTE DOCUMENTO SE GUARDA EN EL FICHERO <filename>_analisis.Rmd, QUE SE INCLUYE EN LA MEMORIA CON aedv_incluir_dataset() (VER LA ÚLTIMA SECCIÓN).
+LAS MARCAS "INICIO/FIN DE LA VALIDACIÓN AEDV" DELIMITAN LO QUE OMITE aedv_incluir_dataset(validacion = FALSE): NO BORRARLAS.
+--------------------------------------------------------------------------------->
 </div>
 <div id="análisis-del-dataset" class="section level1" number="2">
 <h1><span class="header-section-number">2</span> Análisis del
 dataset</h1>
-<!------------------------------------------------------------------------------- 
-LO SIGUIENTE, HASTA EL FINAL DEL CÓDIGO, ES LA PARTE QUE SE INCORPORA A LA MEMORIA DEL PROYECTO PERSONAL INCLUIR LOS DATOS EN LA SECCIÓN DE "COMPRENSIÓN DE LOS 
-DATOS". SI SE INCORPORAN VARIOS GRUPOS DE DATASETS HAY QUE HACER ESTO PARA CADA UNO. HAY QUE TENER EN CUENTA QUE EL DATASET SE CARGA EN UNA TABLA QUE SE LLAMA data. SI SE USA VARIAS VECES ESTE CÓDIGO PARA INCORPORAR VARIOS DATASETS HAY QUE ASIGNAR AL FINAL DE ESTE CÓDIGO UN NOMBRE DISTINTO A CADA UNO 
---------------------------------------------------------------------------------->
 <p><strong>metadatos</strong></p>
 <div class="tabla-scroll-xy">
 <table>
@@ -1007,6 +1008,7 @@ observaciones</h2>
 ##         38053                       Villa de Mazo       70
 ##         35034                               Yaiza       70</code></pre>
 </div>
+<!-- INICIO DE LA VALIDACIÓN AEDV -->
 </div>
 <div id="validación-de-requisitos-aedv" class="section level2" number="2.3">
 <h2><span class="header-section-number">2.3</span> Validación de
@@ -1202,7 +1204,47 @@ percentiles del tamaño de la serie temporal (periodos por región).</p>
 geográfica, datos actualizados y tamaño de las series temporales).</p>
 <p>El requisito de disponer de al menos 4 atributos válidos <strong>se
 cumple ✓</strong>.</p>
+<!-- FIN DE LA VALIDACIÓN AEDV -->
+<!-- FIN DE LA PARTE QUE SE INCORPORA A LA MEMORIA -->
 </div>
+</div>
+<div id="incorporación-del-dataset-a-la-memoria" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> Incorporación del
+dataset a la memoria</h1>
+<p>Al compilar este documento se ha generado el fichero
+<strong><code>ISTAC_Selected_analisis.Rmd</code></strong>: es la sección
+<em>Análisis del dataset</em> de arriba, preparada para la sección
+<strong>Comprensión de los datos</strong> de la memoria, con los títulos
+al nivel de esa sección. Para incorporar el dataset a la memoria:</p>
+<ol style="list-style-type: decimal">
+<li>Copia a la carpeta de la memoria estos ficheros de la carpeta
+<code>ISTAC</code>: <code>ISTAC_Selected.rds</code>,
+<code>ISTAC_Selected_metadatos.xlsx</code> y
+<code>ISTAC_Selected_analisis.Rmd</code>.</li>
+<li>Comprueba que en la carpeta de la memoria está también
+<code>utilidades.R</code> (viene en la carpeta
+<code>ProyectoPersonal</code>, junto al modelo de memoria) y que la
+memoria lo carga en el chunk de librerías:
+<code>source(&quot;utilidades.R&quot;)</code>.</li>
+<li>Pega este chunk en la sección <em>Comprensión de los datos</em> de
+la memoria, cambiando los nombres de las tablas por otros que describan
+el dataset:</li>
+</ol>
+<pre><code>```{r, results=&#39;asis&#39;, cache=FALSE}
+datos_ISTAC_Selected &lt;- aedv_incluir_dataset(&quot;ISTAC_Selected_analisis.Rmd&quot;)
+```</code></pre>
+<p>Al compilar la memoria, el análisis aparece en el lugar del chunk y
+los datos quedan en la tabla <code>datos_ISTAC_Selected</code> (un
+tibble), con la que se sigue trabajando en el resto de la memoria. Si
+incorporas varios datasets, pega un chunk por cada uno, con nombres de
+tabla distintos. En un dataset auxiliar, que no tiene que cumplir los
+requisitos de AEDV,
+<code>aedv_incluir_dataset(&quot;ISTAC_Selected_analisis.Rmd&quot;, validacion = FALSE)</code>
+omite la validación.</p>
+<p>El texto explicativo del dataset (qué mide, qué significa cada
+variable y cada una de sus opciones…) se escribe en la memoria, antes o
+después del chunk, no en <code>ISTAC_Selected_analisis.Rmd</code>: ese
+fichero se sustituye cada vez que se vuelve a generar.</p>
 </div>
 
 

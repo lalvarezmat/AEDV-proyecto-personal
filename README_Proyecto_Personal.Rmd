@@ -197,7 +197,7 @@ Las preguntas de la Entrega 1 son un **punto de partida, no una versión definit
                      ▼
   ETAPA 3   descarga y valida los que has elegido usando <FUENTE>_DatasetSelection.Rmd
                      ▼
-  ETAPA 4   copias a tu memoria de proyecto personal los ficheros que ha guardado y su análisis
+  ETAPA 4   incorporas a tu memoria de proyecto personal los ficheros que ha guardado y su análisis
 ```
 
 **1. Inventario — el catálogo ya está hecho.** Abre el catálogo Excel de la fuente que te interese: `SelecciónDatasetsProyecto/INE/INE.datasets.xlsx`, `SelecciónDatasetsProyecto/ISTAC/ISTAC_datasets.xlsx`, `SelecciónDatasetsProyecto/EUROSTAT/Eurostat.datasets.xlsx` o `SelecciónDatasetsProyecto/WORLD_BANK/wb.datasets.xlsx`. Cada catálogo lo generó el `*_TableDatasetGeneration.Rmd` de su carpeta recorriendo la API del organismo dataset a dataset; **tú no tienes que ejecutarlo**, solo leer el Excel. Es un índice —una fila por dataset con su ficha: identificador, nombre, frecuencia, cobertura geográfica, fechas—, **no contiene los datos**.
@@ -209,11 +209,11 @@ Las preguntas de la Entrega 1 son un **punto de partida, no una versión definit
    - EUROSTAT: `dataset.name <- "nama_10r_2hhinc"`
    - ISTAC/WB: `IDS <- c("ID1", "ID2", ...)`
 
-   y haz Knit (`Ctrl+Shift+K`). El documento hace **dos cosas, en este orden**: primero (3a) descarga los datos y los **guarda en disco** —`<nombre>.rds` con los datos ya limpios y `<nombre>_metadatos.xlsx` con la ficha del dataset—; después (3b) los **analiza leyendo esos dos ficheros**, y termina en una tabla de validación (verde = cumple el criterio, rojo = no cumple) y un veredicto sobre el mínimo de 4 atributos.
+   y haz Knit (`Ctrl+Shift+K`). El documento hace **dos cosas, en este orden**: primero (3a) descarga los datos y los **guarda en disco** —`<nombre>.rds` con los datos ya limpios y `<nombre>_metadatos.xlsx` con la ficha del dataset—; después (3b) los **analiza leyendo esos dos ficheros**, y termina en una tabla de validación (verde = cumple el criterio, rojo = no cumple) y un veredicto sobre el mínimo de 4 atributos. Además guarda ese análisis en un tercer fichero, `<nombre>_analisis.Rmd`, preparado para la memoria.
 
-**4. Incorporación a la memoria.** Los dos ficheros que ha guardado la etapa 3a y el código de la etapa 3b se trasplantan a tu memoria; se explica más abajo, en *Cómo importar los datos en la memoria* (Paso 3 de esta guía). Que la descarga vaya primero y el análisis después es justo lo que hace posible ese trasplante: la etapa 3b arranca leyendo del disco, así que funciona tal cual en tu documento sin volver a descargar nada.
+**4. Incorporación a la memoria.** Los ficheros que ha guardado la etapa 3 se copian a la carpeta de tu memoria, y el análisis se incluye en ella con una sola instrucción; se explica más abajo, en *Cómo importar los datos en la memoria* (Paso 3 de esta guía). Que la descarga vaya primero y el análisis después es justo lo que lo hace posible: el análisis arranca leyendo del disco, así que funciona tal cual en tu memoria sin volver a descargar nada.
 
-> EDGAR, CLIMA e INFORME PISA son datasets únicos ya construidos: **no tienen etapas 1 y 2** (no hay catálogo en el que buscar), pero sus documentos conservan la misma estructura 3a/3b, así que la incorporación a la memoria se hace igual.
+> EDGAR, CLIMA e INFORME PISA son datasets únicos ya construidos: **no tienen etapas 1 y 2** (no hay catálogo en el que buscar), pero sus documentos conservan la misma estructura 3a/3b, así que la incorporación a la memoria se hace igual. Sus ficheros `_analisis.Rmd` ya vienen generados en su carpeta.
 
 > **Antes de confirmar un dataset**, verifica en el Campus Virtual que ningún otro alumno lo haya elegido ya. Si hay solapamiento, consulta con el profesor.
 
@@ -270,23 +270,45 @@ La memoria sigue la metodología de desarrollo **CRISP-DM** (Cross Industry Stan
 
 ### Cómo importar los datos en la memoria
 
-Esta es la **etapa 4 (incorporación)** del flujo de selección de datos del Paso 1, y consiste en trasplantar lo que ya produjo el `*_DatasetSelection.Rmd`: sus dos ficheros y su código de análisis.
+Esta es la **etapa 4 (incorporación)** del flujo de selección de datos del Paso 1. Al compilarse, cada `*_DatasetSelection.Rmd` guarda, junto a los datos, un fichero **`<nombre>_analisis.Rmd`** con su sección **Análisis del dataset** (la etapa 3b) preparada para la memoria, y termina con una sección, *Incorporación del dataset a la memoria*, que indica exactamente qué ficheros copiar y qué chunk pegar. Los pasos son dos:
 
-* Mueve a la carpeta donde está `ModeloMemoriaProyectoPersonalAEDV.Rmd` los ficheros `.rds` y `.xlsx` con la información de los datasets obtenidos en  el **Paso 1**.
+1. **Copia a la carpeta donde está `ModeloMemoriaProyectoPersonalAEDV.Rmd` los ficheros del dataset**: el `.rds` (o los `.rds`), el `_metadatos.xlsx` y el `_analisis.Rmd`. En esa carpeta tiene que estar también `utilidades.R` (viene en la carpeta `ProyectoPersonal`, junto al modelo de memoria), que la memoria carga en su chunk de librerías con `source("utilidades.R")`.
+2. **Pega en la sección *Comprensión de los datos* de la memoria el chunk que indica el `*_DatasetSelection.Rmd`**, cambiando el nombre de la tabla por uno que describa el dataset. Por ejemplo:
 
+````
+`r ''````{r, results='asis', cache=FALSE}
+ipc <- aedv_incluir_dataset("76136_analisis.Rmd")
+```
+````
 
-*  Copia en la sección **Comprensión de los datos** de la memoria el código que aparece en el `*_DatasetSelection.Rmd` a partir de la sección **Análisis del dataset** (la etapa 3b). Con esto importarás los datos a la memoria para empezar a trabajar con ellos y además se incorporará el análisis de validación que aparece en dicho documento. Ese código no depende de la parte de descarga: arranca leyendo del disco los dos ficheros que acabas de mover, así que funciona tal cual sin descargar nada de internet.
+Al compilar la memoria, el análisis completo aparece en el lugar del chunk —con sus tablas, su validación y los títulos colgando de *Comprensión de los datos*— y los datos quedan en la tabla que elijas (aquí `ipc`, un tibble), con la que se sigue trabajando en el resto de la memoria. El análisis arranca leyendo del disco los ficheros que acabas de copiar, así que funciona sin descargar nada de internet. El chunk necesita las opciones `results='asis'` (sin ella, el análisis saldría como texto sin formato) y `cache=FALSE`. Al ejecutarlo en RStudio chunk a chunk (`Ctrl+Alt+C`), la función solo carga los datos, sin generar el análisis, para que puedas seguir trabajando con ellos.
 
-* Al principio de ese código copiado hay que volver a indicar el identificador del dataset, porque ya no está disponible lo definido en la parte de descarga: en INE, descomenta y ajusta `Dataset.Id <- ...`; en EUROSTAT, `dataset.name <- "..."`; en el resto de fuentes (ISTAC, Banco Mundial, EDGAR, CLIMA, INFORME PISA), cambia el valor de `filename` (y de `f_obs`/`f_proy` en CLIMA, o de los `f_*` en INFORME PISA) por el nombre con el que se guardaron tus ficheros.
+* **Varios datasets**: pega un chunk por cada uno, con nombres de tabla distintos. Cada análisis se ejecuta por separado, sin interferir con los demás ni con el resto de la memoria.
+* **Datasets auxiliares**: `aedv_incluir_dataset("...", validacion = FALSE)` omite la validación de requisitos AEDV, para no alargar la memoria con un dataset que no tiene que cumplirlos.
+* **Datasets con varias tablas** (EDGAR, CLIMA e INFORME PISA): `aedv_incluir_dataset()` las devuelve juntas en una **lista**, y el chunk que propone su documento las separa justo después, cada una con su propio nombre. Por ejemplo, para CLIMA Canarias:
+
+````
+`r ''````{r, results='asis', cache=FALSE}
+clima <- aedv_incluir_dataset("CLIMA_CANARIAS_analisis.Rmd")
+clima_obs  <- clima$data   # observaciones mensuales por municipio, 1990-2022
+clima_proy <- clima$proy   # proyecciones por escenario, modelo y horizonte
+```
+````
+
+| Dataset | Tablas de la lista | Contenido |
+|---|---|---|
+| EDGAR | `data`, `data_norm` | emisiones por país, sector y gas; emisiones per cápita y por unidad de PIB |
+| CLIMA (Canarias y España) | `data`, `proy` | observaciones mensuales; proyecciones por escenario, modelo y horizonte |
+| INFORME PISA | `pisa_paises`, `pisa_ccaa`, `contexto_paises`, `contexto_ccaa` | resultados PISA y contexto socioeconómico, por país y por Comunidad Autónoma |
+
+* **El fichero `_analisis.Rmd` no se edita**: se vuelve a generar cada vez que se compila el `*_DatasetSelection.Rmd`. Tu texto va en la memoria, antes o después del chunk.
 
 La parte de descarga (etapa 3a) **no** va en la memoria.
 
-Si incorporas **varios datasets** —de la misma fuente o de fuentes distintas— repite este bloque de código una vez por cada uno, cambiando el identificador. Todos cargan el resultado en una tabla llamada `data` (`data` y `data_norm` en EDGAR; `pisa_paises`, `pisa_ccaa`, `contexto_paises` y `contexto_ccaa` en INFORME PISA), así que **al final de cada bloque asigna ese resultado a un nombre distinto** antes de copiar el bloque del siguiente dataset — si no, el dataset siguiente sobrescribe al anterior sin avisar. Para los datasets auxiliares podemos eliminar la parte de validación para no alargar en exceso la memoria.
-
 <div class="nota">
-<strong class="bloque-titulo">Lo que falta por hacer tras pegar el código</strong>
+<strong class="bloque-titulo">Lo que falta por hacer tras pegar el chunk</strong>
 
-Copiar el código no es incorporar el dataset: solo es el primer paso. Antes de dar por completado el apartado *Comprensión de los datos*, es **muy importante** tener en cuenta lo siguiente:
+Pegar el chunk no es incorporar el dataset: solo es el primer paso. Antes de dar por completado el apartado *Comprensión de los datos*, es **muy importante** tener en cuenta lo siguiente:
 
 * **La información automática que se genera hay que perfeccionarla añadiendo texto explicativo.** El código produce tablas y un veredicto, no redacción: hay que comentar lo que muestran.
 * **Debe quedar claro que la colección de datos utilizada cumple con los requisitos de AEDV**, no solo que el código lo calcule.
@@ -399,7 +421,7 @@ Un proyecto de calidad sobresaliente integra los datos con una narrativa coheren
 
 Estos criterios son de carácter binario: o se cumplen o no se cumplen. Un fallo en cualquiera de ellos puede impedir la corrección del trabajo.
 
-- **Entrega memoria en HTML y código en Rmd compilable, con datos en RDS.** Se entrega el `.html` compilado más el `.Rmd` con los datos en formato `.rds` y metadatos (si hay) en formato `,xlsx`. El código debe funcionar en cualquier ordenador sin modificaciones: rutas relativas, sin dependencias externas y solo las librerías que aparecen en el libro de la asignatura. La **imagen de portada** también debe ser un fichero local entregado junto al `.Rmd` (no un enlace a un servidor externo), para que se vea igual leyendo el documento localmente que a través de un enlace. Esto se verifica desde la Entrega 1; un `.Rmd` que no compila equivale a no entregado.
+- **Entrega memoria en HTML y código en Rmd compilable, con datos en RDS.** Se entrega el `.html` compilado más el `.Rmd` con los datos en formato `.rds` y metadatos (si hay) en formato `.xlsx`, junto con los ficheros `_analisis.Rmd` de los datasets y `utilidades.R`, sin los que la memoria no compila. El código debe funcionar en cualquier ordenador sin modificaciones: rutas relativas, sin dependencias externas y solo las librerías que aparecen en el libro de la asignatura. La **imagen de portada** también debe ser un fichero local entregado junto al `.Rmd` (no un enlace a un servidor externo), para que se vea igual leyendo el documento localmente que a través de un enlace. Esto se verifica desde la Entrega 1; un `.Rmd` que no compila equivale a no entregado.
 
 - **Enlace al Dashboard en el servidor Shiny del DIS** *(solo Entrega 3).* El enlace debe aparecer al inicio de la memoria y estar operativo en el momento de la corrección. Un dashboard caído o inaccesible sin VPN equivale a no entregado. **Además del despliegue, hay que entregar también el `.Rmd` del dashboard** (el mismo fichero que subes al servidor Shiny), junto con el resto de ficheros.
 

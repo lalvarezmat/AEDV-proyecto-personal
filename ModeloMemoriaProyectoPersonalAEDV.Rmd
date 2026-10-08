@@ -76,6 +76,12 @@ library(plotly)        # Convierte gráficos ggplot2 en interactivos con ggplotl
 library(ggplot2)       # Sistema de visualización declarativa (gramática de gráficos)
 library(tidyverse)     # Ecosistema de paquetes para ciencia de datos (dplyr, tidyr, etc.)
 
+# Funciones de la asignatura (aedv_...), entre ellas aedv_incluir_dataset(),
+# que incorpora los datasets en "Comprensión de los datos". El fichero
+# utilidades.R viene en la carpeta ProyectoPersonal y tiene que estar en la
+# misma carpeta que esta memoria
+source("utilidades.R")
+
 # ============================================================
 # RESOLUCIÓN DE CONFLICTOS ENTRE LIBRERÍAS
 # Cuando varias librerías definen funciones con el mismo nombre,
@@ -642,7 +648,37 @@ tablas de conteo o gráficas de barras de frecuencias absolutas sin transformaci
 <div class="nota">
 <strong class="bloque-titulo">Inclusión datasets </strong>
 
-Usando los Rmd **\_DatasetSelection** de las carpetas de ISTAC, INE, WORLD_BANK y EUROSTAT seleccionamos los datasets y los incorporamos aquí en la memoria según se explica en los ficheros `README_Proyecto_Personal.Rmd` (carpeta `ProyectoPersonal`) y `README_Selección_Tema.Rmd` (subcarpeta `SelecciónDatasetsProyecto`). Es **muy importante** tener en cuenta lo siguiente:
+Usando los Rmd **\_DatasetSelection** de las carpetas de ISTAC, INE, WORLD_BANK y EUROSTAT (o los de EDGAR, CLIMA e INFORME_PISA) seleccionamos los datasets y los incorporamos aquí en la memoria con `aedv_incluir_dataset()`, pegando en esta sección el chunk que indica cada uno de esos documentos en su última sección, según se explica en los ficheros `README_Proyecto_Personal.Rmd` (carpeta `ProyectoPersonal`) y `README_Selección_Tema.Rmd` (subcarpeta `SelecciónDatasetsProyecto`).
+
+Cada dataset se incluye con su propio chunk, con las opciones `results='asis'` y `cache=FALSE`. Los ficheros del dataset (el `.rds`, el `_metadatos.xlsx` y el `_analisis.Rmd`) tienen que estar en la carpeta de esta memoria. Por ejemplo, el dataset principal del proyecto:
+
+````{verbatim, echo=TRUE}
+```{r, results='asis', cache=FALSE}
+# IPC por comunidades autónomas (INE, tabla 76136): el análisis completo
+# aparece aquí y los datos quedan en la tabla ipc
+ipc <- aedv_incluir_dataset("76136_analisis.Rmd")
+```
+````
+
+Un dataset auxiliar, que no tiene que cumplir los requisitos de AEDV, puede incluirse sin la parte de validación:
+
+````{verbatim, echo=TRUE}
+```{r, results='asis', cache=FALSE}
+poblacion <- aedv_incluir_dataset("56940_analisis.Rmd", validacion = FALSE)
+```
+````
+
+En los datasets con varias tablas (EDGAR, CLIMA e INFORME_PISA), la función las devuelve en una lista que se separa a continuación, cada tabla con su nombre:
+
+````{verbatim, echo=TRUE}
+```{r, results='asis', cache=FALSE}
+clima <- aedv_incluir_dataset("CLIMA_CANARIAS_analisis.Rmd")
+clima_obs  <- clima$data   # observaciones mensuales por municipio, 1990-2022
+clima_proy <- clima$proy   # proyecciones por escenario, modelo y horizonte
+```
+````
+
+Es **muy importante** tener en cuenta lo siguiente:
 
 *  La información automática que se genera hay que perfeccionarla añadiendo texto explicativo. 
 

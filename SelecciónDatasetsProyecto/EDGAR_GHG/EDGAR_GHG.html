@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-09-12" />
+<meta name="date" content="2026-10-08" />
 
 <title>EDGAR: DATASETS EMISIONES GASES EFECTO INVERNADERO</title>
 
@@ -1492,7 +1492,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">EDGAR: DATASETS EMISIONES GASES EFECTO
 INVERNADERO</h1>
-<h4 class="date">2026-09-12</h4>
+<h4 class="date">2026-10-08</h4>
 
 </div>
 
@@ -1523,7 +1523,8 @@ queden pegadas al texto que viene después (evita tener que poner <br> a mano
    sustancia): scroll en los dos ejes, con la fila de cabecera fija arriba
    mientras se recorre. Alternativa ligera a DT::datatable: HTML puro, sin
    JavaScript ni dependencias */
-.tabla-scroll-xy { overflow: auto; max-height: 450px; border: 1px solid #ddd; }
+/* max-height: cabecera + 5 filas a la vista; el resto se recorre con el scroll */
+.tabla-scroll-xy { overflow: auto; max-height: 190px; border: 1px solid #ddd; }
 .tabla-scroll-xy table { width: auto; min-width: 100%; margin-bottom: 0; }
 .tabla-scroll-xy table td, .tabla-scroll-xy table th { white-space: nowrap; }
 .tabla-scroll-xy thead th { position: sticky; top: 0; z-index: 1;
@@ -1533,6 +1534,8 @@ queden pegadas al texto que viene después (evita tener que poner <br> a mano
    la tabla desmesuradamente ancha. Va con clase propia para no ensanchar las
    tablas cuya última columna es un número (p. ej. la de percentiles) */
 .tabla-scroll-xy.con-desc table td:last-child { white-space: normal; min-width: 420px; }
+/* Salidas de imprime_caja(): cabecera + 5 filas a la vista; el resto con scroll */
+.caja-scroll.caja-5 { max-height: 152px; }
 </style>
 <p>Emisión de Gases de Efecto Invernadero con datos de <a href="https://edgar.jrc.ec.europa.eu/report_2026">EDGAR</a>. Los datos
 de <strong>EDGAR</strong> se suelen actualizar en el mes de septiembre.
@@ -1597,7 +1600,7 @@ DESCARGAR_DATOS &lt;- !file.exists(paste0(filename, &quot;.rds&quot;))
 cat(if(DESCARGAR_DATOS) &quot;No se encuentra el rds: se descargan los datos de EDGAR.\n&quot;
     else paste0(&quot;Se reutiliza el fichero &quot;, filename, &quot;.rds ya existente &quot;,
                 &quot;(borrarlo para volver a descargar).\n&quot;))</code></pre>
-<pre><code>## No se encuentra el rds: se descargan los datos de EDGAR.</code></pre>
+<pre><code>## Se reutiliza el fichero EDGAR_GHG.rds ya existente (borrarlo para volver a descargar).</code></pre>
 <pre class="r"><code># LECTURA DATOS EDGAR Y GENERACIÓN RDS
 
 # URL DEL &quot;BOOKLET&quot; DEL INFORME ANUAL (único fichero, a diferencia de los 7 ZIP
@@ -1641,7 +1644,6 @@ saveRDS(GHG, file = paste0(filename, &quot;.rds&quot;))
 
 cat(&quot;Fichero guardado:&quot;, paste0(filename, &quot;.rds&quot;),
     sprintf(&quot;(%.1f MB)\n&quot;, file.info(paste0(filename, &quot;.rds&quot;))$size / 1024^2))</code></pre>
-<pre><code>## Fichero guardado: EDGAR_GHG.rds (2.1 MB)</code></pre>
 <pre class="r"><code># TABLA NORMALIZADA: emisiones per cápita y por PIB. Novedad de la versión
 # 2026: en versiones anteriores del curso no existía esta vista. Es un
 # segundo fichero (no se mezcla con GHG) porque tiene otra unidad y otra
@@ -1675,7 +1677,6 @@ saveRDS(GHG_normalizado, file = paste0(filename, &quot;_normalizado.rds&quot;))
 
 cat(&quot;Fichero guardado:&quot;, paste0(filename, &quot;_normalizado.rds&quot;),
     sprintf(&quot;(%.1f MB)\n&quot;, file.info(paste0(filename, &quot;_normalizado.rds&quot;))$size / 1024^2))</code></pre>
-<pre><code>## Fichero guardado: EDGAR_GHG_normalizado.rds (0.1 MB)</code></pre>
 <div id="metadatos-del-dataset" class="section level2" number="1.1">
 <h2><span class="header-section-number">1.1</span> Metadatos del
 dataset</h2>
@@ -1822,23 +1823,19 @@ cat(&quot;Fichero guardado:&quot;, paste0(filename, &quot;_metadatos.xlsx&quot;)
 (fichero RDS), iniciamos el proceso de análisis. A partir de aquí el
 documento se compila <strong>solo</strong> con los ficheros ya guardados
 en disco; no se usa ningún objeto de las secciones anteriores. Es a
-propósito: es la parte que el alumno incluye en la memoria del proyecto
-personal, así que tiene que poder ejecutarse sola (lo único que se usa
-de lo definido anteriormente es <code>filename</code>).</p>
+propósito: es la parte que se incorpora a la memoria del proyecto
+personal (ver la última sección, <em>Incorporación del dataset a la
+memoria</em>), así que tiene que poder ejecutarse sola (lo único que se
+usa de lo definido anteriormente es <code>filename</code>).</p>
+<!------------------------------------------------------------------------------- 
+LA SECCIÓN SIGUIENTE, "Análisis del dataset", HASTA LA MARCA "FIN DE LA PARTE QUE SE INCORPORA A LA MEMORIA", ES LA QUE SE INCORPORA A LA MEMORIA DEL PROYECTO PERSONAL, EN LA SECCIÓN "COMPRENSIÓN DE LOS DATOS". AL COMPILAR ESTE DOCUMENTO SE GUARDA EN EL FICHERO EDGAR_GHG_analisis.Rmd, QUE SE INCLUYE EN LA MEMORIA CON aedv_incluir_dataset() (VER LA ÚLTIMA SECCIÓN).
+LAS MARCAS "INICIO/FIN DE LA VALIDACIÓN AEDV" DELIMITAN LO QUE OMITE aedv_incluir_dataset(validacion = FALSE): NO BORRARLAS.
+--------------------------------------------------------------------------------->
 </div>
 </div>
 <div id="análisis-del-dataset" class="section level1" number="2">
 <h1><span class="header-section-number">2</span> Análisis del
 dataset</h1>
-<pre class="r"><code># se repite aquí (idéntico al de la sección anterior) para poder nombrar los
-# ficheros sin depender de ningún chunk anterior
-filename &lt;- &quot;EDGAR_GHG&quot;</code></pre>
-<pre class="r"><code># las descripciones de los indicadores viven en las hojas `Sector`, `Substance`
-# e `Indicador` del fichero de metadatos, y la ficha general en `dataset`
-ficha          &lt;- read.xlsx(paste0(filename, &quot;_metadatos.xlsx&quot;), sheet = &quot;dataset&quot;)
-desc_sector    &lt;- read.xlsx(paste0(filename, &quot;_metadatos.xlsx&quot;), sheet = &quot;Sector&quot;)
-desc_substance &lt;- read.xlsx(paste0(filename, &quot;_metadatos.xlsx&quot;), sheet = &quot;Substance&quot;)
-desc_indicador &lt;- read.xlsx(paste0(filename, &quot;_metadatos.xlsx&quot;), sheet = &quot;Indicador&quot;)</code></pre>
 <p><strong>metadatos</strong></p>
 <div class="tabla-scroll">
 <table>
@@ -1872,7 +1869,7 @@ Research), JRC - Comisión Europea</td>
 </tr>
 <tr class="odd">
 <td align="left">Fecha.de.generacion</td>
-<td align="left">2026-09-12</td>
+<td align="left">2026-10-08</td>
 </tr>
 <tr class="even">
 <td align="left">N.observaciones</td>
@@ -1930,22 +1927,16 @@ CO2 porque su GWP es 1)</td>
 </tbody>
 </table>
 </div>
-<pre class="r"><code>data &lt;- readRDS(paste0(filename, &quot;.rds&quot;))</code></pre>
 <p><strong>data</strong></p>
 <pre><code>## # A tibble: 278,419 × 6
-##     date EDGAR_Country_Code Country     Sector      Substance  value
-##    &lt;int&gt; &lt;chr&gt;              &lt;chr&gt;       &lt;chr&gt;       &lt;chr&gt;      &lt;dbl&gt;
-##  1  1970 AFG                Afghanistan Agriculture CO2       0.0292
-##  2  1971 AFG                Afghanistan Agriculture CO2       0.0292
-##  3  1972 AFG                Afghanistan Agriculture CO2       0.0292
-##  4  1973 AFG                Afghanistan Agriculture CO2       0.0292
-##  5  1974 AFG                Afghanistan Agriculture CO2       0.0400
-##  6  1975 AFG                Afghanistan Agriculture CO2       0.0453
-##  7  1976 AFG                Afghanistan Agriculture CO2       0.0506
-##  8  1977 AFG                Afghanistan Agriculture CO2       0.0614
-##  9  1978 AFG                Afghanistan Agriculture CO2       0.0589
-## 10  1979 AFG                Afghanistan Agriculture CO2       0.0555
-## # ℹ 278,409 more rows</code></pre>
+##    date EDGAR_Country_Code Country     Sector      Substance  value
+##   &lt;int&gt; &lt;chr&gt;              &lt;chr&gt;       &lt;chr&gt;       &lt;chr&gt;      &lt;dbl&gt;
+## 1  1970 AFG                Afghanistan Agriculture CO2       0.0292
+## 2  1971 AFG                Afghanistan Agriculture CO2       0.0292
+## 3  1972 AFG                Afghanistan Agriculture CO2       0.0292
+## 4  1973 AFG                Afghanistan Agriculture CO2       0.0292
+## 5  1974 AFG                Afghanistan Agriculture CO2       0.0400
+## # ℹ 278,414 more rows</code></pre>
 <blockquote>
 <p><strong>Aviso sobre la tabla combinada:</strong> Esta tabla combina
 el desglose por sector con el total por país en una sola tabla, por lo
@@ -1963,7 +1954,7 @@ columnas de la tabla descargada</h2>
 <p>Se presentan las diferentes dimensiones, cada una con sus valores
 posibles y el nº de observaciones.</p>
 <p><strong>COLUMNA: date (56 opciones)</strong></p>
-<div class="caja-scroll">
+<div class="caja-scroll caja-5">
 <pre><code>      date N.observ
  [1,] 2012 5003    
  [2,] 2011 4995    
@@ -2023,7 +2014,7 @@ posibles y el nº de observaciones.</p>
 [56,] 2000 4950    </code></pre>
 </div>
 <p><strong>COLUMNA: EDGAR_Country_Code (212 opciones)</strong></p>
-<div class="caja-scroll">
+<div class="caja-scroll caja-5">
 <pre><code>       EDGAR_Country_Code N.observ
   [1,] ARG                1456    
   [2,] AUS                1456    
@@ -2239,7 +2230,7 @@ posibles y el nº de observaciones.</p>
 [212,] AIR                 280    </code></pre>
 </div>
 <p><strong>COLUMNA: Country (212 opciones)</strong></p>
-<div class="caja-scroll">
+<div class="caja-scroll caja-5">
 <pre><code>       Country                                      N.observ
   [1,] Algeria                                      1456    
   [2,] Argentina                                    1456    
@@ -2455,7 +2446,7 @@ posibles y el nº de observaciones.</p>
 [212,] International Aviation                        280    </code></pre>
 </div>
 <p><strong>COLUMNA: Sector (9 opciones)</strong></p>
-<div class="caja-scroll">
+<div class="caja-scroll caja-5">
 <pre><code>      Sector                N.observ
  [1,] Processes             36546   
  [2,] Transport             35337   
@@ -2468,7 +2459,7 @@ posibles y el nº de observaciones.</p>
  [9,] TOTAL                 11872   </code></pre>
 </div>
 <p><strong>COLUMNA: Substance (5 opciones)</strong></p>
-<div class="caja-scroll">
+<div class="caja-scroll caja-5">
 <pre><code>     Substance           N.observ
 [1,] GWP_100_AR5_N2O     92272   
 [2,] GWP_100_AR5_CH4     85788   
@@ -2623,6 +2614,7 @@ reporta España por separado, sino fusionada con Andorra bajo el código
 <code>Country</code>).</p>
 <pre><code>##  N.Observ n_sectores n_sustancias n_periodos date_min date_max
 ##      1436          9            5         56     1970     2025</code></pre>
+<!-- INICIO DE LA VALIDACIÓN AEDV -->
 </div>
 <div id="tamaño-series-temporales-de-atributos-combinados" class="section level2" number="2.5">
 <h2><span class="header-section-number">2.5</span> Tamaño series
@@ -2919,6 +2911,7 @@ su serie temporal (nº de años con dato no nulo por país).</p>
 </tbody>
 </table>
 </div>
+<!-- FIN DE LA VALIDACIÓN AEDV -->
 </div>
 <div id="emisiones-normalizadas-per-cápita-y-por-pib" class="section level2" number="2.6">
 <h2><span class="header-section-number">2.6</span> Emisiones
@@ -2929,22 +2922,16 @@ en un fichero aparte (<code>EDGAR_GHG_normalizado.rds</code>) porque
 tienen otra unidad y otra granularidad — solo país × año, sin desglose
 por <code>Sector</code>/<code>Substance</code> (son siempre el total del
 país).</p>
-<pre class="r"><code>data_norm &lt;- readRDS(paste0(filename, &quot;_normalizado.rds&quot;))</code></pre>
 <p><strong>data_normalizado</strong></p>
 <pre><code>## # A tibble: 18,960 × 5
-##     date EDGAR_Country_Code Country indicador  value
-##    &lt;int&gt; &lt;chr&gt;              &lt;chr&gt;   &lt;chr&gt;      &lt;dbl&gt;
-##  1  1970 ABW                Aruba   per_capita 0.649
-##  2  1971 ABW                Aruba   per_capita 0.725
-##  3  1972 ABW                Aruba   per_capita 0.901
-##  4  1973 ABW                Aruba   per_capita 0.977
-##  5  1974 ABW                Aruba   per_capita 0.960
-##  6  1975 ABW                Aruba   per_capita 1.19 
-##  7  1976 ABW                Aruba   per_capita 1.18 
-##  8  1977 ABW                Aruba   per_capita 1.36 
-##  9  1978 ABW                Aruba   per_capita 1.44 
-## 10  1979 ABW                Aruba   per_capita 1.51 
-## # ℹ 18,950 more rows</code></pre>
+##    date EDGAR_Country_Code Country indicador  value
+##   &lt;int&gt; &lt;chr&gt;              &lt;chr&gt;   &lt;chr&gt;      &lt;dbl&gt;
+## 1  1970 ABW                Aruba   per_capita 0.649
+## 2  1971 ABW                Aruba   per_capita 0.725
+## 3  1972 ABW                Aruba   per_capita 0.901
+## 4  1973 ABW                Aruba   per_capita 0.977
+## 5  1974 ABW                Aruba   per_capita 0.960
+## # ℹ 18,955 more rows</code></pre>
 <div class="tabla-scroll-xy con-desc">
 <table>
 <colgroup>
@@ -3209,7 +3196,53 @@ distintas entre sí y distintas de <code>value</code> en la tabla
 ambas tablas sumando o dividiendo <code>value</code> directamente sin
 fijarse en las unidades</strong>.</li>
 </ul>
+<!-- FIN DE LA PARTE QUE SE INCORPORA A LA MEMORIA -->
 </div>
+</div>
+<div id="incorporación-del-dataset-a-la-memoria" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> Incorporación del
+dataset a la memoria</h1>
+<p>Al compilar este documento se ha generado el fichero
+<strong><code>EDGAR_GHG_analisis.Rmd</code></strong>: es la sección
+<em>Análisis del dataset</em> de arriba, preparada para la sección
+<strong>Comprensión de los datos</strong> de la memoria, con los títulos
+al nivel de esa sección. Para incorporar el dataset a la memoria:</p>
+<ol style="list-style-type: decimal">
+<li>Copia a la carpeta de la memoria estos ficheros de la carpeta
+<code>EDGAR_GHG</code>: <code>EDGAR_GHG.rds</code>,
+<code>EDGAR_GHG_normalizado.rds</code>,
+<code>EDGAR_GHG_metadatos.xlsx</code> y
+<code>EDGAR_GHG_analisis.Rmd</code>.</li>
+<li>Comprueba que en la carpeta de la memoria está también
+<code>utilidades.R</code> (viene en la carpeta
+<code>ProyectoPersonal</code>, junto al modelo de memoria) y que la
+memoria lo carga en el chunk de librerías:
+<code>source(&quot;utilidades.R&quot;)</code>.</li>
+<li>Pega este chunk en la sección <em>Comprensión de los datos</em> de
+la memoria, cambiando los nombres de las tablas por otros que describan
+el dataset:</li>
+</ol>
+<pre><code>```{r, results=&#39;asis&#39;, cache=FALSE}
+edgar &lt;- aedv_incluir_dataset(&quot;EDGAR_GHG_analisis.Rmd&quot;)
+# este dataset tiene 2 tablas: aedv_incluir_dataset() las devuelve en una lista
+emisiones      &lt;- edgar$data       # emisiones por país, sector y gas
+emisiones_norm &lt;- edgar$data_norm  # emisiones per cápita y por unidad de PIB
+```</code></pre>
+<p>Al compilar la memoria, el análisis aparece en el lugar del chunk y
+los datos quedan en las tablas <code>emisiones</code> y
+<code>emisiones_norm</code> (tibbles), con las que se sigue trabajando
+en el resto de la memoria. Este dataset tiene 2 tablas:
+<code>aedv_incluir_dataset()</code> las devuelve juntas en una lista, y
+las líneas que siguen a la llamada las separan, cada una con su nombre.
+Si incorporas varios datasets, pega un chunk por cada uno, con nombres
+de tabla distintos. En un dataset auxiliar, que no tiene que cumplir los
+requisitos de AEDV,
+<code>aedv_incluir_dataset(&quot;EDGAR_GHG_analisis.Rmd&quot;, validacion = FALSE)</code>
+omite la validación.</p>
+<p>El texto explicativo del dataset (qué mide, qué significa cada
+variable y cada una de sus opciones…) se escribe en la memoria, antes o
+después del chunk, no en <code>EDGAR_GHG_analisis.Rmd</code>: ese
+fichero se sustituye cada vez que se vuelve a generar.</p>
 </div>
 
 

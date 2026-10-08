@@ -67,6 +67,7 @@ knitr::opts_chunk$set(
 library(openxlsx)
 library(wbstats)
 library(tidyverse)
+source("../../utilidades.R") # funciones de la asignatura (aedv_generar_analisis, al final)
 
 # asociamos funciones a determinadas librerías para evitar posibles errores
 select <- dplyr::select
@@ -222,17 +223,20 @@ metadatos <- metadatos |>
 write.xlsx(metadatos, file = paste0(filename, "_metadatos.xlsx"), overwrite = TRUE)
 ```
 
-Una vez guardados en disco los metadatos (fichero xlsx) y los datos (fichero RDS), iniciamos el proceso de análisis. A partir de aquí el documento se compila **solo** con los ficheros ya guardados en disco; no se usa ningún objeto de las secciones anteriores. Es a propósito: es la parte que el alumno incluye en la memoria del proyecto personal, así que tiene que poder ejecutarse sola (lo único que se usa de lo definido anteriormente es `filename`).
+Una vez guardados en disco los metadatos (fichero xlsx) y los datos (fichero RDS), iniciamos el proceso de análisis. A partir de aquí el documento se compila **solo** con los ficheros ya guardados en disco; no se usa ningún objeto de las secciones anteriores. Es a propósito: es la parte que se incorpora a la memoria del proyecto personal (ver la última sección, *Incorporación del dataset a la memoria*), así que tiene que poder ejecutarse sola (lo único que se usa de lo definido anteriormente es `filename`).
+
+<!------------------------------------------------------------------------------- 
+LA SECCIÓN SIGUIENTE, "Análisis del dataset", HASTA LA MARCA "FIN DE LA PARTE QUE SE INCORPORA A LA MEMORIA", ES LA QUE SE INCORPORA A LA MEMORIA DEL PROYECTO PERSONAL, EN LA SECCIÓN "COMPRENSIÓN DE LOS DATOS". AL COMPILAR ESTE DOCUMENTO SE GUARDA EN EL FICHERO <filename>_analisis.Rmd, QUE SE INCLUYE EN LA MEMORIA CON aedv_incluir_dataset() (VER LA ÚLTIMA SECCIÓN).
+LAS MARCAS "INICIO/FIN DE LA VALIDACIÓN AEDV" DELIMITAN LO QUE OMITE aedv_incluir_dataset(validacion = FALSE): NO BORRARLAS.
+--------------------------------------------------------------------------------->
 
 # Análisis del dataset
 
-<!------------------------------------------------------------------------------- 
-LO SIGUIENTE, HASTA EL FINAL DEL CÓDIGO, ES LA PARTE QUE SE INCORPORA A LA MEMORIA DEL PROYECTO PERSONAL INCLUIR LOS DATOS EN LA SECCIÓN DE "COMPRENSIÓN DE LOS DATOS". SI SE INCORPORAN VARIOS GRUPOS DE DATASETS HAY QUE HACER ESTO PARA CADA UNO. HAY QUE TENER EN CUENTA QUE EL DATASET SE CARGA EN UNA TABLA QUE SE LLAMA data. SI SE USA VARIAS VECES ESTE CÓDIGO PARA INCORPORAR VARIOS DATASETS HAY QUE ASIGNAR AL FINAL DE ESTE CÓDIGO UN NOMBRE DISTINTO A CADA UNO 
---------------------------------------------------------------------------------->
-
 ```{r}
-# AL LEER LOS DATOS DESDE AQUÍ HAY QUE DEFINIR DE NUEVO filename (nombre con el que se guardaron los ficheros)
-filename <- "WB_Selected"
+#filename <- "WB_Selected" # al copiar este código a mano en la memoria, descomentar y poner el nombre de los ficheros
+
+# tablas que devuelve aedv_incluir_dataset() al incluir este análisis en la memoria
+tablas_exportadas <- "data"
 ```
 
 ```{r}
@@ -340,6 +344,8 @@ if(nrow(data.esp) == 0){
 }
 ```
 
+<!-- INICIO DE LA VALIDACIÓN AEDV -->
+
 ## Validación de requisitos AEDV
 
 ```{r}
@@ -442,3 +448,22 @@ tb_val |>
 De los **`r n_total`** indicadores seleccionados, **`r n_validos`** cumplen los cuatro criterios de validación (cobertura geográfica, datos actualizados, tamaño de las series temporales y tamaño de la serie de España).
 
 El requisito de disponer de al menos 4 atributos válidos `r if(n_validos >= 4) "**se cumple ✓**" else paste0("**no se cumple ✗** — con la selección actual faltan ", 4 - n_validos, " indicador(es) válido(s) para alcanzar el mínimo de 4")`.
+
+<!-- FIN DE LA VALIDACIÓN AEDV -->
+
+<!-- FIN DE LA PARTE QUE SE INCORPORA A LA MEMORIA -->
+
+# Incorporación del dataset a la memoria
+
+```{r, results='asis'}
+# genera <filename>_analisis.Rmd con la sección "Análisis del dataset"
+# preparada para la memoria, y escribe las instrucciones para incorporarlo
+aedv_generar_analisis(
+  nombre        = filename,
+  titulo        = paste0("Indicadores seleccionados del Banco Mundial (", filename, ")"),
+  ficheros      = paste0(filename, c(".rds", "_metadatos.xlsx")),
+  tablas        = tablas_exportadas,
+  # el nombre de los ficheros, comentado en el análisis, queda fijado
+  sustituciones = c("^#filename <-" = paste0("filename <- \"", filename, "\" # nombre de los ficheros del dataset"))
+)
+```
