@@ -32,6 +32,7 @@ Esta carpeta contiene todo lo que necesitas para desarrollar el **Proyecto Perso
 | `SelecciónDatasetsProyecto/` | Herramientas para elegir y validar tus datos |
 | `SelecciónDatasetsProyecto/README_Selección_Tema.html` | guía para la elección del tema del proyecto |
 | `estilos.css` | Estilos visuales — no modificar |
+| `utilidades.R` | Funciones de la asignatura que carga la memoria, entre ellas `aedv_incluir_dataset()` para incorporar los datasets — no modificar |
 
 <div class="nota">
 <strong class="bloque-titulo">Antes de hacer cualquier otra cosa</strong>
