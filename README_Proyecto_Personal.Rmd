@@ -97,6 +97,22 @@ La calificación final del proyecto personal se basa en el conjunto de las tres 
 </div>
 
 <div class="metodo">
+<strong class="bloque-titulo">Comprueba que la memoria compila solo con los ficheros que vas a subir</strong>
+
+En cada entrega hay que subir **todos los ficheros necesarios para que la memoria compile**: el `.Rmd` y su `.html`, y además los `.rds` y `_metadatos.xlsx` de los datasets, sus `_analisis.Rmd`, `utilidades.R`, `estilos.css` y la imagen de portada. En tu carpeta de trabajo están siempre todos, así que la memoria compila aunque te olvides de subir alguno; en el ordenador del profesor, en cambio, no compilará, y **un `.Rmd` que no compila equivale a no entregado**.
+
+Para detectarlo antes de enviar:
+
+1. Crea una **carpeta temporal** vacía, fuera de tu carpeta de trabajo.
+2. Copia en ella **exactamente los ficheros que vas a subir a la entrega**, y nada más.
+3. Abre el `.Rmd` de la memoria **desde esa carpeta** y compílalo (`Ctrl+Shift+K`).
+
+Si compila, la entrega está completa: sube el contenido de esa carpeta. Si falla, el error indica qué falta. Por ejemplo, `Error en gzfile(file, "rb"): no se puede abrir la conexión` en el chunk de un dataset significa que falta su `.rds`, y `Falta el fichero estilos.css` (o `utilidades.R`) lo dice directamente. Añade el fichero a la carpeta temporal y vuelve a compilar.
+
+Revisa además el `.html` que sale de esa carpeta: si las cajas de colores o las tablas anchas con barra de desplazamiento aparecen sin formato, es que falta `estilos.css`. Sin ese fichero la memoria se ve mal aunque llegue a compilar.
+</div>
+
+<div class="metodo">
 <strong class="bloque-titulo">Verifica tu entrega con la IA antes de enviarla</strong>
 
 Antes de enviar cualquier entrega, pide a un agente de IA que la revise contra la rúbrica. Dale acceso a tu `.Rmd` y a su `.html` ya compilado —así puede ver también el resultado final, no solo el código— y pídele que compruebe los criterios de esa entrega a partir de este documento. Por ejemplo, para la Entrega 1:
@@ -422,7 +438,7 @@ Un proyecto de calidad sobresaliente integra los datos con una narrativa coheren
 
 Estos criterios son de carácter binario: o se cumplen o no se cumplen. Un fallo en cualquiera de ellos puede impedir la corrección del trabajo.
 
-- **Entrega memoria en HTML y código en Rmd compilable, con datos en RDS.** Se entrega el `.html` compilado más el `.Rmd` con los datos en formato `.rds` y metadatos (si hay) en formato `.xlsx`, junto con los ficheros `_analisis.Rmd` de los datasets y `utilidades.R`, sin los que la memoria no compila. El código debe funcionar en cualquier ordenador sin modificaciones: rutas relativas, sin dependencias externas y solo las librerías que aparecen en el libro de la asignatura. La **imagen de portada** también debe ser un fichero local entregado junto al `.Rmd` (no un enlace a un servidor externo), para que se vea igual leyendo el documento localmente que a través de un enlace. Esto se verifica desde la Entrega 1; un `.Rmd` que no compila equivale a no entregado.
+- **Entrega memoria en HTML y código en Rmd compilable, con datos en RDS.** Se entrega el `.html` compilado más el `.Rmd` con los datos en formato `.rds` y metadatos (si hay) en formato `.xlsx`, junto con los ficheros `_analisis.Rmd` de los datasets y `utilidades.R`, sin los que la memoria no compila. El código debe funcionar en cualquier ordenador sin modificaciones: rutas relativas, sin dependencias externas y solo las librerías que aparecen en el libro de la asignatura. La **imagen de portada** también debe ser un fichero local entregado junto al `.Rmd` (no un enlace a un servidor externo), para que se vea igual leyendo el documento localmente que a través de un enlace. Esto se verifica desde la Entrega 1; un `.Rmd` que no compila equivale a no entregado. Para comprobarlo antes de enviar, compila la memoria desde una carpeta temporal que contenga solo los ficheros que vas a subir (recuadro *Comprueba que la memoria compila solo con los ficheros que vas a subir*, en *Qué tienes que entregar*).
 
 - **Enlace al Dashboard en el servidor Shiny del DIS** *(solo Entrega 3).* El enlace debe aparecer al inicio de la memoria y estar operativo en el momento de la corrección. Un dashboard caído o inaccesible sin VPN equivale a no entregado. **Además del despliegue, hay que entregar también el `.Rmd` del dashboard** (el mismo fichero que subes al servidor Shiny), junto con el resto de ficheros.
 

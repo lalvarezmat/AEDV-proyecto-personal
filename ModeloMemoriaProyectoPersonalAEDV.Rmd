@@ -76,10 +76,20 @@ library(plotly)        # Convierte gráficos ggplot2 en interactivos con ggplotl
 library(ggplot2)       # Sistema de visualización declarativa (gramática de gráficos)
 library(tidyverse)     # Ecosistema de paquetes para ciencia de datos (dplyr, tidyr, etc.)
 
+# ============================================================
+# FICHEROS QUE TIENEN QUE ESTAR EN LA CARPETA DE LA MEMORIA
+# estilos.css y utilidades.R vienen en la carpeta ProyectoPersonal.
+# Sin estilos.css la memoria compila igualmente, pero sin formato
+# (cajas de colores, tablas con scroll...), así que se comprueba
+# aquí y se detiene la compilación si falta alguno de los dos.
+# ============================================================
+for (fichero in c("estilos.css", "utilidades.R"))
+  if (!file.exists(fichero))
+    stop("Falta el fichero ", fichero, " en la carpeta de la memoria: ",
+         "cópialo desde la carpeta ProyectoPersonal", call. = FALSE)
+
 # Funciones de la asignatura (aedv_...), entre ellas aedv_incluir_dataset(),
-# que incorpora los datasets en "Comprensión de los datos". El fichero
-# utilidades.R viene en la carpeta ProyectoPersonal y tiene que estar en la
-# misma carpeta que esta memoria
+# que incorpora los datasets en "Comprensión de los datos"
 source("utilidades.R")
 
 # ============================================================

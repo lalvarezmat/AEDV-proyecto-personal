@@ -1821,6 +1821,40 @@ conviene revisar bien cada entrega <strong>antes</strong> de enviarla,
 no después de que se rechace.</p>
 </div>
 <div class="metodo">
+<p><strong class="bloque-titulo">Comprueba que la memoria compila solo
+con los ficheros que vas a subir</strong></p>
+<p>En cada entrega hay que subir <strong>todos los ficheros necesarios
+para que la memoria compile</strong>: el <code>.Rmd</code> y su
+<code>.html</code>, y además los <code>.rds</code> y
+<code>_metadatos.xlsx</code> de los datasets, sus
+<code>_analisis.Rmd</code>, <code>utilidades.R</code>,
+<code>estilos.css</code> y la imagen de portada. En tu carpeta de
+trabajo están siempre todos, así que la memoria compila aunque te
+olvides de subir alguno; en el ordenador del profesor, en cambio, no
+compilará, y <strong>un <code>.Rmd</code> que no compila equivale a no
+entregado</strong>.</p>
+<p>Para detectarlo antes de enviar:</p>
+<ol style="list-style-type: decimal">
+<li>Crea una <strong>carpeta temporal</strong> vacía, fuera de tu
+carpeta de trabajo.</li>
+<li>Copia en ella <strong>exactamente los ficheros que vas a subir a la
+entrega</strong>, y nada más.</li>
+<li>Abre el <code>.Rmd</code> de la memoria <strong>desde esa
+carpeta</strong> y compílalo (<code>Ctrl+Shift+K</code>).</li>
+</ol>
+<p>Si compila, la entrega está completa: sube el contenido de esa
+carpeta. Si falla, el error indica qué falta. Por ejemplo,
+<code>Error en gzfile(file, &quot;rb&quot;): no se puede abrir la conexión</code>
+en el chunk de un dataset significa que falta su <code>.rds</code>, y
+<code>Falta el fichero estilos.css</code> (o <code>utilidades.R</code>)
+lo dice directamente. Añade el fichero a la carpeta temporal y vuelve a
+compilar.</p>
+<p>Revisa además el <code>.html</code> que sale de esa carpeta: si las
+cajas de colores o las tablas anchas con barra de desplazamiento
+aparecen sin formato, es que falta <code>estilos.css</code>. Sin ese
+fichero la memoria se ve mal aunque llegue a compilar.</p>
+</div>
+<div class="metodo">
 <p><strong class="bloque-titulo">Verifica tu entrega con la IA antes de
 enviarla</strong></p>
 <p>Antes de enviar cualquier entrega, pide a un agente de IA que la
@@ -2699,7 +2733,11 @@ y solo las librerías que aparecen en el libro de la asignatura. La
 entregado junto al <code>.Rmd</code> (no un enlace a un servidor
 externo), para que se vea igual leyendo el documento localmente que a
 través de un enlace. Esto se verifica desde la Entrega 1; un
-<code>.Rmd</code> que no compila equivale a no entregado.</p></li>
+<code>.Rmd</code> que no compila equivale a no entregado. Para
+comprobarlo antes de enviar, compila la memoria desde una carpeta
+temporal que contenga solo los ficheros que vas a subir (recuadro
+<em>Comprueba que la memoria compila solo con los ficheros que vas a
+subir</em>, en <em>Qué tienes que entregar</em>).</p></li>
 <li><p><strong>Enlace al Dashboard en el servidor Shiny del DIS</strong>
 <em>(solo Entrega 3).</em> El enlace debe aparecer al inicio de la
 memoria y estar operativo en el momento de la corrección. Un dashboard
