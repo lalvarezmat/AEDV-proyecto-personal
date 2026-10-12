@@ -97,8 +97,8 @@ aedv_lambda_optimo <- function(x, y, lambda_range = c(-1, 1.9)) {
 # es decir, el lambda que mejor aproxima x a una distribución normal.
 # A diferencia de aedv_lambda_optimo(), que busca el mejor ajuste lineal con
 # OTRA variable, aquí solo interviene x. La búsqueda se acota a un intervalo
-# razonable: para una variable ya casi simétrica el óptimo sin acotar puede
-# dispararse a valores extremos sin mejorar apenas la asimetría.
+# razonable, porque para algunas variables el óptimo sin acotar se dispara a
+# valores extremos.
 aedv_yeojohnson_lambda <- function(x, intervalo = c(-1, 3)) {
   x <- as.numeric(x[!is.na(x)])
 
@@ -228,12 +228,15 @@ aedv_tests_residuos <- function(residuos, tiempo = NULL, lag = 10,
 # p-valor aparece sobre fondo VERDE si el test se supera y ROJO si no, de modo
 # que el diagnóstico completo se lee de un vistazo. Los tests no aplicables
 # (Shapiro-Wilk con más de 5000 datos) quedan en gris.
+# Si la tabla trae una columna "cond", se muestra tal cual como condición para
+# superar cada test (lo usa aedv_tabla_lm(), donde el test F se supera con un
+# p-valor PEQUEÑO); si no, la condición es "p-valor > alpha" en todas las filas.
 aedv_tabla_tests <- function(tests, titulo = "Diagnóstico de residuos",
-                             alpha = 0.05) {
+                             alpha = 0.05, subtitulo = NULL) {
+  if (!"cond" %in% names(tests)) tests$cond <- paste0("p-valor > ", alpha)
   d <- tests |>
     mutate(
       p_txt     = .aedv_formato_p(.data$p_valor),
-      cond      = paste0("p-valor > ", alpha),
       veredicto = case_when(is.na(.data$supera) ~ "—",
                             .data$supera        ~ "Sí",
                             TRUE                ~ "No")) |>
@@ -250,7 +253,7 @@ aedv_tabla_tests <- function(tests, titulo = "Diagnóstico de residuos",
 
   tb <- d |>
     gt::gt(id = id_tabla) |>
-    gt::tab_header(title = titulo) |>
+    gt::tab_header(title = titulo, subtitle = subtitulo) |>
     gt::cols_label(propiedad = "Propiedad que se analiza",
                    test      = "Test",
                    cond      = "Condición para superarlo",
@@ -270,6 +273,75 @@ aedv_tabla_tests <- function(tests, titulo = "Diagnóstico de residuos",
     pinta(filas_ok, "#c8e6c9") |>
     pinta(filas_ko, "#ffcdd2") |>
     pinta(filas_na, "#e0e0e0")
+}
+
+
+# Gráfico del ERROR de la recta de regresión de y sobre x: el residuo
+# a*x_k + b - y_k (con a y b los de aedv_lm_analisis(x, y)) frente a x, con la
+# línea del cero en rojo discontinuo. Es la lectura gráfica de los tests de
+# aedv_tabla_lm(): si es ruido, los puntos forman una banda de anchura constante
+# alrededor del cero, sin forma reconocible. Si se pasan 'nombres' (p. ej. los
+# países), se rotulan los puntos cuyo error se aleja más de 2 desviaciones
+# típicas. Devuelve un ggplot, o con dinamico = TRUE un gráfico interactivo de
+# plotly: en ese caso no se rotula ningún punto (ggplotly no admite ggrepel) y
+# el nombre sale en el cuadro emergente al pasar el ratón.
+aedv_lm_error_grafico <- function(x, y, nombres = NULL, titulo = "Error de la recta de regresión",
+                                  x_lab = "x", dinamico = FALSE) {
+  analisis <- aedv_lm_analisis(x, y)
+  datos <- tibble(x = as.numeric(x), y = as.numeric(y),
+                  nombre = if (is.null(nombres)) NA_character_ else as.character(nombres)) |>
+    filter(!is.na(x), !is.na(y)) |> # los mismos datos que usa aedv_lm_analisis()
+    mutate(error = analisis$pendiente * x + analisis$termino_indep - y)
+  if (dinamico) {
+    # 'text' en el aes global: no lo usa ninguna capa, solo el cuadro emergente
+    p <- datos |>
+      ggplot(aes(x, error, text = nombre)) +
+        geom_point() +
+        geom_hline(yintercept = 0, linetype = "dashed", colour = "red") +
+        labs(x = x_lab, y = "a·x + b − y", title = titulo) # plotly no entiende expression()
+    return(plotly::ggplotly(p, tooltip = if (is.null(nombres)) c("x", "y") else c("text", "x", "y")))
+  }
+  p <- datos |>
+    ggplot(aes(x, error)) +
+      geom_point() +
+      geom_hline(yintercept = 0, linetype = "dashed", colour = "red") +
+      labs(x = x_lab, y = expression(a*x[k] + b - y[k]), title = titulo)
+  if (!is.null(nombres)) {
+    atipicos <- datos |> filter(abs(error) > 2 * sd(error)) # errores más alejados
+    p <- p + if (requireNamespace("ggrepel", quietly = TRUE)) {
+      ggrepel::geom_text_repel(data = atipicos, aes(label = nombre), size = 5)
+    } else {
+      geom_text(data = atipicos, aes(label = nombre), size = 5, vjust = -0.8)
+    }
+  }
+  p
+}
+
+
+# Presenta el resultado de aedv_lm_analisis() con el mismo formato que
+# aedv_tabla_tests(): una fila por test (F, Shapiro-Wilk y Breusch-Pagan) con
+# su p-valor en verde o rojo, y la recta, R² y sigma en el subtítulo.
+# Ojo con el test F: su hipótesis nula es que el modelo NO sirve, así que se
+# supera con un p-valor PEQUEÑO (p < alpha), al revés que los otros dos.
+aedv_tabla_lm <- function(analisis, titulo = "Ajuste de la recta de regresión",
+                          alpha = 0.05) {
+  num <- function(v) formatC(v, format = "g", digits = 4)  # 4 cifras significativas
+  b <- analisis$termino_indep
+  subtitulo <- paste0("Recta: y = ", num(analisis$pendiente), " · x ",
+                      if (b < 0) "- " else "+ ", num(abs(b)),
+                      "   |   R² = ", num(analisis$R2),
+                      "   |   sigma (RMSE) = ", num(analisis$sigma))
+
+  tibble(
+    propiedad = c("Significación global del modelo", "Normalidad de los residuos",
+                  "Homocedasticidad (varianza constante)"),
+    test      = c("F", "Shapiro-Wilk", "Breusch-Pagan"),
+    cond      = paste0("p-valor ", c("<", ">", ">"), " ", alpha),
+    p_valor   = c(analisis$F_p_value, analisis$SW_p_value, analisis$BP_p_value)
+  ) |>
+    mutate(supera = if_else(.data$test == "F", .data$p_valor < alpha,
+                            .data$p_valor > alpha)) |>
+    aedv_tabla_tests(titulo = titulo, alpha = alpha, subtitulo = subtitulo)
 }
 
 
@@ -546,6 +618,200 @@ title = "matriz de correlación"     # título del gráfico
       xaxis = list(title = "", tickangle = 45),
       yaxis = list(title = "", autorange = "reversed")
     )
+}
+
+
+# Gráfico de barras con el PORCENTAJE DE VARIANZA EXPLICADA por cada componente
+# principal de un ACP hecho con prcomp(): la varianza de cada componente
+# (sdev²) dividida entre la suma de todas, en porcentaje, con el valor escrito
+# encima de cada barra. Sirve para decidir con cuántas componentes quedarse.
+# Las componentes se dibujan en su orden (PC1, PC2, ...) y no en el alfabético
+# que ggplot daría por omisión a las etiquetas (PC1, PC10, PC11, PC2...).
+# Devuelve un ggplot: para la versión interactiva, pasarlo a ggplotly().
+aedv_pca_varianza_grafico <- function(pca, titulo = NULL) {
+  tibble(componente = forcats::fct_inorder(paste0("PC", seq_along(pca$sdev))), # orden fijo
+         varianza   = pca$sdev^2 / sum(pca$sdev^2) * 100) |> # % de varianza explicada
+    ggplot(aes(x = componente, y = varianza)) +
+      geom_col() + # barras
+      geom_text(aes(label = paste0(round(varianza, digits = 1), "%")), # el % encima
+                size = 3, colour = "blue", nudge_y = 1) +
+      labs(title = titulo, x = "Componentes principales",
+           y = "Porcentaje de varianza explicada")
+}
+
+
+# Dibuja la CONTRIBUCIÓN de cada variable a la componente principal k de un
+# ACP hecho con prcomp(): el cuadrado de su loading en porcentaje (100·u²), de
+# modo que las contribuciones a cada componente suman 100. Al elevar al cuadrado
+# se pierde el signo del loading, así que el color de la barra lo recupera
+# (azul si es positivo, naranja si es negativo). Las barras van de mayor a menor
+# y la línea roja discontinua marca la contribución media (100/n, con n el
+# número de variables): las que la superan son las que dan sentido a la
+# componente. Es la alternativa a factoextra::fviz_contrib(), que pierde el signo.
+aedv_pca_loadings_grafico <- function(pca, k) {
+  n <- nrow(pca$rotation) # número de variables
+  tibble(variable = rownames(pca$rotation),
+         loading = pca$rotation[, k]) |>
+    mutate(contribucion = 100 * loading^2, # % de contribución
+           signo = if_else(loading > 0, "positivo", "negativo"),
+           variable = forcats::fct_reorder(variable, -contribucion)) |> # de mayor a menor contribución
+    ggplot(aes(x = variable, y = contribucion, fill = signo)) +
+      geom_col() + # el color de la barra indica el signo del loading
+      geom_hline(yintercept = 100/n, linetype = "dashed", colour = "red") + # contribución media
+      scale_fill_manual(values = c(positivo = "steelblue", negativo = "darkorange")) +
+      labs(title = paste0("Contribución a PC", k), x = "",
+           y = "Contribución (%)", fill = "Signo del loading") +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+}
+
+
+# Capa de ggplot que RESALTA algunos elementos de un gráfico de dispersión
+# rodeando su punto con un círculo grande. Uso interno de aedv_pca_biplot() y
+# aedv_kmeans_grafico().
+#   puntos   : tabla con las columnas name, x, y (coordenadas YA dibujadas)
+#   resaltar : nombres de los elementos que se resaltan
+#   color    : color del círculo
+.aedv_capa_resaltar <- function(puntos, resaltar, color) {
+  faltan <- setdiff(resaltar, puntos$name)
+  if (length(faltan) > 0)
+    stop("No se encuentran para resaltar: ", paste(faltan, collapse = ", "))
+  geom_point(data = puntos[puntos$name %in% resaltar, ], aes(x = x, y = y),
+             inherit.aes = FALSE, shape = 21, size = 7, stroke = 1.5,
+             colour = color, fill = NA)
+}
+
+# Quita de las capas de texto de un gráfico de factoextra el rótulo normal de
+# los elementos resaltados: con muchos puntos, ggrepel puede llevarlo lejos del
+# punto o dejarlo tapado por las flechas del biplot. Se sustituye después por el
+# de .aedv_rotulo_resaltar(). Las capas que heredan los datos del gráfico se
+# filtran sobre p$data.
+.aedv_quitar_rotulos <- function(p, resaltar) {
+  for (i in seq_along(p$layers)) {
+    capa <- p$layers[[i]]
+    if (inherits(capa$geom, c("GeomTextRepel", "GeomText"))) {
+      datos_capa <- if (is.data.frame(capa$data)) capa$data else p$data
+      if ("name" %in% names(datos_capa))
+        capa$data <- datos_capa[!datos_capa$name %in% resaltar, ]
+    }
+  }
+  p
+}
+
+# Rótulo en negrita, junto al círculo de .aedv_capa_resaltar(), con el nombre
+# de los elementos resaltados. Mismos argumentos; 'size' en mm, como geom_text().
+.aedv_rotulo_resaltar <- function(puntos, resaltar, color, size) {
+  ggrepel::geom_text_repel(data = puntos[puntos$name %in% resaltar, ],
+                           aes(x = x, y = y, label = name), inherit.aes = FALSE,
+                           colour = color, size = size, fontface = "bold",
+                           box.padding = 0.8, min.segment.length = Inf) # sin línea de unión
+}
+
+# Biplot de un ACP hecho con prcomp(), con factoextra::fviz_pca_biplot(): cada
+# elemento es un punto en el plano de las dos primeras componentes y cada
+# variable una flecha desde el origen. Con 'resaltar' se rodean con un círculo
+# los elementos indicados (nombres de fila del ACP, p. ej. c("Spain")).
+#   grupos         : vector con el grupo de cada fila del ACP (p. ej. el
+#                    continente), en el mismo orden; colorea los puntos por grupo
+#   titulo_grupos  : título de la leyenda de esos colores
+#   rotular_puntos : FALSE rotula solo las variables (flechas); útil con muchos
+#                    elementos, cuyas etiquetas se amontonarían. Los elementos
+#                    de 'resaltar' se rotulan siempre, en negrita junto al círculo.
+# Es un gráfico estático: factoextra no funciona bien con ggplotly().
+aedv_pca_biplot <- function(pca, resaltar = NULL, titulo = "Biplot PCA",
+                            labelsize = 4, color_resaltar = "red",
+                            grupos = NULL, titulo_grupos = "Grupo",
+                            rotular_puntos = TRUE) {
+  p <- factoextra::fviz_pca_biplot(pca,
+                                   label = if (rotular_puntos) "all" else "var",
+                                   repel = TRUE,          # evita que se solapen las etiquetas
+                                   col.var = "steelblue", # color de las flechas (variables)
+                                   col.ind = if (is.null(grupos)) "black" else grupos, # color de los puntos
+                                   legend.title = titulo_grupos,
+                                   labelsize = labelsize) +
+    labs(title = titulo)
+  if (length(resaltar) > 0) {
+    # fviz_pca_biplot() reescala las flechas, pero no los puntos: sus
+    # coordenadas son directamente las de pca$x
+    puntos <- data.frame(name = rownames(pca$x), x = pca$x[, 1], y = pca$x[, 2])
+    p <- p + .aedv_capa_resaltar(puntos, resaltar, color_resaltar)
+    p <- .aedv_quitar_rotulos(p, resaltar) # se sustituye por el rótulo en negrita
+    p <- p + .aedv_rotulo_resaltar(puntos, resaltar, color_resaltar, labelsize)
+  }
+  p
+}
+
+
+# --------------------------------------------------------------------------
+# Agrupación k-means sobre las componentes principales
+# --------------------------------------------------------------------------
+# Tres funciones para usar k-means como "caja negra" a partir de un ACP:
+#   aedv_kmeans()         calcula la agrupación,
+#   aedv_kmeans_grafico() la dibuja sobre el plano de las dos primeras
+#                         componentes,
+#   aedv_kmeans_grupos()  devuelve qué grupo le toca a cada elemento.
+
+# Agrupa las observaciones de un ACP hecho con prcomp() en k grupos con
+# k-means, usando como coordenadas sus n_componentes primeras componentes
+# principales. Devuelve el objeto de kmeans() con las coordenadas usadas como
+# atributo "datos", que es lo que necesita aedv_kmeans_grafico().
+#   pca           : resultado de prcomp()
+#   n_componentes : nº de componentes principales que se usan (2 por omisión)
+#   k             : nº de grupos
+#   semilla       : k-means parte de centros elegidos al azar; con la semilla
+#                   fija el resultado es reproducible (se fija con set.seed(),
+#                   así que también cambia el estado del generador aleatorio
+#                   de la sesión)
+#   nstart        : nº de arranques aleatorios; se queda con el mejor
+aedv_kmeans <- function(pca, n_componentes = 2, k = 3, semilla = 123, nstart = 25) {
+  stopifnot(n_componentes >= 2, n_componentes <= ncol(pca$x))
+  datos <- pca$x[, 1:n_componentes, drop = FALSE]
+  set.seed(semilla)
+  km <- stats::kmeans(datos, centers = k, nstart = nstart)
+  attr(km, "datos") <- datos
+  km
+}
+
+# Dibuja la agrupación de aedv_kmeans() con factoextra::fviz_cluster(): cada
+# elemento en el plano de las dos primeras componentes principales, coloreado
+# según su grupo y con el contorno de cada grupo. Como fviz_cluster() hace por
+# omisión (stand = TRUE), las dos coordenadas se estandarizan para dibujarlas:
+# los dos ejes quedan con una escala parecida, aunque PC2 tenga menos varianza
+# que PC1.
+# Si se agrupó con más de 2 componentes, el plano sigue siendo el de PC1 y PC2,
+# aunque los grupos se hayan formado mirando también las demás: por eso puede
+# haber grupos que se solapen en el gráfico. Se le pasan a fviz_cluster() solo
+# esas dos columnas a propósito: con más, haría su propio ACP de las
+# componentes y los ejes saldrían como "Dim1"/"Dim2", con el signo que le
+# tocase y porcentajes de varianza que solo cuentan las componentes usadas.
+# Con 'resaltar' se rodean con un círculo los elementos indicados (nombres de
+# fila del ACP, p. ej. c("Spain")).
+aedv_kmeans_grafico <- function(km, titulo = NULL, repel = TRUE, labelsize = 7,
+                                resaltar = NULL, color_resaltar = "black") {
+  datos <- attr(km, "datos")
+  if (is.null(datos)) stop("El argumento debe ser el resultado de aedv_kmeans()")
+  if (is.null(titulo)) {
+    titulo <- paste0("Agrupación k-means (k = ", length(km$size), ") sobre ",
+                     ncol(datos), " componentes principales")
+  }
+  p <- factoextra::fviz_cluster(km, data = datos[, 1:2], stand = TRUE,
+                                repel = repel, labelsize = labelsize) +
+    labs(title = titulo)
+  if (length(resaltar) > 0) {
+    # p$data trae las coordenadas ya estandarizadas, tal como se dibujan
+    p <- p + .aedv_capa_resaltar(p$data, resaltar, color_resaltar)
+    p <- .aedv_quitar_rotulos(p, resaltar) # se sustituye por el rótulo en negrita
+    p <- p + .aedv_rotulo_resaltar(p$data, resaltar, color_resaltar, labelsize * 0.6)
+  }
+  p
+}
+
+# Tabla con el grupo que aedv_kmeans() asigna a cada elemento: una fila por
+# elemento, con las columnas "elemento" (nombre de fila del ACP, p. ej. el
+# país) y "grupo" (número del grupo). La numeración de los grupos es
+# arbitraria: solo importa qué elementos comparten grupo.
+aedv_kmeans_grupos <- function(km) {
+  tibble(elemento = names(km$cluster),
+         grupo    = unname(km$cluster))
 }
 
 
@@ -1053,7 +1319,7 @@ aedv_dibujar_arima <- function(resultado,
 #
 # Un `tendencia` pasado a mano NO pasa por aquí: se dibuja tal cual llegue. Es
 # lo que necesita un cuadro de mando que la recalcule al mover las ventanas del
-# suavizado (ver Dashboard6.Rmd), donde la línea naranja es justo lo que hace
+# suavizado (ver Dashboard_prediccion_series.Rmd), donde la línea naranja es justo lo que hace
 # visible el efecto de los controles aunque la serie sea anual.
 .aedv_tendencia_por_omision <- function(resultado) {
   tendencia <- attr(resultado, "aedv_tendencia")
