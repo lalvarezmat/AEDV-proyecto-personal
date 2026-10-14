@@ -750,19 +750,32 @@ aedv_pca_biplot <- function(pca, resaltar = NULL, titulo = "Biplot PCA",
 #                         componentes,
 #   aedv_kmeans_grupos()  devuelve qué grupo le toca a cada elemento.
 
+# Nº de componentes principales de un ACP hecho con prcomp() que hacen falta
+# para acumular al menos el 'umbral' % de la varianza (criterio de la varianza
+# acumulada), y nunca menos de 'minimo'. Es el nº de componentes que usa
+# aedv_kmeans() por omisión: el mínimo de 2 garantiza que la agrupación se
+# pueda dibujar en el plano de PC1 y PC2 aunque la primera ya pase del umbral.
+aedv_pca_n_componentes <- function(pca, umbral = 85, minimo = 2) {
+  varianza <- pca$sdev^2 / sum(pca$sdev^2) * 100 # % de varianza de cada componente
+  max(minimo, which(cumsum(varianza) >= umbral - 1e-8)[1]) # tolerancia por redondeo
+}
+
 # Agrupa las observaciones de un ACP hecho con prcomp() en k grupos con
 # k-means, usando como coordenadas sus n_componentes primeras componentes
 # principales. Devuelve el objeto de kmeans() con las coordenadas usadas como
 # atributo "datos", que es lo que necesita aedv_kmeans_grafico().
 #   pca           : resultado de prcomp()
-#   n_componentes : nº de componentes principales que se usan (2 por omisión)
+#   n_componentes : nº de componentes principales que se usan. Por omisión
+#                   (NULL), las que acumulan al menos el 85 % de la varianza,
+#                   con un mínimo de 2: ver aedv_pca_n_componentes()
 #   k             : nº de grupos
 #   semilla       : k-means parte de centros elegidos al azar; con la semilla
 #                   fija el resultado es reproducible (se fija con set.seed(),
 #                   así que también cambia el estado del generador aleatorio
 #                   de la sesión)
 #   nstart        : nº de arranques aleatorios; se queda con el mejor
-aedv_kmeans <- function(pca, n_componentes = 2, k = 3, semilla = 123, nstart = 25) {
+aedv_kmeans <- function(pca, n_componentes = NULL, k = 3, semilla = 123, nstart = 25) {
+  if (is.null(n_componentes)) n_componentes <- aedv_pca_n_componentes(pca)
   stopifnot(n_componentes >= 2, n_componentes <= ncol(pca$x))
   datos <- pca$x[, 1:n_componentes, drop = FALSE]
   set.seed(semilla)

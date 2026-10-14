@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-10-08" />
+<meta name="date" content="2026-10-14" />
 
 <title>Proyecto Personal AEDV — Guía de trabajo</title>
 
@@ -1617,7 +1617,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Proyecto Personal AEDV — Guía de
 trabajo</h1>
-<h4 class="date">2026-10-08</h4>
+<h4 class="date">2026-10-14</h4>
 
 </div>
 
@@ -2106,7 +2106,14 @@ investigación responde cada dataset elegido— se describe en la sección
 proyecto, la IA se usa con dos límites: <strong>entender lo que se
 hace</strong> y <strong>usar solo las librerías que aparecen en el libro
 de la asignatura, con un código comprensible teniendo en cuenta el
-contenido y el enfoque de la asignatura</strong>.</p>
+contenido y el enfoque de la asignatura</strong>. Cuando el proyecto
+incorpora datasets (<code>EDGAR_GHG</code>, <code>CLIMA_*</code>,
+<code>INFORME_PISA</code>, o el tuyo propio de INE/ISTAC/EUROSTAT/Banco
+Mundial), pide a la IA que dé <strong>prioridad al uso de las funciones
+de <code>utilidades.R</code></strong>
+(<code>aedv_incluir_dataset()</code>,
+<code>aedv_prediccion_arima()</code>, <code>aedv_kmeans()</code>…) en
+vez de programar desde cero algo que esas funciones ya resuelven.</p>
 </blockquote>
 <hr />
 </div>
@@ -2387,7 +2394,9 @@ IA tiene dos límites: <strong>entender todo lo que se entrega</strong>
 asignatura, con un código comprensible teniendo en cuenta el contenido y
 el enfoque de la asignatura</strong>. Si la IA propone un paquete que no
 está en el libro o un código que se aleja de lo visto en la asignatura,
-pídele que resuelva el problema como se hace en el libro.</li>
+pídele que resuelva el problema como se hace en el libro. Cuando exista
+una función de <code>utilidades.R</code> para lo que necesitas, pídele
+que la use en vez de programar algo equivalente desde cero.</li>
 </ul>
 </div>
 <div class="discusion">
