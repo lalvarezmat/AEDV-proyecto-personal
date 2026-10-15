@@ -2985,13 +2985,24 @@ evolución de algunas series temporales usando
 <li><p><strong>Calidad profesional: sin textos solapados ni códigos
 visibles, y autocontenidas.</strong> Los ejes deben tener etiquetas
 legibles, sin textos solapados ni cortados, las leyendas no deben
-solaparse con los datos y los títulos deben ser informativos. La única
-excepción admitida para etiquetas de código son los grupos de edad. El
-tamaño de fuente debe ser legible: usa <code>theme_minimal()</code> o
-similar y ajústalo si hay muchas categorías. Además, cada gráfica debe
-ser <strong>autocontenida</strong>: entenderse sin ambigüedad con la
-sola información que aparece en ella; si hace falta, añade un
+solaparse con los datos y los títulos deben ser informativos. El tamaño
+de fuente debe ser legible: usa <code>theme_minimal()</code> o similar y
+ajústalo si hay muchas categorías. Además, cada gráfica debe ser
+<strong>autocontenida</strong>: entenderse sin ambigüedad con la sola
+información que aparece en ella; si hace falta, añade un
 <code>fig.cap</code> en el chunk para explicarla mejor.</p>
+<blockquote>
+<p><strong>Sobre las etiquetas identificativas en los gráficos</strong>:
+Para que un gráfico se entienda no puede usar códigos como etiquetas
+identificativas, es decir si, por ejemplo aparecen CCAA, no se pueden
+identificar en el gráfico por su código (por ejemplo “ES70” en lugar de
+“Canarias”). Además si las etiquetas son largas hay que cambiarlas por
+cortas que quepan en el gráfico, esto pasa con frecuencia por ejemplo,
+en sectores económicos o enfermedades que pueden tener nombres muy
+largos. También hay que acortar nombres de regiones cuando son
+innecesariamente largos para identificarlos. Por ejemplo “Comunidad
+Foral de Navarra” se puede sustituir por “Navarra”</p>
+</blockquote>
 <div class="nota" id="errores-graficos">
 <p><strong class="bloque-titulo">Algunos errores a evitar en los
 gráficos</strong></p>
@@ -3005,7 +3016,10 @@ visible.</li>
 <li>Colores mal elegidos o poco representativos.</li>
 <li>Leyendas innecesarias que repiten una clasificación que ya se ve en
 el gráfico.</li>
-<li>Relación ancho/alto del gráfico inadecuada (<code>fig.asp</code>).
+<li>Relación ancho/alto del gráfico inadecuada
+(<code>fig.asp</code>).</li>
+<li>Etiquetas identificativas inadecuadas: se usan códigos o nombres
+demasiado largos.
 </div></li>
 </ul>
 <div class="discusion">

@@ -548,7 +548,9 @@ Las gráficas son el elemento más visible de la memoria. Una mala gráfica comu
 
 - **Las primeras gráficas ilustran los conceptos de forma general y clara.** No se debe empezar el análisis con gráficas muy detalladas o de subconjuntos específicos. Las primeras visualizaciones deben dar una visión global del fenómeno estudiado antes de entrar en detalles. Una buena idea suele ser empezar presentado la evolución de algunas series temporales usando `facet_wrap` 
 
-- **Calidad profesional: sin textos solapados ni códigos visibles, y autocontenidas.** Los ejes deben tener etiquetas legibles, sin textos solapados ni cortados, las leyendas no deben solaparse con los datos y los títulos deben ser informativos. La única excepción admitida para etiquetas de código son los grupos de edad. El tamaño de fuente debe ser legible: usa `theme_minimal()` o similar y ajústalo si hay muchas categorías. Además, cada gráfica debe ser **autocontenida**: entenderse sin ambigüedad con la sola información que aparece en ella; si hace falta, añade un `fig.cap` en el chunk para explicarla mejor.
+- **Calidad profesional: sin textos solapados ni códigos visibles, y autocontenidas.** Los ejes deben tener etiquetas legibles, sin textos solapados ni cortados, las leyendas no deben solaparse con los datos y los títulos deben ser informativos. El tamaño de fuente debe ser legible: usa `theme_minimal()` o similar y ajústalo si hay muchas categorías. Además, cada gráfica debe ser **autocontenida**: entenderse sin ambigüedad con la sola información que aparece en ella; si hace falta, añade un `fig.cap` en el chunk para explicarla mejor.
+
+    > **Sobre las etiquetas identificativas en los gráficos**: Para que un gráfico se entienda no puede usar códigos como etiquetas identificativas, es decir si, por ejemplo aparecen CCAA, no se pueden identificar en el gráfico por su código (por ejemplo "ES70" en lugar de "Canarias"). Además si las etiquetas son largas hay que cambiarlas por cortas que quepan en el gráfico, esto pasa con frecuencia por ejemplo,  en sectores económicos o enfermedades que pueden tener nombres muy largos. También hay que acortar nombres de regiones cuando son innecesariamente largos para identificarlos. Por ejemplo "Comunidad Foral de Navarra" se puede sustituir por "Navarra"
 
     <div class="nota" id="errores-graficos">
     <strong class="bloque-titulo">Algunos errores a evitar en los gráficos</strong>
@@ -560,6 +562,7 @@ Las gráficas son el elemento más visible de la memoria. Una mala gráfica comu
     * Colores mal elegidos o poco representativos.
     * Leyendas innecesarias que repiten una clasificación que ya se ve en el gráfico.
     * Relación ancho/alto del gráfico inadecuada (`fig.asp`).
+    * Etiquetas identificativas inadecuadas: se usan códigos o nombres demasiado largos.
     </div>
 
     <div class="discusion">
