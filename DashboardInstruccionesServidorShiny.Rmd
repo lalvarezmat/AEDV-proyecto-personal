@@ -83,9 +83,11 @@ El servidor solo es accesible **desde la red interna del DIS**. Desde casa (o de
 
 1. Entra en **MiDIS** (`https://www.dis.ulpgc.es/midis/`) con tus claves del Campus Virtual. Ahí encontrarás:
     - el fichero de configuración de la VPN (extensión `.ovpn`);
-    - el **usuario** y la **contraseña** de tu cuenta en el servidor Shiny.
+    - el **usuario** y la **contraseña** de tu cuenta en el servidor Shiny (*Si no te aparece el usuario y contraseña consultar con el profesor*).
 2. Instala un cliente OpenVPN siguiendo las instrucciones de `https://www.dis.ulpgc.es/vpn/` (por ejemplo, *OpenVPN Connect*, que existe para Windows y para macOS) e importa en él el fichero `.ovpn`.
-3. Conéctate. El cliente debe indicar que la conexión está activa.
+3. Conéctate. El cliente debe indicar que la conexión está activa, como en esta captura de OpenVPN Connect:
+
+    ![](shiny_images/vpn_openvpn_connect.png){width=260px}
 
 <div class="nota">
 <strong class="bloque-titulo">Desconéctate de la VPN al terminar</strong>
@@ -123,6 +125,10 @@ Sube a la carpeta `aedv` de tu cuenta el `.Rmd` del cuadro de mandos **y todos l
     | Contraseña | la de MiDIS |
 
     En WinSCP es la ventana *Iniciar sesión* que aparece al abrir la aplicación; en Cyberduck, el botón *Abrir conexión*; en FileZilla, el *Gestor de sitios* (o la barra de conexión rápida, escribiendo `sftp://10.22.143.222` como servidor).
+    Así queda la ventana *Iniciar sesión* de WinSCP con la cuenta de ejemplo:
+
+    ![](shiny_images/winscp_inicio_sesion.png){width=520px}
+
 3. Conéctate. La primera vez la aplicación pregunta si te fías de la clave del servidor: acepta.
 4. Entra en la carpeta `aedv` y **arrastra** a ella el `.Rmd` y sus ficheros de datos.
 
@@ -138,6 +144,10 @@ Para subir **un fichero**:
 ```
 scp MiDashboard.Rmd a2499@10.22.143.222:/home/a2499/aedv/
 ```
+
+Así se ve en la consola de Windows, subiendo un fichero `index.Rmd` desde la carpeta `Downloads`:
+
+![](shiny_images/consola_scp.png){width=640px}
 
 Para subir **varios** a la vez, escríbelos uno detrás de otro:
 
@@ -208,6 +218,14 @@ y para ver uno (copia su nombre de la lista anterior):
 ```
 cat /var/log/shiny-server/a2499-shiny-20261015-101530-42413.log
 ```
+
+Por ejemplo, la cuenta `a2499` lista los *logs* (verás también los de otras cuentas si no filtras por la tuya)…
+
+![](shiny_images/ssh_listado_logs.png){width=640px}
+
+…y abre el suyo. Este cuadro de mandos (`index.Rmd`) se ha compilado sin errores (`Output created`); cuando algo falla, el mensaje de error aparece en estas mismas líneas:
+
+![](shiny_images/ssh_cat_log.png){width=640px}
 
 Para salir del servidor y volver a tu ordenador, escribe `exit`.
 
