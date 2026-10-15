@@ -563,6 +563,7 @@ Las gráficas son el elemento más visible de la memoria. Una mala gráfica comu
     * Leyendas innecesarias que repiten una clasificación que ya se ve en el gráfico.
     * Relación ancho/alto del gráfico inadecuada (`fig.asp`).
     * Etiquetas identificativas inadecuadas: se usan códigos o nombres demasiado largos.
+
     </div>
 
     <div class="discusion">
