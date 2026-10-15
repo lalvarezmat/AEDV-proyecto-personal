@@ -129,14 +129,14 @@ No se evalúa si has usado la IA, sino si el documento es tuyo: si lo has **leí
 
 * **Texto excesivamente largo, retórico o grandilocuente**: cada frase debe decir algo concreto sobre tus datos.
 * **Preguntas de investigación enrevesadas** o que tus datos no pueden responder.
-* **Afirmaciones no justificadas** por un gráfico o una tabla de la memoria, y en especial las **causales** basadas solo en una correlación.
+* **Afirmaciones no justificadas** por un gráfico o una tabla de la memoria.
 * **Texto que no coincide con los resultados** (cifras distintas de las de las tablas o los gráficos, gráficos citados que no están) e **interpretaciones genéricas** que valdrían para cualquier dataset.
 * **Técnicas de análisis que no se ven en el libro** y **código que no sigue su estilo** (por ejemplo, `%>%` en vez de `|>`, o programar desde cero lo que ya resuelve `utilidades.R`).
 * **Restos de la conversación con la IA** («¡Claro! Aquí tienes…») y comentarios o títulos en inglés.
 * **Bibliografía que no existe o no se ha consultado** (referencias inventadas por la IA).
 * **Código sobrante**: librerías cargadas que no se usan, funciones definidas que no se llaman, chunks que no aportan nada a la memoria.
 * **Comentarios de código excesivos u obvios**, que explican lo que tú no habrías escrito.
-* **Gráficos generados por la IA con errores graves sin revisar**: los errores a evitar en las gráficas están en el área *Visualizaciones en la memoria* de la rúbrica.
+* **Gráficos generados por la IA con errores graves sin revisar**: los errores a evitar están en el recuadro *Algunos errores a evitar en los gráficos*, en el área *Visualizaciones en la memoria* de la rúbrica.
 
 Estos aspectos **afectan a la calificación del proyecto** y, si el resultado es muy deficiente, **la entrega puede calificarse como NO APTA**.
 </div>
@@ -510,15 +510,17 @@ Las gráficas son el elemento más visible de la memoria. Una mala gráfica comu
 
 - **Calidad profesional: sin textos solapados ni códigos visibles, y autocontenidas.** Los ejes deben tener etiquetas legibles, sin textos solapados ni cortados, las leyendas no deben solaparse con los datos y los títulos deben ser informativos. La única excepción admitida para etiquetas de código son los grupos de edad. El tamaño de fuente debe ser legible: usa `theme_minimal()` o similar y ajústalo si hay muchas categorías. Además, cada gráfica debe ser **autocontenida**: entenderse sin ambigüedad con la sola información que aparece en ella; si hace falta, añade un `fig.cap` en el chunk para explicarla mejor.
 
-    **Errores graves a evitar en las gráficas:**
+    <div class="nota">
+    <strong class="bloque-titulo">Algunos errores a evitar en los gráficos</strong>
 
     * Demasiada información para el tipo de gráfico.
-    * Ausencia de títulos o subtítulos (los gráficos deben ser autocontenidos).
-    * Texto demasiado pequeño.
-    * Texto que se solapa o se sale de la zona visible.
+    * Ausencia de títulos/subtítulos (los gráficos deben ser autocontenidos).
+    * Texto en los gráficos muy pequeño.
+    * Texto en los gráficos que se solapa o se sale de la zona visible.
     * Colores mal elegidos o poco representativos.
-    * Leyendas innecesarias, que repiten una clasificación que ya se ve en el gráfico.
+    * Leyendas innecesarias que repiten una clasificación que ya se ve en el gráfico.
     * Relación ancho/alto del gráfico inadecuada (`fig.asp`).
+    </div>
 
     <div class="discusion">
     <strong class="bloque-titulo">Requisito para que el proyecto sea APTO</strong>
