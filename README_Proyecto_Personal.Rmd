@@ -137,7 +137,7 @@ No se evalúa si has usado la IA, sino si el documento es tuyo: si lo has **leí
 * **Bibliografía que no existe o no se ha consultado** (referencias inventadas por la IA).
 * **Código sobrante**: librerías cargadas que no se usan, funciones definidas que no se llaman, chunks que no aportan nada a la memoria.
 * **Comentarios de código excesivos u obvios**, que explican lo que tú no habrías escrito.
-* **Gráficos generados por la IA con errores graves sin revisar**: los errores a evitar están en el recuadro *Algunos errores a evitar en los gráficos*, en el área *Visualizaciones en la memoria* de la rúbrica.
+* **Gráficos generados por la IA con errores graves sin revisar**: los errores a evitar están en el recuadro [Algunos errores a evitar en los gráficos](#errores-graficos), en el área *Visualizaciones en la memoria* de la rúbrica.
 
 Estos aspectos **afectan a la calificación del proyecto** y, si el resultado es muy deficiente, **la entrega puede calificarse como NO APTA**.
 </div>
@@ -511,7 +511,7 @@ Las gráficas son el elemento más visible de la memoria. Una mala gráfica comu
 
 - **Calidad profesional: sin textos solapados ni códigos visibles, y autocontenidas.** Los ejes deben tener etiquetas legibles, sin textos solapados ni cortados, las leyendas no deben solaparse con los datos y los títulos deben ser informativos. La única excepción admitida para etiquetas de código son los grupos de edad. El tamaño de fuente debe ser legible: usa `theme_minimal()` o similar y ajústalo si hay muchas categorías. Además, cada gráfica debe ser **autocontenida**: entenderse sin ambigüedad con la sola información que aparece en ella; si hace falta, añade un `fig.cap` en el chunk para explicarla mejor.
 
-    <div class="nota">
+    <div class="nota" id="errores-graficos">
     <strong class="bloque-titulo">Algunos errores a evitar en los gráficos</strong>
 
     * Demasiada información para el tipo de gráfico.
