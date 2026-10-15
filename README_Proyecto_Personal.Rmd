@@ -485,12 +485,12 @@ La evaluación del proyecto personal se estructura en torno a 29 criterios agrup
 <div class="resultado">
 <strong class="bloque-titulo">Criterio determinante</strong>
 
-**Alcance y calidad del trabajo realizado** — Es el criterio con más peso en la evaluación. No se trata solo de cumplir los requisitos técnicos, sino de demostrar capacidad de análisis, pensamiento crítico y dominio del tema. Un proyecto técnicamente correcto pero superficial no alcanza la calificación máxima.
+**Alcance y calidad del trabajo realizado** — Es el criterio con más peso en la evaluación. No se trata solo de cumplir los requisitos técnicos, sino de demostrar capacidad de análisis, pensamiento crítico y dominio del tema. Un proyecto técnicamente correcto pero superficial no alcanza la calificación máxima. Se valora además un uso inteligente de la IA, entendiendo y corrigiendo las aportaciones de la IA. 
 </div>
 
 - **Preguntas de investigación.** El proyecto plantea preguntas de investigación interesantes, concretas y que se pueden responder con los datos, y la elección de los datasets se justifica a partir de ellas (la estrategia de selección y el uso de la IA se describen en *Comprensión del negocio*). **Todos los datasets de la memoria deben estar cubiertos por al menos una pregunta**: un dataset que no responde a ninguna pregunta de investigación es un dataset sin justificar. Las preguntas iniciales de la Entrega 1 se van refinando por iteraciones a partir del análisis de los datos, y las de la memoria final se responden una a una en las *Conclusiones*. Un proyecto cuyo único argumento es que el dataset cumple los requisitos de AEDV no supera este criterio.
 
-- **Documento revisado por el alumno.** El texto, el código y las gráficas deben mostrar que has leído, entendido y corregido todo lo que entregas, también lo que hayas generado con ayuda de la IA. Los indicios de un documento no revisado que se tienen en cuenta están en el recuadro *Revisa tú el documento: se nota cuando no se ha hecho*, en *Qué tienes que entregar*. Este criterio afecta a la calificación del proyecto y, si el resultado es muy deficiente, la entrega puede calificarse como **NO APTA**.
+- **Documento revisado por el alumno.** El texto, el código y las gráficas deben mostrar que has leído, entendido y corregido todo lo que entregas, también lo que hayas generado con ayuda de la IA. Los indicios de un documento no revisado que se tienen en cuenta están en el recuadro [Revisa tú el documento: se nota cuando no se ha hecho](#revisa-documento), en *Qué tienes que entregar*. Este criterio afecta a la calificación del proyecto y, si el resultado es muy deficiente, la entrega puede calificarse como **NO APTA**.
 
 Un proyecto de calidad sobresaliente integra los datos con una narrativa coherente, extrae conclusiones no triviales, aplica correctamente la metodología CRISP-DM y presenta los resultados de forma clara y profesional tanto en la memoria como en el dashboard.
 
