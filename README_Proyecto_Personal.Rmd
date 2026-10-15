@@ -572,6 +572,7 @@ Las gráficas son el elemento más visible de la memoria. Una mala gráfica comu
     **Todos** los gráficos del proyecto deben cumplir estos requisitos de calidad. Basta con que algunos no los cumplan para que el proyecto no se considere apto.
     </div>
 
+
 - **Todas las gráficas dinámicas.** Todas las visualizaciones de la memoria deben ser interactivas (Plotly o similar). Una gráfica estática de ggplot sin convertir con `ggplotly()` o `renderPlotly()` no cumple este criterio. El título, subtítulo o `fig.cap` deben identificar claramente qué muestra la gráfica.
 
 - **No repetir la misma gráfica cambiando los datos.** Si una gráfica de serie temporal funciona bien para un atributo, no la repitas para otros cinco atributos consecutivos con el mismo código. Usa `facet_wrap` o presenta un selector interactivo en el dashboard.
