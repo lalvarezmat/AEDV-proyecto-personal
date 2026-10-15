@@ -2908,7 +2908,9 @@ gráfica comunica más descuido que páginas de texto.</p>
 general y clara.</strong> No se debe empezar el análisis con gráficas
 muy detalladas o de subconjuntos específicos. Las primeras
 visualizaciones deben dar una visión global del fenómeno estudiado antes
-de entrar en detalles.</p></li>
+de entrar en detalles. Una buena idea suele ser empezar presentado la
+evolución de algunas series temporales usando
+<code>facet_wrap</code></p></li>
 <li><p><strong>Calidad profesional: sin textos solapados ni códigos
 visibles, y autocontenidas.</strong> Los ejes deben tener etiquetas
 legibles, sin textos solapados ni cortados, las leyendas no deben
@@ -2959,6 +2961,27 @@ de gráficas. Cada tipo tiene un propósito: los diagramas de caja para
 distribuciones y comparación entre grupos, los HeatMaps para
 correlaciones o evolución temporal cruzada, los de disco para
 proporciones, y los de barra para comparaciones categóricas.</p></li>
+<li><p><strong>Tablas grandes: recortadas y con scroll.</strong> Una
+tabla con muchas filas o columnas mostrada entera ocupa demasiado
+espacio en la memoria sin aportar nada. Si su tamaño es excesivo,
+<strong>recórtala</strong> antes de mostrarla: quédate con las columnas
+relevantes (<code>select()</code>) y con las primeras filas
+(<code>slice(1:10)</code>) o las que interesen (<code>filter()</code>).
+Después, <strong>envuelve el chunk en
+<code>&lt;div class=&quot;tabla-scroll-xy&quot;&gt;</code></strong> (estilo
+definido en <code>estilos.css</code>): la tabla se muestra con la
+cabecera fija y unas pocas filas a la vista, y el resto se recorre con
+barras de desplazamiento horizontal y vertical. Deja una línea en blanco
+antes y después del chunk, y termina la tabla con
+<code>knitr::kable()</code>: sin él, la tabla sale como texto de consola
+y el recuadro no tiene nada que desplazar. Por ejemplo:</p>
+<pre><code>&lt;div class=&quot;tabla-scroll-xy&quot;&gt;
+
+```{r}
+datos |&gt; select(region, fecha, valor) |&gt; slice(1:10) |&gt; knitr::kable()
+```
+
+&lt;/div&gt;</code></pre></li>
 </ul>
 <hr />
 </div>

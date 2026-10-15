@@ -507,7 +507,7 @@ El evaluador comprueba que el alumno entiende los datos que está usando, no sol
 
 Las gráficas son el elemento más visible de la memoria. Una mala gráfica comunica más descuido que páginas de texto.
 
-- **Las primeras gráficas ilustran los conceptos de forma general y clara.** No se debe empezar el análisis con gráficas muy detalladas o de subconjuntos específicos. Las primeras visualizaciones deben dar una visión global del fenómeno estudiado antes de entrar en detalles.
+- **Las primeras gráficas ilustran los conceptos de forma general y clara.** No se debe empezar el análisis con gráficas muy detalladas o de subconjuntos específicos. Las primeras visualizaciones deben dar una visión global del fenómeno estudiado antes de entrar en detalles. Una buena idea suele ser empezar presentado la evolución de algunas series temporales usando `facet_wrap` 
 
 - **Calidad profesional: sin textos solapados ni códigos visibles, y autocontenidas.** Los ejes deben tener etiquetas legibles, sin textos solapados ni cortados, las leyendas no deben solaparse con los datos y los títulos deben ser informativos. La única excepción admitida para etiquetas de código son los grupos de edad. El tamaño de fuente debe ser legible: usa `theme_minimal()` o similar y ajústalo si hay muchas categorías. Además, cada gráfica debe ser **autocontenida**: entenderse sin ambigüedad con la sola información que aparece en ella; si hace falta, añade un `fig.cap` en el chunk para explicarla mejor.
 
@@ -534,6 +534,18 @@ Las gráficas son el elemento más visible de la memoria. Una mala gráfica comu
 - **No repetir la misma gráfica cambiando los datos.** Si una gráfica de serie temporal funciona bien para un atributo, no la repitas para otros cinco atributos consecutivos con el mismo código. Usa `facet_wrap` o presenta un selector interactivo en el dashboard.
 
 - **Gráficas de disco, barra, HeatMap y diagramas de caja en la memoria.** La memoria debe incluir al menos estos cuatro tipos de gráficas. Cada tipo tiene un propósito: los diagramas de caja para distribuciones y comparación entre grupos, los HeatMaps para correlaciones o evolución temporal cruzada, los de disco para proporciones, y los de barra para comparaciones categóricas.
+
+- **Tablas grandes: recortadas y con scroll.** Una tabla con muchas filas o columnas mostrada entera ocupa demasiado espacio en la memoria sin aportar nada. Si su tamaño es excesivo, **recórtala** antes de mostrarla: quédate con las columnas relevantes (`select()`) y con las primeras filas (`slice(1:10)`) o las que interesen (`filter()`). Después, **envuelve el chunk en `<div class="tabla-scroll-xy">`** (estilo definido en `estilos.css`): la tabla se muestra con la cabecera fija y unas pocas filas a la vista, y el resto se recorre con barras de desplazamiento horizontal y vertical. Deja una línea en blanco antes y después del chunk, y termina la tabla con `knitr::kable()`: sin él, la tabla sale como texto de consola y el recuadro no tiene nada que desplazar. Por ejemplo:
+
+    ````
+    <div class="tabla-scroll-xy">
+
+    `r ''````{r}
+    datos |> select(region, fecha, valor) |> slice(1:10) |> knitr::kable()
+    ```
+
+    </div>
+    ````
 
 ---
 
