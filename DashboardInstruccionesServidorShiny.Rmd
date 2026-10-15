@@ -79,7 +79,7 @@ No intentes desplegar un cuadro de mandos que no hayas probado antes en RStudio 
 
 # Paso 1 — Conéctate a la red del DIS
 
-El servidor solo es accesible **desde la red interna del DIS**. Desde casa (o desde cualquier otra red) hay que conectarse antes a la **VPN del DIS**:
+El servidor solo es accesible **desde la red interna del DIS**, si estás en la Universidad conectado a una red de la ULPGC no tienes que hacer nada para acceder al servidor; pero desde casa (o desde cualquier otra red) hay que conectarse antes a la **VPN del DIS**:
 
 1. Entra en **MiDIS** (`https://www.dis.ulpgc.es/midis/`) con tus claves del Campus Virtual. Ahí encontrarás:
     - el fichero de configuración de la VPN (extensión `.ovpn`);
@@ -101,15 +101,15 @@ Mientras la VPN está conectada, **todo tu tráfico de internet pasa por el DIS*
 |---|---|
 | Servidor | `10.22.143.222` |
 | Usuario y contraseña | los de MiDIS |
-| Carpeta donde se suben los ficheros | `/home/a2499/aedv` |
+| Carpeta donde se suben los ficheros | `/home/a2499` (la carpeta de tu cuenta) |
 | Dirección del cuadro de mandos en el navegador | `http://10.22.143.222:3838/sample-apps/a2499/NombreDelFichero.Rmd` |
 | Carpeta de los ficheros de errores (*logs*) | `/var/log/shiny-server/` |
 
-Fíjate en que **lo que subes a `/home/a2499/aedv` se ve en el navegador bajo `sample-apps/a2499/`**: la carpeta `aedv` no aparece en la dirección web.
+Fíjate en que, si tu cuenta fuese *a2499*, **lo que subes a `/home/a2499` se ve en el navegador bajo `sample-apps/a2499/`**.
 
 # Paso 2 — Sube el `.Rmd` y sus ficheros de datos
 
-Sube a la carpeta `aedv` de tu cuenta el `.Rmd` del cuadro de mandos **y todos los ficheros de datos que lee** (con los mismos nombres que usa el código). Si vuelves a subir un fichero con el mismo nombre, sustituye al anterior.
+Sube a la carpeta de tu cuenta el `.Rmd` del cuadro de mandos **y todos los ficheros de datos que lee** (con los mismos nombres que usa el código). Si vuelves a subir un fichero con el mismo nombre, sustituye al anterior.
 
 ## Opción A: con WinSCP (Windows) o Cyberduck / FileZilla (macOS)
 
@@ -125,12 +125,12 @@ Sube a la carpeta `aedv` de tu cuenta el `.Rmd` del cuadro de mandos **y todos l
     | Contraseña | la de MiDIS |
 
     En WinSCP es la ventana *Iniciar sesión* que aparece al abrir la aplicación; en Cyberduck, el botón *Abrir conexión*; en FileZilla, el *Gestor de sitios* (o la barra de conexión rápida, escribiendo `sftp://10.22.143.222` como servidor).
-    Así queda la ventana *Iniciar sesión* de WinSCP con la cuenta de ejemplo:
+    Así queda la ventana *Iniciar sesión* de WinSCP con la cuenta de ejemplo *a2499*:
 
     ![](shiny_images/winscp_inicio_sesion.png){width=520px}
 
 3. Conéctate. La primera vez la aplicación pregunta si te fías de la clave del servidor: acepta.
-4. Entra en la carpeta `aedv` y **arrastra** a ella el `.Rmd` y sus ficheros de datos.
+4. En la parte del servidor estarás ya en la carpeta de tu cuenta (`/home/a2499`): **arrastra** a ella el `.Rmd` y sus ficheros de datos.
 
 ## Opción B: con `scp` desde la consola (Windows y macOS)
 
@@ -142,7 +142,7 @@ Los comandos son **los mismos** en Windows y en macOS:
 Para subir **un fichero**:
 
 ```
-scp MiDashboard.Rmd a2499@10.22.143.222:/home/a2499/aedv/
+scp MiDashboard.Rmd a2499@10.22.143.222:/home/a2499/
 ```
 
 Así se ve en la consola de Windows, subiendo un fichero `index.Rmd` desde la carpeta `Downloads`:
@@ -152,7 +152,7 @@ Así se ve en la consola de Windows, subiendo un fichero `index.Rmd` desde la ca
 Para subir **varios** a la vez, escríbelos uno detrás de otro:
 
 ```
-scp MiDashboard.Rmd misdatos.rds a2499@10.22.143.222:/home/a2499/aedv/
+scp MiDashboard.Rmd misdatos.rds a2499@10.22.143.222:/home/a2499/
 ```
 
 Cada vez te pedirá la contraseña (al escribirla no se ve nada en la pantalla: es normal). La primera vez preguntará además si te fías del servidor (`Are you sure you want to continue connecting`): responde `yes`.
@@ -160,7 +160,7 @@ Cada vez te pedirá la contraseña (al escribirla no se ve nada en la pantalla: 
 <div class="nota">
 <strong class="bloque-titulo">Cuidado con `scp *`</strong>
 
-`scp * a2499@10.22.143.222:/home/a2499/aedv/` sube **todo** lo que haya en la carpeta, incluida la memoria, los `.html` y cualquier fichero grande que no necesite el cuadro de mandos, y **no sube las subcarpetas** (para eso haría falta `scp -r`). Es mejor indicar los ficheros uno a uno.
+`scp * a2499@10.22.143.222:/home/a2499/` sube **todo** lo que haya en la carpeta, incluida la memoria, los `.html` y cualquier fichero grande que no necesite el cuadro de mandos, y **no sube las subcarpetas** (para eso haría falta `scp -r`). Es mejor indicar los ficheros uno a uno.
 </div>
 
 # Paso 3 — Abre el cuadro de mandos en el navegador
@@ -179,7 +179,7 @@ sustituyendo `a2499` por tu cuenta y `MiDashboard.Rmd` por el nombre **exacto** 
 Antes de subir el tuyo, comprueba que la conexión y la cuenta funcionan con un ejemplo que ya está preparado para el servidor (lee los datos de internet, así que no hay que subir nada más):
 
 1. Descarga `https://ctim.es/AEDV/Dashboard_mapa_coropletico.Rmd`.
-2. Súbelo a tu carpeta `aedv` (Paso 2).
+2. Súbelo a la carpeta de tu cuenta (Paso 2).
 3. Ábrelo en `http://10.22.143.222:3838/sample-apps/a2499/Dashboard_mapa_coropletico.Rmd`.
 
 Los cuadros de mandos de ejemplo de `https://ctim.es/AEDV/` sirven también para ver qué adaptaciones necesita el código para funcionar en el servidor.
@@ -245,8 +245,8 @@ passwd
 | Síntoma | Causa probable |
 |---|---|
 | El navegador no llega a cargar la página, o WinSCP / `scp` / `ssh` no conectan | La VPN no está conectada |
-| *Not Found* en el navegador | El nombre de la cuenta o del fichero de la dirección no coincide exactamente (mayúsculas incluidas), o el fichero no está en la carpeta `aedv` |
+| *Not Found* en el navegador | El nombre de la cuenta o del fichero de la dirección no coincide exactamente (mayúsculas incluidas), o el fichero no está en la carpeta de tu cuenta |
 | *Permission denied* al conectar | Usuario o contraseña incorrectos (el usuario, en minúsculas) |
 | Funciona en tu ordenador y en el servidor da error | Falta subir algún fichero de datos, se lee con una ruta, o no coinciden las mayúsculas de su nombre: mira el *log* (Paso 4) |
 | *no se pudo encontrar la función* / *could not find function* | Indica la librería: `libreria::funcion()` |
-| Has subido una versión nueva y se sigue viendo la anterior | Recarga la página (F5) y comprueba que has subido el fichero a la carpeta `aedv` y con el mismo nombre |
+| Has subido una versión nueva y se sigue viendo la anterior | Recarga la página (F5) y comprueba que has subido el fichero a la carpeta de tu cuenta y con el mismo nombre |
