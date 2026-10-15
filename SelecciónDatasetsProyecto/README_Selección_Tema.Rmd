@@ -58,7 +58,7 @@ Conviene saberlo porque regenerar un catálogo es un proceso **largo**: recorre 
 |---|---|---|
 | ISTAC | 400 | ~15 minutos |
 | EUROSTAT | 3.050 | ~2 horas (estimada) |
-| INE | 5.521 | ~3 h 20 min |
+| INE | 5.507 | ~2 h 40 min |
 | Banco Mundial | 16.643 | **~13 horas** |
 
 Los documentos de **EDGAR**, los dos **CLIMA** e **INFORME PISA** no recorren un catálogo de una API para que elijas: construyen un dataset ya fijado (en CLIMA, descargando unos 10 GB de NetCDF de AdapteCCa; en PISA, reconstruyendo de Wikipedia y de Banco Mundial/INE) para generar los `.rds`. Tampoco hay que ejecutarlos, porque esos `.rds` se distribuyen ya hechos en sus carpetas.
@@ -86,7 +86,7 @@ Por eso es importante **no depender del catálogo Excel para tu proyecto**: una 
 
 Este apartado es la referencia que usan los pasos 2 y 3: en el paso 2 sirve para descartar candidatos de un vistazo mirando el catálogo, y en el paso 3 es lo que comprueba automáticamente la tabla de validación.
 
-Los datasets que usamos en AEDV siempre tienen una variable (columna) con un dato temporal que puede estar en años, cuatrimestres, meses o semanas, una variable con datos de áreas geográficas que pueden ser países, CCAA, provincias o municipios, una o varias variables categóricas que identifican qué se está midiendo y una variable numérica con el valor observado de lo que se mide.
+Los datasets que usamos en AEDV siempre tienen una variable (columna) con un dato temporal que puede estar en años, semestres, trimestres, meses, semanas o días, una variable con datos de áreas geográficas que pueden ser países, CCAA, provincias o municipios, una o varias variables categóricas que identifican qué se está midiendo y una variable numérica con el valor observado de lo que se mide.
 
 > En el contexto de la asignatura AEDV, una variable (o campo) es cualquier columna de la tabla, una dimensión es cualquier variable no numérica y un indicador (o atributo) es una variable no numérica distinta de la variable temporal y de la variable geográfica. Por ejemplo: "Población" es un atributo asociado a un área geográfica en una fecha determinada.
 
@@ -141,7 +141,7 @@ Lo que produce el paso 2 es una **lista de candidatos**, no una decisión. Quien
 <div class="discusion">
 <strong class="bloque-titulo">Cumplir los requisitos no basta: ¿qué quieres averiguar?</strong>
 
-Un dataset que pasa la validación del paso 3 es **utilizable**, pero no por eso da lugar a un buen proyecto. Antes de quedarte con él, tienes que poder decir **qué preguntas de investigación interesantes** vas a responder con esos datos (por ejemplo: *«¿se ha recuperado el empleo en Canarias tras la crisis de 2008 al mismo ritmo que en el resto de comunidades?»*, en lugar de *«analizar la evolución del paro»*). Si no se te ocurre ninguna, busca otro tema o combina el dataset con otros que den juego. **Ningún dataset puede quedar sin pregunta asociada**: si al final del proceso tienes un dataset validado que no ayuda a responder a ninguna de tus preguntas, descártalo o formula una pregunta nueva que lo justifique.
+Un dataset que pasa la validación del paso 3 es **utilizable**, pero no por eso da lugar a un buen proyecto. Antes de quedarte con él, tienes que poder decir **qué preguntas de investigación interesantes**, concretas y sencillas, vas a responder con esos datos (por ejemplo: *«¿se ha recuperado el empleo en Canarias tras la crisis de 2008 al mismo ritmo que en el resto de comunidades?»*, en lugar de *«analizar la evolución del paro»*). Si no se te ocurre ninguna, busca otro tema o combina el dataset con otros que den juego. **Ningún dataset puede quedar sin pregunta asociada**: si al final del proceso tienes un dataset validado que no ayuda a responder a ninguna de tus preguntas, descártalo o formula una pregunta nueva que lo justifique.
 
 Son preguntas **iniciales**, obligatorias ya en la Entrega 1, que irás refinando por iteraciones a medida que analices los datos. En la memoria, las preguntas van en el apartado *Objetivos*, y todo este proceso de búsqueda —catálogos explorados, peticiones hechas a la IA, candidatos validados y descartados, y a qué pregunta responde cada dataset elegido— se describe en la sección **Comprensión del negocio**.
 </div>
@@ -212,7 +212,7 @@ El fichero `_analisis.Rmd` no se edita: se vuelve a generar cada vez que compila
 <div class="nota">
 <strong class="bloque-titulo">El `estilos.css` tiene que acompañar a la memoria</strong>
 
-El análisis que se incluye en la memoria usa las clases CSS del curso (`tabla-scroll`, `caja-scroll`, `tabla-scroll-xy` y las celdas verde/rojo de la tabla de validación). Ya están todas en el fichero `estilos.css` que acompaña al modelo de memoria, así que **si tu memoria lo referencia** (`css: estilos.css` en la cabecera) las tablas se verán igual que aquí.
+El análisis que se incluye en la memoria usa las clases CSS del curso (`tabla-scroll`, `caja-scroll`, `tabla-scroll-xy` y las celdas verde/rojo de la tabla de validación). Ya están todas en el fichero `estilos.css` que acompaña al modelo de memoria, que lo carga en su cabecera (`css: estilos.css`). Por eso **`estilos.css` tiene que estar en la carpeta de tu memoria**: si falta, la memoria se detiene al compilar avisando de que no lo encuentra.
 </div>
 
 

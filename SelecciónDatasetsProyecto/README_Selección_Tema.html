@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-10-08" />
+<meta name="date" content="2026-10-15" />
 
 <title>Selección de datasets para el proyecto de AEDV</title>
 
@@ -1617,7 +1617,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Selección de datasets para el proyecto de
 AEDV</h1>
-<h4 class="date">2026-10-08</h4>
+<h4 class="date">2026-10-15</h4>
 
 </div>
 
@@ -1776,8 +1776,8 @@ repetirlo entero.</p>
 </tr>
 <tr class="odd">
 <td>INE</td>
-<td>5.521</td>
-<td>~3 h 20 min</td>
+<td>5.507</td>
+<td>~2 h 40 min</td>
 </tr>
 <tr class="even">
 <td>Banco Mundial</td>
@@ -1878,9 +1878,9 @@ sirve para descartar candidatos de un vistazo mirando el catálogo, y en
 el paso 3 es lo que comprueba automáticamente la tabla de
 validación.</p>
 <p>Los datasets que usamos en AEDV siempre tienen una variable (columna)
-con un dato temporal que puede estar en años, cuatrimestres, meses o
-semanas, una variable con datos de áreas geográficas que pueden ser
-países, CCAA, provincias o municipios, una o varias variables
+con un dato temporal que puede estar en años, semestres, trimestres,
+meses, semanas o días, una variable con datos de áreas geográficas que
+pueden ser países, CCAA, provincias o municipios, una o varias variables
 categóricas que identifican qué se está midiendo y una variable numérica
 con el valor observado de lo que se mide.</p>
 <blockquote>
@@ -2038,10 +2038,10 @@ quieres averiguar?</strong></p>
 <p>Un dataset que pasa la validación del paso 3 es
 <strong>utilizable</strong>, pero no por eso da lugar a un buen
 proyecto. Antes de quedarte con él, tienes que poder decir <strong>qué
-preguntas de investigación interesantes</strong> vas a responder con
-esos datos (por ejemplo: <em>«¿se ha recuperado el empleo en Canarias
-tras la crisis de 2008 al mismo ritmo que en el resto de
-comunidades?»</em>, en lugar de <em>«analizar la evolución del
+preguntas de investigación interesantes</strong>, concretas y sencillas,
+vas a responder con esos datos (por ejemplo: <em>«¿se ha recuperado el
+empleo en Canarias tras la crisis de 2008 al mismo ritmo que en el resto
+de comunidades?»</em>, en lugar de <em>«analizar la evolución del
 paro»</em>). Si no se te ocurre ninguna, busca otro tema o combina el
 dataset con otros que den juego. <strong>Ningún dataset puede quedar sin
 pregunta asociada</strong>: si al final del proceso tienes un dataset
@@ -2187,9 +2187,11 @@ acompañar a la memoria</strong></p>
 (<code>tabla-scroll</code>, <code>caja-scroll</code>,
 <code>tabla-scroll-xy</code> y las celdas verde/rojo de la tabla de
 validación). Ya están todas en el fichero <code>estilos.css</code> que
-acompaña al modelo de memoria, así que <strong>si tu memoria lo
-referencia</strong> (<code>css: estilos.css</code> en la cabecera) las
-tablas se verán igual que aquí.</p>
+acompaña al modelo de memoria, que lo carga en su cabecera
+(<code>css: estilos.css</code>). Por eso
+<strong><code>estilos.css</code> tiene que estar en la carpeta de tu
+memoria</strong>: si falta, la memoria se detiene al compilar avisando
+de que no lo encuentra.</p>
 </div>
 </div>
 </div>
