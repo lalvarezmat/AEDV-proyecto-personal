@@ -122,7 +122,7 @@ Antes de enviar cualquier entrega, pide a un agente de IA que la revise contra l
 Adapta el número de entrega (1, 2 o 3) y repite la comprobación antes de cada envío. Esto no sustituye la revisión del profesor, pero ayuda a detectar a tiempo los errores graves que llevarían a un rechazo de la entrega.
 </div>
 
-<div class="discusion">
+<div class="discusion" id="revisa-documento">
 <strong class="bloque-titulo">Revisa tú el documento: se nota cuando no se ha hecho</strong>
 
 No se evalúa si has usado la IA, sino si el documento es tuyo: si lo has **leído, entendido y corregido**. Al evaluar se tendrán en cuenta, como indicios de un documento no revisado:
@@ -405,7 +405,7 @@ La evaluación del proyecto personal se estructura en torno a 29 criterios agrup
 | | ***Alcance y calidad global*** | | | |
 | 1 | Alcance y calidad del trabajo realizado | ✓ | ✓ | ✓ |
 | 2 | Preguntas de investigación interesantes que justifican y cubren todos los datasets, y evolucionan con el análisis | ✓ | ✓ | ✓ |
-| 3 | Documento revisado por el alumno: sin texto, código ni gráficas de la IA sin revisar | ✓ | ✓ | ✓ |
+| 3 | [Documento revisado por el alumno](#revisa-documento): sin texto, código ni [gráficas](#errores-graficos) de la IA sin revisar | ✓ | ✓ | ✓ |
 | | ***Entrega y formato técnico*** | | | |
 | 4 | Entrega memoria html + Rmd compilable, datos en RDS | ✓ | ✓ | ✓ |
 | 5 | Enlace al Dashboard en el servidor Shiny del DIS + entrega de su `.Rmd` | | | ✓ |
