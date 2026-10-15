@@ -87,7 +87,7 @@ El proyecto personal se desarrolla en **tres entregas progresivas**:
 <div class="resultado">
 <strong class="bloque-titulo">Las tres entregas del proyecto</strong>
 
-Las entregas no son tres trozos independientes de la memoria, sino **tres versiones sucesivas del mismo documento**. El trabajo se hace **por iteraciones**, igual que en la metodología CRISP-DM: en cada entrega se añaden apartados nuevos y, a la vez, se **revisan y mejoran los ya entregados**, a partir de los comentarios del profesor y de lo que vaya enseñando el análisis de los datos. Un apartado entregado en la Entrega 1 no queda cerrado: se vuelve a él tantas veces como haga falta, y lo que se evalúa en cada entrega es la versión que haya en ese momento.
+Las entregas no son tres trozos independientes de la memoria, sino **tres versiones sucesivas del mismo documento**. El trabajo se hace **por iteraciones**, igual que en la metodología CRISP-DM: en cada entrega se añaden apartados nuevos y, a la vez, se **revisan y mejoran los ya entregados**, a partir de los comentarios del profesor y las técnicas que se vayan aprendiendo en la asignatura. Un apartado entregado en la Entrega 1 no queda cerrado: se vuelve a él tantas veces como haga falta. De la misma forma cada evaluación pasa por todos los apartados y puede solicitar en apartados ya evaluados anteriormente. 
 
 **Entrega 1 — Validación del tema y datasets**
 
@@ -118,8 +118,10 @@ Es la versión final de la memoria: se completan y revisan **todos** los apartad
 * **2. Aportaciones del trabajo**: 2.1 Principales aportaciones y 2.2 Alineamiento con los objetivos de desarrollo sostenible.
 * **3.1 Herramientas empleadas** y **3.2 Metodología**, adaptadas a tu proyecto.
 * **3.5 Preparación de los datos**, revisada: todos los gráficos estáticos de la Entrega 2 se pasarán a **dinámicos** (`plotly`).
-* **3.8 Despliegue**: descripción del cuadro de mandos.
-* **4. Conclusiones y trabajo futuro**, donde se responde una a una a las preguntas de investigación.
+* **3.6 Modelado**: añadir al modelo el análisis de atributos: correlación, transformada Yeo-Johnson, PCA, k-means.
+* **3.7 Evaluación**: añadir discusión calidad resultados obtenidos del análisis de atributos 
+* **3.8 Despliegue**: descripción del cuadro de mandos a nivel de diseño. 
+* **4. Conclusiones y trabajo futuro**, que debe incluir, en particular, las respuestas a cada una a las preguntas de investigación.
 * **Bibliografía** y **Anexo I. Agentes de IA utilizados y organización del trabajo con la IA**.
 
 El cuadro de mandos interactivo debe estar desplegado en el servidor Shiny del DIS, y su enlace, activo y accesible desde la red de la ULPGC o VPN en el momento de la corrección.
@@ -145,7 +147,7 @@ Para detectarlo antes de enviar:
 2. Copia en ella **exactamente los ficheros que vas a subir a la entrega**, y nada más.
 3. Abre el `.Rmd` de la memoria **desde esa carpeta** y compílalo (`Ctrl+Shift+K`).
 
-Si compila, la entrega está completa: sube el contenido de esa carpeta. Si falla, el error indica qué falta. Por ejemplo, `Error en gzfile(file, "rb"): no se puede abrir la conexión` en el chunk de un dataset significa que falta su `.rds`, y `Falta el fichero estilos.css` (o `utilidades.R`) lo dice directamente. Añade el fichero a la carpeta temporal y vuelve a compilar.
+Si compila, la entrega está completa: sube el contenido de esa carpeta (**sube los archivos individualmente, no un zip**). Si falla, el error indica qué falta. Por ejemplo, `Error en gzfile(file, "rb"): no se puede abrir la conexión` en el chunk de un dataset significa que falta su `.rds`, y `Falta el fichero estilos.css` (o `utilidades.R`) lo dice directamente. Añade el fichero a la carpeta temporal y vuelve a compilar.
 
 Revisa además el `.html` que sale de esa carpeta: si las cajas de colores o las tablas anchas con barra de desplazamiento aparecen sin formato, es que falta `estilos.css`. Sin ese fichero la memoria se ve mal aunque llegue a compilar.
 </div>
@@ -341,7 +343,7 @@ La memoria sigue la metodología de desarrollo **CRISP-DM** (Cross Industry Stan
 - **Anexo I.** Agentes de IA utilizados
 - **Anexo II.** Seguimiento temporal (Google Sheet)
 
-> **Nota importante:** los resultados NO van en una sección aparte; se presentan de forma distribuida en las fases de Modelado, Evaluación y Despliegue. Esto es coherente con CRISP-DM.
+> **Nota importante:** los resultados NO van en una sección aparte; se presentan de forma distribuida en las fases de preparación de los datos, modelado, evaluación y despliegue. Esto es coherente con CRISP-DM.
 
 ### Cómo importar los datos en la memoria
 
@@ -517,7 +519,7 @@ La memoria no es un cuaderno de laboratorio: es un documento académico que debe
 
 - **Todas las secciones completadas correctamente siguiendo la metodología CRISP-DM** *(solo Entrega 3).* El modelo de memoria tiene secciones fijas que deben aparecer todas y estar desarrolladas, y cada una debe contener lo que le corresponde según la fase CRISP-DM que representa. Una sección con solo el título o con el texto de ejemplo sin sustituir se considera no completada.
 
-- **Cada cosa en su sección.** Los resultados no van en una sección propia: se presentan dentro de Modelado, Evaluación y Despliegue, según el momento CRISP-DM al que correspondan. Las tablas de estructura de datos van en Comprensión de los datos, no en Preparación.
+- **Cada cosa en su sección.** Los resultados no van en una sección propia: se presentan dentro de Preparación de los datos, Modelado, Evaluación y Despliegue, según el momento CRISP-DM al que correspondan. Las tablas de estructura de datos van en Comprensión de los datos, no en Preparación.
 
 - **Aportaciones y conclusiones coherentes con el trabajo.** Las conclusiones deben derivarse directamente del análisis realizado, no ser genéricas. Las aportaciones deben ser específicas al dominio estudiado y al dataset elegido.
 

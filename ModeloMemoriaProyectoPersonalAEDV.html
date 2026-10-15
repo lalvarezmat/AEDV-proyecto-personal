@@ -11,7 +11,7 @@
 
 <meta name="author" content="Mi nombre y apellidos" />
 
-<meta name="date" content="2026-10-14" />
+<meta name="date" content="2026-10-15" />
 
 <title>Mi título de Proyecto Personal</title>
 
@@ -4230,7 +4230,7 @@ display: none;
 
 <h1 class="title toc-ignore">Mi título de Proyecto Personal</h1>
 <h4 class="author">Mi nombre y apellidos</h4>
-<h4 class="date">2026-10-14</h4>
+<h4 class="date">2026-10-15</h4>
 
 </div>
 
@@ -4874,8 +4874,8 @@ forma eficaz y atractiva.</p></li>
 <!--
 NOTA SOBRE LA PRESENTACIÓN DE RESULTADOS:
 De acuerdo con la metodología CRISP-DM, los resultados se presentan, discuten
-y validan de forma distribuida a lo largo de las fases de Modelado, Evaluación
-y Despliegue. Por tanto, en esta memoria no existe una sección separada de
+y validan de forma distribuida a lo largo de las fases de Preparación de los
+datos, Modelado, Evaluación y Despliegue. Por tanto, en esta memoria no existe una sección separada de
 "Resultados". Esta decisión es intencionada y coherente con la metodología.
 -->
 <p>Es importante observar que esta metodología es
@@ -5096,10 +5096,13 @@ CONTENIDO ESPERADO:
      sin datos que haya que tener en cuenta.
 
 3. LIMPIEZA DE DATOS
-   - Tratamiento de valores ausentes (NA): ¿se imputan?, ¿se eliminan las filas?,
-     ¿se usa interpolación (na.approx, na.locf de zoo)?
-   - Tratamiento de outliers: ¿se mantienen?, ¿se capan (winsorizing)?,
-     ¿se eliminan con criterio estadístico (ej. ±3 desviaciones típicas)?
+   - Tratamiento de valores ausentes (NA): ¿se eliminan las filas?, ¿se rellenan
+     los huecos de las series por interpolación (na.approx de zoo) o con un
+     modelo ARIMA?
+   - Tratamiento de outliers: ¿se mantienen, se eliminan o se sustituyen? Justifica
+     la decisión con lo que muestran los datos.
+   - Para las series temporales, ver la sección "Rellenar huecos en una serie
+     temporal y sustituir datos anómalos" del capítulo de series temporales del libro.
    - Corrección de inconsistencias identificadas en la fase anterior.
 
 4. TRANSFORMACIÓN DE DATOS
@@ -5123,6 +5126,20 @@ Aquí SÍ se incluyen gráficas que ilustran los datos ya procesados, pero SIN
 aplicar todavía los modelos de la fase siguiente.
 Tipos de gráficas apropiadas: barras, líneas temporales, circulares, mapas de
 calor (heatmaps), mapas coropléticos (leaflet), scatter plots exploratorios.
+  - Las primeras gráficas dan una visión general del fenómeno antes de entrar
+    en detalles: suele funcionar empezar por la evolución de algunas series
+    temporales con facet_wrap.
+  - En la Entrega 2 las gráficas son estáticas (ggplot2); en la Entrega 3 se
+    pasan TODAS a dinámicas (plotly).
+  - Revisa cada gráfica con el recuadro "Algunos errores a evitar en los
+    gráficos" del README del proyecto (área "Visualizaciones en la memoria").
+
+SOBRE LAS TABLAS:
+Si una tabla tiene demasiadas filas o columnas, recórtala antes de mostrarla
+(select() para las columnas relevantes, slice(1:10) o filter() para las filas),
+termínala con knitr::kable() y envuelve el chunk en <div class="tabla-scroll-xy">
+(con una línea en blanco antes y después del chunk), como se explica en el
+README del proyecto.
 
 NOTA SOBRE ITERATIVIDAD (CRISP-DM):
 Si durante el Modelado o la Evaluación detectas que necesitas una variable
@@ -5154,22 +5171,23 @@ CONTENIDO ESPERADO:
    - ¿Has verificado previamente que esos supuestos se cumplen en tus datos?
 
 2. DESCRIPCIÓN Y APLICACIÓN DE CADA MODELO
-   Dependiendo de tu proyecto, los modelos más habituales son:
+   Usa las técnicas del libro de la asignatura y, cuando existan, las funciones
+   de utilidades.R (aedv_...) en vez de programarlas desde cero:
 
-   ANÁLISIS DESCRIPTIVO Y EXPLORATORIO:
-   - Matriz de correlación (corrplot, ggcorrplot): identifica relaciones lineales
-     entre variables numéricas.
-   - PCA (prcomp): reduce dimensionalidad y visualiza la variabilidad principal.
+   SERIES TEMPORALES (Entrega 2):
+   - Descomposición STL: separa tendencia, estacionalidad y residuo.
+   - Modelos ARIMA y STL + ARIMA para el modelado y la predicción
+     (aedv_prediccion_arima(), aedv_prediccion_stl_arima()).
 
-   MODELOS DE REGRESIÓN:
-   - Regresión lineal simple o múltiple (lm): modela la relación entre una variable
-     dependiente continua y una o más variables independientes.
-   - Transformación de Yeo-Johnson (bestNormalize): puede mejorar ajuste entre variables. 
-
-   SERIES TEMPORALES:
-   - Descomposición (STL, classical_decomposition de fpp3): separa tendencia,
-     estacionalidad y residuo.
-   - Modelos ARIMA para modelado y predicción de series temporales.
+   ANÁLISIS DE ATRIBUTOS (Entrega 3):
+   - Matriz de correlación (aedv_matriz_correlacion()): relaciones lineales
+     entre los atributos.
+   - Regresión lineal simple entre dos atributos (lm(), aedv_tabla_lm()) y
+     transformación de Yeo-Johnson (aedv_yeo_johnson(), aedv_yeojohnson_lambda())
+     cuando mejora el ajuste.
+   - PCA (prcomp()): reduce la dimensión y muestra la variabilidad principal.
+   - k-means sobre las componentes principales (aedv_kmeans()): agrupa las
+     áreas geográficas con un comportamiento parecido.
 
 
 3. PRESENTACIÓN DE RESULTADOS DEL MODELO
@@ -5201,21 +5219,26 @@ adecuadamente a las preguntas de investigación y si los resultados son fiables.
 
 CONTENIDO ESPERADO:
 
-1. MÉTRICAS DE EVALUACIÓN
-   Según el tipo de modelo:
-   - Regresión: R², R² ajustado, RMSE, MAE.
-   - Series temporales: desviación estandar de los residuos, AIC/AICc/BIC, RMSE, MAE, MAPE, MASE sobre el conjunto de test.
-   - Para todos: análisis de residuos (distribución, autocorrelación, homocedasticidad).
+1. SERIES TEMPORALES (Entrega 2)
+   - Métricas de ajuste del ARIMA: RMSE, MAE y MASE (aedv_arima_accuracy()) y
+     desviación típica de los residuos.
+   - Tests de validación de los residuos: ¿se comportan como ruido blanco?
+     (aedv_tests_residuos()), junto con sus gráficos (ACF, histograma,
+     residuos frente al tiempo).
+   - ¿Fue necesario usar STL + ARIMA o transformar la serie para mejorar los
+     resultados del ARIMA? ¿Por qué?
+   - Si lo has usado, compara los métodos con la validación cruzada temporal
+     del libro (aedv_cv_arima(), aedv_cv_stl_arima()).
 
-2. VALIDACIÓN DEL MODELO
-   - ¿Has separado los datos en train/test? ¿Qué proporción?
-   - ¿Has usado validación cruzada? ¿Cuántos plieques?
-   - ¿has comparado los métodos ARIMA y STL+ARIMA en series temporales?
-   - ¿Has comparado tu modelo con un modelo de referencia (baseline)?
-   - ¿Has usado transformación de variables como Yeo-Johnson?
+2. ANÁLISIS DE ATRIBUTOS (Entrega 3)
+   - Ajustes lineales: calidad del ajuste y análisis de su error
+     (aedv_tabla_lm()). ¿La transformación de Yeo-Johnson mejora el ajuste?
+   - PCA: ¿qué porcentaje de la varianza explican las primeras componentes?
+     ¿Cuántas hacen falta (aedv_pca_n_componentes())? ¿Cómo se interpretan
+     a partir de sus loadings?
+   - k-means: ¿los grupos obtenidos tienen sentido en el contexto del problema?
 
 3. DISCUSIÓN CRÍTICA DE RESULTADOS
-   - ¿La transformación de variables con Yeo-Johnson mejora los resultados?
    - ¿El modelo responde satisfactoriamente a las preguntas de investigación?
    - ¿Hay patrones en los residuos que sugieran que el modelo no captura algo?
    - ¿Los resultados son coherentes con lo esperado según la bibliografía?
@@ -5261,7 +5284,8 @@ CONTENIDO ESPERADO:
 
 2. CUADRO DE MANDOS (Dashboard)
    ESTE ES EL ELEMENTO MÁS IMPORTANTE DE ESTA SECCIÓN.
-   Debes describir con detalle:
+   Se describe A NIVEL DE DISEÑO (qué muestra, para quién y cómo se usa), no
+   el código con el que está programado. Debes describir con detalle:
 
    a) MOTIVACIÓN DEL DISEÑO:
       - ¿A qué audiencia va dirigido el dashboard? (expertos, público general,
@@ -5276,14 +5300,9 @@ CONTENIDO ESPERADO:
         y qué permite controlar cada uno.
       - Qué insight principal se obtiene de ese panel.
 
-   c) DECISIONES TÉCNICAS:
-      - Librerías usadas específicamente en el dashboard (highcharter, leaflet, DT...).
-      - Si hay cálculos pesados, ¿se han precalculado o se calculan en tiempo real?
-      - ¿Cómo se ha gestionado la reactividad (reactive(), eventReactive(), observe())?
-
-   RECUERDA: El cuadro de mandos debe estar desplegado y accesible en el servidor
-   del DIS en el momento de cada entrega. Incluye siempre el enlace actualizado
-   al inicio de este documento.
+   RECUERDA: En la Entrega 3 el cuadro de mandos debe estar desplegado y
+   accesible en el servidor del DIS en el momento de la corrección. Incluye el
+   enlace actualizado al inicio de este documento.
 
 
 ================================================================================
@@ -5628,18 +5647,18 @@ ESTRUCTURA DE LA GOOGLE SHEET (columnas esperadas):
 <p><strong>TOTAL HORAS TRABAJADAS EN EL PROYECTO:</strong> 4.9</p>
 <div id="horas-trabajadas-por-actividad" class="section level2 unnumbered">
 <h2 class="unnumbered">Horas trabajadas por actividad</h2>
-<div class="plotly html-widget html-fill-item" id="htmlwidget-fecfb00bc41a14855e28" style="width:672px;height:480px;"></div>
-<script type="application/json" data-for="htmlwidget-fecfb00bc41a14855e28">{"x":{"data":[{"orientation":"v","width":[0.90000000000000036,0.90000000000000013,0.89999999999999991],"base":[0,0,0],"x":[3,2,1],"y":[2.5,0.90000000000000002,1.5],"text":["ACTIVITY: Comprensión de los datos<br />HORAS: 2.5","ACTIVITY: Comprensión del negocio<br />HORAS: 0.9","ACTIVITY: Introducción<br />HORAS: 1.5"],"type":"bar","textposition":"none","marker":{"autocolorscale":false,"color":"rgba(89,89,89,1)","line":{"width":1.8897637795275593,"color":"transparent"}},"showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[3,2,1],"y":[2.7000000000000002,1.1000000000000001,1.7],"text":[2.5,0.90000000000000002,1.5],"hovertext":["ACTIVITY: Comprensión de los datos<br />HORAS: 2.5<br />HORAS: 2.5","ACTIVITY: Comprensión del negocio<br />HORAS: 0.9<br />HORAS: 0.9","ACTIVITY: Introducción<br />HORAS: 1.5<br />HORAS: 1.5"],"textfont":{"size":11.338582677165356,"color":"rgba(0,0,255,1)"},"type":"scatter","mode":"text","hoveron":"points","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":23.970112079701121,"r":7.9701120797011216,"b":92.621812684582764,"l":34.271481942714829},"plot_bgcolor":"rgba(255,255,255,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":15.940224159402243},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[0.40000000000000002,3.6000000000000001],"tickmode":"array","ticktext":["Introducción","Comprensión del negocio","Comprensión de los datos"],"tickvals":[1,2,3],"categoryorder":"array","categoryarray":["Introducción","Comprensión del negocio","Comprensión de los datos"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.9850560398505608,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":12.7521793275218},"tickangle":-45,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0,"zeroline":false,"anchor":"y","title":{"text":"","font":{"color":"rgba(0,0,0,1)","family":"","size":15.940224159402243}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[-0.13500000000000001,2.835],"tickmode":"array","ticktext":["0","1","2"],"tickvals":[0,1,1.9999999999999998],"categoryorder":"array","categoryarray":["0","1","2"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.9850560398505608,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":12.7521793275218},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0,"zeroline":false,"anchor":"x","title":{"text":"HORAS TRABAJADAS","font":{"color":"rgba(0,0,0,1)","family":"","size":15.940224159402243}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":"rgba(255,255,255,1)","line":{"color":"rgba(51,51,51,1)","width":0,"linetype":"solid"},"yref":"paper","xref":"paper","layer":"below","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":false,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":0,"font":{"color":"rgba(0,0,0,1)","family":"","size":12.7521793275218}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"source":"A","attrs":{"dd3c4b6838db":{"x":{},"y":{},"type":"bar"},"dd3c561b6c44":{"x":{},"y":{},"label":{}}},"cur_data":"dd3c4b6838db","visdat":{"dd3c4b6838db":["function (y) ","x"],"dd3c561b6c44":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<div class="plotly html-widget html-fill-item" id="htmlwidget-69ed8aca68d62dab2658" style="width:672px;height:480px;"></div>
+<script type="application/json" data-for="htmlwidget-69ed8aca68d62dab2658">{"x":{"data":[{"orientation":"v","width":[0.90000000000000036,0.90000000000000013,0.89999999999999991],"base":[0,0,0],"x":[3,2,1],"y":[2.5,0.90000000000000002,1.5],"text":["ACTIVITY: Comprensión de los datos<br />HORAS: 2.5","ACTIVITY: Comprensión del negocio<br />HORAS: 0.9","ACTIVITY: Introducción<br />HORAS: 1.5"],"type":"bar","textposition":"none","marker":{"autocolorscale":false,"color":"rgba(89,89,89,1)","line":{"width":1.8897637795275593,"color":"transparent"}},"showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[3,2,1],"y":[2.7000000000000002,1.1000000000000001,1.7],"text":[2.5,0.90000000000000002,1.5],"hovertext":["ACTIVITY: Comprensión de los datos<br />HORAS: 2.5<br />HORAS: 2.5","ACTIVITY: Comprensión del negocio<br />HORAS: 0.9<br />HORAS: 0.9","ACTIVITY: Introducción<br />HORAS: 1.5<br />HORAS: 1.5"],"textfont":{"size":11.338582677165356,"color":"rgba(0,0,255,1)"},"type":"scatter","mode":"text","hoveron":"points","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":23.970112079701121,"r":7.9701120797011216,"b":92.621812684582764,"l":34.271481942714829},"plot_bgcolor":"rgba(255,255,255,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":15.940224159402243},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[0.40000000000000002,3.6000000000000001],"tickmode":"array","ticktext":["Introducción","Comprensión del negocio","Comprensión de los datos"],"tickvals":[1,2,3],"categoryorder":"array","categoryarray":["Introducción","Comprensión del negocio","Comprensión de los datos"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.9850560398505608,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":12.7521793275218},"tickangle":-45,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0,"zeroline":false,"anchor":"y","title":{"text":"","font":{"color":"rgba(0,0,0,1)","family":"","size":15.940224159402243}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[-0.13500000000000001,2.835],"tickmode":"array","ticktext":["0","1","2"],"tickvals":[0,1,1.9999999999999998],"categoryorder":"array","categoryarray":["0","1","2"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.9850560398505608,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":12.7521793275218},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0,"zeroline":false,"anchor":"x","title":{"text":"HORAS TRABAJADAS","font":{"color":"rgba(0,0,0,1)","family":"","size":15.940224159402243}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":"rgba(255,255,255,1)","line":{"color":"rgba(51,51,51,1)","width":0,"linetype":"solid"},"yref":"paper","xref":"paper","layer":"below","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":false,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":0,"font":{"color":"rgba(0,0,0,1)","family":"","size":12.7521793275218}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"source":"A","attrs":{"ea187fc743d3":{"x":{},"y":{},"type":"bar"},"ea1868815874":{"x":{},"y":{},"label":{}}},"cur_data":"ea187fc743d3","visdat":{"ea187fc743d3":["function (y) ","x"],"ea1868815874":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="horas-trabajadas-por-semana" class="section level2 unnumbered">
 <h2 class="unnumbered">Horas trabajadas por semana</h2>
-<div class="plotly html-widget html-fill-item" id="htmlwidget-a10fb929fb736aa0e8d1" style="width:672px;height:480px;"></div>
-<script type="application/json" data-for="htmlwidget-a10fb929fb736aa0e8d1">{"x":{"data":[{"orientation":"v","width":[0.89999999999999991,0.90000000000000013],"base":[0,0],"x":[1,2],"y":[2.3999999999999999,2.5],"text":["etiqueta: 01 sep.<br />HORAS: 2.4","etiqueta: 08 sep.<br />HORAS: 2.5"],"type":"bar","textposition":"none","marker":{"autocolorscale":false,"color":"rgba(89,89,89,1)","line":{"width":1.8897637795275593,"color":"transparent"}},"showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[1,2],"y":[2.6000000000000001,2.7000000000000002],"text":[2.3999999999999999,2.5],"hovertext":["etiqueta: 01 sep.<br />HORAS: 2.4<br />HORAS: 2.4","etiqueta: 08 sep.<br />HORAS: 2.5<br />HORAS: 2.5"],"textfont":{"size":11.338582677165356,"color":"rgba(0,0,255,1)"},"type":"scatter","mode":"text","hoveron":"points","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":23.970112079701121,"r":7.9701120797011216,"b":52.280121103292835,"l":34.271481942714829},"plot_bgcolor":"rgba(255,255,255,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":15.940224159402243},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[0.40000000000000002,2.6000000000000001],"tickmode":"array","ticktext":["01 sep.","08 sep."],"tickvals":[1,2],"categoryorder":"array","categoryarray":["01 sep.","08 sep."],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.9850560398505608,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":12.7521793275218},"tickangle":-45,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0,"zeroline":false,"anchor":"y","title":{"text":"FECHA INICIO SEMANA","font":{"color":"rgba(0,0,0,1)","family":"","size":15.940224159402243}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[-0.13500000000000001,2.835],"tickmode":"array","ticktext":["0","1","2"],"tickvals":[0,1,1.9999999999999998],"categoryorder":"array","categoryarray":["0","1","2"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.9850560398505608,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":12.7521793275218},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0,"zeroline":false,"anchor":"x","title":{"text":"HORAS TRABAJADAS","font":{"color":"rgba(0,0,0,1)","family":"","size":15.940224159402243}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":"rgba(255,255,255,1)","line":{"color":"rgba(51,51,51,1)","width":0,"linetype":"solid"},"yref":"paper","xref":"paper","layer":"below","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":false,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":0,"font":{"color":"rgba(0,0,0,1)","family":"","size":12.7521793275218}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"source":"A","attrs":{"dd3c26421af6":{"x":{},"y":{},"type":"bar"},"dd3c5b2e50be":{"x":{},"y":{},"label":{}}},"cur_data":"dd3c26421af6","visdat":{"dd3c26421af6":["function (y) ","x"],"dd3c5b2e50be":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<div class="plotly html-widget html-fill-item" id="htmlwidget-529fa4dba19200f05895" style="width:672px;height:480px;"></div>
+<script type="application/json" data-for="htmlwidget-529fa4dba19200f05895">{"x":{"data":[{"orientation":"v","width":[0.89999999999999991,0.90000000000000013],"base":[0,0],"x":[1,2],"y":[2.3999999999999999,2.5],"text":["etiqueta: 01 sep.<br />HORAS: 2.4","etiqueta: 08 sep.<br />HORAS: 2.5"],"type":"bar","textposition":"none","marker":{"autocolorscale":false,"color":"rgba(89,89,89,1)","line":{"width":1.8897637795275593,"color":"transparent"}},"showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[1,2],"y":[2.6000000000000001,2.7000000000000002],"text":[2.3999999999999999,2.5],"hovertext":["etiqueta: 01 sep.<br />HORAS: 2.4<br />HORAS: 2.4","etiqueta: 08 sep.<br />HORAS: 2.5<br />HORAS: 2.5"],"textfont":{"size":11.338582677165356,"color":"rgba(0,0,255,1)"},"type":"scatter","mode":"text","hoveron":"points","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":23.970112079701121,"r":7.9701120797011216,"b":52.280121103292835,"l":34.271481942714829},"plot_bgcolor":"rgba(255,255,255,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":15.940224159402243},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[0.40000000000000002,2.6000000000000001],"tickmode":"array","ticktext":["01 sep.","08 sep."],"tickvals":[1,2],"categoryorder":"array","categoryarray":["01 sep.","08 sep."],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.9850560398505608,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":12.7521793275218},"tickangle":-45,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0,"zeroline":false,"anchor":"y","title":{"text":"FECHA INICIO SEMANA","font":{"color":"rgba(0,0,0,1)","family":"","size":15.940224159402243}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[-0.13500000000000001,2.835],"tickmode":"array","ticktext":["0","1","2"],"tickvals":[0,1,1.9999999999999998],"categoryorder":"array","categoryarray":["0","1","2"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.9850560398505608,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":12.7521793275218},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0,"zeroline":false,"anchor":"x","title":{"text":"HORAS TRABAJADAS","font":{"color":"rgba(0,0,0,1)","family":"","size":15.940224159402243}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":"rgba(255,255,255,1)","line":{"color":"rgba(51,51,51,1)","width":0,"linetype":"solid"},"yref":"paper","xref":"paper","layer":"below","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":false,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":0,"font":{"color":"rgba(0,0,0,1)","family":"","size":12.7521793275218}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"source":"A","attrs":{"ea1870c679d1":{"x":{},"y":{},"type":"bar"},"ea184a794a19":{"x":{},"y":{},"label":{}}},"cur_data":"ea1870c679d1","visdat":{"ea1870c679d1":["function (y) ","x"],"ea184a794a19":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="desglose-detallado-por-sesión-de-trabajo" class="section level2 unnumbered">
 <h2 class="unnumbered">Desglose detallado por sesión de trabajo</h2>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-fd0fdfb279f3912bbff2" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-fd0fdfb279f3912bbff2">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4"],["2025-09-01T16:05:22Z","2025-09-02T18:22:20Z","2025-09-10T20:24:20Z","2025-09-11T10:50:43Z"],["2025-09-01T17:00:05Z","2025-09-02T19:50:14Z","2025-09-10T21:54:44Z","2025-09-11T11:51:56Z"],[54.7,87.90000000000001,90.40000000000001,61.2],["Comprensión del negocio","Comprensión de los datos","Introducción","Comprensión de los datos"],["búsqueda del tema","modelo validación tema","estado actual","incorporar a la memoria los datos de la propuesta de proyecto presentada para validación"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>START<\/th>\n      <th>END<\/th>\n      <th>MINUTES<\/th>\n      <th>ACTIVITY<\/th>\n      <th>FINAL COMMENT<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"scrollY":"400px","paging":false,"columnDefs":[{"className":"dt-right","targets":3},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"START","targets":1},{"name":"END","targets":2},{"name":"MINUTES","targets":3},{"name":"ACTIVITY","targets":4},{"name":"FINAL COMMENT","targets":5}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-a21b8bbe2cdb5b3732f1" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-a21b8bbe2cdb5b3732f1">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4"],["2025-09-01T16:05:22Z","2025-09-02T18:22:20Z","2025-09-10T20:24:20Z","2025-09-11T10:50:43Z"],["2025-09-01T17:00:05Z","2025-09-02T19:50:14Z","2025-09-10T21:54:44Z","2025-09-11T11:51:56Z"],[54.7,87.90000000000001,90.40000000000001,61.2],["Comprensión del negocio","Comprensión de los datos","Introducción","Comprensión de los datos"],["búsqueda del tema","modelo validación tema","estado actual","incorporar a la memoria los datos de la propuesta de proyecto presentada para validación"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>START<\/th>\n      <th>END<\/th>\n      <th>MINUTES<\/th>\n      <th>ACTIVITY<\/th>\n      <th>FINAL COMMENT<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"scrollY":"400px","paging":false,"columnDefs":[{"className":"dt-right","targets":3},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"START","targets":1},{"name":"END","targets":2},{"name":"MINUTES","targets":3},{"name":"ACTIVITY","targets":4},{"name":"FINAL COMMENT","targets":5}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 

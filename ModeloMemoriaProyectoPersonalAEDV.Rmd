@@ -510,8 +510,8 @@ Utilizaremos la metodología de desarrollo CRISP-DM (Cross Industry Standard Pro
 <!--
 NOTA SOBRE LA PRESENTACIÓN DE RESULTADOS:
 De acuerdo con la metodología CRISP-DM, los resultados se presentan, discuten
-y validan de forma distribuida a lo largo de las fases de Modelado, Evaluación
-y Despliegue. Por tanto, en esta memoria no existe una sección separada de
+y validan de forma distribuida a lo largo de las fases de Preparación de los
+datos, Modelado, Evaluación y Despliegue. Por tanto, en esta memoria no existe una sección separada de
 "Resultados". Esta decisión es intencionada y coherente con la metodología.
 -->
 
@@ -724,10 +724,13 @@ CONTENIDO ESPERADO:
      sin datos que haya que tener en cuenta.
 
 3. LIMPIEZA DE DATOS
-   - Tratamiento de valores ausentes (NA): ¿se imputan?, ¿se eliminan las filas?,
-     ¿se usa interpolación (na.approx, na.locf de zoo)?
-   - Tratamiento de outliers: ¿se mantienen?, ¿se capan (winsorizing)?,
-     ¿se eliminan con criterio estadístico (ej. ±3 desviaciones típicas)?
+   - Tratamiento de valores ausentes (NA): ¿se eliminan las filas?, ¿se rellenan
+     los huecos de las series por interpolación (na.approx de zoo) o con un
+     modelo ARIMA?
+   - Tratamiento de outliers: ¿se mantienen, se eliminan o se sustituyen? Justifica
+     la decisión con lo que muestran los datos.
+   - Para las series temporales, ver la sección "Rellenar huecos en una serie
+     temporal y sustituir datos anómalos" del capítulo de series temporales del libro.
    - Corrección de inconsistencias identificadas en la fase anterior.
 
 4. TRANSFORMACIÓN DE DATOS
@@ -751,6 +754,20 @@ Aquí SÍ se incluyen gráficas que ilustran los datos ya procesados, pero SIN
 aplicar todavía los modelos de la fase siguiente.
 Tipos de gráficas apropiadas: barras, líneas temporales, circulares, mapas de
 calor (heatmaps), mapas coropléticos (leaflet), scatter plots exploratorios.
+  - Las primeras gráficas dan una visión general del fenómeno antes de entrar
+    en detalles: suele funcionar empezar por la evolución de algunas series
+    temporales con facet_wrap.
+  - En la Entrega 2 las gráficas son estáticas (ggplot2); en la Entrega 3 se
+    pasan TODAS a dinámicas (plotly).
+  - Revisa cada gráfica con el recuadro "Algunos errores a evitar en los
+    gráficos" del README del proyecto (área "Visualizaciones en la memoria").
+
+SOBRE LAS TABLAS:
+Si una tabla tiene demasiadas filas o columnas, recórtala antes de mostrarla
+(select() para las columnas relevantes, slice(1:10) o filter() para las filas),
+termínala con knitr::kable() y envuelve el chunk en <div class="tabla-scroll-xy">
+(con una línea en blanco antes y después del chunk), como se explica en el
+README del proyecto.
 
 NOTA SOBRE ITERATIVIDAD (CRISP-DM):
 Si durante el Modelado o la Evaluación detectas que necesitas una variable
@@ -785,22 +802,23 @@ CONTENIDO ESPERADO:
    - ¿Has verificado previamente que esos supuestos se cumplen en tus datos?
 
 2. DESCRIPCIÓN Y APLICACIÓN DE CADA MODELO
-   Dependiendo de tu proyecto, los modelos más habituales son:
+   Usa las técnicas del libro de la asignatura y, cuando existan, las funciones
+   de utilidades.R (aedv_...) en vez de programarlas desde cero:
 
-   ANÁLISIS DESCRIPTIVO Y EXPLORATORIO:
-   - Matriz de correlación (corrplot, ggcorrplot): identifica relaciones lineales
-     entre variables numéricas.
-   - PCA (prcomp): reduce dimensionalidad y visualiza la variabilidad principal.
+   SERIES TEMPORALES (Entrega 2):
+   - Descomposición STL: separa tendencia, estacionalidad y residuo.
+   - Modelos ARIMA y STL + ARIMA para el modelado y la predicción
+     (aedv_prediccion_arima(), aedv_prediccion_stl_arima()).
 
-   MODELOS DE REGRESIÓN:
-   - Regresión lineal simple o múltiple (lm): modela la relación entre una variable
-     dependiente continua y una o más variables independientes.
-   - Transformación de Yeo-Johnson (bestNormalize): puede mejorar ajuste entre variables. 
-
-   SERIES TEMPORALES:
-   - Descomposición (STL, classical_decomposition de fpp3): separa tendencia,
-     estacionalidad y residuo.
-   - Modelos ARIMA para modelado y predicción de series temporales.
+   ANÁLISIS DE ATRIBUTOS (Entrega 3):
+   - Matriz de correlación (aedv_matriz_correlacion()): relaciones lineales
+     entre los atributos.
+   - Regresión lineal simple entre dos atributos (lm(), aedv_tabla_lm()) y
+     transformación de Yeo-Johnson (aedv_yeo_johnson(), aedv_yeojohnson_lambda())
+     cuando mejora el ajuste.
+   - PCA (prcomp()): reduce la dimensión y muestra la variabilidad principal.
+   - k-means sobre las componentes principales (aedv_kmeans()): agrupa las
+     áreas geográficas con un comportamiento parecido.
 
 
 3. PRESENTACIÓN DE RESULTADOS DEL MODELO
@@ -835,21 +853,26 @@ adecuadamente a las preguntas de investigación y si los resultados son fiables.
 
 CONTENIDO ESPERADO:
 
-1. MÉTRICAS DE EVALUACIÓN
-   Según el tipo de modelo:
-   - Regresión: R², R² ajustado, RMSE, MAE.
-   - Series temporales: desviación estandar de los residuos, AIC/AICc/BIC, RMSE, MAE, MAPE, MASE sobre el conjunto de test.
-   - Para todos: análisis de residuos (distribución, autocorrelación, homocedasticidad).
+1. SERIES TEMPORALES (Entrega 2)
+   - Métricas de ajuste del ARIMA: RMSE, MAE y MASE (aedv_arima_accuracy()) y
+     desviación típica de los residuos.
+   - Tests de validación de los residuos: ¿se comportan como ruido blanco?
+     (aedv_tests_residuos()), junto con sus gráficos (ACF, histograma,
+     residuos frente al tiempo).
+   - ¿Fue necesario usar STL + ARIMA o transformar la serie para mejorar los
+     resultados del ARIMA? ¿Por qué?
+   - Si lo has usado, compara los métodos con la validación cruzada temporal
+     del libro (aedv_cv_arima(), aedv_cv_stl_arima()).
 
-2. VALIDACIÓN DEL MODELO
-   - ¿Has separado los datos en train/test? ¿Qué proporción?
-   - ¿Has usado validación cruzada? ¿Cuántos plieques?
-   - ¿has comparado los métodos ARIMA y STL+ARIMA en series temporales?
-   - ¿Has comparado tu modelo con un modelo de referencia (baseline)?
-   - ¿Has usado transformación de variables como Yeo-Johnson?
+2. ANÁLISIS DE ATRIBUTOS (Entrega 3)
+   - Ajustes lineales: calidad del ajuste y análisis de su error
+     (aedv_tabla_lm()). ¿La transformación de Yeo-Johnson mejora el ajuste?
+   - PCA: ¿qué porcentaje de la varianza explican las primeras componentes?
+     ¿Cuántas hacen falta (aedv_pca_n_componentes())? ¿Cómo se interpretan
+     a partir de sus loadings?
+   - k-means: ¿los grupos obtenidos tienen sentido en el contexto del problema?
 
 3. DISCUSIÓN CRÍTICA DE RESULTADOS
-   - ¿La transformación de variables con Yeo-Johnson mejora los resultados?
    - ¿El modelo responde satisfactoriamente a las preguntas de investigación?
    - ¿Hay patrones en los residuos que sugieran que el modelo no captura algo?
    - ¿Los resultados son coherentes con lo esperado según la bibliografía?
@@ -897,7 +920,8 @@ CONTENIDO ESPERADO:
 
 2. CUADRO DE MANDOS (Dashboard)
    ESTE ES EL ELEMENTO MÁS IMPORTANTE DE ESTA SECCIÓN.
-   Debes describir con detalle:
+   Se describe A NIVEL DE DISEÑO (qué muestra, para quién y cómo se usa), no
+   el código con el que está programado. Debes describir con detalle:
 
    a) MOTIVACIÓN DEL DISEÑO:
       - ¿A qué audiencia va dirigido el dashboard? (expertos, público general,
@@ -912,14 +936,9 @@ CONTENIDO ESPERADO:
         y qué permite controlar cada uno.
       - Qué insight principal se obtiene de ese panel.
 
-   c) DECISIONES TÉCNICAS:
-      - Librerías usadas específicamente en el dashboard (highcharter, leaflet, DT...).
-      - Si hay cálculos pesados, ¿se han precalculado o se calculan en tiempo real?
-      - ¿Cómo se ha gestionado la reactividad (reactive(), eventReactive(), observe())?
-
-   RECUERDA: El cuadro de mandos debe estar desplegado y accesible en el servidor
-   del DIS en el momento de cada entrega. Incluye siempre el enlace actualizado
-   al inicio de este documento.
+   RECUERDA: En la Entrega 3 el cuadro de mandos debe estar desplegado y
+   accesible en el servidor del DIS en el momento de la corrección. Incluye el
+   enlace actualizado al inicio de este documento.
 
 
 ================================================================================

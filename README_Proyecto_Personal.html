@@ -1748,10 +1748,11 @@ proyecto</strong></p>
 trabajo se hace <strong>por iteraciones</strong>, igual que en la
 metodología CRISP-DM: en cada entrega se añaden apartados nuevos y, a la
 vez, se <strong>revisan y mejoran los ya entregados</strong>, a partir
-de los comentarios del profesor y de lo que vaya enseñando el análisis
-de los datos. Un apartado entregado en la Entrega 1 no queda cerrado: se
-vuelve a él tantas veces como haga falta, y lo que se evalúa en cada
-entrega es la versión que haya en ese momento.</p>
+de los comentarios del profesor y las técnicas que se vayan aprendiendo
+en la asignatura. Un apartado entregado en la Entrega 1 no queda
+cerrado: se vuelve a él tantas veces como haga falta. De la misma forma
+cada evaluación pasa por todos los apartados y puede solicitar en
+apartados ya evaluados anteriormente.</p>
 <p><strong>Entrega 1 — Validación del tema y datasets</strong></p>
 <p>Acredita que el tema elegido es viable e interesante y que los datos
 seleccionados cumplen los criterios de AEDV. En la memoria hay que
@@ -1826,10 +1827,15 @@ Metodología</strong>, adaptadas a tu proyecto.</li>
 <li><strong>3.5 Preparación de los datos</strong>, revisada: todos los
 gráficos estáticos de la Entrega 2 se pasarán a
 <strong>dinámicos</strong> (<code>plotly</code>).</li>
-<li><strong>3.8 Despliegue</strong>: descripción del cuadro de
-mandos.</li>
-<li><strong>4. Conclusiones y trabajo futuro</strong>, donde se responde
-una a una a las preguntas de investigación.</li>
+<li><strong>3.6 Modelado</strong>: añadir al modelo el análisis de
+atributos: correlación, transformada Yeo-Johnson, PCA, k-means.</li>
+<li><strong>3.7 Evaluación</strong>: añadir discusión calidad resultados
+obtenidos del análisis de atributos</li>
+<li><strong>3.8 Despliegue</strong>: descripción del cuadro de mandos a
+nivel de diseño.</li>
+<li><strong>4. Conclusiones y trabajo futuro</strong>, que debe incluir,
+en particular, las respuestas a cada una a las preguntas de
+investigación.</li>
 <li><strong>Bibliografía</strong> y <strong>Anexo I. Agentes de IA
 utilizados y organización del trabajo con la IA</strong>.</li>
 </ul>
@@ -1880,7 +1886,8 @@ entrega</strong>, y nada más.</li>
 carpeta</strong> y compílalo (<code>Ctrl+Shift+K</code>).</li>
 </ol>
 <p>Si compila, la entrega está completa: sube el contenido de esa
-carpeta. Si falla, el error indica qué falta. Por ejemplo,
+carpeta (<strong>sube los archivos individualmente, no un zip</strong>).
+Si falla, el error indica qué falta. Por ejemplo,
 <code>Error en gzfile(file, &quot;rb&quot;): no se puede abrir la conexión</code>
 en el chunk de un dataset significa que falta su <code>.rds</code>, y
 <code>Falta el fichero estilos.css</code> (o <code>utilidades.R</code>)
@@ -2272,7 +2279,8 @@ Objetivos (con las preguntas de investigación)</li>
 <blockquote>
 <p><strong>Nota importante:</strong> los resultados NO van en una
 sección aparte; se presentan de forma distribuida en las fases de
-Modelado, Evaluación y Despliegue. Esto es coherente con CRISP-DM.</p>
+preparación de los datos, modelado, evaluación y despliegue. Esto es
+coherente con CRISP-DM.</p>
 </blockquote>
 <div id="cómo-importar-los-datos-en-la-memoria" class="section level3" number="3.4.1">
 <h3><span class="header-section-number">3.4.1</span> Cómo importar los
@@ -2890,10 +2898,10 @@ desarrolladas, y cada una debe contener lo que le corresponde según la
 fase CRISP-DM que representa. Una sección con solo el título o con el
 texto de ejemplo sin sustituir se considera no completada.</p></li>
 <li><p><strong>Cada cosa en su sección.</strong> Los resultados no van
-en una sección propia: se presentan dentro de Modelado, Evaluación y
-Despliegue, según el momento CRISP-DM al que correspondan. Las tablas de
-estructura de datos van en Comprensión de los datos, no en
-Preparación.</p></li>
+en una sección propia: se presentan dentro de Preparación de los datos,
+Modelado, Evaluación y Despliegue, según el momento CRISP-DM al que
+correspondan. Las tablas de estructura de datos van en Comprensión de
+los datos, no en Preparación.</p></li>
 <li><p><strong>Aportaciones y conclusiones coherentes con el
 trabajo.</strong> Las conclusiones deben derivarse directamente del
 análisis realizado, no ser genéricas. Las aportaciones deben ser
