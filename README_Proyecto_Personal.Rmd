@@ -105,7 +105,7 @@ Acredita que el tema elegido es viable e interesante y que los datos seleccionad
 
 Corresponde a los contenidos del primer parcial del curso. En esta entrega se revisan los apartados de la Entrega 1 —en particular las **preguntas de investigación**, que se ajustan a lo que ha ido mostrando el análisis— y se añade una primera versión de los siguientes:
 
-* **3.5 Preparación de los datos**: limpieza, transformaciones y combinación de tablas, y presentación de los primeros resultados con **gráficos estáticos** (`ggplot2`).
+* **3.5 Preparación de los datos**: limpieza, transformaciones y combinación de tablas, y presentación de los primeros resultados con **gráficos estáticos** (`ggplot2`). Ver sección [Visualizaciones en la memoria](#visualizaciones-en-la-memoria). 
 * **3.6 Modelado**: modelado de series temporales con STL, ARIMA y STL+ARIMA.
 * **3.7 Evaluación**: discusión de la calidad del ajuste de estos modelos en términos de las métricas de ajuste y los tests de validación de los residuos. Comentar si fue necesario usar STL+ARIMA o aplicar transformaciones a la serie para mejorar los resultados del ARIMA.
 
@@ -597,17 +597,30 @@ Las gráficas son el elemento más visible de la memoria. Una mala gráfica comu
 
 El dashboard es el entregable técnico más exigente. Debe estar desplegado y accesible el día de la entrega.
 
+<div class="discusion">
+<strong class="bloque-titulo">Los cuadros de mandos de referencia son obligatorios</strong>
+
+El dashboard del alumno debe incluir **obligatoriamente, como páginas, los cinco cuadros de mandos de referencia de la asignatura, adaptados a sus datos**. Cada uno cubre uno de los apartados de abajo, donde aparece enlazado para descargarlo:
+
+* [Dashboard_exploracion_series.Rmd](https://ctim.es/AEDV/Dashboard_exploracion_series.Rmd): exploración de series temporales.
+* [Dashboard_prediccion_series.Rmd](https://ctim.es/AEDV/Dashboard_prediccion_series.Rmd): predicción de series temporales con ARIMA.
+* [Dashboard_mapa_coropletico.Rmd](https://ctim.es/AEDV/Dashboard_mapa_coropletico.Rmd): mapas coropléticos.
+* [Dashboard_atributos_comparacion.Rmd](https://ctim.es/AEDV/Dashboard_atributos_comparacion.Rmd): comparación de atributos con Yeo-Johnson.
+* [Dashboard_atributos_analisis.Rmd](https://ctim.es/AEDV/Dashboard_atributos_analisis.Rmd): matriz de correlación, PCA y k-means.
+
+</div>
+
 - **Bien diseñado e ilustra los datos en su máxima generalidad.** El dashboard no es un subconjunto de la memoria: debe permitir explorar todas las variables originales del dataset, no solo las que se analizaron en la memoria. El diseño visual debe ser limpio, con paneles bien organizados y controles intuitivos.
 
-- **Series temporales con `facet_wrap` y selección múltiple de atributos.** Debe existir un panel de exploración profunda de series temporales que reparta los datos en gráficas individuales con `facet_wrap` (por ejemplo, una por región) y que además permita **dibujar varios atributos dentro de cada gráfica individual**. Esto permite al usuario hacer comparaciones rápidas entre variables.
+- **Series temporales con `facet_wrap` y selección múltiple de atributos.** Debe existir un panel de exploración profunda de series temporales que reparta los datos en gráficas individuales con `facet_wrap` (por ejemplo, una por región) y que además permita **dibujar varios atributos dentro de cada gráfica individual**. Esto permite al usuario hacer comparaciones rápidas entre variables. Referencia: [Dashboard_exploracion_series.Rmd](https://ctim.es/AEDV/Dashboard_exploracion_series.Rmd).
 
-- **Modelos ARIMA.** El dashboard debe incluir al menos un panel con modelado ARIMA interactivo: el usuario selecciona la serie y el modelo hace la predicción. Se valora que se muestren los parámetros del modelo y el intervalo de confianza de la predicción.
+- **Modelos ARIMA.** El dashboard debe incluir al menos un panel con modelado ARIMA interactivo: el usuario selecciona la serie y el modelo hace la predicción. Se valora que se muestren los parámetros del modelo y el intervalo de confianza de la predicción. Referencia: [Dashboard_prediccion_series.Rmd](https://ctim.es/AEDV/Dashboard_prediccion_series.Rmd).
 
-- **Mapas coropléticos.** Las variables deben poder visualizarse sobre un mapa. Para datos de Canarias usa `sf` con los límites municipales o insulares; para datos del Banco Mundial usa mapas de países. El mapa debe ser interactivo (tooltip al pasar el ratón) y permitir cambiar la variable representada.
+- **Mapas coropléticos.** Las variables deben poder visualizarse sobre un mapa. Para datos de Canarias usa `sf` con los límites municipales o insulares; para datos del Banco Mundial usa mapas de países. El mapa debe ser interactivo (tooltip al pasar el ratón) y permitir cambiar la variable representada. Referencia: [Dashboard_mapa_coropletico.Rmd](https://ctim.es/AEDV/Dashboard_mapa_coropletico.Rmd).
 
-- **Comparación de atributos con Yeo-Johnson.** El dashboard debe incluir un panel que permita comparar distribuciones de atributos aplicando la transformación Yeo-Johnson para normalizar variables asimétricas. Esto facilita comparar variables con escalas muy distintas.
+- **Comparación de atributos con Yeo-Johnson.** El dashboard debe incluir un panel que permita comparar distribuciones de atributos aplicando la transformación Yeo-Johnson para normalizar variables asimétricas. Esto facilita comparar variables con escalas muy distintas. Referencia: [Dashboard_atributos_comparacion.Rmd](https://ctim.es/AEDV/Dashboard_atributos_comparacion.Rmd).
 
-- **Matriz de correlación y PCA.** Debe haber un panel de análisis multivariante que incluya la matriz de correlación entre atributos y un biplot de PCA. Ambos deben ser interactivos y responder a la selección de variables o años.
+- **Matriz de correlación y PCA.** Debe haber un panel de análisis multivariante que incluya la matriz de correlación entre atributos y un biplot de PCA. Ambos deben ser interactivos y responder a la selección de variables o años. Referencia: [Dashboard_atributos_analisis.Rmd](https://ctim.es/AEDV/Dashboard_atributos_analisis.Rmd).
 
 - **Variables fijadas dinámicamente con Inputs.** Todas las variables del dashboard deben controlarse mediante Inputs interactivos (selectores, sliders, etc.). No se deben fijar valores a mano en el código: el usuario ha de poder cambiar la variable, el año o la región desde la interfaz.
 
