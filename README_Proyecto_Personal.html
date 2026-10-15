@@ -1719,6 +1719,11 @@ Exploratorio de Datos y Visualización).</p>
 <code>aedv_incluir_dataset()</code> para incorporar los datasets — no
 modificar</td>
 </tr>
+<tr class="odd">
+<td><a href="DashboardInstruccionesServidorShiny.pdf"><code>DashboardInstruccionesServidorShiny.pdf</code></a></td>
+<td>Instrucciones para subir y desplegar el cuadro de mandos en el
+servidor Shiny del DIS</td>
+</tr>
 </tbody>
 </table>
 <div class="nota">
@@ -1840,8 +1845,8 @@ investigación.</li>
 utilizados y organización del trabajo con la IA</strong>.</li>
 </ul>
 <p>El cuadro de mandos interactivo debe estar desplegado en el servidor
-Shiny del DIS, y su enlace, activo y accesible desde la red de la ULPGC
-o VPN en el momento de la corrección.</p>
+Shiny del DIS, y su enlace, activo y accesible desde la red del DIS o su
+VPN en el momento de la corrección.</p>
 </div>
 <blockquote>
 <p>La <strong>Google Sheet de seguimiento de actividades</strong> se
@@ -2423,20 +2428,39 @@ despliega el cuadro de mandos</h2>
 dedicas a cada sesión de desarrollo del dashboard.</p>
 </blockquote>
 <p>El dashboard es <strong>el elemento más importante de la fase de
-Despliegue</strong>. Crea un fichero <code>Dashboard.Rmd</code> (Shiny
-Document) en tu carpeta personal en el servidor del DIS.</p>
-<p><strong>Para acceder al servidor Shiny:</strong> - Desde el campus:
-<code>http://10.22.143.222:3838</code> - Desde fuera: necesitas
-<strong>VPN</strong> → descárgala desde
-<code>https://vpn.ulpgc.es</code></p>
-<p><strong>Para publicar tu dashboard:</strong> 1. Sube tu
-<code>Dashboard.Rmd</code> al servidor con RStudio → Publish (o vía
-SFTP). 2. La URL de acceso tendrá la forma:
-<code>http://10.22.143.222:3838/sample-apps/aXXXX/Dashboard.Rmd</code>
-(sustituye <code>aXXXX</code> por tu número de usuario de la ULPGC). 3.
-Pega esa URL en el enlace al inicio de tu memoria
+Despliegue</strong>. Se construye y se prueba primero <strong>en tu
+ordenador</strong>, y cuando funciona se despliega en el servidor Shiny
+del DIS. Todo el proceso está explicado paso a paso, con capturas, en
+<strong><a href="DashboardInstruccionesServidorShiny.pdf">DashboardInstruccionesServidorShiny.pdf</a></strong>.
+En resumen:</p>
+<ol style="list-style-type: decimal">
+<li><strong>Construye el cuadro de mandos en local</strong>, en un
+fichero <code>NombreApellido1Dashboard.Rmd</code> (por ejemplo,
+<code>LuisAlvarezDashboard.Rmd</code>) que lea los ficheros de datos de
+su misma carpeta, sin rutas.</li>
+<li><strong>Conéctate a la red del DIS.</strong> Desde fuera de su red
+interna, con la VPN del DIS
+(<code>https://www.dis.ulpgc.es/vpn/</code>). El fichero
+<code>.ovpn</code> de la VPN y el usuario y la contraseña de tu cuenta
+en el servidor Shiny están en MiDIS
+(<code>https://www.dis.ulpgc.es/midis/</code>), al que se entra con las
+claves del Campus Virtual.</li>
+<li><strong>Sube el <code>.Rmd</code> y sus ficheros de datos</strong> a
+la carpeta <code>aedv</code> de tu cuenta en el servidor
+(<code>10.22.143.222</code>), con WinSCP (lo recomendable) o con
+<code>scp</code> desde la consola.</li>
+<li><strong>Ábrelo en el navegador</strong>:
+<code>http://10.22.143.222:3838/sample-apps/aXXXX/NombreApellido1Dashboard.Rmd</code>,
+sustituyendo <code>aXXXX</code> por tu cuenta del servidor.</li>
+<li><strong>Pega esa URL</strong> en el enlace al inicio de tu memoria
 (<code>ModeloMemoriaProyectoPersonalAEDV.Rmd</code>, línea
-<code>[Cuadro de mandos](...)</code>).</p>
+<code>[Cuadro de mandos](...)</code>).</li>
+</ol>
+<p>Si funciona en tu ordenador pero no en el servidor, recuerda que el
+servidor es Linux y distingue mayúsculas de minúsculas en los nombres de
+fichero, que a veces hay que indicar la librería de una función
+(<code>libreria::funcion</code>) y que los errores se consultan en los
+ficheros de log del servidor (PASO 3 del PDF).</p>
 <hr />
 </div>
 </div>

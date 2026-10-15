@@ -126,11 +126,14 @@ theme_set(theme_bw(base_size = 12))
 ENLACE AL CUADRO DE MANDOS
 ================================================================================
 INSTRUCCIONES:
-  1. Sube tu fichero Dashboard.Rmd al servidor Shiny del DIS.
-  2. Sustituye en la dirección del enlace "a2405" por tu número de usuario de la ULPGC.
+  1. Sube tu fichero NombreApellido1Dashboard.Rmd y sus datos al servidor Shiny
+     del DIS, siguiendo DashboardInstruccionesServidorShiny.pdf (en la carpeta
+     ProyectoPersonal).
+  2. Sustituye en la dirección del enlace "a2405" por tu cuenta del servidor
+     Shiny (la consultas en MiDIS: https://www.dis.ulpgc.es/midis/).
   3. Sustituye "Dashboard3.Rmd" por el nombre exacto de tu fichero de dashboard.
-  4. El cuadro de mandos SOLO es accesible desde la red de la ULPGC o usando VPN.
-     Fuera del campus, descarga el cliente VPN desde: https://vpn.ulpgc.es
+  4. El cuadro de mandos SOLO es accesible desde la red del DIS o usando su VPN
+     (https://www.dis.ulpgc.es/vpn/).
 
 REQUISITO: Todo proyecto personal debe incluir un cuadro de mandos funcional
 desplegado en el servidor del DIS. El enlace debe apuntar a una versión
@@ -469,8 +472,8 @@ CONTENIDO ESPERADO:
     Agrupa las librerías por función: manipulación de datos, visualización, modelado,
     generación del informe.
   - Servidor Shiny del DIS: menciona que el cuadro de mandos está desplegado en el
-    servidor Shiny de la ULPGC (10.22.143.222:3838), accesible por red universitaria
-    o VPN, y que este despliegue permite compartir los resultados con cualquier usuario
+    servidor Shiny del DIS (10.22.143.222:3838), accesible desde la red del DIS
+    o su VPN, y que este despliegue permite compartir los resultados con cualquier usuario
     sin necesidad de instalar R.
   - Si has usado otras herramientas complementarias (Google Sheets, QGIS, APIs externas,
     etc.), menciónalas y justifica su uso.
