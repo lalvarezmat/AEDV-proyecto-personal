@@ -1876,11 +1876,11 @@ para que la memoria compile</strong>: el <code>.Rmd</code> y su
 <code>.html</code>, y además los <code>.rds</code> y
 <code>_metadatos.xlsx</code> de los datasets, sus
 <code>_analisis.Rmd</code>, <code>utilidades.R</code>,
-<code>estilos.css</code> y la imagen de portada. En tu carpeta de
-trabajo están siempre todos, así que la memoria compila aunque te
-olvides de subir alguno; en el ordenador del profesor, en cambio, no
-compilará, y <strong>un <code>.Rmd</code> que no compila equivale a no
-entregado</strong>.</p>
+<code>estilos.css</code> y la imagen de portada, si es un fichero local.
+En tu carpeta de trabajo están siempre todos, así que la memoria compila
+aunque te olvides de subir alguno; en el ordenador del profesor, en
+cambio, no compilará, y <strong>un <code>.Rmd</code> que no compila
+equivale a no entregado</strong>.</p>
 <p>Para detectarlo antes de enviar:</p>
 <ol style="list-style-type: decimal">
 <li>Crea una <strong>carpeta temporal</strong> vacía, fuera de tu
@@ -2864,12 +2864,10 @@ datos en RDS.</strong> Se entrega el <code>.html</code> compilado más el
 <code>_analisis.Rmd</code> de los datasets y <code>utilidades.R</code>,
 sin los que la memoria no compila. El código debe funcionar en cualquier
 ordenador sin modificaciones: rutas relativas, sin dependencias externas
-y solo las librerías que aparecen en el libro de la asignatura. La
-<strong>imagen de portada</strong> también debe ser un fichero local
-entregado junto al <code>.Rmd</code> (no un enlace a un servidor
-externo), para que se vea igual leyendo el documento localmente que a
-través de un enlace. Esto se verifica desde la Entrega 1; un
-<code>.Rmd</code> que no compila equivale a no entregado. Para
+y solo las librerías que aparecen en el libro de la asignatura. Si la
+<strong>imagen de portada</strong> es un fichero local, también hay que
+entregarla junto al <code>.Rmd</code>. Esto se verifica desde la Entrega
+1; un <code>.Rmd</code> que no compila equivale a no entregado. Para
 comprobarlo antes de enviar, compila la memoria desde una carpeta
 temporal que contenga solo los ficheros que vas a subir (recuadro
 <em>Comprueba que la memoria compila solo con los ficheros que vas a
