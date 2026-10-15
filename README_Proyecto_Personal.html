@@ -1720,7 +1720,7 @@ Exploratorio de Datos y Visualización).</p>
 modificar</td>
 </tr>
 <tr class="odd">
-<td><a href="DashboardInstruccionesServidorShiny.pdf"><code>DashboardInstruccionesServidorShiny.pdf</code></a></td>
+<td><a href="DashboardInstruccionesServidorShiny.html"><code>DashboardInstruccionesServidorShiny.html</code></a></td>
 <td>Instrucciones para subir y desplegar el cuadro de mandos en el
 servidor Shiny del DIS</td>
 </tr>
@@ -2431,8 +2431,9 @@ dedicas a cada sesión de desarrollo del dashboard.</p>
 <p>El dashboard es <strong>el elemento más importante de la fase de
 Despliegue</strong>. Se construye y se prueba primero <strong>en tu
 ordenador</strong>, y cuando funciona se despliega en el servidor Shiny
-del DIS. Todo el proceso está explicado paso a paso, con capturas, en
-<strong><a href="DashboardInstruccionesServidorShiny.pdf">DashboardInstruccionesServidorShiny.pdf</a></strong>.
+del DIS. Todo el proceso está explicado paso a paso, con WinSCP (o
+Cyberduck/FileZilla en macOS) o con <code>scp</code> y <code>ssh</code>
+desde la consola, en <strong><a href="DashboardInstruccionesServidorShiny.html">DashboardInstruccionesServidorShiny.html</a></strong>.
 En resumen:</p>
 <ol style="list-style-type: decimal">
 <li><strong>Construye el cuadro de mandos en local</strong>, en un
@@ -2448,8 +2449,8 @@ en el servidor Shiny están en MiDIS
 claves del Campus Virtual.</li>
 <li><strong>Sube el <code>.Rmd</code> y sus ficheros de datos</strong> a
 la carpeta <code>aedv</code> de tu cuenta en el servidor
-(<code>10.22.143.222</code>), con WinSCP (lo recomendable) o con
-<code>scp</code> desde la consola.</li>
+(<code>10.22.143.222</code>), con WinSCP o Cyberduck/FileZilla (en
+macOS), o con <code>scp</code> desde la consola.</li>
 <li><strong>Ábrelo en el navegador</strong>:
 <code>http://10.22.143.222:3838/sample-apps/aXXXX/NombreApellido1Dashboard.Rmd</code>,
 sustituyendo <code>aXXXX</code> por tu cuenta del servidor.</li>
@@ -2461,7 +2462,8 @@ sustituyendo <code>aXXXX</code> por tu cuenta del servidor.</li>
 servidor es Linux y distingue mayúsculas de minúsculas en los nombres de
 fichero, que a veces hay que indicar la librería de una función
 (<code>libreria::funcion</code>) y que los errores se consultan en los
-ficheros de log del servidor (PASO 3 del PDF).</p>
+ficheros de log del servidor (Paso 4 de las instrucciones del
+servidor).</p>
 <hr />
 </div>
 </div>

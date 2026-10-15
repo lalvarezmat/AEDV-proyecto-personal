@@ -127,7 +127,7 @@ ENLACE AL CUADRO DE MANDOS
 ================================================================================
 INSTRUCCIONES:
   1. Sube tu fichero NombreApellido1Dashboard.Rmd y sus datos al servidor Shiny
-     del DIS, siguiendo DashboardInstruccionesServidorShiny.pdf (en la carpeta
+     del DIS, siguiendo DashboardInstruccionesServidorShiny.html (en la carpeta
      ProyectoPersonal).
   2. Sustituye en la dirección del enlace "a2405" por tu cuenta del servidor
      Shiny (la consultas en MiDIS: https://www.dis.ulpgc.es/midis/).

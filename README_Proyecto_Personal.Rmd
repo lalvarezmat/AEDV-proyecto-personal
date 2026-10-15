@@ -71,7 +71,7 @@ Esta carpeta contiene todo lo que necesitas para desarrollar el **Proyecto Perso
 | `SelecciónDatasetsProyecto/README_Selección_Tema.html` | guía para la elección del tema del proyecto |
 | `estilos.css` | Estilos visuales — no modificar |
 | `utilidades.R` | Funciones de la asignatura que carga la memoria, entre ellas `aedv_incluir_dataset()` para incorporar los datasets — no modificar |
-| [`DashboardInstruccionesServidorShiny.pdf`](DashboardInstruccionesServidorShiny.pdf) | Instrucciones para subir y desplegar el cuadro de mandos en el servidor Shiny del DIS |
+| [`DashboardInstruccionesServidorShiny.html`](DashboardInstruccionesServidorShiny.html) | Instrucciones para subir y desplegar el cuadro de mandos en el servidor Shiny del DIS |
 
 <div class="nota">
 <strong class="bloque-titulo">Antes de hacer cualquier otra cosa</strong>
@@ -400,15 +400,15 @@ Con frecuencia, para explicar el significado de las variables hace falta **recur
 
 > **Recuerda:** registra en la Google Sheet el tiempo que dedicas a cada sesión de desarrollo del dashboard.
 
-El dashboard es **el elemento más importante de la fase de Despliegue**. Se construye y se prueba primero **en tu ordenador**, y cuando funciona se despliega en el servidor Shiny del DIS. Todo el proceso está explicado paso a paso, con capturas, en **[DashboardInstruccionesServidorShiny.pdf](DashboardInstruccionesServidorShiny.pdf)**. En resumen:
+El dashboard es **el elemento más importante de la fase de Despliegue**. Se construye y se prueba primero **en tu ordenador**, y cuando funciona se despliega en el servidor Shiny del DIS. Todo el proceso está explicado paso a paso, con WinSCP (o Cyberduck/FileZilla en macOS) o con `scp` y `ssh` desde la consola, en **[DashboardInstruccionesServidorShiny.html](DashboardInstruccionesServidorShiny.html)**. En resumen:
 
 1. **Construye el cuadro de mandos en local**, en un fichero `NombreApellido1Dashboard.Rmd` (por ejemplo, `LuisAlvarezDashboard.Rmd`) que lea los ficheros de datos de su misma carpeta, sin rutas.
 2. **Conéctate a la red del DIS.** Desde fuera de su red interna, con la VPN del DIS (`https://www.dis.ulpgc.es/vpn/`). El fichero `.ovpn` de la VPN y el usuario y la contraseña de tu cuenta en el servidor Shiny están en MiDIS (`https://www.dis.ulpgc.es/midis/`), al que se entra con las claves del Campus Virtual.
-3. **Sube el `.Rmd` y sus ficheros de datos** a la carpeta `aedv` de tu cuenta en el servidor (`10.22.143.222`), con WinSCP (lo recomendable) o con `scp` desde la consola.
+3. **Sube el `.Rmd` y sus ficheros de datos** a la carpeta `aedv` de tu cuenta en el servidor (`10.22.143.222`), con WinSCP o Cyberduck/FileZilla (en macOS), o con `scp` desde la consola.
 4. **Ábrelo en el navegador**: `http://10.22.143.222:3838/sample-apps/aXXXX/NombreApellido1Dashboard.Rmd`, sustituyendo `aXXXX` por tu cuenta del servidor.
 5. **Pega esa URL** en el enlace al inicio de tu memoria (`ModeloMemoriaProyectoPersonalAEDV.Rmd`, línea `[Cuadro de mandos](...)`).
 
-Si funciona en tu ordenador pero no en el servidor, recuerda que el servidor es Linux y distingue mayúsculas de minúsculas en los nombres de fichero, que a veces hay que indicar la librería de una función (`libreria::funcion`) y que los errores se consultan en los ficheros de log del servidor (PASO 3 del PDF).
+Si funciona en tu ordenador pero no en el servidor, recuerda que el servidor es Linux y distingue mayúsculas de minúsculas en los nombres de fichero, que a veces hay que indicar la librería de una función (`libreria::funcion`) y que los errores se consultan en los ficheros de log del servidor (Paso 4 de las instrucciones del servidor).
 
 ---
 
