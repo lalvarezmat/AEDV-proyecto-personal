@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-10-14" />
+<meta name="date" content="2026-10-15" />
 
 <title>Proyecto Personal AEDV — Guía de trabajo</title>
 
@@ -1617,7 +1617,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Proyecto Personal AEDV — Guía de
 trabajo</h1>
-<h4 class="date">2026-10-14</h4>
+<h4 class="date">2026-10-15</h4>
 
 </div>
 
@@ -1873,6 +1873,46 @@ figuran en <code>README_Proyecto_Personal.Rmd</code>.</p>
 de cada envío. Esto no sustituye la revisión del profesor, pero ayuda a
 detectar a tiempo los errores graves que llevarían a un rechazo de la
 entrega.</p>
+</div>
+<div class="discusion">
+<p><strong class="bloque-titulo">Revisa tú el documento: se nota cuando
+no se ha hecho</strong></p>
+<p>No se evalúa si has usado la IA, sino si el documento es tuyo: si lo
+has <strong>leído, entendido y corregido</strong>. Al evaluar se tendrán
+en cuenta, como indicios de un documento no revisado:</p>
+<ul>
+<li><strong>Texto excesivamente largo, retórico o
+grandilocuente</strong>: cada frase debe decir algo concreto sobre tus
+datos.</li>
+<li><strong>Preguntas de investigación enrevesadas</strong> o que tus
+datos no pueden responder.</li>
+<li><strong>Afirmaciones no justificadas</strong> por un gráfico o una
+tabla de la memoria, y en especial las <strong>causales</strong> basadas
+solo en una correlación.</li>
+<li><strong>Texto que no coincide con los resultados</strong> (cifras
+distintas de las de las tablas o los gráficos, gráficos citados que no
+están) e <strong>interpretaciones genéricas</strong> que valdrían para
+cualquier dataset.</li>
+<li><strong>Técnicas de análisis que no se ven en el libro</strong> y
+<strong>código que no sigue su estilo</strong> (por ejemplo,
+<code>%&gt;%</code> en vez de <code>|&gt;</code>, o programar desde cero
+lo que ya resuelve <code>utilidades.R</code>).</li>
+<li><strong>Restos de la conversación con la IA</strong> («¡Claro! Aquí
+tienes…») y comentarios o títulos en inglés.</li>
+<li><strong>Bibliografía que no existe o no se ha consultado</strong>
+(referencias inventadas por la IA).</li>
+<li><strong>Código sobrante</strong>: librerías cargadas que no se usan,
+funciones definidas que no se llaman, chunks que no aportan nada a la
+memoria.</li>
+<li><strong>Comentarios de código excesivos u obvios</strong>, que
+explican lo que tú no habrías escrito.</li>
+<li><strong>Gráficos generados por la IA con errores graves sin
+revisar</strong>: los errores a evitar en las gráficas están en el área
+<em>Visualizaciones en la memoria</em> de la rúbrica.</li>
+</ul>
+<p>Estos aspectos <strong>afectan a la calificación del
+proyecto</strong> y, si el resultado es muy deficiente, <strong>la
+entrega puede calificarse como NO APTA</strong>.</p>
 </div>
 <hr />
 </div>
@@ -2411,7 +2451,7 @@ profesor durante el periodo lectivo.</p>
 <div id="rúbrica-de-evaluación-rubricaevaluaciónproyectopersonal.xlsx" class="section level1" number="5">
 <h1><span class="header-section-number">5</span> Rúbrica de evaluación
 (<code>RubricaEvaluaciónProyectoPersonal.xlsx</code>)</h1>
-<p>La evaluación del proyecto personal se estructura en torno a 28
+<p>La evaluación del proyecto personal se estructura en torno a 29
 criterios agrupados en siete áreas. Cada criterio se valora como
 <strong>No Satisfactorio</strong>, <strong>Satisfactorio</strong> o
 <strong>Sobresaliente</strong>. La columna E1/E2/E3 indica en qué
@@ -2457,29 +2497,37 @@ todos los datasets, y evolucionan con el análisis</td>
 <td align="center">✓</td>
 </tr>
 <tr class="even">
+<td>3</td>
+<td>Documento revisado por el alumno: sin texto, código ni gráficas de
+la IA sin revisar</td>
+<td align="center">✓</td>
+<td align="center">✓</td>
+<td align="center">✓</td>
+</tr>
+<tr class="odd">
 <td></td>
 <td><strong><em>Entrega y formato técnico</em></strong></td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center"></td>
 </tr>
-<tr class="odd">
-<td>3</td>
+<tr class="even">
+<td>4</td>
 <td>Entrega memoria html + Rmd compilable, datos en RDS</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 </tr>
-<tr class="even">
-<td>4</td>
+<tr class="odd">
+<td>5</td>
 <td>Enlace al Dashboard en el servidor Shiny del DIS + entrega de su
 <code>.Rmd</code></td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center">✓</td>
 </tr>
-<tr class="odd">
-<td>5</td>
+<tr class="even">
+<td>6</td>
 <td>Nombre de archivos correcto (<code>NombreApellido1Memoria</code>,
 <code>NombreApellido1Dashboard</code>), ficheros sueltos sin
 comprimir</td>
@@ -2487,49 +2535,49 @@ comprimir</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td></td>
 <td><strong><em>Texto y estructura de la memoria</em></strong></td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center"></td>
 </tr>
-<tr class="odd">
-<td>6</td>
-<td>Texto atractivo, bien formateado, sin rastros de R</td>
-<td align="center">✓</td>
-<td align="center">✓</td>
-<td align="center">✓</td>
-</tr>
 <tr class="even">
 <td>7</td>
-<td>Texto coherente con hilo conductor común</td>
+<td>Texto atractivo, bien formateado, sin rastros de R</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 </tr>
 <tr class="odd">
 <td>8</td>
+<td>Texto coherente con hilo conductor común</td>
+<td align="center">✓</td>
+<td align="center">✓</td>
+<td align="center">✓</td>
+</tr>
+<tr class="even">
+<td>9</td>
 <td>Todas las secciones completadas siguiendo CRISP-DM</td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center">✓</td>
 </tr>
-<tr class="even">
-<td>9</td>
+<tr class="odd">
+<td>10</td>
 <td>Cada cosa en la sección que le corresponde</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 </tr>
-<tr class="odd">
-<td>10</td>
+<tr class="even">
+<td>11</td>
 <td>Aportaciones y conclusiones coherentes con el trabajo</td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center">✓</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td></td>
 <td><strong><em>Comprensión y preparación de los
 datos</em></strong></td>
@@ -2537,149 +2585,149 @@ datos</em></strong></td>
 <td align="center"></td>
 <td align="center"></td>
 </tr>
-<tr class="odd">
-<td>11</td>
+<tr class="even">
+<td>12</td>
 <td>Información, origen y fiabilidad de los datasets</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 </tr>
-<tr class="even">
-<td>12</td>
+<tr class="odd">
+<td>13</td>
 <td>Descripción detallada del procesado inicial de datos</td>
 <td align="center"></td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 </tr>
-<tr class="odd">
-<td>13</td>
+<tr class="even">
+<td>14</td>
 <td>Conceptos manejados claros desde el principio</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 </tr>
-<tr class="even">
-<td>14</td>
+<tr class="odd">
+<td>15</td>
 <td>Elección correcta de atributos para PCA</td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center">✓</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td></td>
 <td><strong><em>Visualizaciones en la memoria</em></strong></td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center"></td>
 </tr>
-<tr class="even">
-<td>15</td>
-<td>Primeras gráficas ilustran los conceptos de forma general</td>
-<td align="center"></td>
-<td align="center">✓</td>
-<td align="center">✓</td>
-</tr>
 <tr class="odd">
 <td>16</td>
-<td>Gráficas de calidad profesional, sin solapamientos y
-autocontenidas</td>
+<td>Primeras gráficas ilustran los conceptos de forma general</td>
 <td align="center"></td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 </tr>
 <tr class="even">
 <td>17</td>
+<td>Gráficas de calidad profesional, sin solapamientos y
+autocontenidas</td>
+<td align="center"></td>
+<td align="center">✓</td>
+<td align="center">✓</td>
+</tr>
+<tr class="odd">
+<td>18</td>
 <td>Todas las gráficas dinámicas con identificación</td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center">✓</td>
 </tr>
-<tr class="odd">
-<td>18</td>
+<tr class="even">
+<td>19</td>
 <td>No repetir la misma gráfica con datos distintos</td>
 <td align="center"></td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 </tr>
-<tr class="even">
-<td>19</td>
+<tr class="odd">
+<td>20</td>
 <td>Tipos requeridos: disco, barra, HeatMap, caja</td>
 <td align="center"></td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td></td>
 <td><strong><em>Dashboard</em></strong></td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center"></td>
 </tr>
-<tr class="even">
-<td>20</td>
-<td>Dashboard bien diseñado, cubre todas las variables</td>
-<td align="center"></td>
-<td align="center"></td>
-<td align="center">✓</td>
-</tr>
 <tr class="odd">
 <td>21</td>
-<td>Dashboard: series temporales con <code>facet_wrap</code></td>
+<td>Dashboard bien diseñado, cubre todas las variables</td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center">✓</td>
 </tr>
 <tr class="even">
 <td>22</td>
-<td>Dashboard: modelos ARIMA</td>
+<td>Dashboard: series temporales con <code>facet_wrap</code></td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center">✓</td>
 </tr>
 <tr class="odd">
 <td>23</td>
-<td>Dashboard: mapas coropléticos</td>
+<td>Dashboard: modelos ARIMA</td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center">✓</td>
 </tr>
 <tr class="even">
 <td>24</td>
-<td>Dashboard: comparación de atributos con Yeo-Johnson</td>
+<td>Dashboard: mapas coropléticos</td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center">✓</td>
 </tr>
 <tr class="odd">
 <td>25</td>
-<td>Dashboard: matriz de correlación y PCA</td>
+<td>Dashboard: comparación de atributos con Yeo-Johnson</td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center">✓</td>
 </tr>
 <tr class="even">
 <td>26</td>
-<td>Dashboard: variables fijadas dinámicamente con Inputs</td>
+<td>Dashboard: matriz de correlación y PCA</td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center">✓</td>
 </tr>
 <tr class="odd">
+<td>27</td>
+<td>Dashboard: variables fijadas dinámicamente con Inputs</td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">✓</td>
+</tr>
+<tr class="even">
 <td></td>
 <td><strong><em>Seguimiento y dedicación</em></strong></td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center"></td>
 </tr>
-<tr class="even">
-<td>27</td>
+<tr class="odd">
+<td>28</td>
 <td>Uso de Google Sheet para control de dedicación</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
 </tr>
-<tr class="odd">
-<td>28</td>
+<tr class="even">
+<td>29</td>
 <td>Coherencia entre horas dedicadas y trabajo realizado</td>
 <td align="center">✓</td>
 <td align="center">✓</td>
@@ -2700,7 +2748,7 @@ pensamiento crítico y dominio del tema. Un proyecto técnicamente
 correcto pero superficial no alcanza la calificación máxima.</p>
 </div>
 <ul>
-<li><strong>Preguntas de investigación.</strong> El proyecto plantea
+<li><p><strong>Preguntas de investigación.</strong> El proyecto plantea
 preguntas de investigación interesantes, concretas y que se pueden
 responder con los datos, y la elección de los datasets se justifica a
 partir de ellas (la estrategia de selección y el uso de la IA se
@@ -2711,7 +2759,15 @@ investigación es un dataset sin justificar. Las preguntas iniciales de
 la Entrega 1 se van refinando por iteraciones a partir del análisis de
 los datos, y las de la memoria final se responden una a una en las
 <em>Conclusiones</em>. Un proyecto cuyo único argumento es que el
-dataset cumple los requisitos de AEDV no supera este criterio.</li>
+dataset cumple los requisitos de AEDV no supera este criterio.</p></li>
+<li><p><strong>Documento revisado por el alumno.</strong> El texto, el
+código y las gráficas deben mostrar que has leído, entendido y corregido
+todo lo que entregas, también lo que hayas generado con ayuda de la IA.
+Los indicios de un documento no revisado que se tienen en cuenta están
+en el recuadro <em>Revisa tú el documento: se nota cuando no se ha
+hecho</em>, en <em>Qué tienes que entregar</em>. Este criterio afecta a
+la calificación del proyecto y, si el resultado es muy deficiente, la
+entrega puede calificarse como <strong>NO APTA</strong>.</p></li>
 </ul>
 <p>Un proyecto de calidad sobresaliente integra los datos con una
 narrativa coherente, extrae conclusiones no triviales, aplica
@@ -2861,6 +2917,19 @@ similar y ajústalo si hay muchas categorías. Además, cada gráfica debe
 ser <strong>autocontenida</strong>: entenderse sin ambigüedad con la
 sola información que aparece en ella; si hace falta, añade un
 <code>fig.cap</code> en el chunk para explicarla mejor.</p>
+<p><strong>Errores graves a evitar en las gráficas:</strong></p>
+<ul>
+<li>Demasiada información para el tipo de gráfico.</li>
+<li>Ausencia de títulos o subtítulos (los gráficos deben ser
+autocontenidos).</li>
+<li>Texto demasiado pequeño.</li>
+<li>Texto que se solapa o se sale de la zona visible.</li>
+<li>Colores mal elegidos o poco representativos.</li>
+<li>Leyendas innecesarias, que repiten una clasificación que ya se ve en
+el gráfico.</li>
+<li>Relación ancho/alto del gráfico inadecuada
+(<code>fig.asp</code>).</li>
+</ul>
 <div class="discusion">
 <p><strong class="bloque-titulo">Requisito para que el proyecto sea
 APTO</strong></p>
