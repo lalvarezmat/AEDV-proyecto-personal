@@ -467,12 +467,12 @@ La evaluación del proyecto personal se estructura en torno a 29 criterios agrup
 | 19 | No repetir la misma gráfica con datos distintos | | ✓ | ✓ |
 | 20 | Tipos requeridos: disco, barra, HeatMap, caja | | ✓ | ✓ |
 | | ***Dashboard*** | | | |
-| 21 | Dashboard bien diseñado, cubre todas las variables | | | ✓ |
+| 21 | Dashboard bien diseñado, cubre todas las variables e incluye los cinco cuadros de mandos de referencia | | | ✓ |
 | 22 | Dashboard: series temporales con `facet_wrap` | | | ✓ |
-| 23 | Dashboard: modelos ARIMA | | | ✓ |
+| 23 | Dashboard: predicción con ARIMA o STL + ARIMA | | | ✓ |
 | 24 | Dashboard: mapas coropléticos | | | ✓ |
-| 25 | Dashboard: comparación de atributos con Yeo-Johnson | | | ✓ |
-| 26 | Dashboard: matriz de correlación y PCA | | | ✓ |
+| 25 | Dashboard: comparación de dos atributos con Yeo-Johnson | | | ✓ |
+| 26 | Dashboard: matriz de correlación, PCA y k-means | | | ✓ |
 | 27 | Dashboard: variables fijadas dinámicamente con Inputs | | | ✓ |
 | | ***Seguimiento y dedicación*** | | | |
 | 28 | Uso de Google Sheet para control de dedicación | ✓ | ✓ | ✓ |
@@ -610,17 +610,17 @@ El dashboard del alumno debe incluir **obligatoriamente, como páginas, los cinc
 
 </div>
 
-- **Bien diseñado e ilustra los datos en su máxima generalidad.** El dashboard no es un subconjunto de la memoria: debe permitir explorar todas las variables originales del dataset, no solo las que se analizaron en la memoria. El diseño visual debe ser limpio, con paneles bien organizados y controles intuitivos.
+- **Bien diseñado e ilustra los datos en su máxima generalidad.** El dashboard no es un subconjunto de la memoria: debe permitir explorar todas las variables originales del dataset, no solo las que se analizaron en la memoria. El diseño visual debe ser limpio, con paneles bien organizados y controles intuitivos. Además, debe incluir como páginas los cinco cuadros de mandos de referencia adaptados a sus datos (recuadro de arriba).
 
-- **Series temporales con `facet_wrap` y selección múltiple de atributos.** Debe existir un panel de exploración profunda de series temporales que reparta los datos en gráficas individuales con `facet_wrap` (por ejemplo, una por región) y que además permita **dibujar varios atributos dentro de cada gráfica individual**. Esto permite al usuario hacer comparaciones rápidas entre variables. Referencia: [Dashboard_exploracion_series.Rmd](https://ctim.es/AEDV/Dashboard_exploracion_series.Rmd).
+- **Series temporales con `facet_wrap` y selección múltiple de atributos.** Debe existir un panel de exploración profunda de series temporales que reparta los datos en gráficas individuales con `facet_wrap`, una por cada opción del atributo principal (por ejemplo, una por región), y que permita **dibujar varios atributos (o combinaciones de atributos) dentro de cada gráfica individual**. Los controles permiten elegir qué opciones se dibujan, el número de filas y columnas de gráficas por página y si la escala del eje y es libre. Esto permite al usuario hacer comparaciones rápidas entre variables. Referencia: [Dashboard_exploracion_series.Rmd](https://ctim.es/AEDV/Dashboard_exploracion_series.Rmd).
 
-- **Modelos ARIMA.** El dashboard debe incluir al menos un panel con modelado ARIMA interactivo: el usuario selecciona la serie y el modelo hace la predicción. Se valora que se muestren los parámetros del modelo y el intervalo de confianza de la predicción. Referencia: [Dashboard_prediccion_series.Rmd](https://ctim.es/AEDV/Dashboard_prediccion_series.Rmd).
+- **Predicción de series temporales con ARIMA.** El dashboard debe incluir al menos un panel de predicción interactivo: el usuario elige la serie, el método (ARIMA o STL + ARIMA) y el tramo de la serie con el que se ajusta el modelo, y el panel muestra la predicción con su intervalo, el error del ajuste y los tests de ruido blanco de los residuos. Referencia: [Dashboard_prediccion_series.Rmd](https://ctim.es/AEDV/Dashboard_prediccion_series.Rmd).
 
-- **Mapas coropléticos.** Las variables deben poder visualizarse sobre un mapa. Para datos de Canarias usa `sf` con los límites municipales o insulares; para datos del Banco Mundial usa mapas de países. El mapa debe ser interactivo (tooltip al pasar el ratón) y permitir cambiar la variable representada. Referencia: [Dashboard_mapa_coropletico.Rmd](https://ctim.es/AEDV/Dashboard_mapa_coropletico.Rmd).
+- **Mapas coropléticos.** Las variables deben poder visualizarse sobre un mapa interactivo, que muestre el valor de cada área al pasar el ratón y permita cambiar la variable representada. Usa la geometría que corresponda al nivel de tus datos: municipios, islas, provincias o comunidades autónomas para datos de Canarias o de España, y países para datos del Banco Mundial. Referencia: [Dashboard_mapa_coropletico.Rmd](https://ctim.es/AEDV/Dashboard_mapa_coropletico.Rmd).
 
-- **Comparación de atributos con Yeo-Johnson.** El dashboard debe incluir un panel que permita comparar distribuciones de atributos aplicando la transformación Yeo-Johnson para normalizar variables asimétricas. Esto facilita comparar variables con escalas muy distintas. Referencia: [Dashboard_atributos_comparacion.Rmd](https://ctim.es/AEDV/Dashboard_atributos_comparacion.Rmd).
+- **Comparación de atributos con Yeo-Johnson.** El dashboard debe incluir un panel que compare dos atributos con su diagrama de dispersión y la recta de regresión, permita transformarlos (en particular con Yeo-Johnson, tanto para normalizar cada variable como para buscar el mejor ajuste lineal entre las dos) y muestre el error del ajuste y los tests sobre los residuos. Referencia: [Dashboard_atributos_comparacion.Rmd](https://ctim.es/AEDV/Dashboard_atributos_comparacion.Rmd).
 
-- **Matriz de correlación y PCA.** Debe haber un panel de análisis multivariante que incluya la matriz de correlación entre atributos y un biplot de PCA. Ambos deben ser interactivos y responder a la selección de variables o años. Referencia: [Dashboard_atributos_analisis.Rmd](https://ctim.es/AEDV/Dashboard_atributos_analisis.Rmd).
+- **Matriz de correlación, PCA y k-means.** Debe haber un panel de análisis multivariante de los atributos con los datos originales y tipificados, la matriz de correlación, las componentes principales (varianza explicada, loadings y biplot) y el agrupamiento con k-means, que responda a la selección del ámbito geográfico, la variable y el número de grupos, con la opción de aplicar Yeo-Johnson. La matriz de correlación debe ser interactiva; el biplot y el k-means pueden ser estáticos. Referencia: [Dashboard_atributos_analisis.Rmd](https://ctim.es/AEDV/Dashboard_atributos_analisis.Rmd).
 
 - **Variables fijadas dinámicamente con Inputs.** Todas las variables del dashboard deben controlarse mediante Inputs interactivos (selectores, sliders, etc.). No se deben fijar valores a mano en el código: el usuario ha de poder cambiar la variable, el año o la región desde la interfaz.
 
