@@ -17,7 +17,45 @@ h2 { font-size: 18px; }
 h3 { font-size: 16px; }
 body { font-size: 14px; }
 p { font-size: 14px; margin-bottom: 10px; }
+/* Botón para mostrar u ocultar el índice de la izquierda */
+#boton-indice {
+  position: fixed; top: 10px; right: 12px; z-index: 1000;
+  padding: 2px 8px; font-size: 16px; line-height: 1.4; cursor: pointer;
+  background: #fff; border: 1px solid #ccc; border-radius: 4px;
+}
+#boton-indice:hover { background: #f2f2f2; }
+/* Con el índice oculto, el texto ocupa todo el ancho (solo en pantallas anchas) */
+@media (min-width: 768px) {
+  body.sin-indice .main-container > .row > div:first-child { display: none; }
+  body.sin-indice .toc-content { width: 100%; }
+}
+/* En el móvil el índice va arriba, no al lado: el botón sobra y el índice se ve siempre */
+@media (max-width: 767px) { #boton-indice { display: none; } }
 </style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  var boton = document.createElement("button");
+  boton.id = "boton-indice";
+  function actualizar() {
+    var oculto = document.body.classList.contains("sin-indice");
+    boton.textContent = "☰";
+    boton.title = oculto ? "Mostrar índice" : "Ocultar índice";
+    boton.setAttribute("aria-label", boton.title);
+  }
+  boton.addEventListener("click", function () {
+    document.body.classList.toggle("sin-indice");
+    actualizar();
+    try { localStorage.setItem("readme-sin-indice", document.body.classList.contains("sin-indice") ? "1" : "0"); } catch (e) {}
+  });
+  // Índice oculto por defecto, salvo que el lector lo haya dejado visible
+  var visible = false;
+  try { visible = localStorage.getItem("readme-sin-indice") === "0"; } catch (e) {}
+  if (!visible) document.body.classList.add("sin-indice");
+  actualizar();
+  document.body.appendChild(boton);
+});
+</script>
 
 # ¿Qué contiene esta carpeta?
 
