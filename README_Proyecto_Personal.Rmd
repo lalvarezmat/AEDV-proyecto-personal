@@ -600,7 +600,7 @@ El dashboard es el entregable técnico más exigente. Debe estar desplegado y ac
 <div class="discusion">
 <strong class="bloque-titulo">Los cuadros de mandos de referencia son obligatorios</strong>
 
-El dashboard del alumno debe incluir **obligatoriamente, como páginas, los cinco cuadros de mandos de referencia de la asignatura, adaptados a sus datos**. Cada uno cubre uno de los apartados de abajo, donde aparece enlazado para descargarlo:
+Tu dashboard debe incluir **obligatoriamente, como páginas, los cinco cuadros de mandos de referencia de la asignatura, adaptados a tus datos**. Puedes descargarlos desde estos enlaces:
 
 * [Dashboard_exploracion_series.Rmd](https://ctim.es/AEDV/Dashboard_exploracion_series.Rmd): exploración de series temporales.
 * [Dashboard_prediccion_series.Rmd](https://ctim.es/AEDV/Dashboard_prediccion_series.Rmd): predicción de series temporales con ARIMA.
@@ -621,22 +621,13 @@ Un dashboard con varias páginas puede tardar en abrirse, porque al arrancar se 
 2. **No calcules todas las páginas de golpe.** Pon en cada página un botón para calcular, rellenar o actualizar sus resultados (`actionButton()` con `eventReactive()`): así, al abrir el dashboard no se calcula nada, y cada página solo hace sus cuentas cuando el usuario lo pide.
 3. **Carga lo común una sola vez, en el chunk `global`.** En un flexdashboard con Shiny, el chunk llamado `global` (```` ```{r global, include=FALSE} ````) se ejecuta una sola vez y lo comparten todos los usuarios. Pon ahí las librerías, `utilidades.R` y la lectura de los datos, y lee los datos **una sola vez** aunque los usen varias páginas.
 4. **Quédate solo con lo que necesitas.** Antes de guardar el `.rds`, quita las columnas y filas que el dashboard no usa. Con los mapas, recorta la geometría a las áreas de tus datos: es lo que se envía al navegador cada vez que se dibuja el mapa.
-5. **Calcula bajo demanda.** No prepares de antemano todas las combinaciones posibles: si hay cientos de series, extrae la serie elegida cuando el usuario la selecciona, en lugar de separarlas todas al arrancar.
-6. **No cargues librerías que no uses**, y prefiere los ficheros locales (subidos al servidor junto al dashboard) a las descargas desde una URL, que son más lentas y, fuera del chunk `global`, se repiten cada vez que alguien abre el dashboard.
+5. **No cargues librerías que no uses**, y prefiere los ficheros locales (subidos al servidor junto al dashboard) a las descargas desde una URL, que son más lentas y, fuera del chunk `global`, se repiten cada vez que alguien abre el dashboard.
 
 </div>
 
-- **Bien diseñado e ilustra los datos en su máxima generalidad.** El dashboard no es un subconjunto de la memoria: debe permitir explorar todas las variables originales del dataset, no solo las que se analizaron en la memoria. El diseño visual debe ser limpio, con paneles bien organizados y controles intuitivos. Además, debe incluir como páginas los cinco cuadros de mandos de referencia adaptados a sus datos (recuadro de arriba).
+- **Bien diseñado e ilustra los datos en su máxima generalidad.** El dashboard no es un subconjunto de la memoria: debe permitir explorar todas las variables originales del dataset, no solo las que se analizaron en la memoria. El diseño visual debe ser limpio, con paneles bien organizados y controles intuitivos. Además, debe incluir, como mínimo, las páginas de los cinco cuadros de mandos de referencia adaptados a tus datos (recuadro de arriba).
 
-- **Series temporales con `facet_wrap` y selección múltiple de atributos.** Debe existir un panel de exploración profunda de series temporales que reparta los datos en gráficas individuales con `facet_wrap`, una por cada opción del atributo principal (por ejemplo, una por región), y que permita **dibujar varios atributos (o combinaciones de atributos) dentro de cada gráfica individual**. Los controles permiten elegir qué opciones se dibujan, el número de filas y columnas de gráficas por página y si la escala del eje y es libre. Esto permite al usuario hacer comparaciones rápidas entre variables. Referencia: [Dashboard_exploracion_series.Rmd](https://ctim.es/AEDV/Dashboard_exploracion_series.Rmd).
 
-- **Predicción de series temporales con ARIMA.** El dashboard debe incluir al menos un panel de predicción interactivo: el usuario elige la serie, el método (ARIMA o STL + ARIMA) y el tramo de la serie con el que se ajusta el modelo, y el panel muestra la predicción con su intervalo, el error del ajuste y los tests de ruido blanco de los residuos. Referencia: [Dashboard_prediccion_series.Rmd](https://ctim.es/AEDV/Dashboard_prediccion_series.Rmd).
-
-- **Mapas coropléticos.** Las variables deben poder visualizarse sobre un mapa interactivo, que muestre el valor de cada área al pasar el ratón y permita cambiar la variable representada. Usa la geometría que corresponda al nivel de tus datos: municipios, islas, provincias o comunidades autónomas para datos de Canarias o de España, y países para datos del Banco Mundial. Referencia: [Dashboard_mapa_coropletico.Rmd](https://ctim.es/AEDV/Dashboard_mapa_coropletico.Rmd).
-
-- **Comparación de atributos con Yeo-Johnson.** El dashboard debe incluir un panel que compare dos atributos con su diagrama de dispersión y la recta de regresión, permita transformarlos (en particular con Yeo-Johnson, tanto para normalizar cada variable como para buscar el mejor ajuste lineal entre las dos) y muestre el error del ajuste y los tests sobre los residuos. Referencia: [Dashboard_atributos_comparacion.Rmd](https://ctim.es/AEDV/Dashboard_atributos_comparacion.Rmd).
-
-- **Matriz de correlación, PCA y k-means.** Debe haber un panel de análisis multivariante de los atributos con los datos originales y tipificados, la matriz de correlación, las componentes principales (varianza explicada, loadings y biplot) y el agrupamiento con k-means, que responda a la selección del ámbito geográfico, la variable y el número de grupos, con la opción de aplicar Yeo-Johnson. La matriz de correlación debe ser interactiva; el biplot y el k-means pueden ser estáticos. Referencia: [Dashboard_atributos_analisis.Rmd](https://ctim.es/AEDV/Dashboard_atributos_analisis.Rmd).
 
 - **Variables fijadas dinámicamente con Inputs.** Todas las variables del dashboard deben controlarse mediante Inputs interactivos (selectores, sliders, etc.). No se deben fijar valores a mano en el código: el usuario ha de poder cambiar la variable, el año o la región desde la interfaz.
 
