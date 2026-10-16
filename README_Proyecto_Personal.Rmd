@@ -608,6 +608,22 @@ El dashboard del alumno debe incluir **obligatoriamente, como páginas, los cinc
 * [Dashboard_atributos_comparacion.Rmd](https://ctim.es/AEDV/Dashboard_atributos_comparacion.Rmd): comparación de atributos con Yeo-Johnson.
 * [Dashboard_atributos_analisis.Rmd](https://ctim.es/AEDV/Dashboard_atributos_analisis.Rmd): matriz de correlación, PCA y k-means.
 
+Como **ejemplo mínimo** de un dashboard que reúne las cinco páginas aplicadas a un mismo dataset tienes [Dashboard_eurostat_gasto_publico.Rmd](https://ctim.es/AEDV/Dashboard_eurostat_gasto_publico.Rmd), con el gasto público por sectores de Eurostat. Cada página elige cada atributo (país, sector, medida, año) con su propio desplegable y ofrece todas las opciones de los datos. Es un punto de partida: tu dashboard tiene que cubrir **todas las variables de tu dataset**, con el mismo criterio.
+
+</div>
+
+<div class="nota">
+<strong class="bloque-titulo">La carga del dashboard puede ser lenta: cómo acelerarla</strong>
+
+Un dashboard con varias páginas puede tardar en abrirse, porque al arrancar se ejecuta todo el documento: se cargan las librerías, se leen los datos y se calculan todas las páginas. Algunas estrategias sencillas para acelerarlo (el ejemplo mínimo de arriba aplica casi todas):
+
+1. **Guarda los datos ya preprocesados en un `.rds`.** Si antes de usar los datos los filtras, cambias de formato o unes tablas, haz ese preprocesado una sola vez fuera del dashboard, guarda el resultado con `saveRDS()` y, en el dashboard, carga directamente esa tabla procesada con `readRDS()`.
+2. **No calcules todas las páginas de golpe.** Pon en cada página un botón para calcular, rellenar o actualizar sus resultados (`actionButton()` con `eventReactive()`): así, al abrir el dashboard no se calcula nada, y cada página solo hace sus cuentas cuando el usuario lo pide.
+3. **Carga lo común una sola vez, en el chunk `global`.** En un flexdashboard con Shiny, el chunk llamado `global` (```` ```{r global, include=FALSE} ````) se ejecuta una sola vez y lo comparten todos los usuarios. Pon ahí las librerías, `utilidades.R` y la lectura de los datos, y lee los datos **una sola vez** aunque los usen varias páginas.
+4. **Quédate solo con lo que necesitas.** Antes de guardar el `.rds`, quita las columnas y filas que el dashboard no usa. Con los mapas, recorta la geometría a las áreas de tus datos: es lo que se envía al navegador cada vez que se dibuja el mapa.
+5. **Calcula bajo demanda.** No prepares de antemano todas las combinaciones posibles: si hay cientos de series, extrae la serie elegida cuando el usuario la selecciona, en lugar de separarlas todas al arrancar.
+6. **No cargues librerías que no uses**, y prefiere los ficheros locales (subidos al servidor junto al dashboard) a las descargas desde una URL, que son más lentas y, fuera del chunk `global`, se repiten cada vez que alguien abre el dashboard.
+
 </div>
 
 - **Bien diseñado e ilustra los datos en su máxima generalidad.** El dashboard no es un subconjunto de la memoria: debe permitir explorar todas las variables originales del dataset, no solo las que se analizaron en la memoria. El diseño visual debe ser limpio, con paneles bien organizados y controles intuitivos. Además, debe incluir como páginas los cinco cuadros de mandos de referencia adaptados a sus datos (recuadro de arriba).

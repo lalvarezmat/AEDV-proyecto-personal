@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-10-15" />
+<meta name="date" content="2026-10-16" />
 
 <title>Proyecto Personal AEDV — Guía de trabajo</title>
 
@@ -1617,7 +1617,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Proyecto Personal AEDV — Guía de
 trabajo</h1>
-<h4 class="date">2026-10-15</h4>
+<h4 class="date">2026-10-16</h4>
 
 </div>
 
@@ -3097,6 +3097,54 @@ comparación de atributos con Yeo-Johnson.</li>
 <li><a href="https://ctim.es/AEDV/Dashboard_atributos_analisis.Rmd">Dashboard_atributos_analisis.Rmd</a>:
 matriz de correlación, PCA y k-means.</li>
 </ul>
+<p>Como <strong>ejemplo mínimo</strong> de un dashboard que reúne las
+cinco páginas aplicadas a un mismo dataset tienes <a href="https://ctim.es/AEDV/Dashboard_eurostat_gasto_publico.Rmd">Dashboard_eurostat_gasto_publico.Rmd</a>,
+con el gasto público por sectores de Eurostat. Cada página elige cada
+atributo (país, sector, medida, año) con su propio desplegable y ofrece
+todas las opciones de los datos. Es un punto de partida: tu dashboard
+tiene que cubrir <strong>todas las variables de tu dataset</strong>, con
+el mismo criterio.</p>
+</div>
+<div class="nota">
+<p><strong class="bloque-titulo">La carga del dashboard puede ser lenta:
+cómo acelerarla</strong></p>
+<p>Un dashboard con varias páginas puede tardar en abrirse, porque al
+arrancar se ejecuta todo el documento: se cargan las librerías, se leen
+los datos y se calculan todas las páginas. Algunas estrategias sencillas
+para acelerarlo (el ejemplo mínimo de arriba aplica casi todas):</p>
+<ol style="list-style-type: decimal">
+<li><strong>Guarda los datos ya preprocesados en un
+<code>.rds</code>.</strong> Si antes de usar los datos los filtras,
+cambias de formato o unes tablas, haz ese preprocesado una sola vez
+fuera del dashboard, guarda el resultado con <code>saveRDS()</code> y,
+en el dashboard, carga directamente esa tabla procesada con
+<code>readRDS()</code>.</li>
+<li><strong>No calcules todas las páginas de golpe.</strong> Pon en cada
+página un botón para calcular, rellenar o actualizar sus resultados
+(<code>actionButton()</code> con <code>eventReactive()</code>): así, al
+abrir el dashboard no se calcula nada, y cada página solo hace sus
+cuentas cuando el usuario lo pide.</li>
+<li><strong>Carga lo común una sola vez, en el chunk
+<code>global</code>.</strong> En un flexdashboard con Shiny, el chunk
+llamado <code>global</code> (<code>```{r global, include=FALSE}</code>)
+se ejecuta una sola vez y lo comparten todos los usuarios. Pon ahí las
+librerías, <code>utilidades.R</code> y la lectura de los datos, y lee
+los datos <strong>una sola vez</strong> aunque los usen varias
+páginas.</li>
+<li><strong>Quédate solo con lo que necesitas.</strong> Antes de guardar
+el <code>.rds</code>, quita las columnas y filas que el dashboard no
+usa. Con los mapas, recorta la geometría a las áreas de tus datos: es lo
+que se envía al navegador cada vez que se dibuja el mapa.</li>
+<li><strong>Calcula bajo demanda.</strong> No prepares de antemano todas
+las combinaciones posibles: si hay cientos de series, extrae la serie
+elegida cuando el usuario la selecciona, en lugar de separarlas todas al
+arrancar.</li>
+<li><strong>No cargues librerías que no uses</strong>, y prefiere los
+ficheros locales (subidos al servidor junto al dashboard) a las
+descargas desde una URL, que son más lentas y, fuera del chunk
+<code>global</code>, se repiten cada vez que alguien abre el
+dashboard.</li>
+</ol>
 </div>
 <ul>
 <li><p><strong>Bien diseñado e ilustra los datos en su máxima
