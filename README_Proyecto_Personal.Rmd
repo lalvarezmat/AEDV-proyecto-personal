@@ -169,6 +169,7 @@ Adapta el número de entrega (1, 2 o 3) y repite la comprobación antes de cada 
 No se evalúa si has usado la IA, sino si el documento es tuyo: si lo has **leído, entendido y corregido**. Al evaluar se tendrán en cuenta, como indicios de un documento no revisado:
 
 * **Texto excesivamente largo, retórico o grandilocuente**: cada frase debe decir algo concreto sobre tus datos.
+* **Lenguaje ajeno a la asignatura**: hay que usar un lenguaje sencillo, acorde a la forma de expresar los conceptos en la asignatura. Expresiones como «insesgadez», «normalidad de las innovaciones», «naturaleza univariante y ausencia de covariables» o «esta partición aporta evidencia empírica directa» no se usan en el libro: si la IA te las propone, escríbelas como se explican en clase (por ejemplo, «media cero de los residuos» o «normalidad de los residuos»).
 * **Preguntas de investigación enrevesadas** o que tus datos no pueden responder.
 * **Afirmaciones no justificadas** por un gráfico o una tabla de la memoria.
 * **Texto que no coincide con los resultados** (cifras distintas de las de las tablas o los gráficos, gráficos citados que no están) e **interpretaciones genéricas** que valdrían para cualquier dataset.
