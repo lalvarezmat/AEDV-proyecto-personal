@@ -105,7 +105,7 @@ Acredita que el tema elegido es viable e interesante y que los datos seleccionad
 
 Corresponde a los contenidos del primer parcial del curso. En esta entrega se revisan los apartados de la Entrega 1 —en particular las **preguntas de investigación**, que se ajustan a lo que ha ido mostrando el análisis— y se añade una primera versión de los siguientes:
 
-* **3.5 Preparación de los datos**: limpieza, transformaciones y combinación de tablas, y presentación de los primeros resultados con **gráficos estáticos** (`ggplot2`). Ver sección [Visualizaciones en la memoria](#visualizaciones-en-la-memoria). 
+* **3.5 Preparación de los datos**: limpieza, transformaciones y combinación de tablas, y presentación de los primeros resultados con **gráficos estáticos** (`ggplot2`). **La primera gráfica debe mostrar la evolución temporal de las series originales de los indicadores principales con `facet_wrap`**, antes de cualquier gráfico de detalle. Ver sección [Visualizaciones en la memoria](#visualizaciones-en-la-memoria). 
 * **3.6 Modelado**: modelado de series temporales con STL, ARIMA y STL+ARIMA.
 * **3.7 Evaluación**: discusión de la calidad del ajuste de estos modelos en términos de las métricas de ajuste y los tests de validación de los residuos. Comentar si fue necesario usar STL+ARIMA o aplicar transformaciones a la serie para mejorar los resultados del ARIMA.
 
@@ -465,7 +465,7 @@ La evaluación del proyecto personal se estructura en torno a 29 criterios agrup
 | 17 | Gráficas de calidad profesional, sin solapamientos y autocontenidas | | ✓ | ✓ |
 | 18 | Todas las gráficas dinámicas con identificación | | | ✓ |
 | 19 | No repetir la misma gráfica con datos distintos | | ✓ | ✓ |
-| 20 | Tipos requeridos: disco, barra, HeatMap, caja | | ✓ | ✓ |
+| 20 | Tipos requeridos: series temporales con `facet_wrap`, disco, barra, HeatMap, caja | | ✓ | ✓ |
 | | ***Dashboard*** | | | |
 | 21 | Dashboard bien diseñado, cubre todas las variables e incluye los cinco cuadros de mandos de referencia | | | ✓ |
 | 22 | Dashboard: series temporales con `facet_wrap` | | | ✓ |
@@ -546,7 +546,7 @@ El evaluador comprueba que el alumno entiende los datos que está usando, no sol
 
 Las gráficas son el elemento más visible de la memoria. Una mala gráfica comunica más descuido que páginas de texto.
 
-- **Las primeras gráficas ilustran los conceptos de forma general y clara.** No se debe empezar el análisis con gráficas muy detalladas o de subconjuntos específicos. Las primeras visualizaciones deben dar una visión global del fenómeno estudiado antes de entrar en detalles. Una buena idea suele ser empezar presentado la evolución de algunas series temporales usando `facet_wrap` 
+- **Las primeras gráficas ilustran los conceptos de forma general y clara.** No se debe empezar el análisis con gráficas muy detalladas o de subconjuntos específicos. Las primeras visualizaciones deben dar una visión global del fenómeno estudiado antes de entrar en detalles. Hay que empezar presentando la evolución de las series temporales originales usando `facet_wrap`.
 
 - **Calidad profesional: sin textos solapados ni códigos visibles, y autocontenidas.** Los ejes deben tener etiquetas legibles, sin textos solapados ni cortados, las leyendas no deben solaparse con los datos y los títulos deben ser informativos. El tamaño de fuente debe ser legible: usa `theme_minimal()` o similar y ajústalo si hay muchas categorías. Además, cada gráfica debe ser **autocontenida**: entenderse sin ambigüedad con la sola información que aparece en ella; si hace falta, añade un `fig.cap` en el chunk para explicarla mejor.
 
@@ -577,7 +577,7 @@ Las gráficas son el elemento más visible de la memoria. Una mala gráfica comu
 
 - **No repetir la misma gráfica cambiando los datos.** Si una gráfica de serie temporal funciona bien para un atributo, no la repitas para otros cinco atributos consecutivos con el mismo código. Usa `facet_wrap` o presenta un selector interactivo en el dashboard.
 
-- **Gráficas de disco, barra, HeatMap y diagramas de caja en la memoria.** La memoria debe incluir al menos estos cuatro tipos de gráficas. Cada tipo tiene un propósito: los diagramas de caja para distribuciones y comparación entre grupos, los HeatMaps para correlaciones o evolución temporal cruzada, los de disco para proporciones, y los de barra para comparaciones categóricas.
+- **Series temporales con `facet_wrap`, gráficas de disco, barra, HeatMap y diagramas de caja en la memoria.** La memoria debe incluir al menos estos cinco tipos de gráficas. Cada tipo tiene un propósito: las series temporales con `facet_wrap` para la visión general de la evolución de los indicadores (es la primera gráfica de la memoria), los diagramas de caja para distribuciones y comparación entre grupos, los HeatMaps para correlaciones o evolución temporal cruzada, los de disco para proporciones, y los de barra para comparaciones categóricas.
 
 - **Tablas grandes: recortadas y con scroll.** Una tabla con muchas filas o columnas mostrada entera ocupa demasiado espacio en la memoria sin aportar nada. Si su tamaño es excesivo, **recórtala** antes de mostrarla: quédate con las columnas relevantes (`select()`) y con las primeras filas (`slice(1:10)`) o las que interesen (`filter()`). Después, **envuelve el chunk en `<div class="tabla-scroll-xy">`** (estilo definido en `estilos.css`): la tabla se muestra con la cabecera fija y unas pocas filas a la vista, y el resto se recorre con barras de desplazamiento horizontal y vertical. Deja una línea en blanco antes y después del chunk, y termina la tabla con `knitr::kable()`: sin él, la tabla sale como texto de consola y el recuadro no tiene nada que desplazar. Por ejemplo:
 

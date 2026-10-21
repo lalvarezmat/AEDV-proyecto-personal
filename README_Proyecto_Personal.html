@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-10-16" />
+<meta name="date" content="2026-10-21" />
 
 <title>Proyecto Personal AEDV — Guía de trabajo</title>
 
@@ -1617,7 +1617,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Proyecto Personal AEDV — Guía de
 trabajo</h1>
-<h4 class="date">2026-10-16</h4>
+<h4 class="date">2026-10-21</h4>
 
 </div>
 
@@ -1800,7 +1800,10 @@ siguientes:</p>
 <li><strong>3.5 Preparación de los datos</strong>: limpieza,
 transformaciones y combinación de tablas, y presentación de los primeros
 resultados con <strong>gráficos estáticos</strong>
-(<code>ggplot2</code>). Ver sección <a href="#visualizaciones-en-la-memoria">Visualizaciones en la
+(<code>ggplot2</code>). <strong>La primera gráfica debe mostrar la
+evolución temporal de las series originales de los indicadores
+principales con <code>facet_wrap</code></strong>, antes de cualquier
+gráfico de detalle. Ver sección <a href="#visualizaciones-en-la-memoria">Visualizaciones en la
 memoria</a>.</li>
 <li><strong>3.6 Modelado</strong>: modelado de series temporales con
 STL, ARIMA y STL+ARIMA.</li>
@@ -2726,7 +2729,8 @@ autocontenidas</td>
 </tr>
 <tr class="odd">
 <td>20</td>
-<td>Tipos requeridos: disco, barra, HeatMap, caja</td>
+<td>Tipos requeridos: series temporales con <code>facet_wrap</code>,
+disco, barra, HeatMap, caja</td>
 <td align="center"></td>
 <td align="center">✓</td>
 <td align="center">✓</td>
@@ -2983,9 +2987,8 @@ gráfica comunica más descuido que páginas de texto.</p>
 general y clara.</strong> No se debe empezar el análisis con gráficas
 muy detalladas o de subconjuntos específicos. Las primeras
 visualizaciones deben dar una visión global del fenómeno estudiado antes
-de entrar en detalles. Una buena idea suele ser empezar presentado la
-evolución de algunas series temporales usando
-<code>facet_wrap</code></p></li>
+de entrar en detalles. Hay que empezar presentando la evolución de las
+series temporales originales usando <code>facet_wrap</code>.</p></li>
 <li><p><strong>Calidad profesional: sin textos solapados ni códigos
 visibles, y autocontenidas.</strong> Los ejes deben tener etiquetas
 legibles, sin textos solapados ni cortados, las leyendas no deben
@@ -3044,12 +3047,15 @@ Si una gráfica de serie temporal funciona bien para un atributo, no la
 repitas para otros cinco atributos consecutivos con el mismo código. Usa
 <code>facet_wrap</code> o presenta un selector interactivo en el
 dashboard.</p></li>
-<li><p><strong>Gráficas de disco, barra, HeatMap y diagramas de caja en
-la memoria.</strong> La memoria debe incluir al menos estos cuatro tipos
-de gráficas. Cada tipo tiene un propósito: los diagramas de caja para
-distribuciones y comparación entre grupos, los HeatMaps para
-correlaciones o evolución temporal cruzada, los de disco para
-proporciones, y los de barra para comparaciones categóricas.</p></li>
+<li><p><strong>Series temporales con <code>facet_wrap</code>, gráficas
+de disco, barra, HeatMap y diagramas de caja en la memoria.</strong> La
+memoria debe incluir al menos estos cinco tipos de gráficas. Cada tipo
+tiene un propósito: las series temporales con <code>facet_wrap</code>
+para la visión general de la evolución de los indicadores (es la primera
+gráfica de la memoria), los diagramas de caja para distribuciones y
+comparación entre grupos, los HeatMaps para correlaciones o evolución
+temporal cruzada, los de disco para proporciones, y los de barra para
+comparaciones categóricas.</p></li>
 <li><p><strong>Tablas grandes: recortadas y con scroll.</strong> Una
 tabla con muchas filas o columnas mostrada entera ocupa demasiado
 espacio en la memoria sin aportar nada. Si su tamaño es excesivo,
