@@ -178,7 +178,9 @@ A continuación haz **Knit** (`Ctrl+Shift+K`). Todos los `*_DatasetSelection.Rmd
 | `<nombre>.rds` | Los datos ya limpios, en el formato nativo de R |
 | `<nombre>_metadatos.xlsx` | La ficha del dataset (su fila del catálogo), para tenerla a mano sin volver al Excel grande |
 
-El `<nombre>` es el **código del dataset** en INE (`76136.rds`) y EUROSTAT (`demo_r_pjanaggr3.rds`), y un nombre fijo en las fuentes que combinan varios indicadores: `ISTAC_Selected` y `WB_Selected`.
+El `<nombre>` es el **código del dataset** en INE (`76136.rds`) y EUROSTAT (`demo_r_pjanaggr3.rds`). En las fuentes que combinan varios indicadores es el valor de la variable `filename`, que está en el mismo chunk que `IDS` y por omisión vale `ISTAC_Selected` o `WB_Selected`.
+
+> **Si validas dos selecciones distintas de ISTAC o de Banco Mundial** (por ejemplo, un grupo de indicadores principal y otro auxiliar), **cambia `filename` antes de compilar la segunda**, por ejemplo `filename <- "ISTAC_vehiculos"`. Si no lo cambias, la segunda compilación sobrescribe el `.rds`, el `_metadatos.xlsx` y el `_analisis.Rmd` de la primera, y en la memoria no podrías incluir las dos.
 
 **Mitad 3b — análisis del dataset.** Vuelve a **leer esos dos ficheros del disco** y a partir de ahí hace todo el análisis:
 

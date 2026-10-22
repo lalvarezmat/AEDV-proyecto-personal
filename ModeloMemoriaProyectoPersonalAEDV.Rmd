@@ -131,7 +131,8 @@ INSTRUCCIONES:
      ProyectoPersonal).
   2. Sustituye en la dirección del enlace "a2405" por tu cuenta del servidor
      Shiny (la consultas en MiDIS: https://www.dis.ulpgc.es/midis/).
-  3. Sustituye "Dashboard3.Rmd" por el nombre exacto de tu fichero de dashboard.
+  3. Sustituye "NombreApellido1Dashboard.Rmd" por el nombre exacto de tu fichero
+     de dashboard (por ejemplo, LuisAlvarezDashboard.Rmd).
   4. El cuadro de mandos SOLO es accesible desde la red del DIS o usando su VPN
      (https://www.dis.ulpgc.es/vpn/).
 
@@ -141,7 +142,7 @@ operativa en el momento de la entrega final.
 ================================================================================
 -->
 
-[Cuadro de mandos](http://10.22.143.222:3838/sample-apps/a2405/Dashboard3.Rmd)
+[Cuadro de mandos](http://10.22.143.222:3838/sample-apps/a2405/NombreApellido1Dashboard.Rmd)
 
 
 <!--
@@ -181,7 +182,7 @@ Se usa para resaltar una discusión/comparación/resultados previos
 Se usa para resaltar resultados de nuestro proyecto
 </div>
 
-NOTA: BORRAR O PONER ENTRE COMENTARIOS ESTOS EJEMPLOS DE FORMATEO UNA VEZ ENTENDIDOS LOS EJEMPLO 
+NOTA: BORRAR O PONER ENTRE COMENTARIOS ESTOS EJEMPLOS DE FORMATEO UNA VEZ ENTENDIDOS LOS EJEMPLOS
 
 
 
@@ -241,7 +242,7 @@ CONTENIDO ESPERADO:
   - Oportunidad: ¿por qué es especialmente oportuno abordar este tema ahora?
     (datos recién disponibles, cambio regulatorio, evento reciente, etc.)
 
-CONSEJO: La motivación es el apartado más personal del trabajo. Redactalo en
+CONSEJO: La motivación es el apartado más personal del trabajo. Redáctalo en
 primera persona y con autenticidad. Una motivación bien argumentada hace más
 convincente el resto del proyecto.
 
@@ -489,7 +490,7 @@ Utilizaremos la metodología de desarrollo CRISP-DM (Cross Industry Standard Pro
 
 <center>
 <img src="https://ctim.es/AEDV/1200px-CRISP-DM_Process_Diagram1.5x.png" width="40%" />
-<p style="font-size: 14px; color: gray;"><em>Figura 2. Diagrama de la metodología de desarrollo CRISP-DM.</em></p>
+<p style="font-size: 14px; color: gray;"><em>Figura 1. Diagrama de la metodología de desarrollo CRISP-DM.</em></p>
 </center>
 
 * **Comprensión del negocio**. A partir de los objetivos y las preguntas de investigación del proyecto, se realiza la búsqueda y evaluación de fuentes de información y datos, y se describe la estrategia seguida para seleccionar los datasets, incluido el uso de la IA.
@@ -634,7 +635,7 @@ CONTENIDO ESPERADO (aborda cada punto que sea aplicable a tu dataset):
    - Inconsistencias: cambios de nombre, unidades distintas en diferentes períodos,
      filas duplicadas, codificaciones diferentes para el mismo valor.
    - IMPORTANTE: solo se identifican, NO se decide cómo tratarlos (eso va en Preparación).
-   - HERRAMIENTAS ÚTILES para este diagnóstico (ver capítulo 2 del libro):
+   - HERRAMIENTAS ÚTILES para este diagnóstico (ver capítulo 3 del libro, «Procesado de datos»):
        skim(tabla)          -> resumen completo: tipos, NA y distribución por columna
        gg_miss_var(tabla)   -> gráfico de valores faltantes por variable
        clean_names(tabla)   -> normaliza nombres de columnas problemáticos
@@ -691,7 +692,7 @@ Es **muy importante** tener en cuenta lo siguiente:
 
 * Debe quedar claro que la colección de datos utilizada cumple con los requisitos de AEDV
 
-* Es especialmente **importante e indispensable** que todos los conceptos que aparecen en los datasets utilizados estén perfectamente explicados:  contenido del dataset, que se se mide, significado de las variables categóricas y significado de todas las opciones de las variables categóricas especialmente cuando son conceptos técnicos. 
+* Es especialmente **importante e indispensable** que todos los conceptos que aparecen en los datasets utilizados estén perfectamente explicados:  contenido del dataset, qué se mide, significado de las variables categóricas y significado de todas las opciones de las variables categóricas especialmente cuando son conceptos técnicos. 
 
 NOTA: ESTA NOTA SE BORRA O SE  PONE ENTRE COMENTARIOS UNA VEZ CUMPLIMENTADO EL APARTADO. 
 </div>
@@ -794,9 +795,9 @@ CONTENIDO ESPERADO:
 
 1. JUSTIFICACIÓN DE LOS MODELOS ELEGIDOS
    - ¿Por qué has elegido estos modelos y no otros?
-   - ¿Qué supuestos deben cumplirse para que el modelo sea válido?
-     (normalidad, homocedasticidad, ausencia de autocorrelación, etc.)
-   - ¿Has verificado previamente que esos supuestos se cumplen en tus datos?
+   - El análisis de los residuos de los modelos (si se comportan como ruido
+     blanco: media cero, normalidad, homocedasticidad y ausencia de
+     autocorrelación) NO va aquí, sino en la sección de Evaluación.
 
 2. DESCRIPCIÓN Y APLICACIÓN DE CADA MODELO
    Usa las técnicas del libro de la asignatura y, cuando existan, las funciones
@@ -827,8 +828,9 @@ NOTA SOBRE ITERATIVIDAD (CRISP-DM):
 Si durante el modelado detectas que los datos necesitan una transformación
 adicional, una variable nueva o un filtrado diferente al realizado en la fase
 de Preparación, documenta aquí el hallazgo y el motivo del retorno:
-  "El diagnóstico de residuos reveló heterocedasticidad, por lo que se aplicó
-   transformación logarítmica a la variable Y (ver Preparación, apartado 4)."
+  "La descomposición STL mostró que la amplitud de la estacionalidad crece con
+   el nivel de la serie, por lo que se aplicó una transformación logarítmica a
+   la variable Y (ver Preparación, apartado 4)."
 Referenciar explícitamente la sección de Preparación donde se realizó el
 ajuste hace visible la iteración y mantiene la coherencia del documento.
 
@@ -860,6 +862,10 @@ CONTENIDO ESPERADO:
      resultados del ARIMA? ¿Por qué?
    - Si lo has usado, compara los métodos con la validación cruzada temporal
      del libro (aedv_cv_arima(), aedv_cv_stl_arima()).
+   - Si los residuos no se comportan como ruido blanco (por ejemplo, su
+     varianza cambia con el tiempo), vuelve a Preparación o a Modelado,
+     aplica el cambio (una transformación, STL + ARIMA...) y documenta la
+     iteración en las dos secciones.
 
 2. ANÁLISIS DE ATRIBUTOS (Entrega 3)
    - Ajustes lineales: calidad del ajuste y análisis de su error
@@ -1053,7 +1059,7 @@ CON SU INDICADOR. Si la referencia es un enlace web hay que añadir las fechas d
 ================================================================================
 -->
 
-[[Al26](https://luisalvarezmat-aedv.share.connect.posit.cloud/)] Álvarez Luis. *Análisis Exploratorio de Datos y Visualización*, posit.cloud, 2026. (diversas consultas entre el Enero Septiembre y Diciembre d 2026)
+[[Al26](https://luisalvarezmat-aedv.share.connect.posit.cloud/)] Álvarez Luis. *Análisis Exploratorio de Datos y Visualización*, posit.cloud, 2026. (diversas consultas entre septiembre y diciembre de 2026)
 
 
 # Anexo I. Agentes de IA utilizados y organización del trabajo con la IA {-}
@@ -1145,7 +1151,7 @@ no un dato medido; justifica los valores extremos en el comentario.
 | Redacción de la memoria | Redacción de estado del arte | ×5 |
 | Redacción de la memoria | Revisión de estilo y coherencia del texto | ×2 |
 
-*El listado de fases/temas y los factores son orientativos, sustituyelos en base a tu experiencia real.*
+*El listado de fases/temas y los factores son orientativos, sustitúyelos en base a tu experiencia real.*
 
 
 
@@ -1162,10 +1168,12 @@ ANEXO: SEGUIMIENTO TEMPORAL DE ACTIVIDADES
 INSTRUCCIONES PARA CONFIGURAR EL SEGUIMIENTO:
 
 PASO 1 - OBTENER LA GOOGLE SHEET:
-  Descarga la plantilla de seguimiento desde el Campus Virtual. Abre la plantilla 
-  en el navegador dándote de alta en una cuenta tuya de Google. Realiza 
-  una copia local del archivo (menú superior Archivo -> "Hacer una copia"). 
-  
+  Abre la plantilla de seguimiento (el enlace está en el Paso 0 de
+  README_Proyecto_Personal) en el navegador, con una cuenta tuya de Google, y
+  haz una copia en tu Google Drive (menú superior Archivo -> "Hacer una copia").
+  La plantilla trae unas filas de ejemplo: BÓRRALAS en tu copia antes de
+  registrar tu primera sesión de trabajo.
+
 
 PASO 2 - COMPARTIR EN MODO LECTURA:
   En Google Sheets: Archivo → Compartir → Compartir con otras personas
@@ -1181,12 +1189,16 @@ OBLIGACIONES DE REGISTRO:
   ✓ En una entrega NO pueden aparecer sesiones con fechas anteriores a la
     entrega anterior. Cada entrega es un corte temporal verificable.
 
-ESTRUCTURA DE LA GOOGLE SHEET (columnas esperadas):
-  - ACTIVITY : categoría de la actividad (debe coincidir con los valores del
-               vector "actividades" definido en el chunk de abajo)
-  - START     : fecha de inicio de la sesión (formato YYYY-MM-DD)
-  - MINUTES   : duración de la sesión en minutos
-  - NOTES     : descripción breve de lo realizado (opcional pero recomendable)
+ESTRUCTURA DE LA GOOGLE SHEET (columnas de la plantilla):
+  - START         : fecha y hora de inicio de la sesión (se rellena sola al
+                    elegir la actividad)
+  - END           : fecha y hora de fin de la sesión (se rellena sola al
+                    escribir el comentario final)
+  - MINUTES       : duración de la sesión en minutos (se calcula sola)
+  - ACTIVITY      : actividad de la sesión (debe coincidir con los valores del
+                    vector "actividades" definido en el chunk de abajo)
+  - FINAL COMMENT : descripción breve de lo realizado; al escribirlo se cierra
+                    la sesión
 ================================================================================
 -->
 

@@ -12,7 +12,6 @@ Autor: Luis Álvarez.
 |---|---|
 | `README_Proyecto_Personal.html` | **Empieza aquí** — guía de trabajo: entregas, seguimiento y rúbrica |
 | `ModeloMemoriaProyectoPersonalAEDV.Rmd` / `.html` | Plantilla de memoria que copia y rellena cada alumno |
-| `RubricaEvaluaciónProyectoPersonal.xlsx` | Criterios de evaluación (29 criterios en 7 áreas) |
 | `estilos.css` | Estilos de la memoria; debe acompañar al `.Rmd` |
 | `utilidades.R` | Funciones de la asignatura, entre ellas `aedv_incluir_dataset()`, que incorpora los datasets a la memoria; debe acompañar al `.Rmd` |
 | `DashboardInstruccionesServidorShiny.Rmd` / `.html` | Instrucciones para subir y desplegar el cuadro de mandos en el servidor Shiny del DIS |

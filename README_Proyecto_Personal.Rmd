@@ -66,7 +66,6 @@ Esta carpeta contiene todo lo que necesitas para desarrollar el **Proyecto Perso
 | `README_Proyecto_Personal.html` | **Empieza aquí** — esta guía en formato legible |
 | `ModeloMemoriaProyectoPersonalAEDV.html` | Vista previa de la plantilla de memoria |
 | `ModeloMemoriaProyectoPersonalAEDV.Rmd` | Plantilla que abres en RStudio para escribir tu proyecto |
-| `RubricaEvaluaciónProyectoPersonal.xlsx` | Criterios de evaluación de las tres entregas |
 | `SelecciónDatasetsProyecto/` | Herramientas para elegir y validar tus datos |
 | `SelecciónDatasetsProyecto/README_Selección_Tema.html` | guía para la elección del tema del proyecto |
 | `estilos.css` | Estilos visuales — no modificar |
@@ -88,7 +87,7 @@ El proyecto personal se desarrolla en **tres entregas progresivas**:
 <div class="resultado">
 <strong class="bloque-titulo">Las tres entregas del proyecto</strong>
 
-Las entregas no son tres trozos independientes de la memoria, sino **tres versiones sucesivas del mismo documento**. El trabajo se hace **por iteraciones**, igual que en la metodología CRISP-DM: en cada entrega se añaden apartados nuevos y, a la vez, se **revisan y mejoran los ya entregados**, a partir de los comentarios del profesor y las técnicas que se vayan aprendiendo en la asignatura. Un apartado entregado en la Entrega 1 no queda cerrado: se vuelve a él tantas veces como haga falta. De la misma forma cada evaluación pasa por todos los apartados y puede solicitar en apartados ya evaluados anteriormente. 
+Las entregas no son tres trozos independientes de la memoria, sino **tres versiones sucesivas del mismo documento**. El trabajo se hace **por iteraciones**, igual que en la metodología CRISP-DM: en cada entrega se añaden apartados nuevos y, a la vez, se **revisan y mejoran los ya entregados**, a partir de los comentarios del profesor y las técnicas que se vayan aprendiendo en la asignatura. Un apartado entregado en la Entrega 1 no queda cerrado: se vuelve a él tantas veces como haga falta. De la misma forma, cada evaluación pasa por todos los apartados y puede pedir cambios en apartados ya evaluados anteriormente.
 
 **Entrega 1 — Validación del tema y datasets**
 
@@ -119,10 +118,10 @@ Es la versión final de la memoria: se completan y revisan **todos** los apartad
 * **2. Aportaciones del trabajo**: 2.1 Principales aportaciones y 2.2 Alineamiento con los objetivos de desarrollo sostenible.
 * **3.1 Herramientas empleadas** y **3.2 Metodología**, adaptadas a tu proyecto.
 * **3.5 Preparación de los datos**, revisada: todos los gráficos estáticos de la Entrega 2 se pasarán a **dinámicos** (`plotly`).
-* **3.6 Modelado**: añadir al modelo el análisis de atributos: correlación, transformada Yeo-Johnson, PCA, k-means.
-* **3.7 Evaluación**: añadir discusión calidad resultados obtenidos del análisis de atributos 
-* **3.8 Despliegue**: descripción del cuadro de mandos a nivel de diseño. 
-* **4. Conclusiones y trabajo futuro**, que debe incluir, en particular, las respuestas a cada una a las preguntas de investigación.
+* **3.6 Modelado**: añadir al modelado el análisis de atributos: correlación, transformada Yeo-Johnson, PCA, k-means.
+* **3.7 Evaluación**: añadir la discusión de la calidad de los resultados obtenidos en el análisis de atributos.
+* **3.8 Despliegue**: descripción del cuadro de mandos a nivel de diseño.
+* **4. Conclusiones y trabajo futuro**, que debe incluir, en particular, las respuestas a cada una de las preguntas de investigación.
 * **Bibliografía** y **Anexo I. Agentes de IA utilizados y organización del trabajo con la IA**.
 
 El cuadro de mandos interactivo debe estar desplegado en el servidor Shiny del DIS, y su enlace, activo y accesible desde la red del DIS o su VPN en el momento de la corrección.
@@ -201,8 +200,9 @@ El tiempo dedicado al proyecto es un requisito evaluable. Debes registrar **cada
 
 1. Descarga la [plantilla de seguimiento](https://docs.google.com/spreadsheets/d/1w07FWlS3cwTad0mZa_Tanl-LL32IPEQXUqNPXmslpSs/edit?gid=0#gid=0).
 2. Ábrela en el navegador y haz una **copia en tu Google Drive** (Archivo → Hacer una copia).
-3. Comparte la hoja en **modo lectura pública**: Archivo → Compartir → Cualquier persona con el enlace puede ver → Copiar enlace.
-4. En `ModeloMemoriaProyectoPersonalAEDV.Rmd`, localiza el chunk `seguimiento-lectura` y **sustituye la URL** por la tuya:
+3. **Borra en tu copia las filas de ejemplo** que trae la plantilla, para que solo queden tus sesiones de trabajo.
+4. Comparte la hoja en **modo lectura pública**: Archivo → Compartir → Cualquier persona con el enlace puede ver → Copiar enlace.
+5. En tu memoria (la copia de `ModeloMemoriaProyectoPersonalAEDV.Rmd` que preparas en el Paso 2), localiza el chunk `seguimiento-lectura` y **sustituye la URL** por la tuya:
 
 ```r
 SeguimientoActividadesProyecto <- read_sheet(
@@ -303,7 +303,9 @@ Las preguntas de la Entrega 1 son un **punto de partida, no una versión definit
 
 ## Paso 2 — Configura tu memoria
 
-Abre `ModeloMemoriaProyectoPersonalAEDV.Rmd` en RStudio y personaliza la cabecera:
+1. Crea una **carpeta de trabajo propia** para el proyecto, fuera de la carpeta `ProyectoPersonal` que te has descargado.
+2. Copia en ella `ModeloMemoriaProyectoPersonalAEDV.Rmd` con el nombre **`NombreApellido1Memoria.Rmd`** (por ejemplo, `LuisAlvarezMemoria.Rmd`), junto con `estilos.css` y `utilidades.R`, que la memoria necesita para compilar. En esa misma carpeta irán después los ficheros de tus datasets y el `.Rmd` del cuadro de mandos.
+3. Abre `NombreApellido1Memoria.Rmd` en RStudio y personaliza la cabecera:
 
 ```r
 title: "Mi título de Proyecto Personal"   # ← tu título
@@ -352,7 +354,7 @@ La memoria sigue la metodología de desarrollo **CRISP-DM** (Cross Industry Stan
 
 Esta es la **etapa 4 (incorporación)** del flujo de selección de datos del Paso 1. Al compilarse, cada `*_DatasetSelection.Rmd` guarda, junto a los datos, un fichero **`<nombre>_analisis.Rmd`** con su sección **Análisis del dataset** (la etapa 3b) preparada para la memoria, y termina con una sección, *Incorporación del dataset a la memoria*, que indica exactamente qué ficheros copiar y qué chunk pegar. Los pasos son dos:
 
-1. **Copia a la carpeta donde está `ModeloMemoriaProyectoPersonalAEDV.Rmd` los ficheros del dataset**: el `.rds` (o los `.rds`), el `_metadatos.xlsx` y el `_analisis.Rmd`. En esa carpeta tiene que estar también `utilidades.R` (viene en la carpeta `ProyectoPersonal`, junto al modelo de memoria), que la memoria carga en su chunk de librerías con `source("utilidades.R")`.
+1. **Copia a la carpeta de tu memoria (`NombreApellido1Memoria.Rmd`) los ficheros del dataset**: el `.rds` (o los `.rds`), el `_metadatos.xlsx` y el `_analisis.Rmd`. En esa carpeta tiene que estar también `utilidades.R` (viene en la carpeta `ProyectoPersonal`, junto al modelo de memoria), que la memoria carga en su chunk de librerías con `source("utilidades.R")`.
 2. **Pega en la sección *Comprensión de los datos* de la memoria el chunk que indica el `*_DatasetSelection.Rmd`**, cambiando el nombre de la tabla por uno que describa el dataset. Por ejemplo:
 
 ````
@@ -408,7 +410,7 @@ El dashboard es **el elemento más importante de la fase de Despliegue**. Se con
 2. **Conéctate a la red del DIS.** Desde fuera de su red interna, con la VPN del DIS (`https://www.dis.ulpgc.es/vpn/`). El fichero `.ovpn` de la VPN y el usuario y la contraseña de tu cuenta en el servidor Shiny están en MiDIS (`https://www.dis.ulpgc.es/midis/`), al que se entra con las claves del Campus Virtual.
 3. **Sube el `.Rmd` y sus ficheros de datos** a la carpeta de tu cuenta en el servidor (`10.22.143.222`), con WinSCP o Cyberduck/FileZilla (en macOS), o con `scp` desde la consola.
 4. **Ábrelo en el navegador**: `http://10.22.143.222:3838/sample-apps/aXXXX/NombreApellido1Dashboard.Rmd`, sustituyendo `aXXXX` por tu cuenta del servidor.
-5. **Pega esa URL** en el enlace al inicio de tu memoria (`ModeloMemoriaProyectoPersonalAEDV.Rmd`, línea `[Cuadro de mandos](...)`).
+5. **Pega esa URL** en el enlace al inicio de tu memoria (`NombreApellido1Memoria.Rmd`, línea `[Cuadro de mandos](...)`).
 
 Si funciona en tu ordenador pero no en el servidor, recuerda que el servidor es Linux y distingue mayúsculas de minúsculas en los nombres de fichero, que a veces hay que indicar la librería de una función (`libreria::funcion`) y que los errores se consultan en los ficheros de log del servidor (Paso 4 de las instrucciones del servidor).
 
@@ -437,7 +439,7 @@ Para superar la asignatura en un curso académico, todas las entregas deben real
 ---
 
 
-# Rúbrica de evaluación (`RubricaEvaluaciónProyectoPersonal.xlsx`)
+# Rúbrica de evaluación
 
 La evaluación del proyecto personal se estructura en torno a 29 criterios agrupados en siete áreas. Cada criterio se valora como **No Satisfactorio**, **Satisfactorio** o **Sobresaliente**. La columna E1/E2/E3 indica en qué entregas se tiene en cuenta cada criterio.
 

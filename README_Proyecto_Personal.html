@@ -1698,28 +1698,24 @@ Exploratorio de Datos y Visualización).</p>
 <td>Plantilla que abres en RStudio para escribir tu proyecto</td>
 </tr>
 <tr class="even">
-<td><code>RubricaEvaluaciónProyectoPersonal.xlsx</code></td>
-<td>Criterios de evaluación de las tres entregas</td>
-</tr>
-<tr class="odd">
 <td><code>SelecciónDatasetsProyecto/</code></td>
 <td>Herramientas para elegir y validar tus datos</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>SelecciónDatasetsProyecto/README_Selección_Tema.html</code></td>
 <td>guía para la elección del tema del proyecto</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>estilos.css</code></td>
 <td>Estilos visuales — no modificar</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>utilidades.R</code></td>
 <td>Funciones de la asignatura que carga la memoria, entre ellas
 <code>aedv_incluir_dataset()</code> para incorporar los datasets — no
 modificar</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><a href="DashboardInstruccionesServidorShiny.html"><code>DashboardInstruccionesServidorShiny.html</code></a></td>
 <td>Instrucciones para subir y desplegar el cuadro de mandos en el
 servidor Shiny del DIS</td>
@@ -1755,8 +1751,8 @@ metodología CRISP-DM: en cada entrega se añaden apartados nuevos y, a la
 vez, se <strong>revisan y mejoran los ya entregados</strong>, a partir
 de los comentarios del profesor y las técnicas que se vayan aprendiendo
 en la asignatura. Un apartado entregado en la Entrega 1 no queda
-cerrado: se vuelve a él tantas veces como haga falta. De la misma forma
-cada evaluación pasa por todos los apartados y puede solicitar en
+cerrado: se vuelve a él tantas veces como haga falta. De la misma forma,
+cada evaluación pasa por todos los apartados y puede pedir cambios en
 apartados ya evaluados anteriormente.</p>
 <p><strong>Entrega 1 — Validación del tema y datasets</strong></p>
 <p>Acredita que el tema elegido es viable e interesante y que los datos
@@ -1838,14 +1834,14 @@ Metodología</strong>, adaptadas a tu proyecto.</li>
 <li><strong>3.5 Preparación de los datos</strong>, revisada: todos los
 gráficos estáticos de la Entrega 2 se pasarán a
 <strong>dinámicos</strong> (<code>plotly</code>).</li>
-<li><strong>3.6 Modelado</strong>: añadir al modelo el análisis de
+<li><strong>3.6 Modelado</strong>: añadir al modelado el análisis de
 atributos: correlación, transformada Yeo-Johnson, PCA, k-means.</li>
-<li><strong>3.7 Evaluación</strong>: añadir discusión calidad resultados
-obtenidos del análisis de atributos</li>
+<li><strong>3.7 Evaluación</strong>: añadir la discusión de la calidad
+de los resultados obtenidos en el análisis de atributos.</li>
 <li><strong>3.8 Despliegue</strong>: descripción del cuadro de mandos a
 nivel de diseño.</li>
 <li><strong>4. Conclusiones y trabajo futuro</strong>, que debe incluir,
-en particular, las respuestas a cada una a las preguntas de
+en particular, las respuestas a cada una de las preguntas de
 investigación.</li>
 <li><strong>Bibliografía</strong> y <strong>Anexo I. Agentes de IA
 utilizados y organización del trabajo con la IA</strong>.</li>
@@ -2011,12 +2007,15 @@ y deben ser coherentes con las entregas.</p>
 de seguimiento</a>.</li>
 <li>Ábrela en el navegador y haz una <strong>copia en tu Google
 Drive</strong> (Archivo → Hacer una copia).</li>
+<li><strong>Borra en tu copia las filas de ejemplo</strong> que trae la
+plantilla, para que solo queden tus sesiones de trabajo.</li>
 <li>Comparte la hoja en <strong>modo lectura pública</strong>: Archivo →
 Compartir → Cualquier persona con el enlace puede ver → Copiar
 enlace.</li>
-<li>En <code>ModeloMemoriaProyectoPersonalAEDV.Rmd</code>, localiza el
-chunk <code>seguimiento-lectura</code> y <strong>sustituye la
-URL</strong> por la tuya:</li>
+<li>En tu memoria (la copia de
+<code>ModeloMemoriaProyectoPersonalAEDV.Rmd</code> que preparas en el
+Paso 2), localiza el chunk <code>seguimiento-lectura</code> y
+<strong>sustituye la URL</strong> por la tuya:</li>
 </ol>
 <pre class="r"><code>SeguimientoActividadesProyecto &lt;- read_sheet(
   &#39;https://docs.google.com/spreadsheets/d/TU_ENLACE_AQUI/...&#39;
@@ -2231,8 +2230,19 @@ que esas funciones ya resuelven.</p>
 <div id="paso-2-configura-tu-memoria" class="section level2" number="3.3">
 <h2><span class="header-section-number">3.3</span> Paso 2 — Configura tu
 memoria</h2>
-<p>Abre <code>ModeloMemoriaProyectoPersonalAEDV.Rmd</code> en RStudio y
-personaliza la cabecera:</p>
+<ol style="list-style-type: decimal">
+<li>Crea una <strong>carpeta de trabajo propia</strong> para el
+proyecto, fuera de la carpeta <code>ProyectoPersonal</code> que te has
+descargado.</li>
+<li>Copia en ella <code>ModeloMemoriaProyectoPersonalAEDV.Rmd</code> con
+el nombre <strong><code>NombreApellido1Memoria.Rmd</code></strong> (por
+ejemplo, <code>LuisAlvarezMemoria.Rmd</code>), junto con
+<code>estilos.css</code> y <code>utilidades.R</code>, que la memoria
+necesita para compilar. En esa misma carpeta irán después los ficheros
+de tus datasets y el <code>.Rmd</code> del cuadro de mandos.</li>
+<li>Abre <code>NombreApellido1Memoria.Rmd</code> en RStudio y
+personaliza la cabecera:</li>
+</ol>
 <pre class="r"><code>title: &quot;Mi título de Proyecto Personal&quot;   # ← tu título
 author: &quot;Mi nombre y apellidos&quot;           # ← tu nombre</code></pre>
 <p>Activa <strong>“Knit on Save”</strong> (checkbox en la barra de
@@ -2324,8 +2334,8 @@ para la memoria, y termina con una sección, <em>Incorporación del
 dataset a la memoria</em>, que indica exactamente qué ficheros copiar y
 qué chunk pegar. Los pasos son dos:</p>
 <ol style="list-style-type: decimal">
-<li><strong>Copia a la carpeta donde está
-<code>ModeloMemoriaProyectoPersonalAEDV.Rmd</code> los ficheros del
+<li><strong>Copia a la carpeta de tu memoria
+(<code>NombreApellido1Memoria.Rmd</code>) los ficheros del
 dataset</strong>: el <code>.rds</code> (o los <code>.rds</code>), el
 <code>_metadatos.xlsx</code> y el <code>_analisis.Rmd</code>. En esa
 carpeta tiene que estar también <code>utilidades.R</code> (viene en la
@@ -2479,7 +2489,7 @@ consola.</li>
 <code>http://10.22.143.222:3838/sample-apps/aXXXX/NombreApellido1Dashboard.Rmd</code>,
 sustituyendo <code>aXXXX</code> por tu cuenta del servidor.</li>
 <li><strong>Pega esa URL</strong> en el enlace al inicio de tu memoria
-(<code>ModeloMemoriaProyectoPersonalAEDV.Rmd</code>, línea
+(<code>NombreApellido1Memoria.Rmd</code>, línea
 <code>[Cuadro de mandos](...)</code>).</li>
 </ol>
 <p>Si funciona en tu ordenador pero no en el servidor, recuerda que el
@@ -2546,9 +2556,9 @@ profesor durante el periodo lectivo.</p>
 </div>
 <hr />
 </div>
-<div id="rúbrica-de-evaluación-rubricaevaluaciónproyectopersonal.xlsx" class="section level1" number="5">
-<h1><span class="header-section-number">5</span> Rúbrica de evaluación
-(<code>RubricaEvaluaciónProyectoPersonal.xlsx</code>)</h1>
+<div id="rúbrica-de-evaluación" class="section level1" number="5">
+<h1><span class="header-section-number">5</span> Rúbrica de
+evaluación</h1>
 <p>La evaluación del proyecto personal se estructura en torno a 29
 criterios agrupados en siete áreas. Cada criterio se valora como
 <strong>No Satisfactorio</strong>, <strong>Satisfactorio</strong> o

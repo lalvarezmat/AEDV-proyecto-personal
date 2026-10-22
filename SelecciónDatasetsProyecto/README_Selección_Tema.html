@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-10-15" />
+<meta name="date" content="2026-10-22" />
 
 <title>Selección de datasets para el proyecto de AEDV</title>
 
@@ -1617,7 +1617,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Selección de datasets para el proyecto de
 AEDV</h1>
-<h4 class="date">2026-10-15</h4>
+<h4 class="date">2026-10-22</h4>
 
 </div>
 
@@ -2109,9 +2109,20 @@ volver al Excel grande</td>
 </table>
 <p>El <code>&lt;nombre&gt;</code> es el <strong>código del
 dataset</strong> en INE (<code>76136.rds</code>) y EUROSTAT
-(<code>demo_r_pjanaggr3.rds</code>), y un nombre fijo en las fuentes que
-combinan varios indicadores: <code>ISTAC_Selected</code> y
-<code>WB_Selected</code>.</p>
+(<code>demo_r_pjanaggr3.rds</code>). En las fuentes que combinan varios
+indicadores es el valor de la variable <code>filename</code>, que está
+en el mismo chunk que <code>IDS</code> y por omisión vale
+<code>ISTAC_Selected</code> o <code>WB_Selected</code>.</p>
+<blockquote>
+<p><strong>Si validas dos selecciones distintas de ISTAC o de Banco
+Mundial</strong> (por ejemplo, un grupo de indicadores principal y otro
+auxiliar), <strong>cambia <code>filename</code> antes de compilar la
+segunda</strong>, por ejemplo
+<code>filename &lt;- &quot;ISTAC_vehiculos&quot;</code>. Si no lo cambias, la
+segunda compilación sobrescribe el <code>.rds</code>, el
+<code>_metadatos.xlsx</code> y el <code>_analisis.Rmd</code> de la
+primera, y en la memoria no podrías incluir las dos.</p>
+</blockquote>
 <p><strong>Mitad 3b — análisis del dataset.</strong> Vuelve a
 <strong>leer esos dos ficheros del disco</strong> y a partir de ahí hace
 todo el análisis:</p>
