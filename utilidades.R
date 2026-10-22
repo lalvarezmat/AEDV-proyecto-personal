@@ -716,11 +716,19 @@ aedv_pca_loadings_grafico <- function(pca, k) {
 #   rotular_puntos : FALSE rotula solo las variables (flechas); útil con muchos
 #                    elementos, cuyas etiquetas se amontonarían. Los elementos
 #                    de 'resaltar' se rotulan siempre, en negrita junto al círculo.
-# Es un gráfico estático: factoextra no funciona bien con ggplotly().
+#   dinamico       : TRUE devuelve un gráfico interactivo de plotly (ver
+#                    .aedv_pca_biplot_dinamico()): el nombre de cada elemento
+#                    sale en el cuadro emergente en vez de rotularse.
+# La versión estática usa factoextra, que no funciona bien con ggplotly(): pierde
+# los rótulos. Por eso la versión dinámica se construye aparte, con plot_ly().
 aedv_pca_biplot <- function(pca, resaltar = NULL, titulo = "Biplot PCA",
                             labelsize = 4, color_resaltar = "red",
                             grupos = NULL, titulo_grupos = "Grupo",
-                            rotular_puntos = TRUE) {
+                            rotular_puntos = TRUE, dinamico = FALSE) {
+  if (dinamico) {
+    return(.aedv_pca_biplot_dinamico(pca, resaltar, titulo, color_resaltar,
+                                     grupos, titulo_grupos))
+  }
   p <- factoextra::fviz_pca_biplot(pca,
                                    label = if (rotular_puntos) "all" else "var",
                                    repel = TRUE,          # evita que se solapen las etiquetas
@@ -738,6 +746,98 @@ aedv_pca_biplot <- function(pca, resaltar = NULL, titulo = "Biplot PCA",
     p <- p + .aedv_rotulo_resaltar(puntos, resaltar, color_resaltar, labelsize)
   }
   p
+}
+
+# DIAGRAMAS DE CAJAS CON ggplotly(). ggplotly() no respeta el
+# geom_boxplot(outlier.shape = NA) de ggplot2: plotly vuelve a dibujar los
+# atípicos de cada caja, y si además se han dibujado todos los puntos con
+# geom_jitter(), los atípicos salen DOS veces (uno alineado con la caja y otro
+# desplazado). Esta función los hace invisibles en las cajas, y sin cuadro
+# emergente, sin quitarlos: si se quitaran (boxpoints = FALSE), plotly alargaría
+# los bigotes hasta el máximo y el mínimo, que dejarían de seguir la regla de
+# 1,5·IQR. Uso: ggplotly(p) |> aedv_ocultar_atipicos_cajas()
+aedv_ocultar_atipicos_cajas <- function(g) {
+  g <- plotly::plotly_build(g)
+  for (i in seq_along(g$x$data)) {
+    if (identical(g$x$data[[i]]$type, "box")) {
+      g$x$data[[i]]$marker$opacity <- 0  # atípicos de la caja, invisibles
+      g$x$data[[i]]$hoveron <- "boxes"   # y sin cuadro emergente propio
+    }
+  }
+  g
+}
+
+# Resalta en un gráfico de plotly los elementos indicados: un círculo vacío
+# alrededor de su punto y su nombre en negrita encima. Uso interno de las
+# versiones dinámicas de aedv_pca_biplot() y aedv_kmeans_grafico().
+#   puntos : tabla con las columnas name, x, y (coordenadas YA dibujadas)
+.aedv_resaltar_plotly <- function(p, puntos, resaltar, color) {
+  if (length(resaltar) == 0) return(p)
+  faltan <- setdiff(resaltar, puntos$name)
+  if (length(faltan) > 0)
+    stop("No se encuentran para resaltar: ", paste(faltan, collapse = ", "))
+  sel <- puntos[puntos$name %in% resaltar, ]
+  p |>
+    plotly::add_markers(data = sel, x = ~x, y = ~y, hoverinfo = "skip",
+                        showlegend = FALSE, inherit = FALSE,
+                        marker = list(size = 22, color = "rgba(0,0,0,0)",
+                                      line = list(color = color, width = 2.5))) |>
+    plotly::add_annotations(data = sel, x = ~x, y = ~y,
+                            text = ~paste0("<b>", name, "</b>"), showarrow = FALSE,
+                            yshift = 18, font = list(color = color, size = 13))
+}
+
+# Versión dinámica de aedv_pca_biplot(): los elementos son puntos en el plano
+# PC1-PC2 (con su nombre y coordenadas en el cuadro emergente) y cada variable
+# una flecha desde el origen, rotulada con su nombre. Como en fviz_pca_biplot(),
+# los puntos se dibujan con sus coordenadas (pca$x) y las flechas se reescalan
+# para que ocupen buena parte de la nube; el cuadro emergente de la punta de cada
+# flecha da los loadings sin reescalar.
+.aedv_pca_biplot_dinamico <- function(pca, resaltar, titulo, color_resaltar,
+                                      grupos, titulo_grupos) {
+  nombres <- rownames(pca$x)
+  if (is.null(nombres)) nombres <- as.character(seq_len(nrow(pca$x)))
+  puntos <- tibble(name = nombres, x = pca$x[, 1], y = pca$x[, 2])
+  carga  <- tibble(variable = rownames(pca$rotation),
+                   u = pca$rotation[, 1], v = pca$rotation[, 2])
+  escala <- 0.75 * min(max(abs(puntos$x)) / max(abs(carga$u)),
+                       max(abs(puntos$y)) / max(abs(carga$v)))
+  carga  <- carga |> dplyr::mutate(xf = u * escala, yf = v * escala)
+  var_pct <- round(100 * pca$sdev^2 / sum(pca$sdev^2), 1)
+
+  formato_punto <- "<b>%{text}</b><br>PC1: %{x:.2f}<br>PC2: %{y:.2f}<extra></extra>"
+  p <- plotly::plot_ly()
+  if (is.null(grupos)) {
+    p <- p |> plotly::add_markers(data = puntos, x = ~x, y = ~y, text = ~name,
+                                  marker = list(color = "black", size = 6),
+                                  hovertemplate = formato_punto, showlegend = FALSE)
+  } else {
+    puntos$grupo <- as.character(grupos)
+    p <- p |> plotly::add_markers(data = puntos, x = ~x, y = ~y, text = ~name,
+                                  color = ~grupo, marker = list(size = 7),
+                                  hovertemplate = formato_punto)
+  }
+  p |>
+    # flechas de las variables: una anotación con flecha desde (0, 0) hasta la punta
+    plotly::add_annotations(data = carga, x = ~xf, y = ~yf, ax = 0, ay = 0,
+                            xref = "x", yref = "y", axref = "x", ayref = "y", text = "",
+                            showarrow = TRUE, arrowhead = 2, arrowwidth = 1.5,
+                            arrowcolor = "steelblue") |>
+    # nombre de cada variable, un poco más allá de la punta de su flecha
+    plotly::add_annotations(data = carga, x = ~xf * 1.12, y = ~yf * 1.12,
+                            text = ~variable, showarrow = FALSE,
+                            font = list(color = "steelblue", size = 12)) |>
+    # punto invisible en la punta de cada flecha, para leer sus loadings
+    plotly::add_markers(data = carga, x = ~xf, y = ~yf, text = ~variable,
+                        customdata = ~cbind(u, v), showlegend = FALSE, inherit = FALSE,
+                        marker = list(color = "steelblue", size = 5),
+                        hovertemplate = paste0("<b>%{text}</b><br>loading PC1: %{customdata[0]:.2f}",
+                                               "<br>loading PC2: %{customdata[1]:.2f}<extra></extra>")) |>
+    .aedv_resaltar_plotly(puntos, resaltar, color_resaltar) |>
+    plotly::layout(title = list(text = titulo), margin = list(t = 60),
+                   xaxis = list(title = paste0("PC1 (", var_pct[1], " %)"), zeroline = TRUE),
+                   yaxis = list(title = paste0("PC2 (", var_pct[2], " %)"), zeroline = TRUE),
+                   legend = list(title = list(text = titulo_grupos)))
 }
 
 
@@ -798,13 +898,20 @@ aedv_kmeans <- function(pca, n_componentes = NULL, k = 3, semilla = 123, nstart 
 # tocase y porcentajes de varianza que solo cuentan las componentes usadas.
 # Con 'resaltar' se rodean con un círculo los elementos indicados (nombres de
 # fila del ACP, p. ej. c("Spain")).
+# Con dinamico = TRUE devuelve un gráfico interactivo de plotly con el mismo
+# contenido (ver .aedv_kmeans_grafico_dinamico()): el nombre y el grupo de cada
+# elemento salen en el cuadro emergente en vez de rotularse.
 aedv_kmeans_grafico <- function(km, titulo = NULL, repel = TRUE, labelsize = 7,
-                                resaltar = NULL, color_resaltar = "black") {
+                                resaltar = NULL, color_resaltar = "black",
+                                dinamico = FALSE) {
   datos <- attr(km, "datos")
   if (is.null(datos)) stop("El argumento debe ser el resultado de aedv_kmeans()")
   if (is.null(titulo)) {
     titulo <- paste0("Agrupación k-means (k = ", length(km$size), ") sobre ",
                      ncol(datos), " componentes principales")
+  }
+  if (dinamico) {
+    return(.aedv_kmeans_grafico_dinamico(km, datos, titulo, resaltar, color_resaltar))
   }
   p <- factoextra::fviz_cluster(km, data = datos[, 1:2], stand = TRUE,
                                 repel = repel, labelsize = labelsize) +
@@ -816,6 +923,44 @@ aedv_kmeans_grafico <- function(km, titulo = NULL, repel = TRUE, labelsize = 7,
     p <- p + .aedv_rotulo_resaltar(p$data, resaltar, color_resaltar, labelsize * 0.6)
   }
   p
+}
+
+# Versión dinámica de aedv_kmeans_grafico(), con plot_ly(): el mismo plano de
+# PC1 y PC2, con las dos coordenadas estandarizadas como en fviz_cluster(stand =
+# TRUE), los mismos colores por grupo (los de ggplot por omisión) y el contorno
+# de cada grupo (su envolvente convexa, chull()). El cuadro emergente da el
+# nombre del elemento y su grupo.
+.aedv_kmeans_grafico_dinamico <- function(km, datos, titulo, resaltar, color_resaltar) {
+  coord <- scale(datos[, 1:2]) # como fviz_cluster(stand = TRUE)
+  nombres <- rownames(datos)
+  if (is.null(nombres)) nombres <- as.character(seq_len(nrow(datos)))
+  k <- length(km$size)
+  puntos <- tibble(name = nombres, x = coord[, 1], y = coord[, 2],
+                   grupo = factor(paste("Grupo", km$cluster),
+                                  levels = paste("Grupo", seq_len(k))))
+  colores <- scales::hue_pal()(k)
+
+  # una traza por grupo, con su color explícito: el contorno (envolvente
+  # convexa) y los puntos
+  p <- plotly::plot_ly()
+  for (g in seq_len(k)) {
+    pg <- puntos[puntos$grupo == levels(puntos$grupo)[g], ]
+    borde <- grDevices::chull(pg$x, pg$y)
+    p <- p |>
+      plotly::add_polygons(x = pg$x[borde], y = pg$y[borde], hoverinfo = "skip",
+                           showlegend = FALSE, inherit = FALSE,
+                           fillcolor = plotly::toRGB(colores[g], alpha = 0.15),
+                           line = list(color = colores[g], width = 1)) |>
+      plotly::add_markers(data = pg, x = ~x, y = ~y, text = ~name, inherit = FALSE,
+                          name = levels(puntos$grupo)[g],
+                          marker = list(color = colores[g], size = 7),
+                          hovertemplate = "<b>%{text}</b><br>%{fullData.name}<extra></extra>")
+  }
+  p |>
+    .aedv_resaltar_plotly(puntos, resaltar, color_resaltar) |>
+    plotly::layout(title = list(text = titulo), margin = list(t = 60),
+                   xaxis = list(title = paste0(colnames(datos)[1], " (estandarizada)")),
+                   yaxis = list(title = paste0(colnames(datos)[2], " (estandarizada)")))
 }
 
 # Tabla con el grupo que aedv_kmeans() asigna a cada elemento: una fila por
@@ -1017,7 +1162,10 @@ aedv_tendencia_stl <- function(ts, ventana_tendencia = NULL,
 # antes de filtrarlo o recortarlo.
 .aedv_info_modelo <- function(fit) {
   list(
-    descripcion = tryCatch(format(fit[[1]][[1]]), error = function(e) NA_character_),
+    # la columna del modelo, no la primera: si la serie tiene key, la primera
+    # columna del mable es la key
+    descripcion = tryCatch(format(fit[[fabletools::mable_vars(fit)[1]]][[1]]),
+                           error = function(e) NA_character_),
     coeficientes = tryCatch(
       fabletools::tidy(fit) |>
         transmute(Parámetro     = term,
@@ -1060,17 +1208,82 @@ aedv_sigma <- function(resultado) attr(resultado, "aedv_sigma")
   mean(abs(diff(y, lag = m)), na.rm = TRUE)
 }
 
+# Nº de observaciones del principio del tramo que un ARIMA NO puede predecir:
+# las d + D·m que se gastan en la diferenciación (d diferencias regulares y D
+# estacionales de periodo m). Para ellas el modelo no tiene valores anteriores
+# con los que predecir, y fable les asigna un ajuste casi idéntico al dato
+# observado: su residuo sale prácticamente 0 y falsearía los tests y las
+# métricas (con un ARIMA(0,1,1)(0,1,1)[12], 13 meses de "ceros" al principio).
+# Se leen de la descripción del modelo, p. ej. "ARIMA(0,1,1)(0,1,1)[12]" o
+# "ARIMA(0,1,0) w/ drift"; con otro tipo de modelo (ETS, regresión...) no se
+# descarta nada. Uso interno de aedv_residuos().
+.aedv_obs_sin_ajuste <- function(desc) {
+  if (is.null(desc) || is.na(desc)) return(0)
+  d   <- stringr::str_match(desc, "^ARIMA\\(\\d+,(\\d+),\\d+\\)")[, 2]
+  est <- stringr::str_match(desc, "\\)\\(\\d+,(\\d+),\\d+\\)\\[(\\d+)\\]")[, 2:3]
+  if (is.na(d)) return(0) # no es un ARIMA, o con otro formato: no se descarta nada
+  as.numeric(d) + if (is.na(est[1])) 0 else as.numeric(est[1]) * as.numeric(est[2])
+}
+
+# RESIDUOS DEL AJUSTE, la entrada de aedv_tests_residuos(). Devuelve un tsibble
+# con la columna de tiempo (con el mismo nombre que en la serie) y la columna
+# "residuo", de modo que también se le puede aplicar ACF(). Admite dos cosas:
+#   - El resultado de aedv_prediccion_arima() o de aedv_prediccion_stl_arima(),
+#     sin volver a ajustar nada: residuo = valor observado - ajuste, en el tramo
+#     con el que se ha entrenado el modelo (las filas que dejó fuera
+#     periodos_atras y el tramo futuro no cuentan). Con STL + ARIMA es el
+#     remainder de la descomposición: lo que no explican ni la tendencia ni la
+#     estacionalidad.
+#   - Un modelo ajustado con model() de fable (una serie y un modelo: ETS,
+#     ARIMA, ARIMA(log(y))...): sus residuos de innovación, es decir, los
+#     errores de predicción a un paso, en la escala en la que se ajustó el
+#     modelo (con log(y), en la del logaritmo).
+# En los dos casos, si el modelo es un ARIMA se quitan sus primeras d + D·m
+# observaciones (ver .aedv_obs_sin_ajuste()). aedv_arima_accuracy() usa estos
+# mismos residuos, así que tests y métricas miran el mismo tramo:
+#   r <- aedv_residuos(resultado)
+#   aedv_tests_residuos(r$residuo, r$fecha) |> aedv_tabla_tests("...")
+# Al resultado de las funciones de predicción hay que pasárselo TAL COMO sale:
+# la descripción del modelo viaja como atributo y filter(), tail()... la pierden.
+aedv_residuos <- function(resultado) {
+  if (inherits(resultado, "mdl_df")) { # modelo ajustado con model()
+    if (nrow(resultado) != 1 || length(fabletools::mable_vars(resultado)) != 1)
+      stop("aedv_residuos() admite un modelo de model() con una sola serie y un solo modelo.")
+    res <- stats::residuals(resultado) # residuos de innovación
+    idx <- tsibble::index_var(res)
+    descartar <- .aedv_obs_sin_ajuste(.aedv_info_modelo(resultado)$descripcion)
+    return(res |>
+      tibble::as_tibble() |>
+      dplyr::filter(!is.na(.resid)) |>
+      dplyr::select(dplyr::all_of(idx), residuo = .resid) |>
+      dplyr::filter(dplyr::row_number() > descartar) |>
+      tsibble::as_tsibble(index = dplyr::all_of(idx)))
+  }
+  idx <- tsibble::index_var(resultado)
+  val <- setdiff(names(resultado), c(idx, "prediccion", "lower", "upper"))[1]
+  descartar <- if (is.null(attr(resultado, "aedv_tendencia")))
+    .aedv_obs_sin_ajuste(aedv_modelo(resultado)$descripcion) else 0
+
+  resultado |>
+    tibble::as_tibble() |>
+    dplyr::filter(!is.na(.data[[val]]), !is.na(prediccion)) |> # tramo ajustado
+    dplyr::mutate(residuo = .data[[val]] - prediccion) |>
+    dplyr::select(dplyr::all_of(idx), residuo) |>
+    # (no slice(-seq_len(descartar)): con descartar = 0 dejaría la tabla vacía)
+    dplyr::filter(dplyr::row_number() > descartar) |>
+    tsibble::as_tsibble(index = dplyr::all_of(idx))
+}
+
 # MÉTRICAS DEL AJUSTE (dentro de muestra) de aedv_prediccion_arima(): RMSE, MAE
 # y MASE de los residuos sobre el tramo con el que se ha entrenado el modelo.
-# Dan lo mismo que accuracy() de fable sobre el modelo ajustado, pero sin tener
-# que volver a ajustarlo. Miden lo bien que el modelo reproduce la serie que ya
-# ha visto, NO cómo predice datos nuevos (para eso está aedv_cv_arima()).
+# Miden lo bien que el modelo reproduce la serie que ya ha visto, NO cómo
+# predice datos nuevos (para eso está aedv_cv_arima()).
 #
-# Se calculan con las columnas del propio resultado: en el tramo observado,
-# "prediccion" es el ajuste del modelo, así que el residuo es observado -
-# prediccion. Las filas sin ajuste (las que dejó fuera periodos_atras) y el
-# tramo futuro no cuentan, y el MASE se escala sobre ese mismo tramo de
-# entrenamiento.
+# Se calculan con los residuos de aedv_residuos(): observado - ajuste en el
+# tramo de entrenamiento, SIN las primeras d + D·m observaciones, que el ARIMA
+# no puede predecir (por eso no coinciden exactamente con accuracy() de fable,
+# que sí las incluye). El MASE se escala sobre el tramo de entrenamiento
+# completo.
 #
 # Solo vale para ARIMA: en aedv_prediccion_stl_arima() observado - prediccion
 # es el remainder de una descomposición que ha visto toda la serie, y daría un
@@ -1085,7 +1298,7 @@ aedv_arima_accuracy <- function(resultado) {
   ajuste <- resultado |>
     as_tibble() |>
     filter(!is.na(.data[[val]]), !is.na(prediccion))
-  e <- ajuste[[val]] - ajuste$prediccion
+  e <- aedv_residuos(resultado)$residuo
   m <- max(1, round(tsibble::guess_frequency(resultado[[idx]])))
 
   tibble(
