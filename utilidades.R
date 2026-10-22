@@ -716,18 +716,24 @@ aedv_pca_loadings_grafico <- function(pca, k) {
 #   rotular_puntos : FALSE rotula solo las variables (flechas); útil con muchos
 #                    elementos, cuyas etiquetas se amontonarían. Los elementos
 #                    de 'resaltar' se rotulan siempre, en negrita junto al círculo.
+#   porcentaje_rotulos : solo en la versión dinámica, % de elementos que se
+#                    rotulan (100 por omisión). Con menos, se quedan sin rótulo
+#                    los que tienen más puntos alrededor, que son los que se
+#                    amontonan; su nombre sigue en el cuadro emergente.
 #   dinamico       : TRUE devuelve un gráfico interactivo de plotly (ver
-#                    .aedv_pca_biplot_dinamico()): el nombre de cada elemento
-#                    sale en el cuadro emergente en vez de rotularse.
+#                    .aedv_pca_biplot_dinamico()), con los mismos rótulos; el
+#                    cuadro emergente añade las coordenadas de cada elemento.
 # La versión estática usa factoextra, que no funciona bien con ggplotly(): pierde
 # los rótulos. Por eso la versión dinámica se construye aparte, con plot_ly().
 aedv_pca_biplot <- function(pca, resaltar = NULL, titulo = "Biplot PCA",
                             labelsize = 4, color_resaltar = "red",
                             grupos = NULL, titulo_grupos = "Grupo",
-                            rotular_puntos = TRUE, dinamico = FALSE) {
+                            rotular_puntos = TRUE, porcentaje_rotulos = 100,
+                            dinamico = FALSE) {
   if (dinamico) {
     return(.aedv_pca_biplot_dinamico(pca, resaltar, titulo, color_resaltar,
-                                     grupos, titulo_grupos))
+                                     grupos, titulo_grupos, rotular_puntos,
+                                     porcentaje_rotulos))
   }
   p <- factoextra::fviz_pca_biplot(pca,
                                    label = if (rotular_puntos) "all" else "var",
@@ -767,6 +773,108 @@ aedv_ocultar_atipicos_cajas <- function(g) {
   g
 }
 
+# Posición del rótulo de cada punto en las versiones dinámicas del biplot y del
+# k-means. plotly no tiene nada parecido a ggrepel, así que se elige punto a
+# punto la posición del rótulo (encima, debajo, a la derecha o a la izquierda)
+# que menos se solapa con los rótulos ya colocados y con los demás puntos. Las
+# distancias se miden en píxeles de un área de dibujo de unos ancho x alto: al
+# hacer zoom los rótulos se separan, y los solapamientos que queden se deshacen
+# ampliando la zona. Los rótulos se dibujan con cliponaxis = FALSE, para que
+# los de los puntos del borde no queden recortados por el eje.
+#   x, y       : coordenadas de los puntos, tal como se dibujan
+#   texto      : rótulo de cada punto
+#   fijos      : índices de los puntos cuyo rótulo va siempre encima (los
+#                resaltados, rotulados en negrita por .aedv_resaltar_plotly())
+#   obstaculos : tabla con x, y, texto de otros rótulos ya dibujados (los
+#                nombres de las variables del biplot), que se evitan
+#   porcentaje : % de puntos que se rotulan (de 0 a 100). Con menos de 100 se
+#                quedan sin rótulo los que tienen más puntos alrededor, que son
+#                los que se amontonan; los 'fijos' se rotulan siempre
+# Devuelve el valor de 'textposition' de plotly para cada punto, o NA si ese
+# punto no se rotula.
+.aedv_posicion_rotulos <- function(x, y, texto, fijos = integer(0), obstaculos = NULL,
+                                   porcentaje = 100, ancho = 620, alto = 480, tam = 10) {
+  stopifnot(is.numeric(porcentaje), porcentaje >= 0, porcentaje <= 100)
+  xr <- range(c(x, obstaculos$x))
+  yr <- range(c(y, obstaculos$y))
+  a_px <- function(v, r, l) (v - r[1]) / max(diff(r), 1e-12) * l # coordenada -> píxeles
+  px <- a_px(x, xr, ancho)
+  py <- a_px(y, yr, alto)
+  w  <- nchar(texto) * tam * 0.6 # ancho aproximado de cada rótulo
+  h  <- tam * 1.3                # y su alto
+  sep <- 5                       # separación entre el punto y su rótulo
+  # caja (x0, x1, y0, y1) que ocupa el rótulo del punto i en la posición 'pos'
+  caja <- function(i, pos) switch(pos,
+    "top center"    = c(px[i] - w[i] / 2, px[i] + w[i] / 2, py[i] + sep, py[i] + sep + h),
+    "bottom center" = c(px[i] - w[i] / 2, px[i] + w[i] / 2, py[i] - sep - h, py[i] - sep),
+    "middle right"  = c(px[i] + sep, px[i] + sep + w[i], py[i] - h / 2, py[i] + h / 2),
+    "middle left"   = c(px[i] - sep - w[i], px[i] - sep, py[i] - h / 2, py[i] + h / 2))
+  # área solapada entre una caja y las de una matriz de cajas (una por fila)
+  solape <- function(b, B) {
+    sum(pmax(0, pmin(b[2], B[, 2]) - pmax(b[1], B[, 1])) *
+        pmax(0, pmin(b[4], B[, 4]) - pmax(b[3], B[, 3])))
+  }
+  # lo ya ocupado: los puntos (cuadrados de 8 px), los obstáculos y, según se
+  # colocan, los rótulos
+  ocupado <- cbind(px - 4, px + 4, py - 4, py + 4)
+  if (!is.null(obstaculos) && nrow(obstaculos) > 0) {
+    ox <- a_px(obstaculos$x, xr, ancho)
+    oy <- a_px(obstaculos$y, yr, alto)
+    ow <- nchar(obstaculos$texto) * 12 * 0.6
+    ocupado <- rbind(ocupado, cbind(ox - ow / 2, ox + ow / 2, oy - 8, oy + 8))
+  }
+  posiciones <- c("top center", "bottom center", "middle right", "middle left")
+  res <- rep("top center", length(x))
+  # puntos que caen donde iría el rótulo de cada uno: cuantos más, más se amontona
+  vecinos <- vapply(seq_along(x), function(i)
+    sum(abs(px - px[i]) < w[i] / 2 + 10 & abs(py - py[i]) < h + sep) - 1, numeric(1))
+  # puntos que se rotulan: los fijos y el porcentaje pedido de los demás, empezando
+  # por los que tienen menos vecinos (y, a igualdad, por los más alejados del centro)
+  centro <- (px - ancho / 2)^2 + (py - alto / 2)^2 # distancia al centro, al cuadrado
+  candidatos <- setdiff(order(vecinos, -centro), fijos)
+  rotulados <- c(fijos, head(candidatos, round(length(x) * porcentaje / 100)))
+  res[setdiff(seq_along(x), rotulados)] <- NA_character_
+  # primero los fijos y después los puntos con más vecinos, que tienen menos sitio
+  for (i in c(fijos, setdiff(rotulados[order(-vecinos[rotulados])], fijos))) {
+    if (!(i %in% fijos)) {
+      otros <- ocupado[-i, , drop = FALSE] # todo menos el propio punto
+      coste <- vapply(posiciones, function(pos) {
+        b <- caja(i, pos)
+        # lo que se sale del área de dibujo, por los lados y por arriba o abajo
+        fuera <- (max(0, -b[1]) + max(0, b[2] - ancho)) * h +
+                 (max(0, -b[3]) + max(0, b[4] - alto)) * w[i]
+        solape(b, otros) + fuera
+      }, numeric(1))
+      res[i] <- posiciones[which.min(coste)]
+    }
+    ocupado <- rbind(ocupado, caja(i, res[i]))
+  }
+  res
+}
+
+# Título de un gráfico de plotly: si es largo se parte en dos líneas por el
+# espacio más cercano a la mitad, porque plotly no lo ajusta al ancho y lo corta.
+.aedv_titulo_plotly <- function(titulo, max = 70) {
+  if (nchar(titulo) <= max || grepl("<br>", titulo, fixed = TRUE)) return(titulo)
+  espacios <- gregexpr(" ", titulo, fixed = TRUE)[[1]]
+  if (espacios[1] < 0) return(titulo)
+  corte <- espacios[which.min(abs(espacios - nchar(titulo) / 2))]
+  paste0(substr(titulo, 1, corte - 1), "<br>", substr(titulo, corte + 1, nchar(titulo)))
+}
+
+# Ajustes comunes de las versiones dinámicas del biplot y del k-means: el
+# título (en dos líneas si es largo, con sitio arriba para él) y el ancho del
+# gráfico, que ocupa todo el disponible. Sin esto, en un documento knitr el
+# gráfico mide fig.width pulgadas aunque la página sea más estrecha, y se cortan
+# la leyenda y el final del título.
+.aedv_plotly_titulo_ancho <- function(p, titulo) {
+  titulo <- .aedv_titulo_plotly(titulo)
+  p <- p |> plotly::layout(title = list(text = titulo),
+                           margin = list(t = if (grepl("<br>", titulo, fixed = TRUE)) 90 else 60))
+  p$width <- "100%"
+  p
+}
+
 # Resalta en un gráfico de plotly los elementos indicados: un círculo vacío
 # alrededor de su punto y su nombre en negrita encima. Uso interno de las
 # versiones dinámicas de aedv_pca_biplot() y aedv_kmeans_grafico().
@@ -788,13 +896,16 @@ aedv_ocultar_atipicos_cajas <- function(g) {
 }
 
 # Versión dinámica de aedv_pca_biplot(): los elementos son puntos en el plano
-# PC1-PC2 (con su nombre y coordenadas en el cuadro emergente) y cada variable
-# una flecha desde el origen, rotulada con su nombre. Como en fviz_pca_biplot(),
+# PC1-PC2, rotulados con su nombre si rotular_puntos = TRUE (posición elegida
+# con .aedv_posicion_rotulos(), porque plotly no evita los solapamientos) y con
+# su nombre y coordenadas en el cuadro emergente; cada variable es una flecha
+# desde el origen, rotulada con su nombre. Como en fviz_pca_biplot(),
 # los puntos se dibujan con sus coordenadas (pca$x) y las flechas se reescalan
 # para que ocupen buena parte de la nube; el cuadro emergente de la punta de cada
 # flecha da los loadings sin reescalar.
 .aedv_pca_biplot_dinamico <- function(pca, resaltar, titulo, color_resaltar,
-                                      grupos, titulo_grupos) {
+                                      grupos, titulo_grupos, rotular_puntos = TRUE,
+                                      porcentaje_rotulos = 100) {
   nombres <- rownames(pca$x)
   if (is.null(nombres)) nombres <- as.character(seq_len(nrow(pca$x)))
   puntos <- tibble(name = nombres, x = pca$x[, 1], y = pca$x[, 2])
@@ -814,10 +925,31 @@ aedv_ocultar_atipicos_cajas <- function(g) {
   } else {
     puntos$grupo <- as.character(grupos)
     p <- p |> plotly::add_markers(data = puntos, x = ~x, y = ~y, text = ~name,
-                                  color = ~grupo, marker = list(size = 7),
-                                  hovertemplate = formato_punto)
+                                  color = ~grupo, legendgroup = ~grupo,
+                                  marker = list(size = 7), hovertemplate = formato_punto)
   }
-  p |>
+  if (rotular_puntos) {
+    # nombre de cada elemento junto a su punto, sin pisar los de las variables;
+    # los resaltados los rotula .aedv_resaltar_plotly(), en negrita
+    puntos$posicion <- .aedv_posicion_rotulos(
+      puntos$x, puntos$y, puntos$name, fijos = which(puntos$name %in% resaltar),
+      obstaculos = tibble(x = carga$xf * 1.12, y = carga$yf * 1.12, texto = carga$variable),
+      porcentaje = porcentaje_rotulos)
+    rotulos <- puntos[!puntos$name %in% resaltar & !is.na(puntos$posicion), ]
+    p <- if (is.null(grupos)) {
+      p |> plotly::add_text(data = rotulos, x = ~x, y = ~y, text = ~name,
+                            textposition = ~posicion, hoverinfo = "skip",
+                            showlegend = FALSE, inherit = FALSE, cliponaxis = FALSE,
+                            textfont = list(color = "grey20", size = 10))
+    } else { # del color de su grupo, y se ocultan con él al pulsar la leyenda
+      p |> plotly::add_text(data = rotulos, x = ~x, y = ~y, text = ~name,
+                            color = ~grupo, legendgroup = ~grupo,
+                            textposition = ~posicion, hoverinfo = "skip",
+                            showlegend = FALSE, inherit = FALSE, cliponaxis = FALSE,
+                            textfont = list(size = 10))
+    }
+  }
+  p <- p |>
     # flechas de las variables: una anotación con flecha desde (0, 0) hasta la punta
     plotly::add_annotations(data = carga, x = ~xf, y = ~yf, ax = 0, ay = 0,
                             xref = "x", yref = "y", axref = "x", ayref = "y", text = "",
@@ -827,17 +959,20 @@ aedv_ocultar_atipicos_cajas <- function(g) {
     plotly::add_annotations(data = carga, x = ~xf * 1.12, y = ~yf * 1.12,
                             text = ~variable, showarrow = FALSE,
                             font = list(color = "steelblue", size = 12)) |>
-    # punto invisible en la punta de cada flecha, para leer sus loadings
-    plotly::add_markers(data = carga, x = ~xf, y = ~yf, text = ~variable,
-                        customdata = ~cbind(u, v), showlegend = FALSE, inherit = FALSE,
+    # punto en la punta de cada flecha, para leer sus loadings. El texto se
+    # escribe aquí: un customdata de dos valores por punto pasado con "~" no
+    # llega a plotly (ver .aedv_prediccion_a_plotly())
+    plotly::add_markers(data = carga, x = ~xf, y = ~yf,
+                        text = ~sprintf("<b>%s</b><br>loading PC1: %.2f<br>loading PC2: %.2f",
+                                        variable, u, v),
+                        showlegend = FALSE, inherit = FALSE,
                         marker = list(color = "steelblue", size = 5),
-                        hovertemplate = paste0("<b>%{text}</b><br>loading PC1: %{customdata[0]:.2f}",
-                                               "<br>loading PC2: %{customdata[1]:.2f}<extra></extra>")) |>
+                        hovertemplate = "%{text}<extra></extra>") |>
     .aedv_resaltar_plotly(puntos, resaltar, color_resaltar) |>
-    plotly::layout(title = list(text = titulo), margin = list(t = 60),
-                   xaxis = list(title = paste0("PC1 (", var_pct[1], " %)"), zeroline = TRUE),
+    plotly::layout(xaxis = list(title = paste0("PC1 (", var_pct[1], " %)"), zeroline = TRUE),
                    yaxis = list(title = paste0("PC2 (", var_pct[2], " %)"), zeroline = TRUE),
                    legend = list(title = list(text = titulo_grupos)))
+  .aedv_plotly_titulo_ancho(p, titulo)
 }
 
 
@@ -898,11 +1033,17 @@ aedv_kmeans <- function(pca, n_componentes = NULL, k = 3, semilla = 123, nstart 
 # tocase y porcentajes de varianza que solo cuentan las componentes usadas.
 # Con 'resaltar' se rodean con un círculo los elementos indicados (nombres de
 # fila del ACP, p. ej. c("Spain")).
+# Con rotular_puntos = FALSE no se rotula cada elemento con su nombre (útil con
+# muchos elementos); los de 'resaltar' se rotulan siempre. En la versión
+# dinámica, porcentaje_rotulos (de 0 a 100) rotula solo ese % de los elementos:
+# se quedan sin rótulo los que tienen más puntos alrededor, que son los que se
+# amontonan, y su nombre sigue en el cuadro emergente.
 # Con dinamico = TRUE devuelve un gráfico interactivo de plotly con el mismo
-# contenido (ver .aedv_kmeans_grafico_dinamico()): el nombre y el grupo de cada
-# elemento salen en el cuadro emergente en vez de rotularse.
+# contenido (ver .aedv_kmeans_grafico_dinamico()); el cuadro emergente añade el
+# grupo de cada elemento.
 aedv_kmeans_grafico <- function(km, titulo = NULL, repel = TRUE, labelsize = 7,
                                 resaltar = NULL, color_resaltar = "black",
+                                rotular_puntos = TRUE, porcentaje_rotulos = 100,
                                 dinamico = FALSE) {
   datos <- attr(km, "datos")
   if (is.null(datos)) stop("El argumento debe ser el resultado de aedv_kmeans()")
@@ -911,9 +1052,11 @@ aedv_kmeans_grafico <- function(km, titulo = NULL, repel = TRUE, labelsize = 7,
                      ncol(datos), " componentes principales")
   }
   if (dinamico) {
-    return(.aedv_kmeans_grafico_dinamico(km, datos, titulo, resaltar, color_resaltar))
+    return(.aedv_kmeans_grafico_dinamico(km, datos, titulo, resaltar, color_resaltar,
+                                         rotular_puntos, porcentaje_rotulos))
   }
   p <- factoextra::fviz_cluster(km, data = datos[, 1:2], stand = TRUE,
+                                geom = if (rotular_puntos) c("point", "text") else "point",
                                 repel = repel, labelsize = labelsize) +
     labs(title = titulo)
   if (length(resaltar) > 0) {
@@ -928,9 +1071,12 @@ aedv_kmeans_grafico <- function(km, titulo = NULL, repel = TRUE, labelsize = 7,
 # Versión dinámica de aedv_kmeans_grafico(), con plot_ly(): el mismo plano de
 # PC1 y PC2, con las dos coordenadas estandarizadas como en fviz_cluster(stand =
 # TRUE), los mismos colores por grupo (los de ggplot por omisión) y el contorno
-# de cada grupo (su envolvente convexa, chull()). El cuadro emergente da el
-# nombre del elemento y su grupo.
-.aedv_kmeans_grafico_dinamico <- function(km, datos, titulo, resaltar, color_resaltar) {
+# de cada grupo (su envolvente convexa, chull()). Cada elemento se rotula con su
+# nombre, del color de su grupo (posición elegida con .aedv_posicion_rotulos(),
+# porque plotly no evita los solapamientos), y el cuadro emergente da su nombre
+# y su grupo.
+.aedv_kmeans_grafico_dinamico <- function(km, datos, titulo, resaltar, color_resaltar,
+                                          rotular_puntos = TRUE, porcentaje_rotulos = 100) {
   coord <- scale(datos[, 1:2]) # como fviz_cluster(stand = TRUE)
   nombres <- rownames(datos)
   if (is.null(nombres)) nombres <- as.character(seq_len(nrow(datos)))
@@ -938,6 +1084,11 @@ aedv_kmeans_grafico <- function(km, titulo = NULL, repel = TRUE, labelsize = 7,
   puntos <- tibble(name = nombres, x = coord[, 1], y = coord[, 2],
                    grupo = factor(paste("Grupo", km$cluster),
                                   levels = paste("Grupo", seq_len(k))))
+  puntos$posicion <- if (rotular_puntos) {
+    .aedv_posicion_rotulos(puntos$x, puntos$y, puntos$name,
+                           fijos = which(puntos$name %in% resaltar),
+                           porcentaje = porcentaje_rotulos)
+  } else NA_character_
   colores <- scales::hue_pal()(k)
 
   # una traza por grupo, con su color explícito: el contorno (envolvente
@@ -953,14 +1104,26 @@ aedv_kmeans_grafico <- function(km, titulo = NULL, repel = TRUE, labelsize = 7,
                            line = list(color = colores[g], width = 1)) |>
       plotly::add_markers(data = pg, x = ~x, y = ~y, text = ~name, inherit = FALSE,
                           name = levels(puntos$grupo)[g],
+                          legendgroup = levels(puntos$grupo)[g],
                           marker = list(color = colores[g], size = 7),
                           hovertemplate = "<b>%{text}</b><br>%{fullData.name}<extra></extra>")
+    # sin los resaltados (en negrita aparte) ni los que se quedan sin rótulo
+    rotulos <- pg[!pg$name %in% resaltar & !is.na(pg$posicion), ]
+    if (rotular_puntos && nrow(rotulos) > 0) {
+      # nombres del color del grupo, que se ocultan con él al pulsar la leyenda
+      p <- p |>
+        plotly::add_text(data = rotulos, x = ~x, y = ~y, text = ~name,
+                         textposition = ~posicion, hoverinfo = "skip",
+                         legendgroup = levels(puntos$grupo)[g],
+                         showlegend = FALSE, inherit = FALSE, cliponaxis = FALSE,
+                         textfont = list(color = colores[g], size = 10))
+    }
   }
-  p |>
+  p <- p |>
     .aedv_resaltar_plotly(puntos, resaltar, color_resaltar) |>
-    plotly::layout(title = list(text = titulo), margin = list(t = 60),
-                   xaxis = list(title = paste0(colnames(datos)[1], " (estandarizada)")),
+    plotly::layout(xaxis = list(title = paste0(colnames(datos)[1], " (estandarizada)")),
                    yaxis = list(title = paste0(colnames(datos)[2], " (estandarizada)")))
+  .aedv_plotly_titulo_ancho(p, titulo)
 }
 
 # Tabla con el grupo que aedv_kmeans() asigna a cada elemento: una fila por
