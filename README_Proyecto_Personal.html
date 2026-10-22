@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-10-21" />
+<meta name="date" content="2026-10-22" />
 
 <title>Proyecto Personal AEDV — Guía de trabajo</title>
 
@@ -1617,7 +1617,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Proyecto Personal AEDV — Guía de
 trabajo</h1>
-<h4 class="date">2026-10-21</h4>
+<h4 class="date">2026-10-22</h4>
 
 </div>
 
@@ -1806,12 +1806,14 @@ principales con <code>facet_wrap</code></strong>, antes de cualquier
 gráfico de detalle. Ver sección <a href="#visualizaciones-en-la-memoria">Visualizaciones en la
 memoria</a>.</li>
 <li><strong>3.6 Modelado</strong>: modelado de series temporales con
-STL, ARIMA y STL+ARIMA.</li>
+STL, ARIMA y STL+ARIMA. El análisis de los residuos de los modelos no va
+aquí, sino en 3.7 Evaluación.</li>
 <li><strong>3.7 Evaluación</strong>: discusión de la calidad del ajuste
-de estos modelos en términos de las métricas de ajuste y los tests de
-validación de los residuos. Comentar si fue necesario usar STL+ARIMA o
-aplicar transformaciones a la serie para mejorar los resultados del
-ARIMA.</li>
+de estos modelos en términos de las métricas de ajuste y del
+<strong>análisis de los residuos de los modelos ARIMA</strong> (tests de
+validación de los residuos), que se hace en esta sección y no en
+Modelado. Comentar si fue necesario usar STL+ARIMA o aplicar
+transformaciones a la serie para mejorar los resultados del ARIMA.</li>
 </ul>
 <p>Siguen formando parte de la entrega 1.3 Objetivos, 3.3 Comprensión
 del negocio, 3.4 Comprensión de los datos y el Anexo II, en su versión
@@ -2295,7 +2297,8 @@ Objetivos (con las preguntas de investigación)</li>
 <li>Comprensión de los datos — estructura, variables, problemas</li>
 <li>Preparación de los datos — limpieza, transformaciones, joins</li>
 <li>Modelado — modelos aplicados y resultados</li>
-<li>Evaluación — métricas, validación, limitaciones</li>
+<li>Evaluación — métricas, análisis de los residuos de los modelos
+ARIMA, validación, limitaciones</li>
 <li>Despliegue — memoria + descripción del dashboard</li>
 </ul></li>
 <li><strong>Conclusiones y trabajo futuro</strong></li>
@@ -2960,7 +2963,8 @@ texto de ejemplo sin sustituir se considera no completada.</p></li>
 en una sección propia: se presentan dentro de Preparación de los datos,
 Modelado, Evaluación y Despliegue, según el momento CRISP-DM al que
 correspondan. Las tablas de estructura de datos van en Comprensión de
-los datos, no en Preparación.</p></li>
+los datos, no en Preparación, y el análisis de los residuos de los
+modelos ARIMA va en Evaluación, no en Modelado.</p></li>
 <li><p><strong>Aportaciones y conclusiones coherentes con el
 trabajo.</strong> Las conclusiones deben derivarse directamente del
 análisis realizado, no ser genéricas. Las aportaciones deben ser
