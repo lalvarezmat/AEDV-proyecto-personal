@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-10-22" />
+<meta name="date" content="2026-10-23" />
 
 <title>Proyecto Personal AEDV — Guía de trabajo</title>
 
@@ -1617,7 +1617,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Proyecto Personal AEDV — Guía de
 trabajo</h1>
-<h4 class="date">2026-10-22</h4>
+<h4 class="date">2026-10-23</h4>
 
 </div>
 
@@ -1952,16 +1952,20 @@ asignatura.</li>
 datos no pueden responder.</li>
 <li><strong>Apartados amontonados sin hilo conductor</strong>: muchos
 apartados, gráficos y tablas uno detrás de otro, sin conexión entre
-ellos ni con las preguntas de investigación. Cada parte de la memoria
-debe llevar, de forma lógica y ordenada, a responder esas preguntas (ver
-<em>Texto coherente con hilo conductor común</em> en la rúbrica).</li>
+ellos ni con las preguntas de investigación, a menudo con títulos que
+solo dicen el tipo de gráfico («Gráfico de disco»). Cada parte de la
+memoria debe llevar, de forma lógica y ordenada, a responder esas
+preguntas (ver <em>Texto coherente con hilo conductor común</em> en la
+rúbrica).</li>
 <li><strong>Afirmaciones no justificadas</strong> por un gráfico o una
 tabla de la memoria.</li>
 <li><strong>Texto que no coincide con los resultados</strong> (cifras
 distintas de las de las tablas o los gráficos, gráficos citados que no
 están) e <strong>interpretaciones genéricas</strong> que valdrían para
 cualquier dataset.</li>
-<li><strong>Técnicas de análisis que no se ven en el libro</strong> y
+<li><strong>Técnicas de análisis que no se han visto en la
+asignatura</strong> (la referencia es lo explicado en clase y lo usado
+en los ejercicios de aula y laboratorio, no todo lo que trae el libro) y
 <strong>código que no sigue su estilo</strong> (por ejemplo,
 <code>%&gt;%</code> en vez de <code>|&gt;</code>, o programar desde cero
 lo que ya resuelve <code>utilidades.R</code>).</li>
@@ -2322,6 +2326,40 @@ sección aparte; se presentan de forma distribuida en las fases de
 preparación de los datos, modelado, evaluación y despliegue. Esto es
 coherente con CRISP-DM.</p>
 </blockquote>
+<div class="nota">
+<p><strong class="bloque-titulo">Las técnicas que hay que usar son las
+vistas en la asignatura</strong></p>
+<p>La referencia de las técnicas que hay que usar en el proyecto
+<strong>no es todo el libro</strong>, sino lo <strong>explicado en
+clase</strong> y lo usado en los <strong>ejercicios de aula y de
+laboratorio</strong>. En algunos temas el libro va mucho más allá de lo
+que se ve en la asignatura: por ejemplo, en series temporales presenta
+modelos y procedimientos que no se trabajan en clase. En el proyecto hay
+que usar lo visto en la asignatura. Los ejercicios de aula y de
+laboratorio son el mejor modelo de qué técnicas aplicar y de cómo
+hacerlo.</p>
+</div>
+<div class="nota">
+<p><strong class="bloque-titulo">Títulos de las subsecciones: que
+cuenten la historia del proyecto</strong></p>
+<p>La redacción de la memoria debe tener un <strong>hilo
+conductor</strong> que vaya conectando unos apartados con otros. Una
+forma de ayudar a construirlo es que los <strong>títulos de las
+subsecciones</strong> que vayas creando tengan un <strong>alto
+significado semántico respecto a los objetivos y las preguntas de
+investigación</strong>: leyendo solo el índice, debería entenderse qué
+se estudia en cada apartado y a qué pregunta ayuda a responder.</p>
+<p>Los títulos <strong>no pueden ser el tipo de gráfico</strong> que se
+usa. Los gráficos son una herramienta para comunicar, nunca un objetivo
+del proyecto en sí mismos. Por ejemplo:</p>
+<ul>
+<li><strong>Mal</strong>: «Gráfico de disco», «Diagrama de barras»,
+«Mapa coroplético», «Serie temporal».</li>
+<li><strong>Bien</strong>: «Peso de cada sector en el gasto público de
+Canarias», «¿Qué islas concentran la llegada de turistas?», «Evolución
+del paro juvenil desde la crisis de 2008».</li>
+</ul>
+</div>
 <div id="cómo-importar-los-datos-en-la-memoria" class="section level3" number="3.4.1">
 <h3><span class="header-section-number">3.4.1</span> Cómo importar los
 datos en la memoria</h3>
@@ -2538,9 +2576,13 @@ IA tiene dos límites: <strong>entender todo lo que se entrega</strong>
 asignatura, con un código comprensible teniendo en cuenta el contenido y
 el enfoque de la asignatura</strong>. Si la IA propone un paquete que no
 está en el libro o un código que se aleja de lo visto en la asignatura,
-pídele que resuelva el problema como se hace en el libro. Cuando exista
-una función de <code>utilidades.R</code> para lo que necesitas, pídele
-que la use en vez de programar algo equivalente desde cero.</li>
+pídele que resuelva el problema como se hace en el libro. En cuanto a
+las técnicas, la referencia es lo explicado en clase y lo usado en los
+ejercicios de aula y laboratorio, no todo el libro (recuadro <em>Las
+técnicas que hay que usar son las vistas en la asignatura</em> del Paso
+3). Cuando exista una función de <code>utilidades.R</code> para lo que
+necesitas, pídele que la use en vez de programar algo equivalente desde
+cero.</li>
 </ul>
 </div>
 <div class="discusion">
@@ -2962,7 +3004,13 @@ trata de añadir una cantidad enorme de apartados, gráficos y tablas uno
 detrás de otro sin conexión</strong>: un apartado que no lleva a
 responder ninguna pregunta sobra, aunque sea correcto. Evita secciones
 que parezcan escritas de forma independiente y pegadas sin relación
-entre sí.</p></li>
+entre sí. Los <strong>títulos de las subsecciones</strong> ayudan a
+construir ese hilo: deben tener un alto significado respecto a los
+objetivos y las preguntas de investigación, y <strong>nunca ser el tipo
+de gráfico</strong> que se usa (una subsección no puede titularse
+«Gráfico de disco»), porque los gráficos son una herramienta para
+comunicar, no un objetivo del proyecto (recuadro <em>Títulos de las
+subsecciones</em> del Paso 3).</p></li>
 <li><p><strong>Todas las secciones completadas correctamente siguiendo
 la metodología CRISP-DM</strong> <em>(solo Entrega 3).</em> El modelo de
 memoria tiene secciones fijas que deben aparecer todas y estar

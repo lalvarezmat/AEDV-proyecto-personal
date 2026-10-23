@@ -170,10 +170,10 @@ No se evalúa si has usado la IA, sino si el documento es tuyo: si lo has **leí
 * **Texto excesivamente largo, retórico o grandilocuente**: cada frase debe decir algo concreto sobre tus datos.
 * **Lenguaje ajeno a la asignatura**: hay que usar un lenguaje sencillo, acorde a la forma de expresar los conceptos en la asignatura. Expresiones como «insesgadez», «normalidad de las innovaciones», «naturaleza univariante y ausencia de covariables» o «esta partición aporta evidencia empírica directa» no se usan en el libro: si la IA te las propone, escríbelas como se explican en clase (por ejemplo, «media cero de los residuos» o «normalidad de los residuos»). Además, la IA añade con mucha facilidad técnicas y conceptos que no se han visto en la asignatura, e **incluirlos en la memoria es un error grave**. Hay que verificar y corregir todo lo que te propone la IA y adaptar el lenguaje para que suene como lo expresarías tú, teniendo en cuenta la forma de abordar las cosas en la asignatura.
 * **Preguntas de investigación enrevesadas** o que tus datos no pueden responder.
-* **Apartados amontonados sin hilo conductor**: muchos apartados, gráficos y tablas uno detrás de otro, sin conexión entre ellos ni con las preguntas de investigación. Cada parte de la memoria debe llevar, de forma lógica y ordenada, a responder esas preguntas (ver *Texto coherente con hilo conductor común* en la rúbrica).
+* **Apartados amontonados sin hilo conductor**: muchos apartados, gráficos y tablas uno detrás de otro, sin conexión entre ellos ni con las preguntas de investigación, a menudo con títulos que solo dicen el tipo de gráfico («Gráfico de disco»). Cada parte de la memoria debe llevar, de forma lógica y ordenada, a responder esas preguntas (ver *Texto coherente con hilo conductor común* en la rúbrica).
 * **Afirmaciones no justificadas** por un gráfico o una tabla de la memoria.
 * **Texto que no coincide con los resultados** (cifras distintas de las de las tablas o los gráficos, gráficos citados que no están) e **interpretaciones genéricas** que valdrían para cualquier dataset.
-* **Técnicas de análisis que no se ven en el libro** y **código que no sigue su estilo** (por ejemplo, `%>%` en vez de `|>`, o programar desde cero lo que ya resuelve `utilidades.R`).
+* **Técnicas de análisis que no se han visto en la asignatura** (la referencia es lo explicado en clase y lo usado en los ejercicios de aula y laboratorio, no todo lo que trae el libro) y **código que no sigue su estilo** (por ejemplo, `%>%` en vez de `|>`, o programar desde cero lo que ya resuelve `utilidades.R`).
 * **Código imposible de entender** a partir de los códigos y técnicas ilustrados en el libro.
 * **Restos de la conversación con la IA** («¡Claro! Aquí tienes…») y comentarios o títulos en inglés.
 * **Bibliografía que no existe o no se ha consultado** (referencias inventadas por la IA).
@@ -350,6 +350,23 @@ La memoria sigue la metodología de desarrollo **CRISP-DM** (Cross Industry Stan
 
 > **Nota importante:** los resultados NO van en una sección aparte; se presentan de forma distribuida en las fases de preparación de los datos, modelado, evaluación y despliegue. Esto es coherente con CRISP-DM.
 
+<div class="nota">
+<strong class="bloque-titulo">Las técnicas que hay que usar son las vistas en la asignatura</strong>
+
+La referencia de las técnicas que hay que usar en el proyecto **no es todo el libro**, sino lo **explicado en clase** y lo usado en los **ejercicios de aula y de laboratorio**. En algunos temas el libro va mucho más allá de lo que se ve en la asignatura: por ejemplo, en series temporales presenta modelos y procedimientos que no se trabajan en clase. En el proyecto hay que usar lo visto en la asignatura. Los ejercicios de aula y de laboratorio son el mejor modelo de qué técnicas aplicar y de cómo hacerlo.
+</div>
+
+<div class="nota">
+<strong class="bloque-titulo">Títulos de las subsecciones: que cuenten la historia del proyecto</strong>
+
+La redacción de la memoria debe tener un **hilo conductor** que vaya conectando unos apartados con otros. Una forma de ayudar a construirlo es que los **títulos de las subsecciones** que vayas creando tengan un **alto significado semántico respecto a los objetivos y las preguntas de investigación**: leyendo solo el índice, debería entenderse qué se estudia en cada apartado y a qué pregunta ayuda a responder.
+
+Los títulos **no pueden ser el tipo de gráfico** que se usa. Los gráficos son una herramienta para comunicar, nunca un objetivo del proyecto en sí mismos. Por ejemplo:
+
+* **Mal**: «Gráfico de disco», «Diagrama de barras», «Mapa coroplético», «Serie temporal».
+* **Bien**: «Peso de cada sector en el gasto público de Canarias», «¿Qué islas concentran la llegada de turistas?», «Evolución del paro juvenil desde la crisis de 2008».
+</div>
+
 ### Cómo importar los datos en la memoria
 
 Esta es la **etapa 4 (incorporación)** del flujo de selección de datos del Paso 1. Al compilarse, cada `*_DatasetSelection.Rmd` guarda, junto a los datos, un fichero **`<nombre>_analisis.Rmd`** con su sección **Análisis del dataset** (la etapa 3b) preparada para la memoria, y termina con una sección, *Incorporación del dataset a la memoria*, que indica exactamente qué ficheros copiar y qué chunk pegar. Los pasos son dos:
@@ -427,7 +444,7 @@ Si funciona en tu ordenador pero no en el servidor, recuerda que el servidor es 
 * **Google Sheet sin actualizar** → las sesiones de trabajo deben registrarse en tiempo real, no reconstruirse al final.
 * **Google Sheet con huecos** → la hoja debe estar operativa y dar resultados coherentes: ninguna actividad puede quedar sin fecha de inicio, sin fecha de fin o sin minutos calculados, y no debe haber valores `NA`. Una actividad empezada hay que terminarla (con su nota final) antes de pasar a la siguiente.
 * **Usar la IA sin referenciar** → Utilizar la IA no es negativo en la evaluación del proyecto, de hecho, usarla bien se considera positivo en la evaluación. Hay que explicar cómo se ha usado, incluyendo los agentes de IA usados y las principales interacciones para abordar los diferentes aspectos planteados en el desarrollo del proyecto.
-* **Usar la IA sin respetar sus límites** → El uso de la IA tiene dos límites: **entender todo lo que se entrega** (debes poder explicar cada línea de código y cada resultado) y **usar solo las librerías que aparecen en el libro de la asignatura, con un código comprensible teniendo en cuenta el contenido y el enfoque de la asignatura**. Si la IA propone un paquete que no está en el libro o un código que se aleja de lo visto en la asignatura, pídele que resuelva el problema como se hace en el libro. Cuando exista una función de `utilidades.R` para lo que necesitas, pídele que la use en vez de programar algo equivalente desde cero.
+* **Usar la IA sin respetar sus límites** → El uso de la IA tiene dos límites: **entender todo lo que se entrega** (debes poder explicar cada línea de código y cada resultado) y **usar solo las librerías que aparecen en el libro de la asignatura, con un código comprensible teniendo en cuenta el contenido y el enfoque de la asignatura**. Si la IA propone un paquete que no está en el libro o un código que se aleja de lo visto en la asignatura, pídele que resuelva el problema como se hace en el libro. En cuanto a las técnicas, la referencia es lo explicado en clase y lo usado en los ejercicios de aula y laboratorio, no todo el libro (recuadro *Las técnicas que hay que usar son las vistas en la asignatura* del Paso 3). Cuando exista una función de `utilidades.R` para lo que necesitas, pídele que la use en vez de programar algo equivalente desde cero.
 </div>
 
 <div class="discusion">
@@ -518,7 +535,7 @@ La memoria no es un cuaderno de laboratorio: es un documento académico que debe
 
 - **Texto atractivo, bien formateado, sin rastros de R.** El documento HTML no debe mostrar código R, mensajes de carga de librerías, advertencias ni salidas de consola. El modelo de memoria ya trae `echo=FALSE` por defecto en las opciones globales (`knitr::opts_chunk$set(...)`): no lo cambies a `echo=TRUE` salvo en algún chunk puntual que quieras mostrar a propósito. El parámetro `message=FALSE, warning=FALSE` debe estar activo en los chunks que los generen. No se debe incluir `toc: true` en el cuerpo del texto — eso ya está configurado en la cabecera YAML. El uso de negritas, secciones bien delimitadas y párrafos cortos mejora la legibilidad. Usar bloques coloreados para enfatizar aspectos relevantes también ayuda mucho a la lectura.
 
-- **Texto coherente con hilo conductor común.** La memoria debe tener un **hilo conductor** que conecte unos apartados con otros de forma lógica y ordenada, con un único objetivo: **dar respuesta a las preguntas de investigación formuladas**. Cada sección debe conectar con la anterior: la introducción plantea las preguntas, cada gráfico, tabla o modelo se incluye porque ayuda a responder alguna de ellas (y el texto dice a cuál y qué aporta), y las conclusiones las cierran una a una. **No se trata de añadir una cantidad enorme de apartados, gráficos y tablas uno detrás de otro sin conexión**: un apartado que no lleva a responder ninguna pregunta sobra, aunque sea correcto. Evita secciones que parezcan escritas de forma independiente y pegadas sin relación entre sí.
+- **Texto coherente con hilo conductor común.** La memoria debe tener un **hilo conductor** que conecte unos apartados con otros de forma lógica y ordenada, con un único objetivo: **dar respuesta a las preguntas de investigación formuladas**. Cada sección debe conectar con la anterior: la introducción plantea las preguntas, cada gráfico, tabla o modelo se incluye porque ayuda a responder alguna de ellas (y el texto dice a cuál y qué aporta), y las conclusiones las cierran una a una. **No se trata de añadir una cantidad enorme de apartados, gráficos y tablas uno detrás de otro sin conexión**: un apartado que no lleva a responder ninguna pregunta sobra, aunque sea correcto. Evita secciones que parezcan escritas de forma independiente y pegadas sin relación entre sí. Los **títulos de las subsecciones** ayudan a construir ese hilo: deben tener un alto significado respecto a los objetivos y las preguntas de investigación, y **nunca ser el tipo de gráfico** que se usa (una subsección no puede titularse «Gráfico de disco»), porque los gráficos son una herramienta para comunicar, no un objetivo del proyecto (recuadro *Títulos de las subsecciones* del Paso 3).
 
 - **Todas las secciones completadas correctamente siguiendo la metodología CRISP-DM** *(solo Entrega 3).* El modelo de memoria tiene secciones fijas que deben aparecer todas y estar desarrolladas, y cada una debe contener lo que le corresponde según la fase CRISP-DM que representa. Una sección con solo el título o con el texto de ejemplo sin sustituir se considera no completada.
 
