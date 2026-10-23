@@ -36,6 +36,8 @@
               padding:1rem; margin:1.3rem 0; overflow-x:auto; font-size:.84rem; line-height:1.5; }
   table.flujo { width:100%; font-size:.9rem; }
   table.flujo th, table.flujo td { white-space:normal; vertical-align:top; }
+  .actualizado { color:var(--suave); margin:.5rem 0 0; font-size:.9rem; }
+  .fecha { color:var(--suave); font-size:.9em; white-space:nowrap; }
   footer { margin-top:3rem; padding-top:1rem; border-top:1px solid var(--linea); color:var(--suave); font-size:.9rem; }
 </style>
 </head>
@@ -45,6 +47,7 @@
 <header>
   <h1>Proyecto Personal — Análisis Exploratorio de Datos y Visualización</h1>
   <p class="subtitulo">Grado en Ciencia e Ingeniería de Datos · Universidad de Las Palmas de Gran Canaria · Luis Álvarez</p>
+  <p class="actualizado">Última actualización del repositorio: <span id="fecha-repo">23/10/2026</span></p>
 </header>
 
 <div class="aviso">
@@ -64,7 +67,7 @@
 
 <h2>Documentos principales</h2>
 <ul>
-  <li><a href="README_Proyecto_Personal.html">Guía de trabajo del proyecto personal</a> — <span class="desc">entregas, seguimiento, flujo paso a paso y rúbrica comentada</span></li>
+  <li><a href="README_Proyecto_Personal.html">Guía de trabajo del proyecto personal</a> — <span class="desc">entregas, seguimiento, flujo paso a paso y rúbrica comentada</span> <span class="fecha">(actualizada el <span id="fecha-guia">23/10/2026</span>)</span></li>
   <li><a href="ModeloMemoriaProyectoPersonalAEDV.html">Modelo de memoria (vista previa)</a> —
       <span class="desc">plantilla que se copia y se rellena:
       <a href="ModeloMemoriaProyectoPersonalAEDV.Rmd">ModeloMemoriaProyectoPersonalAEDV.Rmd</a></span></li>
@@ -237,5 +240,21 @@ estructura 3a/3b, así que la incorporación a la memoria se hace igual.</p>
 </footer>
 
 </div>
+<script>
+// Fechas de actualización leídas del último commit (GitHub API); si falla, se quedan las escritas arriba.
+(function () {
+  var api = "https://api.github.com/repos/lalvarezmat/AEDV-proyecto-personal/commits?per_page=1";
+  function fecha(id, url) {
+    fetch(url).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+      if (!d || !d.length) return;
+      var f = new Date(d[0].commit.committer.date);
+      document.getElementById(id).textContent = f.toLocaleDateString("es-ES",
+        { day: "2-digit", month: "2-digit", year: "numeric" });
+    }).catch(function () {});
+  }
+  fecha("fecha-repo", api);
+  fecha("fecha-guia", api + "&path=README_Proyecto_Personal.html");
+})();
+</script>
 </body>
 </html>
