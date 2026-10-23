@@ -47,7 +47,7 @@
 <header>
   <h1>Proyecto Personal — Análisis Exploratorio de Datos y Visualización</h1>
   <p class="subtitulo">Grado en Ciencia e Ingeniería de Datos · Universidad de Las Palmas de Gran Canaria · Luis Álvarez</p>
-  <p class="actualizado">Última actualización del repositorio: <span id="fecha-repo">23/10/2026</span></p>
+  <p class="actualizado">Última actualización del repositorio: <span id="fecha-repo">23/10/2026, 14:00</span></p>
 </header>
 
 <div class="aviso">
@@ -67,7 +67,7 @@
 
 <h2>Documentos principales</h2>
 <ul>
-  <li><a href="README_Proyecto_Personal.html">Guía de trabajo del proyecto personal</a> — <span class="desc">entregas, seguimiento, flujo paso a paso y rúbrica comentada</span> <span class="fecha">(actualizada el <span id="fecha-guia">23/10/2026</span>)</span></li>
+  <li><a href="README_Proyecto_Personal.html">Guía de trabajo del proyecto personal</a> — <span class="desc">entregas, seguimiento, flujo paso a paso y rúbrica comentada</span> <span class="fecha">(actualizada el <span id="fecha-guia">23/10/2026, 13:56</span>)</span></li>
   <li><a href="ModeloMemoriaProyectoPersonalAEDV.html">Modelo de memoria (vista previa)</a> —
       <span class="desc">plantilla que se copia y se rellena:
       <a href="ModeloMemoriaProyectoPersonalAEDV.Rmd">ModeloMemoriaProyectoPersonalAEDV.Rmd</a></span></li>
@@ -248,8 +248,8 @@ estructura 3a/3b, así que la incorporación a la memoria se hace igual.</p>
     fetch(url).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
       if (!d || !d.length) return;
       var f = new Date(d[0].commit.committer.date);
-      document.getElementById(id).textContent = f.toLocaleDateString("es-ES",
-        { day: "2-digit", month: "2-digit", year: "numeric" });
+      document.getElementById(id).textContent = f.toLocaleString("es-ES",
+        { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
     }).catch(function () {});
   }
   fecha("fecha-repo", api);
