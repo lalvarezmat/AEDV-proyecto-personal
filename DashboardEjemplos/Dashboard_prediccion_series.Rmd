@@ -1,0 +1,672 @@
+---
+title: "Predicción de series temporales: ARIMA y STL + ARIMA" # ✎ USUARIO (PASO 1)
+output:
+  flexdashboard::flex_dashboard:
+    orientation: columns
+runtime: shiny
+---
+
+<!--
+================================================================================
+  PLANTILLA DE PREDICCIÓN CON DIAGNÓSTICO DE RESIDUOS (UNA PÁGINA)
+
+  Predice una serie con el método que se elija en la barra lateral —un ARIMA
+  ajustado directamente sobre la serie, o STL + ARIMA sobre la tendencia— y la
+  estudia en tres pestañas: la predicción, el error del ajuste con los cuatro
+  tests de ruido blanco, y la descomposición STL del tramo ajustado.
+
+  ✎ = LO QUE DEFINE EL USUARIO. Todo lo marcado con ✎ está al principio de la
+  página y es lo ÚNICO que hay que tocar para aplicarla a otros datos:
+    ✎ PASO 1: el título del cuadro de mandos (cabecera YAML, arriba del todo).
+    ✎ PASO 2: el título de la página (la línea subrayada con ====).
+    ✎ PASO 3: el identificador de la página.
+    ✎ PASO 4: la lectura de los datos.
+    ✎ PASO 5: los rótulos y las opciones de arranque.
+  El resto se deduce de los propios datos: las columnas de fecha, de serie y de
+  valores; si la serie tiene estacionalidad (mensual, trimestral...) o no
+  (anual), y con ello si se ofrece la ventana estacional de STL y si la
+  descomposición tiene componente estacional; y las opciones de los controles,
+  a partir de la longitud y del periodo de cada serie. Sirve, por tanto, igual
+  para series estacionales y no estacionales.
+
+  ES UNA PÁGINA DENTRO DE UN CUADRO DE MANDOS. Para añadirla a otro cuadro de
+  mandos con varias páginas se copia TODO lo que va desde la línea del título
+  de la página (PASO 2) hasta el final del fichero, y se le da en el PASO 3 un
+  identificador distinto del de las demás páginas. La misma plantilla puede
+  copiarse varias veces en el mismo cuadro de mandos con datos distintos: cada
+  copia guarda sus datos y sus controles por separado (ver la nota "AISLAMIENTO
+  DE LA PÁGINA" más abajo).
+
+  El ejemplo son los pasajeros llegados por avión a Canarias, por isla: una
+  serie MENSUAL con una estacionalidad muy marcada. La opción "Canarias" del
+  desplegable no es una isla: es el total del archipiélago. Y La Gomera está a
+  propósito: le faltan abril y mayo de 2020 (el confinamiento), así que con un
+  tramo de ajuste que incluya esos meses ninguno de los dos métodos puede
+  ajustarla. Sirve para ver cómo el cuadro de mandos lo detecta y lo explica en
+  vez de dejar los paneles en blanco; con un tramo que empiece después, se
+  ajusta sin problema.
+
+  Requiere las funciones de predicción, dibujo y diagnóstico de residuos del
+  fichero utilidades.R del curso, en su versión del 22 de octubre de 2026 o
+  posterior (la que trae aedv_residuos()).
+================================================================================
+-->
+
+<!-- ✎ USUARIO (PASO 2): TÍTULO DE LA PÁGINA. AQUÍ EMPIEZA LA PÁGINA -->
+
+Pasajeros llegados a Canarias
+==================================================
+
+```{r, include=FALSE}
+# ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
+#   ELEMENTOS QUE DEFINE EL USUARIO
+#   Es lo único que hay que cambiar; todo lo que viene después de este chunk se
+#   adapta solo.
+# ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
+
+library(fpp3)      # tsibble: la lectura de los datos los deja como tsibble
+library(tidyverse) # manipulación de los datos al leerlos
+
+# ✎ PASO 3: IDENTIFICADOR DE LA PÁGINA
+# Una palabra sin espacios ni tildes. Va delante del nombre de todos los
+# controles de la página, para que no choquen con los de otras páginas del mismo
+# cuadro de mandos: si se pone dos veces esta plantilla, cada copia necesita el
+# suyo.
+PAGINA_ID <- "pasajeros"                                                     # ✎
+
+# ✎ PASO 4: LOS DATOS
+# Se leen UNA SOLA VEZ al arrancar y han de quedar como un tsibble en formato
+# LARGO con:
+#   - una columna de índice temporal (el año, el trimestre, el mes...),
+#   - UNA columna key, que es la que separa las series y alimenta el desplegable,
+#   - UNA columna de valores.
+# Sirve cualquier frecuencia: la plantilla detecta sola si las series admiten
+# estacionalidad (mensual, trimestral...) o no (anual).
+#
+# Pasajeros llegados por avión a Canarias, por isla (ISTAC). El fichero de origen
+# trae, mezcladas con los meses, las filas de TOTAL ANUAL —se reconocen porque su
+# TIME es solo el año, sin mes— y hay que quitarlas: colarlas en la serie mensual
+# metería un valor doce veces mayor una vez al año.
+DATOS <- readRDS(url(                                                        # ✎
+  "https://ctim.es/AEDV/data/TRAFICO_AEREO_PASAJEROS_LLEGADAS_CANARIAS.rds")) |>
+  filter(str_detect(TIME, "^\\d{4}-\\d{2}$")) |>
+  transmute(fecha = yearmonth(TIME), ISLA = NAME, pasajeros = VALUE) |>
+  as_tsibble(index = fecha, key = ISLA)
+
+# ✎ PASO 5: RÓTULOS Y OPCIONES DE ARRANQUE
+ETIQUETA_SERIE <- "Isla:"              # ✎ rótulo del desplegable de series
+ETIQUETA_VALOR <- "pasajeros llegados" # ✎ rótulo del eje vertical de la predicción
+
+# Serie con la que arranca la página. Si no existe en DATOS se usa la primera,
+# así que la plantilla no se rompe al cambiar de datos y olvidarse de tocarla.
+SERIE_INICIAL  <- "Canarias"           # ✎ el total del archipiélago, no una isla
+
+METODO_INICIAL <- "ARIMA"              # ✎ "ARIMA" o "STL + ARIMA"
+
+# ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
+#   FIN DE LOS ELEMENTOS QUE DEFINE EL USUARIO
+# ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
+
+# A PARTIR DE AQUÍ NO HAY QUE TOCAR NADA
+
+# AISLAMIENTO DE LA PÁGINA
+# En un cuadro de mandos con varias páginas, todos los chunks comparten las
+# mismas variables, y la página siguiente puede volver a definir DATOS,
+# SERIE_INICIAL... (lo hace seguro si es otra copia de esta plantilla). Por eso
+# lo que define el usuario se guarda AHORA en PAGINAS[[PAGINA_ID]], y el resto
+# de la página trabaja dentro de local({ ... }) leyendo solo de ahí: las
+# reactivas, que se ejecutan más tarde, cuando ya se han leído todas las
+# páginas, siguen viendo los datos de la suya.
+if (!exists("PAGINAS")) PAGINAS <- list()
+PAGINAS[[PAGINA_ID]] <- list(
+  datos          = DATOS,
+  etiqueta_serie = ETIQUETA_SERIE,
+  etiqueta_valor = ETIQUETA_VALOR,
+  serie_inicial  = SERIE_INICIAL,
+  metodo_inicial = METODO_INICIAL
+)
+```
+
+```{r, include=FALSE}
+library(flexdashboard) # Estructura del cuadro de mando en columnas
+library(shiny)         # Reactividad
+library(fpp3)          # tsibble, feasts y fable: series temporales, STL y ARIMA
+library(plotly)        # Gráficas dinámicas: ggplotly convierte los ggplot
+library(lmtest)        # Test de Breusch-Pagan (lo usa aedv_tests_residuos)
+library(tidyverse)     # Manipulación de datos y ggplot2
+
+# Funciones auxiliares del curso. Si otra página ya las ha cargado no se vuelven
+# a descargar.
+if (!exists("aedv_residuos")) source("https://ctim.es/AEDV/utilidades.R")
+
+# ==============================================================================
+# FUNCIONES DE LA PLANTILLA
+# No dependen de la página: si la plantilla está copiada varias veces, cada copia
+# las vuelve a definir exactamente iguales y no pasa nada.
+# ==============================================================================
+
+# OPCIONES DE LOS CONTROLES, DEDUCIDAS DE CADA SERIE
+# Ninguna de estas cifras está escrita a mano: todas salen del número de
+# observaciones de la serie y de su periodo estacional (12 en datos mensuales, 4
+# en trimestrales, 1 si es anual). Así, al cambiar los datos del PASO 4, los
+# controles se ajustan solos en vez de ofrecer valores absurdos.
+opciones_de <- function(ts) {
+  n       <- nrow(ts)
+  periodo <- tsibble::guess_frequency(ts[[tsibble::index_var(ts)]])
+
+  # Horizonte: unos pocos ciclos, y nunca más de la quinta parte de la serie
+  h_max <- max(2, min(max(3 * periodo, 10), n %/% 5))
+  h_def <- max(min(2 * periodo, h_max), min(5, h_max))
+
+  # Periodos observados con los que se ajusta el modelo (siempre los ÚLTIMOS):
+  # desde tres ciclos —o 10 observaciones en una serie anual— hasta la serie
+  # entera, de ciclo en ciclo (de 5 en 5 en una serie anual). Se arranca con
+  # seis ciclos —o 30 años—: bastantes para estimar el modelo, sin arrastrar un
+  # pasado lejano que quizá ya no representa a la serie.
+  paso      <- if (periodo > 1) periodo else 5
+  minimo    <- min(n, max(10, 3 * periodo))
+  tramo_def <- min(n, max(6 * periodo, 30))
+  tramos    <- sort(unique(c(seq(minimo, n, by = paso), tramo_def, n)))
+
+  list(periodo = periodo,
+       h = 2:h_max, h_def = h_def,
+       tramos = tramos, tramo_def = tramo_def)
+}
+
+# Las ventanas de STL han de ser impares
+impar <- function(x) {
+  x <- floor(x)
+  ifelse(x %% 2 == 0, x + 1, x)
+}
+
+# Ventanas de la tendencia para un tramo de n observaciones: de medio ciclo a
+# unos cuantos, sin pasar de la mitad del tramo (una ventana más larga que eso
+# no suaviza, aplana). En un tramo muy corto puede no quedar ninguna, y se
+# ofrece la mínima con la que STL todavía suaviza.
+ventanas_tendencia <- function(n, periodo) {
+  vt <- impar(c(0.6, 1, 1.5, 2.5, 3.5, 5) * max(periodo, 5))
+  vt <- sort(unique(vt[vt > 3 & vt < n / 2]))
+  if (length(vt) == 0) vt <- 5
+  as.character(vt)
+}
+
+# Ventana de la tendencia con la que se arranca: la del medio de las ofrecidas
+ventana_tendencia_def <- function(vt) vt[ceiling(length(vt) / 2)]
+
+# Ventanas de la estacionalidad, en ciclos (solo si la serie tiene periodo > 1)
+VENTANAS_ESTACIONALIDAD    <- c("periodic", "7", "11", "13", "21")
+VENTANA_ESTACIONALIDAD_DEF <- "13"
+
+# "periodic" se pasa a STL tal cual, como texto, y el resto de ventanas como número
+ventana_estacional_stl <- function(ve) if (ve == "periodic") "periodic" else as.numeric(ve)
+
+# ==============================================================================
+# PREPARACIÓN DE LA PÁGINA: comprobación de los datos, separación en series
+# individuales y opciones de los controles. Todo se guarda en PAGINAS[[PAGINA_ID]].
+# ==============================================================================
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+  ts <- pg$datos
+
+  # COMPROBACIÓN DE LOS DATOS. Se verifica lo que la plantilla da por supuesto de
+  # los datos del PASO 4. Es una costumbre barata que evita el peor modo de fallo
+  # de un cuadro de mando: un problema en los datos que no protesta al arrancar,
+  # sino más tarde y dentro de una función de dibujado, donde el único síntoma es
+  # un panel vacío.
+  aviso <- paste0("Página '", PAGINA_ID, "': ")
+  if (!tsibble::is_tsibble(ts)) {
+    stop(aviso, "DATOS no es un tsibble: conviértelo con as_tsibble() en el PASO 4.")
+  }
+  if (length(tsibble::key_vars(ts)) != 1) {
+    stop(aviso, "DATOS tiene ", length(tsibble::key_vars(ts)), " columnas key. ",
+         "Debe tener exactamente una, la que separa las series.")
+  }
+  if (length(tsibble::measured_vars(ts)) != 1) {
+    stop(aviso, "DATOS tiene ", length(tsibble::measured_vars(ts)),
+         " columnas de valores. Debe tener exactamente una.")
+  }
+
+  # SEPARACIÓN EN SERIES INDIVIDUALES. Cada elemento del desplegable se convierte
+  # en un tsibble de UNA sola serie, sin key, que es lo que esperan las funciones
+  # de predicción del curso. Los nombres de las columnas no se escriben a mano: se
+  # leen del propio tsibble.
+  col_serie <- tsibble::key_vars(ts)[1]
+  col_fecha <- tsibble::index_var(ts)
+  col_valor <- tsibble::measured_vars(ts)[1]
+
+  nombres <- sort(unique(as.character(ts[[col_serie]])))
+  series  <- lapply(nombres, function(nombre) {
+    ts |>
+      as_tibble() |>
+      filter(.data[[col_serie]] == nombre) |>
+      select(all_of(c(col_fecha, col_valor))) |>
+      as_tsibble(index = all_of(col_fecha))
+  })
+  names(series) <- nombres
+
+  cortas <- nombres[sapply(series, nrow) < 12]
+  if (length(cortas) > 0) {
+    stop(aviso, "la(s) serie(s) ", paste(cortas, collapse = ", "), " tienen menos ",
+         "de 12 observaciones: son demasiado pocas para ajustar un modelo.")
+  }
+
+  if (!pg$serie_inicial %in% nombres) pg$serie_inicial <- nombres[1]
+
+  pg$col_fecha <- col_fecha
+  pg$nombres   <- nombres
+  pg$series    <- series
+  pg$opciones  <- lapply(series, opciones_de)
+
+  # IDENTIFICADORES DE LOS CONTROLES Y SALIDAS: el de la página delante, para que
+  # no choquen con los de otras páginas ("pasajeros_serie", "pasajeros_h"...)
+  p <- PAGINA_ID
+  pg$id <- function(nombre) paste0(p, "_", nombre)
+
+  PAGINAS[[PAGINA_ID]] <<- pg
+})
+```
+
+```{css}
+/* Tabla de métricas de la barra lateral: letra algo más pequeña y celdas con
+   menos relleno (flexdashboard les pone 12 px por lado), para que los números
+   quepan en su anchura sin desbordar el panel */
+.sidebar table {
+  font-size: 90%;
+}
+.sidebar table th, .sidebar table td {
+  padding-left: 4px !important;
+  padding-right: 4px !important;
+}
+```
+
+Menú {.sidebar data-width=200}
+--------------------------------------------------
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+  id <- pg$id
+
+  # Al cambiar de serie, el horizonte y los periodos observados se adaptan a ella
+  observeEvent(input[[id("serie")]], {
+    o <- pg$opciones[[input[[id("serie")]]]]
+    h <- as.numeric(input[[id("h")]])
+
+    updateSelectInput(session, id("h"), choices = o$h, selected = min(h, max(o$h)))
+    updateSelectInput(session, id("tramo"), choices = o$tramos, selected = o$tramo_def)
+  })
+
+  # Las opciones de la ventana de la tendencia dependen del tramo con el que se
+  # ajusta, así que estos controles se reconstruyen también al cambiarlo
+  output[[id("controles_stl")]] <- renderUI({
+    req(input[[id("serie")]], input[[id("tramo")]], input[[id("metodo")]])
+    if (input[[id("metodo")]] != "STL + ARIMA") return(NULL)
+
+    o  <- pg$opciones[[input[[id("serie")]]]]
+    vt <- ventanas_tendencia(as.numeric(input[[id("tramo")]]), o$periodo)
+    tagList(
+      selectInput(id("ventana_tendencia"), "STL: suavizado tendencia (observaciones):",
+                  choices = vt, selected = ventana_tendencia_def(vt)),
+      # Una serie sin estacionalidad (anual) no tiene componente estacional que
+      # suavizar, y este control no se ofrece
+      if (o$periodo > 1) {
+        selectInput(id("ventana_estacionalidad"), "STL: suavizado estacionalidad (ciclos):",
+                    choices = VENTANAS_ESTACIONALIDAD, selected = VENTANA_ESTACIONALIDAD_DEF)
+      }
+    )
+  })
+
+  # ============================================================================
+  # UN SOLO CÁLCULO REACTIVO PARA TODOS LOS PANELES DE LA PÁGINA
+  # Aquí se ajusta el modelo, que es lo costoso del cuadro de mando. El resultado
+  # lo comparten las métricas, las gráficas y la tabla de los tests: si cada
+  # panel lo calculara por su cuenta, el modelo se ajustaría varias veces.
+  #
+  # Es un eventReactive(): solo se recalcula al pulsar el botón «Calcular», no
+  # cada vez que se toca un control (la serie, el horizonte, el tramo, el método
+  # o las ventanas de STL). Así se pueden cambiar varios controles seguidos y
+  # ajustar el modelo una sola vez. Al arrancar NO se calcula nada, para que el
+  # cuadro de mando cargue antes: los paneles quedan vacíos hasta el primer
+  # clic. Se guarda en PAGINAS[[PAGINA_ID]] para que lo lean los demás chunks
+  # de la página.
+  # ============================================================================
+  pg$calculo <- eventReactive(input[[id("calcular")]], {
+    # Los controles pueden no existir todavía la primera vez que se ejecuta esta
+    # reactiva: sin esta espera, el panel muestra un instante un error que
+    # después desaparece solo
+    req(input[[id("serie")]], input[[id("h")]], input[[id("tramo")]],
+        input[[id("metodo")]])
+
+    nombre <- input[[id("serie")]]
+    metodo <- input[[id("metodo")]]
+    ts     <- pg$series[[nombre]]
+    o      <- pg$opciones[[nombre]]
+    h      <- as.numeric(input[[id("h")]])
+    tramo  <- as.numeric(input[[id("tramo")]])
+
+    # TRAMO CON HUECOS: periodos que faltan por medio. Los datos NO se arreglan
+    # —rellenarlos a la callada sería inventar observaciones—, pero con un hueco
+    # por medio ninguno de los dos métodos funciona, y ninguno de los dos lo dice
+    # claramente:
+    #   - `aedv_prediccion_arima()` NO da error: `model()` devuelve un modelo
+    #     nulo con un simple aviso y la predicción sale entera a NA.
+    #   - `aedv_prediccion_stl_arima()` sí falla, pero con el mensaje
+    #     "objeto 'formula_stl' no encontrado", que no menciona los huecos.
+    # Así que se comprueba aquí, sobre el mismo tramo con el que se va a ajustar
+    # (los últimos `tramo` periodos), y se sale explicando el motivo.
+    faltan <- tsibble::scan_gaps(tail(ts, tramo))
+    if (nrow(faltan) > 0) {
+      return(list(
+        serie       = nombre,
+        metodo      = metodo,
+        diagnostico = paste0(
+          "No se puede ajustar el modelo: en los últimos ", tramo, " periodos ",
+          "observados faltan ", nrow(faltan), " por medio (",
+          paste(format(faltan[[pg$col_fecha]]), collapse = ", "),
+          "). Los dos métodos necesitan observaciones a intervalos regulares, ",
+          "y ninguno de los dos avisa de esto por su cuenta: el ARIMA devuelve ",
+          "la predicción entera a NA sin protestar, y STL + ARIMA falla con un ",
+          "mensaje que ni siquiera menciona los huecos. Basta con reducir los ",
+          "periodos observados para que el tramo empiece después del último ",
+          "hueco; usar la serie entera exigiría decidir en el PASO 4 qué hacer ",
+          "con esos periodos (por ejemplo, interpolarlos con fill_gaps() y una ",
+          "interpolación).")
+      ))
+    }
+
+    if (metodo == "ARIMA") {
+      resultado <- aedv_prediccion_arima(ts, h = h, periodos_atras = tramo)
+      metricas  <- aedv_arima_accuracy(resultado) # RMSE, MAE y MASE del ajuste
+      tendencia <- NULL
+      # Ventanas con las que se descompone en la pestaña de STL: con ARIMA no se
+      # muestran sus controles, y se usan las que traen por omisión
+      vt <- ventana_tendencia_def(ventanas_tendencia(tramo, o$periodo))
+      ve <- VENTANA_ESTACIONALIDAD_DEF
+    } else {
+      # Las ventanas se leen de los controles que construye renderUI, que no
+      # existen hasta un instante después de elegir el método: si se pulsa el
+      # botón antes, req() detiene el cálculo y basta con volver a pulsarlo.
+      # La de la estacionalidad solo existe si la serie tiene periodo > 1.
+      vt <- input[[id("ventana_tendencia")]]
+      req(vt)
+      if (o$periodo > 1) {
+        ve <- input[[id("ventana_estacionalidad")]]
+        req(ve)
+      } else {
+        ve <- VENTANA_ESTACIONALIDAD_DEF # no interviene: STL no estima estacionalidad
+      }
+
+      resultado <- aedv_prediccion_stl_arima(
+        ts, h = h, periodos_atras = tramo,
+        ventana_tendencia      = as.numeric(vt),
+        ventana_estacionalidad = ventana_estacional_stl(ve))
+
+      # aedv_arima_accuracy() solo admite ARIMA: el error de STL + ARIMA es el
+      # remainder de una descomposición que ha visto todo el tramo, y sus
+      # métricas saldrían engañosamente buenas
+      metricas <- NULL
+      # La tendencia viaja DENTRO del resultado, observada y predicha: se lee
+      # aquí, del objeto tal como sale de la función, porque es un atributo y los
+      # verbos de dplyr lo descartarían al quedarse con el tramo dibujado
+      tendencia <- aedv_tendencia(resultado)
+    }
+
+    # Error del ajuste (observado − prediccion en el tramo ajustado), con
+    # aedv_residuos(), como en el cap. 5 del libro: en el ARIMA son los residuos
+    # del modelo, sin las d + D·m primeras observaciones que gasta la
+    # diferenciación; en STL + ARIMA, el remainder de la descomposición
+    error <- aedv_residuos(resultado) |>
+      as_tibble() |>
+      transmute(fecha = .data[[tsibble::index_var(resultado)]], error = residuo)
+
+    # El nombre de la serie y el método viajan DENTRO del resultado, junto a los
+    # datos que les corresponden, para que los paneles no tengan que volver a
+    # leerlos de input
+    list(
+      serie       = nombre,
+      metodo      = metodo,
+      periodo     = o$periodo,
+      tramo       = tramo,
+      ventanas    = list(tendencia = vt, estacionalidad = ve),
+      diagnostico = NULL,
+      resultado   = resultado,
+      tendencia   = tendencia,
+      metricas    = metricas,
+      error       = error,
+      tests       = aedv_tests_residuos(error$error, error$fecha) # los 4 tests de una vez
+    )
+  })
+  PAGINAS[[PAGINA_ID]] <<- pg
+
+  # LOS CONTROLES. Se crean una vez y después se ACTUALIZAN al cambiar de serie
+  # (observeEvent de arriba): así están disponibles desde el primer instante.
+  o_ini <- pg$opciones[[pg$serie_inicial]]
+  tagList(
+    selectInput(id("serie"), pg$etiqueta_serie,
+                choices = pg$nombres, selected = pg$serie_inicial),
+
+    selectInput(id("h"), "Horizonte de predicción (periodos):",
+                choices = o_ini$h, selected = o_ini$h_def),
+
+    # Los ÚLTIMOS periodos observados: con ellos se ajusta el modelo (argumento
+    # periodos_atras de las funciones de predicción), y son también los que se
+    # dibujan delante de la predicción
+    selectInput(id("tramo"), "Periodos observados para ajustar el modelo:",
+                choices = o_ini$tramos, selected = o_ini$tramo_def),
+
+    radioButtons(id("metodo"), "Método de predicción:",
+                 choices = c("ARIMA", "STL + ARIMA"), selected = pg$metodo_inicial),
+
+    # Las ventanas del suavizado solo intervienen en STL + ARIMA, así que solo
+    # aparecen al elegir ese método. Es una parte de la interfaz que depende de
+    # la propia interfaz, y por eso esa sí se construye desde el código.
+    uiOutput(id("controles_stl")),
+
+    # Lanza el cálculo: hasta pulsarlo no se calcula nada, ni al arrancar ni al
+    # cambiar los controles
+    actionButton(id("calcular"), "Calcular")
+  )
+})
+```
+
+```{r}
+# MÉTRICAS DEL AJUSTE, en la barra lateral. Solo con ARIMA: aedv_arima_accuracy()
+# no admite STL + ARIMA, cuyo error es el remainder de una descomposición que ha
+# visto todo el tramo y daría unas métricas engañosamente buenas. Tampoco hay
+# métricas cuando el tramo tiene huecos (los paneles de la derecha explican el
+# motivo).
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderUI({
+    resultado <- pg$calculo()
+    req(resultado, is.null(resultado$diagnostico), resultado$metodo == "ARIMA")
+
+    tags$strong("Métricas de ajuste ARIMA")
+  })
+})
+```
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderTable({
+    resultado <- pg$calculo()
+    req(resultado, is.null(resultado$diagnostico), resultado$metodo == "ARIMA")
+
+    resultado$metricas
+  }, digits = 2) # tamaño de letra y relleno de las celdas, en el bloque css
+})
+```
+
+Column {.tabset}
+--------------------------------------------------
+
+<!--
+  LA COLUMNA DE LA DERECHA VA EN TRES PESTAÑAS: la predicción, el diagnóstico
+  del error del ajuste (gráfica + tests) y la descomposición STL. Todas beben
+  del mismo cálculo, así que cambiar de pestaña no vuelve a ajustar el modelo.
+
+  IMPORTANTE: en los paneles de las gráficas no se escribe texto encima. El
+  widget ocupa la altura del panel, así que cualquier línea de texto por delante
+  lo empuja hacia abajo y flexdashboard le recorta el borde inferior, que es
+  precisamente donde están las etiquetas del eje horizontal. El código de
+  colores va en la leyenda de la gráfica.
+
+  Cuando el tramo tiene huecos, validate(need(...)) sustituye cada panel por el
+  motivo, en su propio hueco. Es la diferencia entre un cuadro de mandos que se
+  queda en blanco y uno que dice qué ha pasado.
+-->
+
+### Predicción
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderPlotly({
+    resultado <- pg$calculo()
+    req(resultado)
+    validate(need(is.null(resultado$diagnostico), resultado$diagnostico))
+
+    # Se dibuja el tramo con el que se ha ajustado el modelo —las filas que tienen
+    # ajuste— y la predicción. El resto de la serie se queda fuera: si es larga,
+    # la predicción quedaría reducida a una astilla en el borde derecho.
+    tramo  <- resultado$resultado |> filter(!is.na(prediccion))
+    titulo <- paste0(resultado$serie, " · ", resultado$metodo)
+
+    if (resultado$metodo == "ARIMA") {
+      return(aedv_dibujar_arima_dinamico(tramo, titulo = titulo,
+                                         y_lab = pg$etiqueta_valor))
+    }
+
+    # Con STL + ARIMA se superpone la TENDENCIA de la descomposición: es lo que
+    # cambia al mover las ventanas del suavizado. Se pasa como argumento, y no
+    # con un add_lines() posterior, porque la función construye el eje
+    # horizontal con una representación propia de las fechas y una traza añadida
+    # por fuera no comparte ese eje y descuadra la gráfica.
+    # El tramo PREDICHO de la tendencia solo se dibuja si la serie tiene
+    # estacionalidad. Sin ella, la predicción del método ES la tendencia
+    # extrapolada, y la línea naranja quedaría exactamente debajo de la azul.
+    tendencia <- resultado$tendencia
+    if (resultado$periodo == 1) {
+      tendencia <- tendencia |> filter(!predicha)
+    }
+
+    aedv_dibujar_stl_arima_dinamico(tramo, titulo = titulo, y_lab = pg$etiqueta_valor,
+                                    tendencia = tendencia)
+  })
+})
+```
+
+### Error del ajuste y tests de ruido blanco
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+  id <- pg$id
+
+  # El error del ajuste en el MISMO tramo que la gráfica de la predicción, para
+  # leer las dos juntas. Lo que se espera de un buen ajuste es una línea que
+  # oscila alrededor del cero sin forma ni tendencia y con una amplitud
+  # constante: un patrón que se repite, un tramo en el que el error crece o un
+  # pico aislado son justo lo que detectan los tests de la tabla de debajo.
+  output[[id("grafico_error")]] <- renderPlotly({
+    resultado <- pg$calculo()
+    req(resultado)
+    validate(need(is.null(resultado$diagnostico),
+                  "Sin ajuste: el tramo tiene huecos (ver la pestaña de la predicción)."))
+
+    p <- resultado$error |>
+      ggplot(aes(x = fecha, y = error)) +
+        geom_hline(yintercept = 0, linetype = "dashed", colour = "steelblue") +
+        geom_line(colour = "grey45") +
+        labs(x = NULL, y = "error")
+
+    ggplotly(p)
+  })
+
+  # Los cuatro tests de ruido blanco sobre el error del tramo ajustado, con el
+  # p-valor en verde si el test se supera y en rojo si no. aedv_tabla_tests()
+  # devuelve una tabla HTML (gt si está instalada; si no, htmltools), que se
+  # muestra con renderUI.
+  output[[id("tabla_tests")]] <- renderUI({
+    resultado <- pg$calculo()
+    req(resultado)
+    validate(need(is.null(resultado$diagnostico),
+                  "Sin ajuste: el tramo tiene huecos (ver la pestaña de la predicción)."))
+
+    aedv_tabla_tests(resultado$tests,
+                     titulo = paste0("Error del ajuste de ", resultado$metodo,
+                                     " (", resultado$serie, ")"))
+  })
+
+  # Dos salidas en la misma pestaña: la gráfica del error arriba, ocupando el
+  # alto que quede libre, y la tabla de los tests debajo, con su altura natural
+  # (flex = NA). fillCol() es lo que reparte el alto de la pestaña entre las dos.
+  fillCol(flex = c(1, NA),
+          plotlyOutput(id("grafico_error"), height = "100%"),
+          uiOutput(id("tabla_tests")))
+})
+```
+
+### Descomposición STL
+
+```{r}
+# DESCOMPOSICIÓN STL DEL TRAMO DE AJUSTE: serie observada, tendencia,
+# estacionalidad y resto, una debajo de otra. Se descompone con la MISMA función
+# interna que usa aedv_prediccion_stl_arima() (.aedv_componentes_stl), así que con
+# STL + ARIMA es exactamente la descomposición de la que sale la predicción.
+#   - Con STL + ARIMA se usan las ventanas elegidas en la barra lateral.
+#   - Con ARIMA esas ventanas no se muestran, y se descompone con las que trae el
+#     control por omisión; el título de la gráfica dice cuáles son.
+#   - SIN ESTACIONALIDAD (periodo 1, una serie anual) no hay componente estacional:
+#     salen solo la serie, la tendencia y el resto.
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderPlotly({
+    resultado <- pg$calculo()
+    req(resultado)
+    validate(need(is.null(resultado$diagnostico), resultado$diagnostico))
+
+    vt <- resultado$ventanas$tendencia
+    ve <- resultado$ventanas$estacionalidad
+
+    comp <- .aedv_componentes_stl(tail(pg$series[[resultado$serie]], resultado$tramo),
+                                  ventana_tendencia      = as.numeric(vt),
+                                  ventana_estacionalidad = ventana_estacional_stl(ve)) |>
+      as_tibble()
+
+    # La columna estacional se llama "season_<periodo>" (season_year en datos
+    # mensuales) y solo existe si la serie tiene estacionalidad. tibble() descarta
+    # las columnas NULL, así que en una serie anual la estacionalidad no aparece.
+    col_fecha  <- pg$col_fecha
+    col_valor  <- setdiff(names(comp), c(".model", col_fecha, "trend", "remainder",
+                                         "season_adjust", grep("^season", names(comp), value = TRUE)))[1]
+    col_season <- setdiff(grep("^season", names(comp), value = TRUE), "season_adjust")
+    componentes <- tibble(
+      fecha          = comp[[col_fecha]],
+      observado      = comp[[col_valor]],
+      tendencia      = comp$trend,
+      estacionalidad = if (length(col_season) == 1) comp[[col_season]],
+      resto          = comp$remainder
+    ) |>
+      pivot_longer(-fecha, names_to = "componente", values_to = "valor") |>
+      # el orden de los paneles, de arriba abajo, es el de las columnas
+      mutate(componente = factor(componente, levels = unique(componente)))
+
+    titulo <- paste0(resultado$serie, " · STL con ventana de tendencia ", vt,
+                     if (resultado$periodo > 1) paste0(" y de estacionalidad ", ve))
+
+    p <- componentes |>
+      ggplot(aes(x = fecha, y = valor)) +
+        geom_line(colour = "grey30") +
+        facet_grid(componente ~ ., scales = "free_y") +
+        labs(x = NULL, y = NULL, title = titulo)
+
+    ggplotly(p)
+  })
+})
+```

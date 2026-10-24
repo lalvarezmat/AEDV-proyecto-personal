@@ -1,0 +1,209 @@
+---
+title: "Mi Dashboard" # ✎ USUARIO (PASO 1)
+output: flexdashboard::flex_dashboard
+runtime: shiny
+---
+
+<!--
+================================================================================
+  PLANTILLA DE MAPA COROPLÉTICO (UNA PÁGINA)
+
+  Dibuja un mapa coroplético con el indicador que se elija en la barra lateral
+  y, a su lado, la tabla de las áreas ordenadas de mayor a menor valor.
+
+  ✎ = LO QUE DEFINE EL USUARIO. Todo lo marcado con ✎ está al principio de la
+  página y es lo ÚNICO que hay que tocar para aplicarla a otros datos:
+    ✎ PASO 1: el título del cuadro de mandos (cabecera YAML, arriba del todo).
+    ✎ PASO 2: el título de la página (la línea subrayada con ====).
+    ✎ PASO 3: el identificador de la página.
+    ✎ PASO 4: la lectura de los datos y de la geometría.
+    ✎ PASO 5: los rótulos, el indicador inicial y el centro del mapa.
+
+  ES UNA PÁGINA DENTRO DE UN CUADRO DE MANDOS. Para añadirla a otro cuadro de
+  mandos con varias páginas se copia TODO lo que va desde la línea del título
+  de la página (PASO 2) hasta el final del fichero, y se le da en el PASO 3 un
+  identificador distinto del de las demás páginas (ver la nota "AISLAMIENTO DE
+  LA PÁGINA" más abajo).
+
+  El ejemplo son los indicadores por país de la tabla owid_country.
+================================================================================
+-->
+
+<!-- ✎ USUARIO (PASO 2): TÍTULO DE LA PÁGINA. AQUÍ EMPIEZA LA PÁGINA -->
+
+Mapa coroplético
+==================================================
+
+```{r, include=FALSE}
+# ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
+#   ELEMENTOS QUE DEFINE EL USUARIO
+#   Es lo único que hay que cambiar; todo lo que viene después de este chunk se
+#   adapta solo.
+# ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
+
+library(openxlsx)  # lectura de los datos (read.xlsx)
+library(sf)        # lectura de la geometría (st_read)
+library(tidyverse) # manipulación de los datos al leerlos
+
+# ✎ PASO 3: IDENTIFICADOR DE LA PÁGINA
+# Una palabra sin espacios ni tildes. Va delante del nombre de todos los
+# controles de la página, para que no choquen con los de otras páginas del mismo
+# cuadro de mandos.
+PAGINA_ID <- "mapa"                                                          # ✎
+
+# ✎ PASO 4: LOS DATOS Y LA GEOMETRÍA
+# Se leen UNA SOLA VEZ al arrancar.
+#   - DATOS: una fila por área, con una columna `codigo` (el código del área,
+#     el mismo que en la geometría), una columna `nombre` y una columna numérica
+#     por indicador, que son las opciones del desplegable.
+#   - GEOMETRIA: los polígonos de las áreas, con una columna `codigo` que casa
+#     con la de DATOS y una columna `nombre` para las etiquetas del mapa.
+DATOS <- read.xlsx("https://ctim.es/AEDV/data/owid_country.xlsx", sheet = 1) |> # ✎
+  as_tibble() |>
+  select(codigo = iso_code, nombre = location, population:human_development_index)
+
+# La geometría se descarga primero a un fichero temporal porque, en algunos
+# sistemas, st_read no puede acceder directamente a URLs https
+tmp <- tempfile(fileext = ".geojson")
+curl::curl_download("https://ctim.es/AEDV/data/geo_countries.geojson", tmp)  # ✎
+GEOMETRIA <- st_read(tmp, quiet = TRUE) |>
+  select(codigo = ISO_A3, nombre = ADMIN)
+
+# ✎ PASO 5: RÓTULOS, INDICADOR INICIAL Y CENTRO DEL MAPA
+ETIQUETA_INDICADOR <- "Indicador:"     # ✎ rótulo del desplegable
+INDICADOR_INICIAL  <- "population"     # ✎ indicador con el que arranca la página
+VISTA <- list(lng = 25, lat = 22, zoom = 2) # ✎ centro y zoom del mapa (todo el mundo)
+
+# ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
+#   FIN DE LOS ELEMENTOS QUE DEFINE EL USUARIO
+# ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
+
+# A PARTIR DE AQUÍ NO HAY QUE TOCAR NADA
+
+# AISLAMIENTO DE LA PÁGINA
+# En un cuadro de mandos con varias páginas, todos los chunks comparten las
+# mismas variables, y otra página puede volver a definir DATOS, GEOMETRIA...
+# Por eso lo que define el usuario se guarda AHORA en PAGINAS[[PAGINA_ID]], y
+# el resto de la página trabaja dentro de local({ ... }) leyendo solo de ahí:
+# las reactivas, que se ejecutan más tarde, cuando ya se han leído todas las
+# páginas, siguen viendo los datos de la suya.
+if (!exists("PAGINAS")) PAGINAS <- list()
+
+indicadores <- DATOS |> select(where(is.numeric)) |> colnames()
+if (!INDICADOR_INICIAL %in% indicadores) INDICADOR_INICIAL <- indicadores[1]
+
+PAGINAS[[PAGINA_ID]] <- list(
+  datos              = DATOS,
+  geometria          = GEOMETRIA,
+  indicadores        = indicadores,
+  etiqueta_indicador = ETIQUETA_INDICADOR,
+  indicador_inicial  = INDICADOR_INICIAL,
+  vista              = VISTA,
+  # identificadores de los controles con el de la página delante ("mapa_indicador"...)
+  id                 = local({ p <- PAGINA_ID; function(nombre) paste0(p, "_", nombre) })
+)
+```
+
+```{r, include=FALSE}
+library(flexdashboard) # Estructura del cuadro de mando en columnas
+library(shiny)         # Reactividad
+library(leaflet)       # Mapas interactivos
+library(tidyverse)     # Manipulación de datos
+
+# Funciones auxiliares del curso (aedv_mapa_coropletico). Si otra página ya las
+# ha cargado no se vuelven a descargar.
+if (!exists("aedv_mapa_coropletico")) source("https://ctim.es/AEDV/utilidades.R")
+
+# asociamos funciones a determinadas librerías para evitar posibles errores
+filter      <- dplyr::filter
+select      <- dplyr::select
+mutate      <- dplyr::mutate
+arrange     <- dplyr::arrange
+selectInput <- shiny::selectInput
+```
+
+Column {.sidebar data-width=250}
+--------------------------------------------------
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+  id <- pg$id
+
+  # Procesado de los datos al pulsar el botón «Calcular» (eventReactive): al
+  # arrancar no se calcula nada, para que el cuadro de mandos cargue antes, y
+  # la tabla y el mapa quedan vacíos hasta el primer clic
+  pg$calculo <- eventReactive(input[[id("calcular")]], {
+    req(input[[id("indicador")]])
+    indicador <- input[[id("indicador")]]
+
+    tb <- pg$datos |>
+      select(codigo, nombre, value = all_of(indicador)) |>
+      na.omit() |>
+      arrange(desc(value))
+
+    # el rótulo viaja con el resultado: no cambia hasta volver a pulsar el botón
+    list(tb = tb, indicador = indicador)
+  })
+  PAGINAS[[PAGINA_ID]] <<- pg
+
+  tagList(
+    selectInput(id("indicador"), label = pg$etiqueta_indicador,
+                choices = pg$indicadores, selected = pg$indicador_inicial),
+
+    # botón que lanza el cálculo: hasta pulsarlo no se calcula nada, ni al
+    # arrancar ni al cambiar el indicador
+    actionButton(id("calcular"), "Calcular")
+  )
+})
+```
+
+###
+
+```{r}
+# Tabla con el indicador seleccionado, de mayor a menor
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderTable({
+    resultado <- pg$calculo()
+    tb <- resultado$tb
+
+    tb |>
+      mutate(value = prettyNum(round(value,
+        digits = max(5 - nchar(as.character(round(max(tb$value)))), 0)),
+        big.mark = ",")) |>
+      select(nombre, value) |>
+      rename(!!resultado$indicador := value)
+  })
+})
+```
+
+Column
+--------------------------------------------------
+
+###
+
+```{r}
+# Mapa coroplético: se unen los datos a la geometría, así cada valor queda con
+# su polígono (las áreas sin dato salen sin color)
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  leaflet::renderLeaflet({
+    resultado <- pg$calculo()
+
+    join <- pg$geometria |>
+      left_join(resultado$tb |> select(codigo, value), by = "codigo")
+
+    etiquetas <- paste(
+      "<strong> ", join$nombre, "</strong><br>", resultado$indicador,
+      ": ", prettyNum(round(join$value, digits = 2), big.mark = ",", scientific = FALSE)
+    ) |>
+      lapply(htmltools::HTML)
+
+    aedv_mapa_coropletico(join, join$value, etiquetas, resultado$indicador,
+                          lng = pg$vista$lng, lat = pg$vista$lat, zoom = pg$vista$zoom)
+  })
+})
+```

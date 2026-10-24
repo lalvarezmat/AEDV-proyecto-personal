@@ -1,0 +1,411 @@
+---
+title: "Comparación de indicadores por país (fuente: OWID)" # ✎ USUARIO (PASO 1)
+output:
+  flexdashboard::flex_dashboard:
+    orientation: columns
+runtime: shiny
+---
+
+<!--
+================================================================================
+  PLANTILLA DE ANÁLISIS DE LA RELACIÓN ENTRE DOS INDICADORES (UNA PÁGINA)
+
+  Estudia la relación entre dos atributos numéricos de una tabla de
+  "áreas x atributos": el diagrama de dispersión con su recta de regresión
+  (primera pestaña), y los residuos de esa recta junto con la tabla del
+  análisis del ajuste (segunda pestaña: recta, R2, sigma y los tres tests de
+  aedv_lm_analisis, presentados con aedv_tabla_lm).
+
+  Permite transformar cada indicador (raíz, logaritmo, Yeo-Johnson) para
+  buscar una relación lineal donde no la hay entre las variables originales.
+
+  ✎ = LO QUE DEFINE EL USUARIO. Todo lo marcado con ✎ está al principio de la
+  página y es lo ÚNICO que hay que tocar para aplicarla a otros datos:
+    ✎ PASO 1: el título del cuadro de mandos (cabecera YAML, arriba del todo).
+    ✎ PASO 2: el título de la página (la línea subrayada con ====).
+    ✎ PASO 3: el identificador de la página.
+    ✎ PASO 4: la lectura de los datos y la columna que identifica cada fila.
+    ✎ PASO 5: los indicadores con los que arranca y el nivel de significación.
+  Los indicadores del desplegable NO se enumeran a mano: son todas las columnas
+  numéricas de los datos.
+
+  ES UNA PÁGINA DENTRO DE UN CUADRO DE MANDOS. Para añadirla a otro cuadro de
+  mandos con varias páginas se copia TODO lo que va desde la línea del título
+  de la página (PASO 2) hasta el final del fichero, y se le da en el PASO 3 un
+  identificador distinto del de las demás páginas (ver la nota "AISLAMIENTO DE
+  LA PÁGINA" más abajo).
+
+  Requiere las funciones aedv_yeo_johnson(), aedv_yeojohnson_lambda(),
+  aedv_lambda_optimo(), aedv_lm_analisis() y aedv_tabla_lm() del fichero
+  utilidades.R del curso.
+================================================================================
+-->
+
+<!-- ✎ USUARIO (PASO 2): TÍTULO DE LA PÁGINA. AQUÍ EMPIEZA LA PÁGINA -->
+
+Comparación de indicadores
+==================================================
+
+```{r, include=FALSE}
+# ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
+#   ELEMENTOS QUE DEFINE EL USUARIO
+#   Es lo único que hay que cambiar; todo lo que viene después de este chunk se
+#   adapta solo.
+# ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
+
+library(openxlsx)  # lectura de los datos (read.xlsx)
+library(tidyverse) # manipulación de los datos al leerlos
+
+# ✎ PASO 3: IDENTIFICADOR DE LA PÁGINA
+# Una palabra sin espacios ni tildes. Va delante del nombre de todos los
+# controles de la página, para que no choquen con los de otras páginas del mismo
+# cuadro de mandos.
+PAGINA_ID <- "comp"                                                          # ✎
+
+# ✎ PASO 4: LOS DATOS
+# Se leen UNA SOLA VEZ al arrancar. Ha de ser una tabla en formato ANCHO de
+# "áreas x atributos": una fila por área (país, municipio, provincia...) y una
+# columna por indicador numérico.
+DATOS <- read.xlsx("https://ctim.es/AEDV/data/owid_country.xlsx", sheet = 1) |> # ✎
+  as_tibble()
+
+# Columna que identifica cada fila: es el nombre que se enseña al pasar el ratón
+# por un punto y en la tabla de la derecha. Es la ÚNICA columna que hay que
+# nombrar: los indicadores del desplegable se deducen solos.
+COLUMNA_ETIQUETA <- "location"                                               # ✎
+
+# ✎ PASO 5: OPCIONES DE ARRANQUE
+# Indicadores con los que arranca la página. Si alguno no existe en DATOS se usa
+# el primero disponible, así que la plantilla no se rompe al cambiar de datos y
+# olvidarse de tocar estas dos líneas.
+X_INICIAL <- "life_expectancy"                                               # ✎
+Y_INICIAL <- "gdp_per_capit"                                                 # ✎
+
+# Nivel de significación con el que se decide si cada test se supera
+ALFA <- 0.05                                                                 # ✎
+
+# ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
+#   FIN DE LOS ELEMENTOS QUE DEFINE EL USUARIO
+# ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
+
+# A PARTIR DE AQUÍ NO HAY QUE TOCAR NADA
+
+# AISLAMIENTO DE LA PÁGINA
+# En un cuadro de mandos con varias páginas, todos los chunks comparten las
+# mismas variables, y otra página puede volver a definir DATOS, X_INICIAL...
+# Por eso lo que define el usuario se guarda AHORA en PAGINAS[[PAGINA_ID]], y
+# el resto de la página trabaja dentro de local({ ... }) leyendo solo de ahí:
+# las reactivas, que se ejecutan más tarde, cuando ya se han leído todas las
+# páginas, siguen viendo los datos de la suya.
+if (!exists("PAGINAS")) PAGINAS <- list()
+
+# LOS INDICADORES SON LAS COLUMNAS NUMÉRICAS de la tabla. Deducirlos así, y no
+# por su posición, es lo que hace que la plantilla se adapte sola: da igual
+# cuántas columnas de texto haya ni en qué orden estén.
+indicadores <- DATOS |> select(where(is.numeric)) |> names()
+
+# Valor inicial de un desplegable, con el primer indicador como red de seguridad
+inicial <- function(nombre) if (nombre %in% indicadores) nombre else indicadores[1]
+
+PAGINAS[[PAGINA_ID]] <- list(
+  datos            = DATOS,
+  columna_etiqueta = COLUMNA_ETIQUETA,
+  indicadores      = indicadores,
+  x_inicial        = inicial(X_INICIAL),
+  y_inicial        = inicial(Y_INICIAL),
+  alfa             = ALFA,
+  # identificadores de los controles con el de la página delante ("comp_x"...)
+  id               = local({ p <- PAGINA_ID; function(nombre) paste0(p, "_", nombre) })
+)
+```
+
+```{r, include=FALSE}
+library(flexdashboard) # Estructura del cuadro de mando en columnas
+library(shiny)         # Reactividad
+library(plotly)        # Gráficas dinámicas: ggplotly convierte los ggplot
+library(tidyverse)     # Manipulación de datos y ggplot2 (se carga el último
+                       # para que dplyr::filter() no quede tapado por plotly)
+
+# Funciones auxiliares del curso. Si otra página ya las ha cargado no se vuelven
+# a descargar.
+if (!exists("aedv_tabla_lm")) source("https://ctim.es/AEDV/utilidades.R")
+
+# Funciones y opciones que no dependen de la página: cada copia de la plantilla
+# las vuelve a definir igual.
+
+# Transformaciones ofrecidas para cada indicador. Se aplican conservando el
+# signo del dato, para que valgan también con valores negativos.
+# Yeo-Johnson es distinta y solo se ofrece en y: necesita un lambda, que se
+# calcula buscando el mejor ajuste lineal con la x ya transformada.
+TRANSFORMACIONES_X <- c("none", "sqrt", "log")
+TRANSFORMACIONES_Y <- c("none", "sqrt", "log", "YeoJohnson")
+
+transforma <- function(v, tipo) {
+  switch(tipo,
+    none = v,
+    sqrt = sign(v) * sqrt(abs(v)),
+    log  = sign(v) * log(abs(v)),
+    v
+  )
+}
+
+# Rótulo de un eje: el nombre del indicador y, entre paréntesis, lo que se le ha
+# hecho: la normalización previa (si está marcada) y su transformación
+rotulo <- function(indicador, tipo, normalizado = FALSE) {
+  partes <- c(if (normalizado) "normalizado", if (tipo != "none") tipo)
+  if (length(partes) == 0) indicador
+  else paste0(indicador, " (", paste(partes, collapse = ", "), ")")
+}
+```
+
+Column {.sidebar data-width=320}
+--------------------------------------------------
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+  id <- pg$id
+
+  # CÁLCULO CENTRAL, del que beben todos los paneles: selecciona los dos
+  # indicadores, les aplica la transformación elegida, ajusta la recta de
+  # regresión y evalúa el ajuste. Devuelve una lista con nombres para que cada
+  # panel tome solo lo que necesita.
+  #
+  # Es un eventReactive(): solo se recalcula al pulsar el botón «Calcular», no
+  # cada vez que se toca un control. Al arrancar NO se calcula nada, para que el
+  # cuadro de mandos cargue antes: los paneles quedan vacíos hasta el primer
+  # clic. Los rótulos viajan dentro del resultado, así que tampoco cambian hasta
+  # volver a pulsar el botón.
+  pg$calculo <- eventReactive(input[[id("calcular")]], {
+    req(input[[id("x")]], input[[id("y")]], input[[id("x_scale")]], input[[id("y_scale")]])
+    nombre_x   <- input[[id("x")]]
+    nombre_y   <- input[[id("y")]]
+    x_scale    <- input[[id("x_scale")]]
+    y_scale    <- input[[id("y_scale")]]
+    normalizar <- isTRUE(input[[id("normalizar")]]) # casilla: no puede ir en req()
+
+    tb <- pg$datos |>
+      select(etiqueta = all_of(pg$columna_etiqueta),
+             x = all_of(nombre_x),
+             y = all_of(nombre_y)) |>
+      na.omit()
+
+    # PASO PREVIO OPCIONAL: normalizar cada variable por separado. Aquí solo
+    # interviene la propia variable —no la otra—, y el lambda se busca para que
+    # los datos transformados se parezcan lo más posible a una normal.
+    lambda_norm_x <- NA_real_
+    lambda_norm_y <- NA_real_
+    if (normalizar) {
+      lambda_norm_x <- aedv_yeojohnson_lambda(tb$x)
+      lambda_norm_y <- aedv_yeojohnson_lambda(tb$y)
+      tb$x <- aedv_yeo_johnson(tb$x, lambda_norm_x)
+      tb$y <- aedv_yeo_johnson(tb$y, lambda_norm_y)
+    }
+
+    tb$x <- transforma(tb$x, x_scale)
+
+    # Yeo-Johnson calcula su lambda; el resto de transformaciones son directas
+    lambda <- NA_real_
+    if (y_scale == "YeoJohnson") {
+      lambda <- aedv_lambda_optimo(tb$x, tb$y)
+      tb$y   <- aedv_yeo_johnson(tb$y, lambda)
+    } else {
+      tb$y <- transforma(tb$y, y_scale)
+    }
+
+    # El logaritmo de un cero deja valores no finitos, que romperían la regresión
+    tb <- tb |> filter(is.finite(x), is.finite(y))
+    req(nrow(tb) >= 3) # con menos de 3 filas no hay nada que ajustar
+
+    fit <- lm(y ~ x, data = tb)
+    tb$residuo <- residuals(fit)
+
+    # aedv_lm_analisis() ajusta esta misma recta y devuelve, en una fila, los
+    # indicadores de calidad del ajuste y los p-valores de los tres tests.
+    # Su test de Shapiro-Wilk admite como mucho 5.000 observaciones, así que con
+    # tablas mayores se avisa en vez de dejar caer el cuadro de mandos.
+    valores <- if (nrow(tb) <= 5000) aedv_lm_analisis(tb$x, tb$y) else NULL
+
+    list(tb = tb, fit = fit, lambda = lambda, valores = valores,
+         lambda_norm_x = lambda_norm_x, lambda_norm_y = lambda_norm_y,
+         nombre_x = nombre_x, nombre_y = nombre_y,
+         rotulo_x = rotulo(nombre_x, x_scale, normalizar),
+         rotulo_y = rotulo(nombre_y, y_scale, normalizar),
+         normalizar = normalizar, y_scale = y_scale)
+  })
+  PAGINAS[[PAGINA_ID]] <<- pg
+
+  tagList(
+    # NORMALIZACIÓN PREVIA. Aplica Yeo-Johnson a CADA variable POR SEPARADO, con
+    # el lambda que más aproxima esa variable a una normal
+    # (aedv_yeojohnson_lambda). Es un criterio DISTINTO del de la opción
+    # "YeoJohnson" del desplegable de y, que busca el lambda del mejor ajuste
+    # lineal ENTRE LAS DOS variables.
+    checkboxInput(id("normalizar"),
+                  label = "Normalizar antes cada variable (Yeo-Johnson)",
+                  value = FALSE),
+
+    # Los desplegables se construyen con los indicadores deducidos de los datos
+    selectInput(id("x"), label = "x: indicador 1",
+                choices = pg$indicadores, selected = pg$x_inicial),
+
+    selectInput(id("x_scale"), label = "Transformación del indicador x",
+                choices = TRANSFORMACIONES_X, selected = "none"),
+
+    selectInput(id("y"), label = "y: indicador 2",
+                choices = pg$indicadores, selected = pg$y_inicial),
+
+    selectInput(id("y_scale"), label = "Transformación del indicador y",
+                choices = TRANSFORMACIONES_Y, selected = "none"),
+
+    # Lanza el cálculo: hasta pulsarlo no se calcula nada, ni al arrancar ni al
+    # cambiar los controles
+    actionButton(id("calcular"), "Calcular")
+  )
+})
+```
+
+###
+
+```{r}
+# Resumen del análisis en HTML. La recta, R2, sigma y los tests van en la tabla
+# de la pestaña del error (aedv_tabla_lm); aquí queda lo que no está en ella.
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderUI({
+    resultado <- pg$calculo()
+    tb        <- resultado$tb
+
+    texto <- paste(
+      "<strong>ANÁLISIS DE REGRESIÓN LINEAL</strong><br>",
+      "<strong>x:</strong>", resultado$rotulo_x, "<br>",
+      "<strong>y:</strong>", resultado$rotulo_y, "<br>",
+      "<strong>observaciones:</strong>", nrow(tb),
+      "<br><strong>correlación de Pearson:</strong>", round(cor(tb$x, tb$y, method = "pearson"), digits = 4),
+      "<br><strong>correlación de Spearman:</strong>", round(cor(tb$x, tb$y, method = "spearman"), digits = 4)
+    )
+
+    # Los lambda de la normalización previa: uno por variable, cada uno
+    # calculado con la suya y sin mirar a la otra
+    if (resultado$normalizar) {
+      texto <- paste(texto,
+        "<br><strong>lambda normalidad (x):</strong>",
+        formatC(resultado$lambda_norm_x, format = "e", digits = 3),
+        "<br><strong>lambda normalidad (y):</strong>",
+        formatC(resultado$lambda_norm_y, format = "e", digits = 3))
+    }
+
+    # El lambda del mejor ajuste lineal, que es otra cosa: se calcula con las
+    # dos variables a la vez y solo existe si se ha elegido YeoJohnson en el eje y
+    if (resultado$y_scale == "YeoJohnson") {
+      texto <- paste(texto, "<br><strong>lambda ajuste lineal (y):</strong>",
+                     formatC(resultado$lambda, format = "e", digits = 3))
+    }
+
+    HTML(texto)
+  })
+})
+```
+
+
+Column {.tabset}
+--------------------------------------------------
+
+<!--
+  LA COLUMNA CENTRAL VA EN DOS PESTAÑAS: el diagrama de dispersión, y el error
+  del ajuste (los residuos) con la tabla del análisis de la recta. Las dos beben
+  del mismo cálculo, así que cambiar de pestaña no vuelve a ajustar la recta.
+-->
+
+### Diagrama de dispersión
+
+```{r}
+# Diagrama de dispersión con la recta de regresión
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderPlotly({
+    resultado <- pg$calculo()
+
+    p <- resultado$tb |>
+      ggplot(aes(x, y, label = etiqueta)) +
+        geom_point() +
+        geom_smooth(method = lm, se = FALSE, formula = y ~ x) + # recta de regresión
+        labs(x = resultado$rotulo_x, y = resultado$rotulo_y)
+
+    ggplotly(p)
+  })
+})
+```
+
+### Error del ajuste y tests
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+  id <- pg$id
+
+  # Residuos (error del ajuste) frente a x. Es la lectura gráfica de los tests
+  # de Shapiro-Wilk y Breusch-Pagan de la tabla de debajo: una nube sin forma y
+  # de anchura constante alrededor del cero es lo que se espera de un buen
+  # ajuste; un embudo o una curva delatan lo que esos tests detectan.
+  output[[id("grafico_error")]] <- renderPlotly({
+    resultado <- pg$calculo()
+
+    p <- resultado$tb |>
+      ggplot(aes(x, residuo, label = etiqueta)) +
+        geom_hline(yintercept = 0, linetype = "dashed", colour = "steelblue") +
+        geom_point(alpha = 0.6) +
+        labs(x = resultado$rotulo_x, y = "residuo")
+
+    ggplotly(p)
+  })
+
+  # La recta, R2, sigma y los tres tests de aedv_lm_analisis(), con el p-valor
+  # en verde si el test se supera y en rojo si no. aedv_tabla_lm() devuelve una
+  # tabla HTML (gt si está instalada; si no, htmltools), que se muestra con renderUI.
+  output[[id("tabla_lm")]] <- renderUI({
+    resultado <- pg$calculo()
+    validate(need(!is.null(resultado$valores),
+                  "Tests no disponibles: el test de Shapiro-Wilk admite como mucho 5.000 observaciones."))
+
+    aedv_tabla_lm(resultado$valores, titulo = "Análisis del ajuste de la recta", alpha = pg$alfa)
+  })
+
+  # Dos salidas en la misma pestaña: la gráfica arriba, ocupando el alto que
+  # quede libre, y la tabla debajo con su altura natural (flex = NA). fillCol()
+  # es lo que reparte el alto de la pestaña entre las dos.
+  fillCol(flex = c(1, NA),
+          plotlyOutput(id("grafico_error"), height = "100%"),
+          uiOutput(id("tabla_lm")))
+})
+```
+
+Column {data-width=300}
+--------------------------------------------------
+
+### Valor de los indicadores transformados
+
+```{r}
+# Tabla de valores, ordenada de mayor a menor por el primer indicador
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderTable({
+    resultado <- pg$calculo()
+
+    tabla <- resultado$tb |>
+      arrange(desc(x)) |>
+      transmute(
+        etiqueta,
+        x = prettyNum(round(x, digits = 2), big.mark = ","),
+        y = prettyNum(round(y, digits = 2), big.mark = ",")
+      )
+
+    # Las cabeceras toman el nombre real de las columnas elegidas
+    names(tabla) <- c(pg$columna_etiqueta, resultado$nombre_x, resultado$nombre_y)
+    tabla
+  })
+})
+```

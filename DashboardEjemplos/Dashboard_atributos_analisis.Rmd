@@ -1,0 +1,598 @@
+---
+title: "Mi Dashboard" # ✎ USUARIO (PASO 1)
+output:
+  flexdashboard::flex_dashboard:
+    orientation: columns
+runtime: shiny
+---
+
+<!--
+================================================================================
+  PLANTILLA DE ANÁLISIS DE ATRIBUTOS: PCA Y K-MEANS (UNA PÁGINA)
+
+  Construye la tabla de atributos (una fila por área geográfica y una columna
+  por atributo), la normaliza con Yeo-Johnson si se pide, la tipifica, calcula
+  el PCA y agrupa las áreas con k-means sobre las componentes que acumulan el
+  85 % de la varianza (mínimo 2). Cada paso tiene su
+  pestaña: valores originales, valores tipificados, matriz de correlación,
+  valores de las componentes, loadings de PC1 y PC2, varianza explicada,
+  biplot de PC1 y PC2, y gráfico del k-means.
+
+  ✎ = LO QUE DEFINE EL USUARIO. Todo lo marcado con ✎ está al principio de la
+  página y es lo ÚNICO que hay que tocar para aplicarla a otros datos:
+    ✎ PASO 1: el título del cuadro de mandos (cabecera YAML, arriba del todo).
+    ✎ PASO 2: el título de la página (la línea subrayada con ====).
+    ✎ PASO 3: el identificador de la página.
+    ✎ PASO 4: la lectura de los datos.
+    ✎ PASO 5: los rótulos y las opciones de arranque.
+  El resto se deduce de los propios datos: los conjuntos de áreas que se
+  ofrecen en el desplegable, las variables entre las que se elige (las columnas
+  numéricas), los atributos y el número máximo de grupos del k-means.
+
+  ES UNA PÁGINA DENTRO DE UN CUADRO DE MANDOS. Para añadirla a otro cuadro de
+  mandos con varias páginas se copia TODO lo que va desde la línea del título
+  de la página (PASO 2) hasta el final del fichero, y se le da en el PASO 3 un
+  identificador distinto del de las demás páginas (ver la nota "AISLAMIENTO DE
+  LA PÁGINA" más abajo).
+
+  El ejemplo es el de la presentación del Tema 8: el valor añadido bruto (VAB)
+  de Eurostat por sectores económicos, con el último año en que cada área tiene
+  datos de todos los sectores. Hay dos conjuntos de áreas: los países (con
+  Europe 27 y Canarias, tratada como un país más) y las comunidades y ciudades
+  autónomas (con Europe 27 y España). Y tres variables: el VAB, la población y
+  el VAB per cápita. La población está a propósito: es la misma en todos los
+  sectores de un área, así que con ella las diez columnas de la tabla son
+  iguales, todo el PCA cabe en PC1 y PC2 no tiene varianza. Sirve para ver cómo
+  el cuadro de mandos lo detecta y lo explica en vez de dibujar los loadings de
+  PC2, el biplot y el k-means sobre lo que solo es error de redondeo.
+
+  Requiere las funciones de Yeo-Johnson, PCA y k-means del fichero utilidades.R
+  del curso, en su versión de octubre de 2026 o posterior (la que trae el
+  argumento resaltar de aedv_kmeans_grafico()).
+================================================================================
+-->
+
+<!-- ✎ USUARIO (PASO 2): TÍTULO DE LA PÁGINA. AQUÍ EMPIEZA LA PÁGINA -->
+
+Análisis atributos
+==================================================
+
+```{r, include=FALSE}
+# ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
+#   ELEMENTOS QUE DEFINE EL USUARIO
+#   Es lo único que hay que cambiar; todo lo que viene después de este chunk se
+#   adapta solo.
+# ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
+
+library(tidyverse) # manipulación de los datos al leerlos
+
+# ✎ PASO 3: IDENTIFICADOR DE LA PÁGINA
+# Una palabra sin espacios ni tildes. Va delante del nombre de todos los
+# controles de la página, para que no choquen con los de otras páginas del mismo
+# cuadro de mandos: si se pone dos veces esta plantilla, cada copia necesita el
+# suyo.
+PAGINA_ID <- "vab"                                                           # ✎
+
+# ✎ PASO 4: LOS DATOS
+# Se leen UNA SOLA VEZ al arrancar y han de quedar como una tabla en formato
+# LARGO con estas columnas:
+#   - ambito:   el conjunto de áreas que se estudian juntas; alimenta el
+#               desplegable de áreas geográficas. Un área puede estar en varios.
+#   - area:     el nombre del área geográfica (la fila de la tabla de atributos)
+#   - atributo: el nombre del atributo (la columna de la tabla de atributos)
+#   - una o varias columnas NUMÉRICAS: las variables entre las que se elige la
+#     que llena la tabla de atributos.
+# Dentro de cada ámbito tiene que haber un único valor por área y atributo, y
+# ninguno ausente: el PCA no admite NA.
+#
+# VAB por sector económico (Eurostat), con el último año en que cada área tiene
+# datos de todos los sectores en las tres variables: así, al cambiar de
+# variable, cada área sigue siendo la del mismo año.
+VAB_SECTOR <- readRDS(url("https://ctim.es/AEDV/data/eurostat_VAB_sector.rds"))
+
+DATOS <- bind_rows(                                                          # ✎
+  # Países (NUTS 0), Europe 27 y Canarias (NUTS 2), tratada como un país más
+  VAB_SECTOR |>
+    filter(nuts == 0 | code %in% c("EU27_2020", "ES70")) |>
+    mutate(ambito = "Países"),
+  # Comunidades y ciudades autónomas (NUTS 2 de España), Europe 27 y España
+  VAB_SECTOR |>
+    filter((nuts == 2 & str_starts(code, "ES")) | code %in% c("EU27_2020", "ES")) |>
+    mutate(ambito = "CCAA")
+) |>
+  filter(is.finite(vab), is.finite(population), is.finite(vab_per_capita)) |> # sin NA ni Inf
+  group_by(ambito, code, time) |>
+  filter(n() == n_distinct(VAB_SECTOR$sector)) |> # años con todos los sectores
+  group_by(ambito, code) |>
+  filter(time == max(time)) |> # el último de esos años, en cada área
+  ungroup() |>
+  filter(sector != "Total") |> # el total es la suma de los sectores
+  transmute(ambito,
+            area = str_remove(geo, "^[A-Z]{2}[0-9]* "), # "IE Ireland" -> "Ireland", "ES70 Canarias" -> "Canarias"
+            atributo = sector,
+            vab, population, vab_per_capita)
+
+# ✎ PASO 5: RÓTULOS Y OPCIONES DE ARRANQUE
+ETIQUETA_AMBITO   <- "Áreas geográficas:" # ✎ rótulo del desplegable de ámbitos
+ETIQUETA_VARIABLE <- "Variable:"          # ✎ rótulo del desplegable de variables
+
+# ✎ Rótulo de cada variable, con sus unidades, en el desplegable y en los
+# títulos. Una variable que no esté aquí aparece con el nombre de su columna.
+ETIQUETAS_VARIABLES <- c(
+  vab            = "VAB (millones de euros)",
+  population     = "Población (miles de habitantes)",
+  vab_per_capita = "VAB per cápita (euros por habitante)"
+)
+
+# ✎ Áreas que se rodean con un círculo en el gráfico del k-means. Las que no
+# estén en el ámbito elegido se pasan por alto.
+RESALTAR <- c("Europe 27", "Spain", "Canarias")
+
+# Opciones con las que arranca la página. Si el ámbito o la variable no existen
+# en DATOS se usa el primero, así que la plantilla no se rompe al cambiar de
+# datos y olvidarse de tocarlas.
+AMBITO_INICIAL      <- "Países"          # ✎
+VARIABLE_INICIAL    <- "vab_per_capita"  # ✎
+K_INICIAL           <- 3                 # ✎ nº de grupos del k-means
+YEO_JOHNSON_INICIAL <- TRUE              # ✎ normalizar con Yeo-Johnson antes de tipificar
+
+# ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
+#   FIN DE LOS ELEMENTOS QUE DEFINE EL USUARIO
+# ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
+
+# A PARTIR DE AQUÍ NO HAY QUE TOCAR NADA
+
+# AISLAMIENTO DE LA PÁGINA
+# En un cuadro de mandos con varias páginas, todos los chunks comparten las
+# mismas variables, y la página siguiente puede volver a definir DATOS,
+# RESALTAR... (lo hace seguro si es otra copia de esta plantilla). Por eso lo
+# que define el usuario se guarda AHORA en PAGINAS[[PAGINA_ID]], y el resto de
+# la página trabaja dentro de local({ ... }) leyendo solo de ahí: las
+# reactivas, que se ejecutan más tarde, cuando ya se han leído todas las
+# páginas, siguen viendo los datos de la suya.
+if (!exists("PAGINAS")) PAGINAS <- list()
+PAGINAS[[PAGINA_ID]] <- list(
+  datos               = DATOS,
+  etiqueta_ambito     = ETIQUETA_AMBITO,
+  etiqueta_variable   = ETIQUETA_VARIABLE,
+  etiquetas_variables = ETIQUETAS_VARIABLES,
+  resaltar            = RESALTAR,
+  ambito_inicial      = AMBITO_INICIAL,
+  variable_inicial    = VARIABLE_INICIAL,
+  k_inicial           = K_INICIAL,
+  yeo_johnson_inicial = YEO_JOHNSON_INICIAL
+)
+```
+
+```{r, include=FALSE}
+library(flexdashboard) # Estructura del cuadro de mando en columnas
+library(shiny)         # Reactividad
+library(plotly)        # Gráficas dinámicas: ggplotly convierte los ggplot
+library(factoextra)    # Gráfico del k-means (lo usa aedv_kmeans_grafico)
+library(tidyverse)     # Manipulación de datos y ggplot2
+# Las tablas interactivas son de la librería DT, que se usa con el prefijo DT::
+
+# Funciones auxiliares del curso. Si otra página ya las ha cargado no se vuelven
+# a descargar.
+if (!exists("aedv_kmeans")) source("https://ctim.es/AEDV/utilidades.R")
+
+# ==============================================================================
+# FUNCIONES DE LA PLANTILLA
+# No dependen de la página: si la plantilla está copiada varias veces, cada copia
+# las vuelve a definir exactamente iguales y no pasa nada.
+# ==============================================================================
+
+# TABLA DE ATRIBUTOS de un ámbito con una variable: una fila por área y una
+# columna por atributo. El área va como NOMBRE DE FILA, y no como columna, para
+# que todas las columnas sean numéricas y el área no interfiera en los cálculos.
+tabla_atributos <- function(datos, ambito_elegido, variable) {
+  datos |>
+    filter(ambito == ambito_elegido) |>
+    select(area, atributo, all_of(variable)) |>
+    pivot_wider(names_from = atributo, values_from = all_of(variable)) |> # un atributo por columna
+    column_to_rownames(var = "area") # área como nombre de fila
+}
+
+# Decimales con los que se muestran los valores originales: los justos para que
+# los más pequeños (el percentil 10 de su valor absoluto, no el mínimo, que
+# puede ser un caso aislado) no se lean redondeados a una o dos cifras.
+decimales_de <- function(tabla) {
+  p10 <- quantile(abs(as.matrix(tabla)), 0.1)
+  if (p10 >= 100) 0 else if (p10 >= 10) 1 else 2
+}
+
+# Tabla interactiva (librería DT) que ocupa toda la pestaña: sin paginar, con
+# barras de desplazamiento si no cabe, el buscador para encontrar un área y la
+# ordenación al pulsar en la cabecera de una columna. Los números con el formato
+# español: punto para los miles y coma decimal.
+tabla_dt <- function(tabla, decimales) {
+  tabla <- as.data.frame(tabla)
+  DT::datatable(tabla, fillContainer = TRUE,
+                options = list(paging = FALSE, scrollX = TRUE,
+                               dom = "ft", # solo el buscador (f) y la tabla (t)
+                               language = list(search = "Buscar:"))) |>
+    DT::formatRound(columns = names(tabla), digits = decimales,
+                    mark = ".", dec.mark = ",")
+}
+
+# ==============================================================================
+# PREPARACIÓN DE LA PÁGINA: comprobación de los datos, tablas de atributos y
+# opciones de los controles. Todo se guarda en PAGINAS[[PAGINA_ID]].
+# ==============================================================================
+local({
+  pg    <- PAGINAS[[PAGINA_ID]]
+  datos <- pg$datos
+
+  # COMPROBACIÓN DE LOS DATOS. Se verifica lo que la plantilla da por supuesto de
+  # los datos del PASO 4. Es una costumbre barata que evita el peor modo de fallo
+  # de un cuadro de mando: un problema en los datos que no protesta al arrancar,
+  # sino más tarde y dentro de una función de cálculo, donde el único síntoma es
+  # un panel vacío.
+  aviso  <- paste0("Página '", PAGINA_ID, "': ")
+  faltan <- setdiff(c("ambito", "area", "atributo"), names(datos))
+  if (length(faltan) > 0) {
+    stop(aviso, "a DATOS le faltan las columnas ", paste(faltan, collapse = ", "), ".")
+  }
+  variables <- setdiff(names(datos)[sapply(datos, is.numeric)],
+                       c("ambito", "area", "atributo"))
+  if (length(variables) == 0) {
+    stop(aviso, "DATOS no tiene ninguna columna numérica con la que llenar la tabla.")
+  }
+  repetidos <- datos |> count(ambito, area, atributo) |> filter(n > 1)
+  if (nrow(repetidos) > 0) {
+    stop(aviso, "en DATOS hay ", nrow(repetidos), " combinaciones de ámbito, área ",
+         "y atributo con más de un valor (la primera: ", repetidos$ambito[1], ", ",
+         repetidos$area[1], ", ", repetidos$atributo[1], "). Debe haber uno solo.")
+  }
+
+  # LAS TABLAS DE ATRIBUTOS, una por ámbito y variable. Se construyen todas al
+  # arrancar, una sola vez: son pequeñas, y así se comprueba desde el principio
+  # que ninguna tiene huecos (el PCA no admite NA) ni atributos constantes (no se
+  # pueden tipificar: su desviación típica es 0).
+  ambitos <- unique(datos$ambito)
+  tablas  <- lapply(ambitos, function(a) {
+    t <- lapply(variables, function(v) {
+      tabla <- tabla_atributos(datos, a, v)
+      con_na <- rownames(tabla)[!complete.cases(tabla)]
+      if (length(con_na) > 0) {
+        stop(aviso, "en el ámbito '", a, "' la variable '", v, "' no tiene todos ",
+             "los atributos de ", paste(con_na, collapse = ", "), ". El PCA no ",
+             "admite NA: hay que quitar esas áreas en el PASO 4.")
+      }
+      constantes <- names(tabla)[sapply(tabla, sd) == 0]
+      if (length(constantes) > 0) {
+        stop(aviso, "en el ámbito '", a, "' la variable '", v, "' vale lo mismo ",
+             "en todas las áreas para ", paste(constantes, collapse = ", "),
+             ": no se puede tipificar.")
+      }
+      tabla
+    })
+    names(t) <- variables
+    t
+  })
+  names(tablas) <- ambitos
+
+  # Nº de grupos del k-means: de 2 a 8, y siempre menos que áreas haya en el
+  # ámbito más pequeño
+  n_min <- min(sapply(tablas, function(t) nrow(t[[1]])))
+  if (n_min < 3) {
+    stop(aviso, "algún ámbito tiene menos de 3 áreas: son demasiado pocas para agruparlas.")
+  }
+
+  # Rótulos de las variables en el desplegable: los del PASO 5, o el nombre de
+  # la columna si falta alguno
+  etiquetas <- ifelse(variables %in% names(pg$etiquetas_variables),
+                      pg$etiquetas_variables[variables], variables)
+
+  if (!pg$ambito_inicial %in% ambitos)     pg$ambito_inicial   <- ambitos[1]
+  if (!pg$variable_inicial %in% variables) pg$variable_inicial <- variables[1]
+
+  pg$ambitos   <- ambitos
+  pg$variables <- setNames(variables, etiquetas) # rótulo -> nombre de la columna
+  pg$tablas    <- tablas
+  pg$k         <- 2:min(8, n_min - 1)
+  pg$k_inicial <- min(pg$k_inicial, max(pg$k))
+
+  # IDENTIFICADORES DE LOS CONTROLES Y SALIDAS: el de la página delante, para que
+  # no choquen con los de otras páginas ("vab_ambito", "vab_k"...)
+  p <- PAGINA_ID
+  pg$id <- function(nombre) paste0(p, "_", nombre)
+
+  PAGINAS[[PAGINA_ID]] <<- pg
+})
+```
+
+Menú {.sidebar data-width=200}
+--------------------------------------------------
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+  id <- pg$id
+
+  # ============================================================================
+  # UN SOLO CÁLCULO REACTIVO PARA TODAS LAS PESTAÑAS DE LA PÁGINA
+  # Aquí se hacen, en orden, los pasos del análisis de atributos: Yeo-Johnson
+  # (si se pide), tipificar, PCA y k-means. El resultado lo comparten todas las
+  # pestañas: si cada una lo calculara por su cuenta, el PCA se repetiría ocho
+  # veces.
+  #
+  # Es un eventReactive(): solo se recalcula al pulsar el botón «Calcular», no
+  # cada vez que se toca un control. Así se pueden cambiar varios controles
+  # seguidos y hacer el cálculo (y redibujar las pestañas) una sola vez. Al
+  # arrancar NO se calcula nada, para que el cuadro de mandos cargue antes: las
+  # pestañas quedan vacías hasta el primer clic. Se guarda en
+  # PAGINAS[[PAGINA_ID]] para que lo lean los demás chunks de la página.
+  # ============================================================================
+  pg$calculo <- eventReactive(input[[id("calcular")]], {
+    # Por si se pulsa el botón antes de que existan los controles. La casilla de
+    # Yeo-Johnson no puede ir dentro de req(): sin marcar vale FALSE, y
+    # req(FALSE) detendría el cálculo.
+    req(input[[id("ambito")]], input[[id("variable")]], input[[id("k")]],
+        !is.null(input[[id("yeo_johnson")]]))
+
+    ambito   <- input[[id("ambito")]]
+    variable <- input[[id("variable")]]
+    k        <- as.numeric(input[[id("k")]])
+    yj       <- input[[id("yeo_johnson")]]
+    etiqueta <- names(pg$variables)[pg$variables == variable]
+
+    # 0. La tabla de atributos, ya construida al arrancar
+    original <- pg$tablas[[ambito]][[variable]]
+
+    # 1. YEO-JOHNSON: cada atributo con SU lambda, el que lo acerca más a una
+    #    normal. Así ningún valor extremo acapara la varianza del PCA.
+    normalizada <- original
+    if (yj) {
+      normalizada <- original |>
+        mutate(across(everything(), \(v) aedv_yeo_johnson(v, aedv_yeojohnson_lambda(v))))
+    }
+
+    # 2. TIPIFICAR: restar a cada atributo su media y dividir por su desviación
+    #    típica, para que todos pesen por igual
+    tipificada <- scale(normalizada)
+
+    # 3. PCA. Con scale = TRUE, prcomp() tipifica por su cuenta exactamente igual
+    #    que scale(), así que las componentes salen de la tabla tipificada
+    pca <- prcomp(normalizada, scale = TRUE)
+
+    # SIGNO DE LAS COMPONENTES. El signo de cada componente es arbitrario: se
+    # elige el que hace POSITIVO su loading de mayor valor absoluto, para que la
+    # componente crezca con el atributo que más pesa en ella. Se cambia a la vez
+    # en los loadings (rotation) y en los valores de las componentes (x), así
+    # que el PCA sigue siendo el mismo.
+    signo <- apply(pca$rotation, 2, function(u) sign(u[which.max(abs(u))]))
+    pca$rotation <- sweep(pca$rotation, 2, signo, `*`)
+    pca$x        <- sweep(pca$x, 2, signo, `*`)
+
+    # PC2 SIN VARIANZA: si todas las columnas tipificadas son iguales, toda la
+    # información cabe en PC1 y PC2 vale 0 (salvo errores de redondeo, del orden
+    # de 1e-16). Sus loadings son entonces una dirección cualquiera, y el
+    # gráfico del k-means, que estandariza PC1 y PC2 antes de dibujar, ampliaría
+    # ese ruido hasta parecer una nube de puntos de verdad. Esas pestañas se
+    # sustituyen por esta explicación.
+    varianza    <- pca$sdev^2 / sum(pca$sdev^2)
+    diagnostico <- NULL
+    if (varianza[2] < 1e-10) {
+      diagnostico <- paste0(
+        "PC2 no tiene varianza: todos los atributos tienen los mismos valores ",
+        "tipificados, así que PC1 recoge el 100 % de la varianza y PC2 vale 0 en ",
+        "todas las áreas (salvo errores de redondeo). Sin una segunda componente ",
+        "no tienen sentido ni los loadings de PC2, ni el biplot, ni el k-means sobre PC1 y PC2. ",
+        "Es lo que pasa con una variable que no depende del atributo, como la ",
+        "población de un área, que es la misma en todos los sectores.")
+    }
+
+    # 4. K-MEANS sobre las componentes que acumulan al menos el 85 % de la
+    #    varianza, con un mínimo de dos (el valor por omisión de aedv_kmeans();
+    #    con una utilidades.R anterior al 2026-10-12, las dos primeras)
+    clusters <- if (is.null(diagnostico)) aedv_kmeans(pca, k = k)
+
+    # Los controles elegidos viajan DENTRO del resultado, junto a los datos que
+    # les corresponden, para que las pestañas no tengan que volver a leerlos de
+    # input (y para los títulos)
+    list(
+      ambito      = ambito,
+      etiqueta    = etiqueta,
+      yj          = yj,
+      k           = k,
+      descripcion = paste0(etiqueta, " · ", ambito, if (yj) " · con Yeo-Johnson"),
+      original    = original,
+      tipificada  = tipificada,
+      pca         = pca,
+      clusters    = clusters,
+      diagnostico = diagnostico
+    )
+  })
+  PAGINAS[[PAGINA_ID]] <<- pg
+
+  # LOS CONTROLES. No dependen unos de otros, así que se crean una sola vez
+  tagList(
+    selectInput(id("ambito"), pg$etiqueta_ambito,
+                choices = pg$ambitos, selected = pg$ambito_inicial),
+
+    selectInput(id("variable"), pg$etiqueta_variable,
+                choices = pg$variables, selected = pg$variable_inicial),
+
+    selectInput(id("k"), "Nº de grupos del k-means:",
+                choices = pg$k, selected = pg$k_inicial),
+
+    checkboxInput(id("yeo_johnson"), "Normalizar con Yeo-Johnson antes de tipificar",
+                  value = pg$yeo_johnson_inicial),
+
+    # Lanza el cálculo: hasta pulsarlo no se calcula nada, ni al arrancar ni al
+    # cambiar los controles
+    actionButton(id("calcular"), "Calcular")
+  )
+})
+```
+
+Column {.tabset}
+--------------------------------------------------
+
+<!--
+  LA COLUMNA DE LA DERECHA VA EN OCHO PESTAÑAS, en el orden de los pasos del
+  análisis. Todas beben del mismo cálculo, así que cambiar de pestaña no vuelve
+  a calcular nada, y solo se actualizan al pulsar «Calcular».
+
+  IMPORTANTE: en los paneles de las gráficas no se escribe texto encima. El
+  widget ocupa la altura del panel, así que cualquier línea de texto por delante
+  lo empuja hacia abajo y flexdashboard le recorta el borde inferior, que es
+  precisamente donde están las etiquetas del eje horizontal.
+-->
+
+### Originales
+
+```{r}
+# La tabla de atributos tal como sale de los datos, con la variable elegida
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  DT::renderDataTable({
+    resultado <- pg$calculo()
+    tabla_dt(resultado$original,
+             decimales = decimales_de(resultado$original))
+  })
+})
+```
+
+### Tipificados
+
+```{r}
+# Así entran los datos en el PCA: normalizados con Yeo-Johnson, si se ha pedido,
+# y tipificados (media 0 y desviación típica 1 en cada atributo)
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  DT::renderDataTable({
+    resultado <- pg$calculo()
+    tabla_dt(resultado$tipificada,
+             decimales = 2)
+  })
+})
+```
+
+### Correlación
+
+```{r}
+# La correlación de todos los pares de atributos, sobre los valores tipificados
+# (tipificar no cambia la correlación, pero Yeo-Johnson sí)
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderPlotly({
+    resultado <- pg$calculo()
+    resultado$tipificada |>
+      cor() |> # matriz de correlación
+      aedv_matriz_correlacion(show_values = TRUE,
+                              title = paste0("Matriz de correlación · ", resultado$descripcion))
+  })
+})
+```
+
+### PC's
+
+```{r}
+# El valor de cada componente principal en cada área (pca$x)
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  DT::renderDataTable({
+    resultado <- pg$calculo()
+    tabla_dt(resultado$pca$x,
+             decimales = 2)
+  })
+})
+```
+
+### Loadings
+
+```{r}
+# Contribución (y signo) de cada atributo a PC1 y a PC2, una gráfica debajo de
+# la otra
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+  id <- pg$id
+
+  output[[id("loadings_pc1")]] <- renderPlotly({
+    resultado <- pg$calculo()
+    aedv_pca_loadings_grafico(resultado$pca, 1) |> ggplotly()
+  })
+
+  output[[id("loadings_pc2")]] <- renderPlotly({
+    resultado <- pg$calculo()
+    validate(need(is.null(resultado$diagnostico), resultado$diagnostico))
+    aedv_pca_loadings_grafico(resultado$pca, 2) |> ggplotly()
+  })
+
+  # fillCol() reparte el alto de la pestaña entre las dos gráficas
+  fillCol(plotlyOutput(id("loadings_pc1"), height = "100%"),
+          plotlyOutput(id("loadings_pc2"), height = "100%"))
+})
+```
+
+### Varianza
+
+```{r}
+# Porcentaje de la varianza total que explica cada componente: sirve para
+# decidir con cuántas quedarse
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderPlotly({
+    resultado <- pg$calculo()
+    aedv_pca_varianza_grafico(resultado$pca,
+                              titulo = paste0("Varianza explicada · ", resultado$descripcion)) |>
+      ggplotly()
+  })
+})
+```
+
+### Biplot
+
+```{r}
+# Biplot del PCA: cada área es un punto en el plano de PC1 y PC2, y cada
+# atributo una flecha desde el origen. Versión interactiva (dinamico = TRUE):
+# cada área se rotula con su nombre, al pasar el ratón por su punto aparecen sus
+# coordenadas y, al pasarlo por la punta de una flecha, los loadings del atributo. (La versión estática
+# usa factoextra, que con ggplotly() pierde los rótulos.)
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderPlotly({
+    resultado <- pg$calculo()
+    validate(need(is.null(resultado$diagnostico), resultado$diagnostico))
+
+    aedv_pca_biplot(resultado$pca,
+                    titulo   = paste0("Biplot PCA · ", resultado$descripcion),
+                    # solo las áreas que están en el ámbito elegido
+                    resaltar = intersect(pg$resaltar, rownames(resultado$pca$x)),
+                    dinamico = TRUE)
+  })
+})
+```
+
+### k-means
+
+```{r}
+# Las áreas agrupadas con k-means sobre las componentes que acumulan el 85 %
+# de la varianza (mínimo 2), dibujadas en el plano de PC1 y PC2. Versión
+# interactiva (dinamico = TRUE): cada área se rotula con su nombre y, al pasar
+# el ratón, se ve también su grupo.
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderPlotly({
+    resultado <- pg$calculo()
+    validate(need(is.null(resultado$diagnostico), resultado$diagnostico))
+
+    aedv_kmeans_grafico(resultado$clusters,
+                        titulo   = paste0("k-means (k = ", resultado$k, ") sobre ",
+                                          ncol(attr(resultado$clusters, "datos")), " componentes · ",
+                                          resultado$descripcion),
+                        # solo las áreas que están en el ámbito elegido
+                        resaltar = intersect(pg$resaltar, rownames(resultado$pca$x)),
+                        dinamico = TRUE)
+  })
+})
+```

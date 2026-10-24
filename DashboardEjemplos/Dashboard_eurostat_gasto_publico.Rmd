@@ -1,0 +1,1895 @@
+---
+title: "Gasto público por sectores (Eurostat)" # ✎ USUARIO: título del cuadro de mandos
+output:
+  flexdashboard::flex_dashboard:
+    orientation: columns
+runtime: shiny
+---
+
+<!--
+================================================================================
+  CUADRO DE MANDOS DEL GASTO PÚBLICO POR SECTORES (EUROSTAT, COFOG)
+
+  Reúne en un solo cuadro de mandos, una página detrás de otra, las plantillas
+  de DashboardEjemplos aplicadas a los mismos datos:
+    1. Exploración de series      (Dashboard_exploracion_series.Rmd)
+    2. Predicción                 (Dashboard_prediccion_series.Rmd)
+    3. Mapa coroplético           (Dashboard_mapa_coropletico.Rmd)
+    4. Comparación de atributos   (Dashboard_atributos_comparacion.Rmd)
+    5. Análisis de atributos      (Dashboard_atributos_analisis.Rmd)
+
+  LOS DATOS: eurostat_GASTO_PUBLICO_sector.rds. Gasto de las administraciones
+  públicas (S13) de 30 países europeos y Europe 27, por año (1995-2024 en casi
+  todos) y por función del gasto (las 10 divisiones COFOG más el Total), en
+  cuatro medidas: millones de euros, euros por habitante, % del PIB y % del
+  gasto público total. Metadatos en
+  https://ctim.es/AEDV/data/eurostat_GASTO_PUBLICO_metadatos.xlsx
+
+  CARGA RÁPIDA Y MEMORIA. Lo que comparten todas las páginas (librerías,
+  funciones del curso, datos y geometría de los países) se hace UNA SOLA VEZ en
+  el chunk llamado "global": en un servidor Shiny ese chunk se ejecuta una vez
+  por proceso y sus objetos los comparten todos los usuarios, mientras que el
+  resto del documento se vuelve a ejecutar con cada usuario que lo abre. Además:
+    - los datos se descargan una sola vez y cada página construye su tabla a
+      partir de ellos;
+    - la geometría se recorta al arrancar a los 30 países de los datos (diez
+      veces menos que la del mundo entero, y es lo que viaja al navegador en
+      cada mapa);
+    - la página de predicción no separa las series al arrancar (más de 1.300): cada serie
+      se extrae cuando se elige;
+    - ninguna página calcula nada al arrancar: todas tienen un botón que lanza
+      el cálculo.
+
+  AISLAMIENTO DE LAS PÁGINAS. En un flexdashboard todas las páginas comparten
+  las variables de R, y las reactivas se ejecutan después de leer el documento
+  entero: si dos páginas usaran una misma variable global (DATOS, calculo...),
+  las dos verían la de la última. Por eso las páginas 2 a 5 guardan lo suyo en
+  PAGINAS[[PAGINA_ID]] y trabajan dentro de local({ ... }), con los
+  identificadores de sus controles precedidos del de la página. La página 1
+  usa su propio mecanismo (pageId e id_control()) y variables que no repite
+  ninguna otra página.
+
+  Requiere el fichero utilidades.R del curso en su versión de octubre de 2026
+  o posterior.
+================================================================================
+-->
+
+```{r global, include=FALSE}
+# ==============================================================================
+# CHUNK "global": LO COMÚN A TODAS LAS PÁGINAS, UNA SOLA VEZ
+# ==============================================================================
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE)
+
+library(flexdashboard) # Estructura del cuadro de mando en páginas y columnas
+library(shiny)         # Reactividad
+library(fpp3)          # tsibble, feasts y fable: series temporales, STL y ARIMA
+library(lmtest)        # Test de Breusch-Pagan (aedv_tests_residuos, aedv_lm_analisis)
+library(leaflet)       # Mapa coroplético
+library(sf)            # Geometría de los países
+library(factoextra)    # Biplot y gráfico del k-means
+library(plotly)        # Gráficas dinámicas: ggplotly convierte los ggplot
+library(tidyverse)     # Manipulación de datos y ggplot2 (el último, para que
+                       # dplyr::filter() no quede tapado por plotly)
+# Las tablas interactivas son de la librería DT, que se usa con el prefijo DT::
+
+# asociamos funciones a determinadas librerías para evitar posibles errores
+select    <- dplyr::select
+mutate    <- dplyr::mutate
+filter    <- dplyr::filter
+group_by  <- dplyr::group_by
+summarise <- dplyr::summarise
+selectInput <- shiny::selectInput
+
+# theme por defecto para las gráficas
+theme_set(theme_bw(base_size = 12))
+
+# Funciones auxiliares del curso
+source("https://ctim.es/AEDV/utilidades.R")
+
+# LOS DATOS, una sola descarga para las cinco páginas
+GASTO <- readRDS(url("https://ctim.es/AEDV/data/eurostat_GASTO_PUBLICO_sector.rds"))
+
+# Rótulo de cada medida, con sus unidades -> nombre de la columna
+MEDIDAS <- c(
+  "Gasto per cápita (euros por habitante)" = "gasto_per_capita",
+  "% del PIB"                              = "pct_pib",
+  "% del gasto público total"              = "pct_gasto",
+  "Gasto (millones de euros)"              = "gasto"
+)
+
+# GEOMETRÍA DE LOS PAÍSES, recortada a los de los datos. La geometría usa el
+# código ISO de tres letras y Eurostat el suyo de dos (con EL para Grecia).
+# Se descarga primero a un fichero temporal porque, en algunos sistemas,
+# st_read no puede acceder directamente a URLs https.
+ISO3 <- c(AT = "AUT", BE = "BEL", BG = "BGR", CH = "CHE", CY = "CYP", CZ = "CZE",
+          DE = "DEU", DK = "DNK", EE = "EST", EL = "GRC", ES = "ESP", FI = "FIN",
+          FR = "FRA", HR = "HRV", HU = "HUN", IE = "IRL", IS = "ISL", IT = "ITA",
+          LT = "LTU", LU = "LUX", LV = "LVA", MT = "MLT", NL = "NLD", NO = "NOR",
+          PL = "POL", PT = "PRT", RO = "ROU", SE = "SWE", SI = "SVN", SK = "SVK")
+tmp <- tempfile(fileext = ".geojson")
+curl::curl_download("https://ctim.es/AEDV/data/geo_countries.geojson", tmp)
+GEOMETRIA <- st_read(tmp, quiet = TRUE) |>
+  filter(ISO_A3 %in% ISO3)
+unlink(tmp)
+
+# Listas donde las páginas guardan lo suyo (ver AISLAMIENTO DE LAS PÁGINAS)
+PAGINAS   <- list() # páginas 2 a 5
+seleccion <- list() # página 1
+```
+
+```{css}
+/* Tablas de la barra lateral (métricas de la predicción, valores del mapa):
+   letra algo más pequeña y celdas con menos relleno (flexdashboard les pone
+   12 px por lado), para que los números quepan sin desbordar el panel */
+.sidebar table {
+  font-size: 90%;
+}
+.sidebar table th, .sidebar table td {
+  padding-left: 4px !important;
+  padding-right: 4px !important;
+}
+```
+
+<!--
+################################################################################
+  PÁGINA 1: EXPLORACIÓN DE SERIES (plantilla Dashboard_exploracion_series.Rmd)
+################################################################################
+-->
+
+Exploración de series
+==================================================
+
+```{r}
+# PASO 1: LOS DATOS EN FORMATO TIDY: una fila por país, sector, medida y año,
+# con una sola columna de valores
+data <- GASTO |>
+  pivot_longer(all_of(unname(MEDIDAS)), names_to = "medida", values_to = "value") |>
+  mutate(medida = names(MEDIDAS)[match(medida, MEDIDAS)], # rótulo con unidades
+         year   = as.integer(year(time))) |>
+  filter(!is.na(value)) |> # pct_gasto no existe para el Total
+  select(geo, sector, medida, year, value)
+```
+
+```{r}
+# PASO 2: VECTORES CON LAS OPCIONES ORDENADAS
+# PAÍSES, ORDENADOS DE MAYOR A MENOR GASTO PER CÁPITA TOTAL EN SU ÚLTIMO AÑO,
+# CON EUROPE 27 Y ESPAÑA DELANTE
+Paises <- GASTO |>
+  filter(sector == "Total") |>
+  group_by(geo) |>
+  filter(time == max(time)) |>
+  ungroup() |>
+  arrange(desc(gasto_per_capita)) |>
+  pull(geo)
+
+Paises <- unique(c("Europe 27", "Spain", Paises))
+
+# SECTORES EN EL ORDEN DE LA CLASIFICACIÓN COFOG, CON EL TOTAL AL FINAL
+Sectores <- unique(GASTO$sector)
+```
+
+```{r}
+# PASO 3: VARIABLES Y BLOQUES DE ATRIBUTOS
+
+# STRING CON EL NOMBRE DEL ATRIBUTO QUE CORRESPONDE A LA FECHA
+date <- "year"
+
+# STRING CON EL NOMBRE DEL ATRIBUTO QUE CORRESPONDE AL VALOR NUMÉRICO
+value <- "value"
+
+# IDENTIFICADOR DE LA PÁGINA: VA DELANTE DEL NOMBRE DE TODOS SUS CONTROLES
+pageId <- "expl"
+
+# checkboxInput DEL ATRIBUTO PRINCIPAL: TODOS LOS PAÍSES O UNA SELECCIÓN
+input.main.checkboxInput.pageId <- list(
+  list(label = "Todos los países", value = TRUE)
+)
+
+# ATRIBUTO PRINCIPAL: SEPARA LAS GRÁFICAS DEL facet_wrap
+input.main.config.pageId <- list(
+  list(col.name = "geo", label = "País", choices = Paises, selected = Paises[1:6], multiple = TRUE)
+)
+
+# ATRIBUTOS COMBINABLES: CADA OPCIÓN ELEGIDA ES UNA LÍNEA DE COLOR EN CADA GRÁFICA
+input.multiple.config.pageId <- list(
+  list(col.name = "sector", label = "Sector", choices = Sectores,
+       selected = c("Salud", "Educación", "Protección social"), multiple = TRUE)
+)
+
+# ATRIBUTOS CON UN ÚNICO VALOR SELECCIONABLE
+input.single.config.pageId <- list(
+  list(col.name = "medida", label = "Medida", choices = names(MEDIDAS),
+       selected = "% del PIB", multiple = FALSE)
+)
+```
+
+```{r}
+# COMPROBACIÓN DE LA CONFIGURACIÓN. UN NOMBRE DE COLUMNA MAL ESCRITO FALLA AQUÍ,
+# AL ARRANCAR Y DICIENDO CUÁL ES, EN VEZ DE FALLAR DENTRO DE UN render
+columnas.configuradas <- c(
+  date, value,
+  vapply(c(input.main.config.pageId, input.multiple.config.pageId,
+           input.single.config.pageId), function(x) x$col.name, character(1))
+)
+
+faltan <- setdiff(columnas.configuradas, names(data))
+if (length(faltan) > 0)
+  stop("La configuración nombra columnas que no están en los datos: ",
+       paste(faltan, collapse = ", "), ". Las columnas disponibles son: ",
+       paste(names(data), collapse = ", "))
+```
+
+Column {.sidebar data-width=220}
+--------------------------------------------------
+
+```{r}
+# IDENTIFICADORES DE LOS CONTROLES: EL DE LA PÁGINA DELANTE
+id_control <- function(nombre) paste0(pageId, ".", nombre)
+
+# selectInput DE ATRIBUTOS COMBINABLES Y FIJOS
+crear_selectInput_pageId <- function(config) {
+  lapply(config, function(x) {
+    selectInput(
+      inputId  = id_control(x$col.name),
+      label    = x$label,
+      choices  = x$choices,
+      selected = x$selected,
+      multiple = x$multiple
+    )
+  })
+}
+
+# checkboxInput DEL ATRIBUTO PRINCIPAL
+crear_checkboxInput_pageId <- function(config) {
+  lapply(config, function(x) {
+    checkboxInput(
+      inputId = id_control("checkboxInput"),
+      label   = x$label,
+      value   = x$value
+    )
+  })
+}
+
+# selectInput DEL ATRIBUTO PRINCIPAL: SOLO SI NO SE ELIGEN TODOS
+crear_selectInput_pageId_main <- function(config) {
+  val <- input[[id_control("checkboxInput")]]
+  if (isFALSE(val)) {
+    lapply(config, function(x) {
+      selectInput(
+        inputId  = id_control(x$col.name),
+        label    = x$label,
+        choices  = x$choices,
+        selected = x$selected,
+        multiple = x$multiple
+      )
+    })
+  } else {
+    return(NULL)
+  }
+}
+```
+
+```{r}
+# BLOQUE 1. GESTIÓN DEL ATRIBUTO PRINCIPAL
+output$main.checkboxInput_pageId_ui <- renderUI({crear_checkboxInput_pageId(input.main.checkboxInput.pageId)})
+output$main_pageId_ui <- renderUI({crear_selectInput_pageId_main(input.main.config.pageId)})
+htmltools::div(
+  style = "
+    background-color: rgb(208, 216, 225);
+    padding: 0px 3px 0px 3px;  /* ↑ → ↓ ← */
+    margin-bottom: 5px;
+    border: 2px solid rgb(0,0,0)",
+  uiOutput("main.checkboxInput_pageId_ui"),
+  uiOutput("main_pageId_ui")
+)
+```
+
+```{r}
+# BLOQUE 2. ATRIBUTOS COMBINABLES CON SELECCIÓN MÚLTIPLE
+if (length(input.multiple.config.pageId) > 0) {
+  output$multiple_pageId_ui <- renderUI({crear_selectInput_pageId(input.multiple.config.pageId)})
+  htmltools::div(
+    style = "
+      background-color: rgb(208, 216, 225);
+      padding: 0px 3px 0px 3px;  /* ↑ → ↓ ← */
+      margin-bottom: 5px;
+      border: 2px solid rgb(0,0,0)",
+    uiOutput("multiple_pageId_ui")
+  )
+}
+```
+
+```{r}
+# BLOQUE 3. ATRIBUTOS CON UN SOLO VALOR SELECCIONABLE
+if (length(input.single.config.pageId) > 0) {
+  output$single_pageId_ui <- renderUI({crear_selectInput_pageId(input.single.config.pageId)})
+  htmltools::div(
+    style = "
+      background-color: rgb(208, 216, 225);
+      padding: 0px 3px 0px 3px;  /* ↑ → ↓ ← */
+      margin-bottom: 5px;
+      border: 2px solid rgb(0,0,0)",
+    uiOutput("single_pageId_ui")
+  )
+}
+```
+
+```{r}
+# BLOQUE 4. FORMATEO DEL GRÁFICO
+output$formateo_grafico_pageId_ui <- renderUI({
+htmltools::div(
+  style = "
+    background-color: rgb(208, 216, 225);
+    padding: 0px 3px 0px 3px;  /* ↑ → ↓ ← */
+    margin-bottom: 5px;
+    border: 2px solid rgb(0,0,0)",
+  "FORMATEO GRÁFICOS:",
+  div(
+    style = "display: flex; align-items: center; gap: 5px;",
+    tags$label("Nº columnas:", style = "margin: 0"),
+    numericInput(id_control("ncol"), label = NULL, value = 4, min = 1, max = 6,
+                 step = 1, width = "80px")
+  ),
+  div(
+    style = "display: flex; align-items: center; gap: 40px;",
+    tags$label("Nº filas:", style = "margin: 0"),
+    numericInput(id_control("nrow"), label = NULL, value = 6, min = 1, max = 8,
+                 step = 1, width = "80px")
+  ),
+  # OPCIÓN PARA DEJAR LIBRE O FIJA LA ESCALA DEL EJE Y
+  checkboxInput(id_control("scale_free_y"), "ESCALA EJE Y LIBRE", value = TRUE),
+  # PERMITE VISUALIZAR EN DIFERENTES PÁGINAS
+  numericInput(id_control("page"), label = "PÁGINA DATOS MOSTRADA",
+               value = 1, min = 1, max = 100, step = 1)
+)
+})
+
+uiOutput("formateo_grafico_pageId_ui")
+```
+
+```{r}
+# BOTÓN QUE DISPARA EL DIBUJADO: HASTA PULSARLO NO SE DIBUJA NADA
+shiny::actionButton(id_control("dibujar"), "Dibujar gráfica")
+```
+
+Column
+--------------------------------------------------
+
+```{r}
+# RESET DE LA PÁGINA DE DATOS AL CAMBIAR LA SELECCIÓN DEL ATRIBUTO PRINCIPAL
+# O EL Nº DE FILAS O COLUMNAS
+observeEvent(input[[id_control("checkboxInput")]], {
+  updateNumericInput(session, id_control("page"), value = 1)
+})
+observeEvent(input[[id_control("ncol")]], {
+  updateNumericInput(session, id_control("page"), value = 1)
+})
+observeEvent(input[[id_control("nrow")]], {
+  updateNumericInput(session, id_control("page"), value = 1)
+})
+```
+
+```{r}
+# REACTIVA QUE EMPAQUETA TODOS LOS INPUTS DE ESTA PÁGINA Y SOLO SE RECALCULA
+# AL PULSAR EL BOTÓN "dibujar". SE LEE MÁS ABAJO COMO seleccion[[pageId]]()
+seleccion[[pageId]] <- shiny::eventReactive(input[[id_control("dibujar")]], {
+  # LAS CASILLAS SE COMPRUEBAN CON !is.null(): DESMARCADAS VALEN FALSE, Y PARA
+  # req() UN FALSE ES "TODAVÍA NO DISPONIBLE"
+  req(!is.null(input[[id_control("checkboxInput")]]),
+      !is.null(input[[id_control("scale_free_y")]]),
+      input[[id_control("ncol")]],
+      input[[id_control("nrow")]],
+      input[[id_control("page")]])
+
+  list(
+    checkboxInput = input[[id_control("checkboxInput")]],
+    scale_free_y  = input[[id_control("scale_free_y")]],
+    ncol          = input[[id_control("ncol")]],
+    nrow          = input[[id_control("nrow")]],
+    page          = input[[id_control("page")]],
+    main          = input[[id_control(input.main.config.pageId[[1]]$col.name)]],
+    multiple      = lapply(input.multiple.config.pageId, function(x)
+                       input[[id_control(x$col.name)]]),
+    single        = lapply(input.single.config.pageId, function(x)
+                       input[[id_control(x$col.name)]])
+  )
+})
+```
+
+###
+
+```{r}
+renderPlotly({
+
+  # SELECCIÓN EMPAQUETADA AL PULSAR EL BOTÓN
+  datos <- seleccion[[pageId]]()
+
+  tb <- data
+
+  # FILTRAMOS POR LOS ATRIBUTOS COMBINABLES DE SELECCIÓN MÚLTIPLE
+  for (k in seq_along(input.multiple.config.pageId)) {
+    tb <- tb |> filter(!!sym(input.multiple.config.pageId[[k]]$col.name) %in%
+                         datos$multiple[[k]])
+  }
+
+  # FILTRAMOS POR LOS ATRIBUTOS QUE SOLO ADMITEN UNA SELECCIÓN
+  for (k in seq_along(input.single.config.pageId)) {
+    tb <- tb |> filter(!!sym(input.single.config.pageId[[k]]$col.name) ==
+                         datos$single[[k]])
+  }
+
+  # FILTRAMOS POR EL ATRIBUTO PRINCIPAL (SI NO SE ELIGEN TODOS)
+  main.col <- input.main.config.pageId[[1]]$col.name
+  if (isFALSE(datos$checkboxInput)) {
+    tb <- tb |> filter(!!sym(main.col) %in% datos$main)
+  }
+
+  # Nº DE GRÁFICAS POR PÁGINA
+  NPlotsPerPage <- datos$ncol * datos$nrow
+  PageInit <- (datos$page - 1) * NPlotsPerPage + 1
+  PageEnd  <- datos$page * NPlotsPerPage
+
+  # FILTRAMOS EL ATRIBUTO PRINCIPAL SEGÚN LA PÁGINA MOSTRADA Y LO PASAMOS A
+  # factor PARA CONSERVAR EL ORDEN EN LAS GRÁFICAS
+  opciones <- if (isFALSE(datos$checkboxInput)) datos$main else input.main.config.pageId[[1]]$choices
+  tb <- tb |>
+    filter(!!sym(main.col) %in% opciones[PageInit:PageEnd]) |>
+    mutate(!!sym(main.col) := factor(!!sym(main.col), levels = unique(input.main.config.pageId[[1]]$choices)))
+
+  req(nrow(tb) > 0)
+
+  # ATRIBUTO COMBINADO: LOS ATRIBUTOS COMBINABLES CON MÁS DE UNA OPCIÓN ELEGIDA
+  atributo.combinado.name <- ""
+  tb <- tb |> mutate(atributo.combinado = "")
+  for (k in seq_along(input.multiple.config.pageId)) {
+    if (length(datos$multiple[[k]]) > 1) {
+      atributo.combinado.name <-
+        paste0(atributo.combinado.name, "/", input.multiple.config.pageId[[k]]$col.name)
+      tb <- tb |> mutate(atributo.combinado =
+                           paste0(atributo.combinado, "/", !!sym(input.multiple.config.pageId[[k]]$col.name)))
+    }
+  }
+  if (atributo.combinado.name != "") {
+    atributo.combinado.name <- substr(atributo.combinado.name, 2, nchar(atributo.combinado.name))
+    tb <- tb |> mutate(atributo.combinado = substr(atributo.combinado, 2, nchar(atributo.combinado)))
+  }
+
+  scale_y <- ifelse(datos$scale_free_y == TRUE, "free_y", "fixed")
+
+  if (atributo.combinado.name == "") {
+    p <- tb |> ggplot(aes(!!sym(date), !!sym(value)))
+  } else {
+    p <- tb |> ggplot(aes(!!sym(date), !!sym(value), colour = atributo.combinado))
+  }
+
+  p <- p + geom_line()
+
+  # facet_wrap: Nº DE COLUMNAS FIJO SOLO SI LA PÁGINA ESTÁ COMPLETA
+  if (length(unique(tb[[main.col]])) < NPlotsPerPage) {
+    p <- p + facet_wrap(vars(!!sym(main.col)), scales = scale_y)
+  } else {
+    p <- p + facet_wrap(vars(!!sym(main.col)), scales = scale_y, ncol = datos$ncol)
+  }
+
+  p <- p + labs(x = "", y = "", colour = atributo.combinado.name)
+
+  ggplotly(p)
+})
+```
+
+<!--
+################################################################################
+  PÁGINA 2: PREDICCIÓN (plantilla Dashboard_prediccion_series.Rmd)
+  Cambios respecto a la plantilla:
+    - DATOS admite VARIAS columnas key (aquí país, sector y medida), cada una
+      con su desplegable: la serie es la combinación de los valores elegidos,
+      sin construir una columna que los junte. Si la combinación no tiene
+      datos, el cuadro de mandos lo dice.
+    - Para cargar más rápido (con más de mil series, separarlas todas al
+      arrancar tardaría segundos), cada serie se extrae cuando se elige
+      (serie_de()), y sus opciones se calculan entonces.
+################################################################################
+-->
+
+Predicción
+==================================================
+
+```{r, include=FALSE}
+# ✎ PASO 3: IDENTIFICADOR DE LA PÁGINA
+PAGINA_ID <- "pred"                                                          # ✎
+
+# ✎ PASO 4: LOS DATOS. Un tsibble LARGO con un índice temporal, una o varias
+# columnas key y UNA de valores. Cada columna key es un atributo con su propio
+# desplegable, y la serie es la combinación de un valor de cada uno: aquí el
+# país, el sector y la medida. Las combinaciones sin datos (el % del gasto
+# público total del Total) no forman serie.
+DATOS <- GASTO |>                                                            # ✎
+  pivot_longer(all_of(unname(MEDIDAS)), names_to = "medida", values_to = "valor") |>
+  filter(!is.na(valor)) |>
+  transmute(fecha  = as.integer(year(time)),
+            geo, sector,
+            medida = names(MEDIDAS)[match(medida, MEDIDAS)], # rótulo con unidades
+            valor) |>
+  as_tsibble(index = fecha, key = c(geo, sector, medida))
+
+# ✎ PASO 5: RÓTULOS Y OPCIONES DE ARRANQUE
+ETIQUETAS_ATRIBUTOS <- c(geo = "País:", sector = "Sector:", medida = "Medida:") # ✎ rótulo de cada key
+ATRIBUTO_UNIDAD     <- "medida" # ✎ key cuyo valor rotula el eje vertical (NULL: el nombre de la columna de valores)
+SERIE_INICIAL       <- c(geo = "Spain", sector = "Total", medida = "% del PIB") # ✎
+METODO_INICIAL      <- "ARIMA"  # ✎ "ARIMA" o "STL + ARIMA"
+
+# AISLAMIENTO DE LA PÁGINA: lo que define el usuario se guarda AHORA en
+# PAGINAS[[PAGINA_ID]], y el resto de la página lo lee solo de ahí
+PAGINAS[[PAGINA_ID]] <- list(
+  datos               = DATOS,
+  etiquetas_atributos = ETIQUETAS_ATRIBUTOS,
+  atributo_unidad     = ATRIBUTO_UNIDAD,
+  serie_inicial       = SERIE_INICIAL,
+  metodo_inicial      = METODO_INICIAL
+)
+```
+
+```{r, include=FALSE}
+# ==============================================================================
+# FUNCIONES DE LA PLANTILLA (no dependen de la página)
+# ==============================================================================
+
+# OPCIONES DE LOS CONTROLES, DEDUCIDAS DE CADA SERIE: del número de
+# observaciones y del periodo estacional (1 en una serie anual)
+opciones_de <- function(ts) {
+  n       <- nrow(ts)
+  periodo <- tsibble::guess_frequency(ts[[tsibble::index_var(ts)]])
+
+  # Horizonte: unos pocos ciclos, y nunca más de la quinta parte de la serie
+  h_max <- max(2, min(max(3 * periodo, 10), n %/% 5))
+  h_def <- max(min(2 * periodo, h_max), min(5, h_max))
+
+  # Periodos observados con los que se ajusta el modelo (siempre los ÚLTIMOS)
+  paso      <- if (periodo > 1) periodo else 5
+  minimo    <- min(n, max(10, 3 * periodo))
+  tramo_def <- min(n, max(6 * periodo, 30))
+  tramos    <- sort(unique(c(seq(minimo, n, by = paso), tramo_def, n)))
+
+  list(periodo = periodo,
+       h = 2:h_max, h_def = h_def,
+       tramos = tramos, tramo_def = tramo_def)
+}
+
+# Las ventanas de STL han de ser impares
+impar <- function(x) {
+  x <- floor(x)
+  ifelse(x %% 2 == 0, x + 1, x)
+}
+
+# Ventanas de la tendencia para un tramo de n observaciones, sin pasar de la
+# mitad del tramo
+ventanas_tendencia <- function(n, periodo) {
+  vt <- impar(c(0.6, 1, 1.5, 2.5, 3.5, 5) * max(periodo, 5))
+  vt <- sort(unique(vt[vt > 3 & vt < n / 2]))
+  if (length(vt) == 0) vt <- 5
+  as.character(vt)
+}
+
+# Ventana de la tendencia con la que se arranca: la del medio de las ofrecidas
+ventana_tendencia_def <- function(vt) vt[ceiling(length(vt) / 2)]
+
+# Ventanas de la estacionalidad, en ciclos (solo si la serie tiene periodo > 1)
+VENTANAS_ESTACIONALIDAD    <- c("periodic", "7", "11", "13", "21")
+VENTANA_ESTACIONALIDAD_DEF <- "13"
+
+# "periodic" se pasa a STL tal cual, como texto, y el resto como número
+ventana_estacional_stl <- function(ve) if (ve == "periodic") "periodic" else as.numeric(ve)
+
+# EL ERROR DEL AJUSTE: observado − prediccion en el tramo ajustado. `descartar`
+# quita las primeras observaciones, las que el modelo no ha podido predecir
+error_de <- function(resultado, descartar = 0) {
+  idx <- tsibble::index_var(resultado)
+  val <- setdiff(names(resultado), c(idx, "prediccion", "lower", "upper"))[1]
+
+  resultado |>
+    as_tibble() |>
+    filter(!is.na(.data[[val]]), !is.na(prediccion)) |>
+    transmute(fecha = .data[[idx]], error = .data[[val]] - prediccion) |>
+    # (no slice(-seq_len(descartar)): con descartar = 0 dejaría la tabla vacía)
+    filter(row_number() > descartar)
+}
+
+# OBSERVACIONES QUE EL ARIMA NO PUEDE PREDECIR: las d + D·m primeras del tramo,
+# que se gastan en la diferenciación. Se leen de la descripción del modelo
+sin_ajuste_arima <- function(resultado) {
+  desc <- aedv_modelo(resultado)$descripcion
+  if (is.null(desc) || is.na(desc)) return(0)
+
+  d   <- str_match(desc, "^ARIMA\\(\\d+,(\\d+),\\d+\\)")[, 2]
+  est <- str_match(desc, "\\)\\(\\d+,(\\d+),\\d+\\)\\[(\\d+)\\]")[, 2:3]
+  if (is.na(d)) return(0)
+  as.numeric(d) + if (is.na(est[1])) 0 else as.numeric(est[1]) * as.numeric(est[2])
+}
+
+# ==============================================================================
+# PREPARACIÓN DE LA PÁGINA
+# ==============================================================================
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+  ts <- pg$datos
+
+  # COMPROBACIÓN DE LOS DATOS
+  aviso <- paste0("Página '", PAGINA_ID, "': ")
+  if (!tsibble::is_tsibble(ts)) {
+    stop(aviso, "DATOS no es un tsibble: conviértelo con as_tsibble() en el PASO 4.")
+  }
+  if (length(tsibble::key_vars(ts)) == 0) {
+    stop(aviso, "DATOS no tiene columnas key: hace falta al menos una, ",
+         "la que separa las series.")
+  }
+  if (length(tsibble::measured_vars(ts)) != 1) {
+    stop(aviso, "DATOS tiene ", length(tsibble::measured_vars(ts)),
+         " columnas de valores. Debe tener exactamente una.")
+  }
+
+  col_keys  <- tsibble::key_vars(ts)
+  col_fecha <- tsibble::index_var(ts)
+  col_valor <- tsibble::measured_vars(ts)[1]
+
+  # LONGITUD DE CADA SERIE (cada combinación de las keys), todas de una vez
+  tabla    <- as_tibble(ts) |> mutate(across(all_of(col_keys), as.character))
+  longitud <- tabla |> count(across(all_of(col_keys)))
+  cortas   <- longitud |> filter(n < 12)
+  if (nrow(cortas) > 0) {
+    stop(aviso, nrow(cortas), " serie(s) tienen menos de 12 observaciones (la ",
+         "primera: ", paste(unlist(cortas[1, col_keys]), collapse = " · "),
+         "): son demasiado pocas para ajustar un modelo.")
+  }
+
+  # OPCIONES DE CADA DESPLEGABLE: los valores de cada key, en el orden de los datos
+  valores <- lapply(col_keys, function(k) unique(tabla[[k]]))
+  names(valores) <- col_keys
+
+  # Rótulo de cada desplegable: el del PASO 5 o, si falta, el nombre de la columna
+  etiquetas <- setNames(as.list(col_keys), col_keys)
+  for (k in intersect(names(pg$etiquetas_atributos), col_keys)) {
+    etiquetas[[k]] <- pg$etiquetas_atributos[[k]]
+  }
+
+  # ¿EXISTE LA SERIE? Una selección es un vector con nombre: un valor por key
+  existe <- function(sel) {
+    if (!all(col_keys %in% names(sel))) return(FALSE)
+    fila <- longitud
+    for (k in col_keys) fila <- fila |> filter(.data[[k]] == sel[[k]])
+    nrow(fila) > 0
+  }
+
+  # SERIES BAJO DEMANDA. En vez de separar todas las series al arrancar (con
+  # cientos de series, más de un segundo en cada carga), se guarda la tabla y
+  # cada serie se extrae cuando se elige: un tsibble de UNA sola serie, sin
+  # key, que es lo que esperan las funciones de predicción del curso
+  serie_de <- function(sel) {
+    tb <- tabla
+    for (k in col_keys) tb <- tb |> filter(.data[[k]] == sel[[k]])
+    tb |>
+      select(all_of(c(col_fecha, col_valor))) |>
+      as_tsibble(index = all_of(col_fecha))
+  }
+
+  # Serie de arranque: la del PASO 5 o, si no existe, la primera
+  if (!existe(pg$serie_inicial)) pg$serie_inicial <- unlist(longitud[1, col_keys])
+
+  unidad <- pg$atributo_unidad
+  pg$col_keys    <- col_keys
+  pg$col_fecha   <- col_fecha
+  pg$valores     <- valores
+  pg$etiquetas   <- etiquetas
+  pg$existe      <- existe
+  pg$serie_de    <- serie_de
+  pg$opciones_de <- function(sel) opciones_de(serie_de(sel))
+  pg$nombre_de   <- function(sel) paste(unlist(sel[col_keys]), collapse = " · ")
+  pg$unidad_de   <- function(sel) if (is.null(unidad)) col_valor else sel[[unidad]]
+  pg$datos       <- NULL # ya está en la tabla de serie_de(): no se guarda dos veces
+
+  # IDENTIFICADORES DE LOS CONTROLES Y SALIDAS: el de la página delante
+  p <- PAGINA_ID
+  pg$id <- function(nombre) paste0(p, "_", nombre)
+
+  PAGINAS[[PAGINA_ID]] <<- pg
+})
+```
+
+Menú {.sidebar data-width=200}
+--------------------------------------------------
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+  id <- pg$id
+
+  # LA SERIE ELEGIDA: el valor de cada desplegable de atributo, como vector con
+  # nombre (NULL mientras falte alguno)
+  id_atributo <- function(k) id(paste0("atr_", k))
+  seleccion_de <- function() {
+    sel <- lapply(pg$col_keys, function(k) input[[id_atributo(k)]])
+    if (any(vapply(sel, is.null, logical(1)))) return(NULL)
+    setNames(unlist(sel), pg$col_keys)
+  }
+
+  # Al cambiar de serie, el horizonte y los periodos observados se adaptan a
+  # ella (si la combinación elegida no tiene datos, se dejan como están)
+  observeEvent(lapply(pg$col_keys, function(k) input[[id_atributo(k)]]), {
+    sel <- seleccion_de()
+    req(sel, pg$existe(sel))
+    o <- pg$opciones_de(sel)
+    h <- as.numeric(input[[id("h")]])
+
+    updateSelectInput(session, id("h"), choices = o$h, selected = min(h, max(o$h)))
+    updateSelectInput(session, id("tramo"), choices = o$tramos, selected = o$tramo_def)
+  })
+
+  # Ventanas de STL: solo con STL + ARIMA, y dependen del tramo
+  output[[id("controles_stl")]] <- renderUI({
+    sel <- seleccion_de()
+    req(sel, pg$existe(sel), input[[id("tramo")]], input[[id("metodo")]])
+    if (input[[id("metodo")]] != "STL + ARIMA") return(NULL)
+
+    o  <- pg$opciones_de(sel)
+    vt <- ventanas_tendencia(as.numeric(input[[id("tramo")]]), o$periodo)
+    tagList(
+      selectInput(id("ventana_tendencia"), "STL: suavizado tendencia (observaciones):",
+                  choices = vt, selected = ventana_tendencia_def(vt)),
+      if (o$periodo > 1) {
+        selectInput(id("ventana_estacionalidad"), "STL: suavizado estacionalidad (ciclos):",
+                    choices = VENTANAS_ESTACIONALIDAD, selected = VENTANA_ESTACIONALIDAD_DEF)
+      }
+    )
+  })
+
+  # UN SOLO CÁLCULO PARA TODOS LOS PANELES DE LA PÁGINA. Es un eventReactive():
+  # solo se recalcula al pulsar «Calcular», y al arrancar no calcula nada
+  pg$calculo <- eventReactive(input[[id("calcular")]], {
+    sel <- seleccion_de()
+    req(sel, input[[id("h")]], input[[id("tramo")]], input[[id("metodo")]])
+
+    nombre <- pg$nombre_de(sel)
+    metodo <- input[[id("metodo")]]
+
+    # COMBINACIÓN SIN DATOS: se explica en vez de dejar los paneles en blanco
+    if (!pg$existe(sel)) {
+      return(list(
+        serie       = nombre,
+        metodo      = metodo,
+        diagnostico = paste0("No hay datos de la combinación elegida (", nombre,
+                             "). Elige otra.")
+      ))
+    }
+
+    ts     <- pg$serie_de(sel)
+    o      <- opciones_de(ts)
+    h      <- as.numeric(input[[id("h")]])
+    # (si se pulsa antes de que se actualice el desplegable, el tramo puede
+    # pasar de la longitud de la serie)
+    tramo  <- min(as.numeric(input[[id("tramo")]]), nrow(ts))
+
+    # TRAMO CON HUECOS: ninguno de los dos métodos funciona, y ninguno lo dice
+    # claramente, así que se comprueba aquí y se explica el motivo
+    faltan <- tsibble::scan_gaps(tail(ts, tramo))
+    if (nrow(faltan) > 0) {
+      return(list(
+        serie       = nombre,
+        metodo      = metodo,
+        diagnostico = paste0(
+          "No se puede ajustar el modelo: en los últimos ", tramo, " periodos ",
+          "observados faltan ", nrow(faltan), " por medio (",
+          paste(format(faltan[[pg$col_fecha]]), collapse = ", "),
+          "). Basta con reducir los periodos observados para que el tramo ",
+          "empiece después del último hueco.")
+      ))
+    }
+
+    if (metodo == "ARIMA") {
+      resultado <- aedv_prediccion_arima(ts, h = h, periodos_atras = tramo)
+      metricas  <- aedv_arima_accuracy(resultado) # RMSE, MAE y MASE del ajuste
+      tendencia <- NULL
+      # Ventanas con las que se descompone en la pestaña de STL
+      vt <- ventana_tendencia_def(ventanas_tendencia(tramo, o$periodo))
+      ve <- VENTANA_ESTACIONALIDAD_DEF
+    } else {
+      # Si se pulsa antes de que existan los controles de STL, req() detiene el
+      # cálculo y basta con volver a pulsar
+      vt <- input[[id("ventana_tendencia")]]
+      req(vt)
+      if (o$periodo > 1) {
+        ve <- input[[id("ventana_estacionalidad")]]
+        req(ve)
+      } else {
+        ve <- VENTANA_ESTACIONALIDAD_DEF # no interviene: STL no estima estacionalidad
+      }
+
+      resultado <- aedv_prediccion_stl_arima(
+        ts, h = h, periodos_atras = tramo,
+        ventana_tendencia      = as.numeric(vt),
+        ventana_estacionalidad = ventana_estacional_stl(ve))
+
+      metricas  <- NULL # aedv_arima_accuracy() solo admite ARIMA
+      tendencia <- aedv_tendencia(resultado) # atributo: leerlo antes de recortar
+    }
+
+    error <- error_de(resultado,
+                      descartar = if (metodo == "ARIMA") sin_ajuste_arima(resultado) else 0)
+
+    list(
+      serie       = nombre,
+      unidad      = pg$unidad_de(sel), # rótulo del eje vertical
+      metodo      = metodo,
+      periodo     = o$periodo,
+      tramo       = tramo,
+      ventanas    = list(tendencia = vt, estacionalidad = ve),
+      diagnostico = NULL,
+      datos       = ts, # la serie, para la descomposición STL
+      resultado   = resultado,
+      tendencia   = tendencia,
+      metricas    = metricas,
+      error       = error,
+      tests       = aedv_tests_residuos(error$error, error$fecha)
+    )
+  })
+  PAGINAS[[PAGINA_ID]] <<- pg
+
+  # LOS CONTROLES
+  o_ini <- pg$opciones_de(pg$serie_inicial)
+  tagList(
+    # Un desplegable por atributo: la serie es la combinación de los elegidos
+    lapply(pg$col_keys, function(k) {
+      selectInput(id_atributo(k), pg$etiquetas[[k]],
+                  choices = pg$valores[[k]], selected = pg$serie_inicial[[k]])
+    }),
+
+    selectInput(id("h"), "Horizonte de predicción (periodos):",
+                choices = o_ini$h, selected = o_ini$h_def),
+
+    selectInput(id("tramo"), "Periodos observados para ajustar el modelo:",
+                choices = o_ini$tramos, selected = o_ini$tramo_def),
+
+    radioButtons(id("metodo"), "Método de predicción:",
+                 choices = c("ARIMA", "STL + ARIMA"), selected = pg$metodo_inicial),
+
+    uiOutput(id("controles_stl")),
+
+    # Lanza el cálculo: hasta pulsarlo no se calcula nada
+    actionButton(id("calcular"), "Calcular")
+  )
+})
+```
+
+```{r}
+# MÉTRICAS DEL AJUSTE, solo con ARIMA
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderUI({
+    resultado <- pg$calculo()
+    req(resultado, is.null(resultado$diagnostico), resultado$metodo == "ARIMA")
+
+    tags$strong("Métricas de ajuste ARIMA")
+  })
+})
+```
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderTable({
+    resultado <- pg$calculo()
+    req(resultado, is.null(resultado$diagnostico), resultado$metodo == "ARIMA")
+
+    resultado$metricas
+  }, digits = 2)
+})
+```
+
+Column {.tabset}
+--------------------------------------------------
+
+### Predicción
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderPlotly({
+    resultado <- pg$calculo()
+    req(resultado)
+    validate(need(is.null(resultado$diagnostico), resultado$diagnostico))
+
+    # Se dibuja el tramo ajustado y la predicción
+    tramo  <- resultado$resultado |> filter(!is.na(prediccion))
+    titulo <- paste0(resultado$serie, " · ", resultado$metodo)
+
+    if (resultado$metodo == "ARIMA") {
+      return(aedv_dibujar_arima_dinamico(tramo, titulo = titulo,
+                                         y_lab = resultado$unidad))
+    }
+
+    # Con STL + ARIMA se superpone la tendencia (como argumento, no con un
+    # add_lines() posterior, que descuadraría el eje de fechas). Sin
+    # estacionalidad, la tendencia predicha coincide con la predicción y solo
+    # se dibuja la observada
+    tendencia <- resultado$tendencia
+    if (resultado$periodo == 1) {
+      tendencia <- tendencia |> filter(!predicha)
+    }
+
+    aedv_dibujar_stl_arima_dinamico(tramo, titulo = titulo, y_lab = resultado$unidad,
+                                    tendencia = tendencia)
+  })
+})
+```
+
+### Error del ajuste y tests de ruido blanco
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+  id <- pg$id
+
+  output[[id("grafico_error")]] <- renderPlotly({
+    resultado <- pg$calculo()
+    req(resultado)
+    validate(need(is.null(resultado$diagnostico),
+                  resultado$diagnostico))
+
+    p <- resultado$error |>
+      ggplot(aes(x = fecha, y = error)) +
+        geom_hline(yintercept = 0, linetype = "dashed", colour = "steelblue") +
+        geom_line(colour = "grey45") +
+        labs(x = NULL, y = "error")
+
+    ggplotly(p)
+  })
+
+  output[[id("tabla_tests")]] <- renderUI({
+    resultado <- pg$calculo()
+    req(resultado)
+    validate(need(is.null(resultado$diagnostico),
+                  resultado$diagnostico))
+
+    aedv_tabla_tests(resultado$tests,
+                     titulo = paste0("Error del ajuste de ", resultado$metodo,
+                                     " (", resultado$serie, ")"))
+  })
+
+  # La gráfica arriba, ocupando el alto libre, y la tabla debajo
+  fillCol(flex = c(1, NA),
+          plotlyOutput(id("grafico_error"), height = "100%"),
+          uiOutput(id("tabla_tests")))
+})
+```
+
+### Descomposición STL
+
+```{r}
+# DESCOMPOSICIÓN STL DEL TRAMO DE AJUSTE, con la misma función interna que usa
+# aedv_prediccion_stl_arima(). En una serie anual no hay estacionalidad: salen
+# la serie, la tendencia y el resto
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderPlotly({
+    resultado <- pg$calculo()
+    req(resultado)
+    validate(need(is.null(resultado$diagnostico), resultado$diagnostico))
+
+    vt <- resultado$ventanas$tendencia
+    ve <- resultado$ventanas$estacionalidad
+
+    comp <- .aedv_componentes_stl(tail(resultado$datos, resultado$tramo),
+                                  ventana_tendencia      = as.numeric(vt),
+                                  ventana_estacionalidad = ventana_estacional_stl(ve)) |>
+      as_tibble()
+
+    col_fecha  <- pg$col_fecha
+    col_valor  <- setdiff(names(comp), c(".model", col_fecha, "trend", "remainder",
+                                         "season_adjust", grep("^season", names(comp), value = TRUE)))[1]
+    col_season <- setdiff(grep("^season", names(comp), value = TRUE), "season_adjust")
+    componentes <- tibble(
+      fecha          = comp[[col_fecha]],
+      observado      = comp[[col_valor]],
+      tendencia      = comp$trend,
+      estacionalidad = if (length(col_season) == 1) comp[[col_season]],
+      resto          = comp$remainder
+    ) |>
+      pivot_longer(-fecha, names_to = "componente", values_to = "valor") |>
+      mutate(componente = factor(componente, levels = unique(componente)))
+
+    titulo <- paste0(resultado$serie, " · STL con ventana de tendencia ", vt,
+                     if (resultado$periodo > 1) paste0(" y de estacionalidad ", ve))
+
+    p <- componentes |>
+      ggplot(aes(x = fecha, y = valor)) +
+        geom_line(colour = "grey30") +
+        facet_grid(componente ~ ., scales = "free_y") +
+        labs(x = NULL, y = NULL, title = titulo)
+
+    ggplotly(p)
+  })
+})
+```
+
+<!--
+################################################################################
+  PÁGINA 3: MAPA COROPLÉTICO (plantilla Dashboard_mapa_coropletico.Rmd)
+  Adaptada a los datos: además de la medida se elige el sector y el
+  año, y el mapa se centra en Europa.
+################################################################################
+-->
+
+Mapa coroplético
+==================================================
+
+```{r, include=FALSE}
+PAGINA_ID <- "mapa"
+
+# Una fila por país, función del gasto y año, con el código ISO de tres letras
+# de la geometría. Europe 27 no es un país: no sale en el mapa, pero sí en la
+# tabla, como referencia
+DATOS <- GASTO |>
+  mutate(iso3 = unname(ISO3[code]),
+         anio = as.integer(year(time)))
+
+# Año con el que arranca: el último que tienen todos los países
+ANIO_INICIAL <- DATOS |>
+  group_by(anio) |>
+  filter(n_distinct(code) == n_distinct(DATOS$code)) |>
+  pull(anio) |>
+  max()
+
+PAGINAS[[PAGINA_ID]] <- list(
+  datos        = DATOS,
+  sectores     = unique(DATOS$sector),
+  anios        = sort(unique(DATOS$anio), decreasing = TRUE),
+  anio_inicial = ANIO_INICIAL,
+  id           = function(nombre) paste0("mapa_", nombre)
+)
+```
+
+Column {.sidebar data-width=250}
+--------------------------------------------------
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+  id <- pg$id
+
+  # Procesado de los datos al pulsar el botón «Calcular» (eventReactive): al
+  # arrancar no se calcula nada, y la tabla y el mapa quedan vacíos hasta el
+  # primer clic
+  pg$calculo <- eventReactive(input[[id("calcular")]], {
+    req(input[[id("medida")]], input[[id("sector")]], input[[id("anio")]])
+    medida <- input[[id("medida")]]
+
+    tb <- pg$datos |>
+      filter(sector == input[[id("sector")]], anio == as.integer(input[[id("anio")]])) |>
+      select(iso3, pais = geo, value = all_of(medida)) |>
+      filter(!is.na(value)) |>
+      arrange(desc(value))
+
+    # El % del gasto público total no existe para el Total, y en los primeros
+    # años hay pocos países: con menos de 3 no hay nada que colorear
+    validate(need(nrow(tb) >= 3, paste0(
+      "Hay datos de ", nrow(tb), " países para esa medida, sector y ",
+      "año: son demasiado pocos para el mapa. Elige otra combinación.")))
+
+    list(tb      = tb,
+         rotulo  = names(MEDIDAS)[MEDIDAS == medida],
+         titulo  = paste0(input[[id("sector")]], ", ", input[[id("anio")]]))
+  })
+  PAGINAS[[PAGINA_ID]] <<- pg
+
+  tagList(
+    selectInput(id("medida"), "Medida:", choices = MEDIDAS, selected = "gasto_per_capita"),
+    selectInput(id("sector"), "Sector:", choices = pg$sectores, selected = "Total"),
+    selectInput(id("anio"), "Año:", choices = pg$anios, selected = pg$anio_inicial),
+
+    # Lanza el cálculo: hasta pulsarlo no se calcula nada
+    actionButton(id("calcular"), "Calcular")
+  )
+})
+```
+
+###
+
+```{r}
+# Tabla con los valores, de mayor a menor
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderTable({
+    resultado <- pg$calculo()
+
+    resultado$tb |>
+      transmute(País = pais,
+                valor = format(round(value, 2), big.mark = ".", decimal.mark = ",",
+                               nsmall = 2))
+  })
+})
+```
+
+Column
+--------------------------------------------------
+
+###
+
+```{r}
+# Mapa coroplético sobre la geometría ya recortada a los países de los datos
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  leaflet::renderLeaflet({
+    resultado <- pg$calculo()
+
+    join <- GEOMETRIA |>
+      left_join(resultado$tb, join_by(ISO_A3 == iso3))
+
+    etiquetas <- paste0(
+      "<strong>", join$ADMIN, "</strong><br>",
+      resultado$titulo, "<br>",
+      resultado$rotulo, ": ",
+      format(round(join$value, 2), big.mark = ".", decimal.mark = ",")
+    ) |>
+      lapply(htmltools::HTML)
+
+    # Centrado en Europa
+    aedv_mapa_coropletico(join, join$value, etiquetas, resultado$rotulo,
+                          lng = 12, lat = 55, zoom = 3)
+  })
+})
+```
+
+<!--
+################################################################################
+  PÁGINA 4: COMPARACIÓN DE ATRIBUTOS (plantilla Dashboard_atributos_comparacion.Rmd)
+  Pasada al patrón de página (PAGINAS + local() + ids con prefijo): la
+  plantilla usaba las globales DATOS y calculo, que la página 5 pisaría.
+  Los datos van en formato LARGO y cada indicador se elige con un desplegable
+  por atributo (sector y medida, por separado para x y para y), más el año,
+  común a los dos: no se generan columnas que combinen atributos.
+################################################################################
+-->
+
+Comparación de atributos
+==================================================
+
+```{r, include=FALSE}
+PAGINA_ID <- "comp"
+
+# PASO 1: LOS DATOS en formato LARGO: una fila por país (y Europe 27), año,
+# sector y medida, con una sola columna de valores. Cada punto del diagrama es
+# un país; los atributos se eligen con desplegables, sin combinarlos en
+# columnas nuevas
+DATOS <- GASTO |>
+  pivot_longer(all_of(unname(MEDIDAS)), names_to = "medida", values_to = "valor") |>
+  filter(!is.na(valor)) |>
+  transmute(geo,
+            anio   = as.integer(year(time)),
+            sector,
+            medida = names(MEDIDAS)[match(medida, MEDIDAS)], # rótulo con unidades
+            valor)
+
+# Año con el que arranca: el último que tienen todos los países
+ANIO_INICIAL <- DATOS |>
+  group_by(anio) |>
+  filter(n_distinct(geo) == n_distinct(DATOS$geo)) |>
+  pull(anio) |>
+  max()
+
+PAGINAS[[PAGINA_ID]] <- list(
+  datos    = DATOS,
+  etiqueta = "geo",   # PASO 2: columna que identifica cada punto
+  valor    = "valor", #         y columna de los valores
+  # PASO 3: ATRIBUTOS (columna = rótulo). Los del INDICADOR se eligen por
+  # separado para x y para y; los COMUNES, una sola vez para los dos
+  atributos_indicador = c(sector = "Sector", medida = "Medida"),
+  atributos_comunes   = c(anio = "Año"),
+  # Valores de arranque
+  x_inicial       = c(sector = "Total", medida = "Gasto per cápita (euros por habitante)"),
+  y_inicial       = c(sector = "Salud", medida = "Gasto per cápita (euros por habitante)"),
+  comunes_inicial = c(anio = ANIO_INICIAL),
+  alfa = 0.05, # nivel de significación de los tests
+  id   = function(nombre) paste0("comp_", nombre)
+)
+```
+
+```{r, include=FALSE}
+# FUNCIONES DE LA PLANTILLA (no dependen de la página)
+
+# Transformaciones, conservando el signo del dato. Yeo-Johnson solo en y: su
+# lambda se busca con el mejor ajuste lineal con la x ya transformada
+TRANSFORMACIONES_X <- c("none", "sqrt", "log")
+TRANSFORMACIONES_Y <- c("none", "sqrt", "log", "YeoJohnson")
+
+transforma <- function(v, tipo) {
+  switch(tipo,
+    none = v,
+    sqrt = sign(v) * sqrt(abs(v)),
+    log  = sign(v) * log(abs(v)),
+    v
+  )
+}
+
+# Rótulo de un eje: el indicador y, entre paréntesis, lo que se le ha hecho
+rotulo <- function(indicador, tipo, normalizado = FALSE) {
+  partes <- c(if (normalizado) "normalizado", if (tipo != "none") tipo)
+  if (length(partes) == 0) indicador
+  else paste0(indicador, " (", paste(partes, collapse = ", "), ")")
+}
+
+# OPCIONES DE CADA DESPLEGABLE: los valores de cada atributo, en el orden de
+# los datos (los numéricos, como el año, de mayor a menor)
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+  atributos <- c(names(pg$atributos_indicador), names(pg$atributos_comunes))
+
+  faltan <- setdiff(c(pg$etiqueta, pg$valor, atributos), names(pg$datos))
+  if (length(faltan) > 0) {
+    stop("Página '", PAGINA_ID, "': a DATOS le faltan las columnas ",
+         paste(faltan, collapse = ", "), ".")
+  }
+
+  pg$valores <- lapply(atributos, function(k) {
+    v <- unique(pg$datos[[k]])
+    if (is.numeric(v)) sort(v, decreasing = TRUE) else v
+  })
+  names(pg$valores) <- atributos
+
+  # Un valor de arranque que no existe se cambia por el primero
+  inicial <- function(ini, k) if (isTRUE(ini[[k]] %in% pg$valores[[k]])) ini[[k]] else pg$valores[[k]][1]
+  for (k in names(pg$atributos_indicador)) {
+    pg$x_inicial[k] <- inicial(pg$x_inicial, k)
+    pg$y_inicial[k] <- inicial(pg$y_inicial, k)
+  }
+  for (k in names(pg$atributos_comunes)) {
+    pg$comunes_inicial[k] <- inicial(pg$comunes_inicial, k)
+  }
+  PAGINAS[[PAGINA_ID]] <<- pg
+})
+```
+
+Column {.sidebar data-width=320}
+--------------------------------------------------
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+  id <- pg$id
+
+  # CÁLCULO CENTRAL, del que beben los tres paneles. Es un eventReactive(): solo
+  # se recalcula al pulsar «Calcular», y al arrancar no calcula nada
+  # VALORES ELEGIDOS de un grupo de atributos ("x_", "y_" o "c_" delante del
+  # nombre de la columna), como vector con nombre
+  elegidos <- function(prefijo, atributos) {
+    v <- lapply(names(atributos), function(k) input[[id(paste0(prefijo, k))]])
+    req(!any(vapply(v, is.null, logical(1))))
+    setNames(unlist(v), names(atributos))
+  }
+
+  # Filtra los datos por unos valores elegidos (vector con nombre)
+  filtra <- function(tb, valores) {
+    for (k in names(valores)) tb <- tb |> filter(as.character(.data[[k]]) == valores[[k]])
+    tb
+  }
+
+  # CÁLCULO CENTRAL, del que beben los tres paneles. Es un eventReactive(): solo
+  # se recalcula al pulsar «Calcular», y al arrancar no calcula nada
+  pg$calculo <- eventReactive(input[[id("calcular")]], {
+    req(input[[id("x_scale")]], input[[id("y_scale")]])
+    x_valores  <- elegidos("x_", pg$atributos_indicador)
+    y_valores  <- elegidos("y_", pg$atributos_indicador)
+    comunes    <- elegidos("c_", pg$atributos_comunes)
+    x_nombre   <- paste(x_valores, collapse = ", ")
+    y_nombre   <- paste(y_valores, collapse = ", ")
+    x_scale    <- input[[id("x_scale")]]
+    y_scale    <- input[[id("y_scale")]]
+    normalizar <- isTRUE(input[[id("normalizar")]])
+
+    # Una fila por punto con el valor de x y el de y: los datos de los atributos
+    # comunes, filtrados por separado con los de x y con los de y
+    base <- filtra(pg$datos, comunes)
+    eje  <- function(valores, nombre) {
+      filtra(base, valores) |>
+        select(etiqueta = all_of(pg$etiqueta), !!nombre := all_of(pg$valor))
+    }
+    tb <- inner_join(eje(x_valores, "x"), eje(y_valores, "y"), by = "etiqueta") |>
+      na.omit()
+
+    # NORMALIZACIÓN PREVIA OPCIONAL: cada variable por separado, con el lambda
+    # que más la aproxima a una normal
+    lambda_norm_x <- NA_real_
+    lambda_norm_y <- NA_real_
+    if (normalizar) {
+      lambda_norm_x <- aedv_yeojohnson_lambda(tb$x)
+      lambda_norm_y <- aedv_yeojohnson_lambda(tb$y)
+      tb$x <- aedv_yeo_johnson(tb$x, lambda_norm_x)
+      tb$y <- aedv_yeo_johnson(tb$y, lambda_norm_y)
+    }
+
+    tb$x <- transforma(tb$x, x_scale)
+
+    lambda <- NA_real_
+    if (y_scale == "YeoJohnson") {
+      lambda <- aedv_lambda_optimo(tb$x, tb$y)
+      tb$y   <- aedv_yeo_johnson(tb$y, lambda)
+    } else {
+      tb$y <- transforma(tb$y, y_scale)
+    }
+
+    # El logaritmo de un cero deja valores no finitos, que romperían la regresión
+    tb <- tb |> filter(is.finite(x), is.finite(y))
+    validate(need(nrow(tb) >= 3, paste0(
+      "Hay datos de ", nrow(tb), " países para esa combinación de atributos: ",
+      "son demasiado pocos para la regresión. Elige otra combinación.")))
+
+    fit <- lm(y ~ x, data = tb)
+    tb$residuo <- residuals(fit)
+
+    valores <- if (nrow(tb) <= 5000) aedv_lm_analisis(tb$x, tb$y) else NULL
+
+    # Los controles elegidos viajan dentro del resultado: los rótulos no
+    # cambian hasta que se vuelve a pulsar el botón
+    list(tb = tb, fit = fit, lambda = lambda, valores = valores,
+         lambda_norm_x = lambda_norm_x, lambda_norm_y = lambda_norm_y,
+         x_nombre = x_nombre, y_nombre = y_nombre, y_scale = y_scale,
+         comunes = comunes, normalizar = normalizar,
+         rotulo_x = rotulo(x_nombre, x_scale, normalizar),
+         rotulo_y = rotulo(y_nombre, y_scale, normalizar))
+  })
+  PAGINAS[[PAGINA_ID]] <<- pg
+
+  # Un desplegable por atributo de un grupo
+  desplegables <- function(prefijo, atributos, iniciales, delante = "") {
+    lapply(names(atributos), function(k) {
+      selectInput(id(paste0(prefijo, k)), label = paste0(delante, atributos[[k]]),
+                  choices = pg$valores[[k]], selected = iniciales[[k]])
+    })
+  }
+
+  tagList(
+    # NORMALIZACIÓN PREVIA: un criterio DISTINTO del de la opción "YeoJohnson"
+    # del desplegable de y, que busca el mejor ajuste lineal entre las dos
+    checkboxInput(id("normalizar"),
+                  label = "Normalizar antes cada variable (Yeo-Johnson)",
+                  value = FALSE),
+    desplegables("c_", pg$atributos_comunes, pg$comunes_inicial),
+    desplegables("x_", pg$atributos_indicador, pg$x_inicial, delante = "x: "),
+    selectInput(id("x_scale"), label = "Transformación del indicador x",
+                choices = TRANSFORMACIONES_X, selected = "none"),
+    desplegables("y_", pg$atributos_indicador, pg$y_inicial, delante = "y: "),
+    selectInput(id("y_scale"), label = "Transformación del indicador y",
+                choices = TRANSFORMACIONES_Y, selected = "none"),
+
+    # Lanza el cálculo: hasta pulsarlo no se calcula nada
+    actionButton(id("calcular"), "Calcular")
+  )
+})
+```
+
+###
+
+```{r}
+# Resumen del análisis. La recta, R2, sigma y los tests van en la tabla de la
+# pestaña del error
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderUI({
+    resultado <- pg$calculo()
+    tb        <- resultado$tb
+
+    # Los atributos comunes, uno por línea (p. ej. el año)
+    comunes <- paste0("<strong>", tolower(pg$atributos_comunes), ":</strong> ",
+                      resultado$comunes[names(pg$atributos_comunes)], "<br>",
+                      collapse = "")
+
+    texto <- paste(
+      "<strong>ANÁLISIS DE REGRESIÓN LINEAL</strong><br>",
+      comunes,
+      "<strong>x:</strong>", resultado$rotulo_x, "<br>",
+      "<strong>y:</strong>", resultado$rotulo_y, "<br>",
+      "<strong>observaciones:</strong>", nrow(tb),
+      "<br><strong>correlación:</strong>", round(cor(tb$x, tb$y), digits = 4)
+    )
+
+    if (resultado$normalizar) {
+      texto <- paste(texto,
+        "<br><strong>lambda normalidad (x):</strong>",
+        formatC(resultado$lambda_norm_x, format = "e", digits = 3),
+        "<br><strong>lambda normalidad (y):</strong>",
+        formatC(resultado$lambda_norm_y, format = "e", digits = 3))
+    }
+
+    if (resultado$y_scale == "YeoJohnson") {
+      texto <- paste(texto, "<br><strong>lambda ajuste lineal (y):</strong>",
+                     formatC(resultado$lambda, format = "e", digits = 3))
+    }
+
+    HTML(texto)
+  })
+})
+```
+
+Column {.tabset}
+--------------------------------------------------
+
+### Diagrama de dispersión
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderPlotly({
+    resultado <- pg$calculo()
+
+    p <- resultado$tb |>
+      ggplot(aes(x, y, label = etiqueta)) +
+        geom_point() +
+        geom_smooth(method = lm, se = FALSE, formula = y ~ x) + # recta de regresión
+        labs(x = resultado$rotulo_x, y = resultado$rotulo_y)
+
+    ggplotly(p)
+  })
+})
+```
+
+### Error del ajuste y tests
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+  id <- pg$id
+
+  # Residuos frente a x: una nube sin forma y de anchura constante alrededor
+  # del cero es lo que se espera de un buen ajuste
+  output[[id("grafico_error")]] <- renderPlotly({
+    resultado <- pg$calculo()
+
+    p <- resultado$tb |>
+      ggplot(aes(x, residuo, label = etiqueta)) +
+        geom_hline(yintercept = 0, linetype = "dashed", colour = "steelblue") +
+        geom_point(alpha = 0.6) +
+        labs(x = resultado$rotulo_x, y = "residuo")
+
+    ggplotly(p)
+  })
+
+  output[[id("tabla_lm")]] <- renderUI({
+    resultado <- pg$calculo()
+    validate(need(!is.null(resultado$valores),
+                  "Tests no disponibles: el test de Shapiro-Wilk admite como mucho 5.000 observaciones."))
+
+    aedv_tabla_lm(resultado$valores, titulo = "Análisis del ajuste de la recta", alpha = pg$alfa)
+  })
+
+  fillCol(flex = c(1, NA),
+          plotlyOutput(id("grafico_error"), height = "100%"),
+          uiOutput(id("tabla_lm")))
+})
+```
+
+Column {data-width=300}
+--------------------------------------------------
+
+### Valor de los indicadores transformados
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderTable({
+    resultado <- pg$calculo()
+
+    tabla <- resultado$tb |>
+      arrange(desc(x)) |>
+      transmute(
+        etiqueta,
+        x = prettyNum(round(x, digits = 2), big.mark = ","),
+        y = prettyNum(round(y, digits = 2), big.mark = ",")
+      )
+
+    names(tabla) <- c("País", resultado$x_nombre, resultado$y_nombre)
+    tabla
+  })
+})
+```
+
+<!--
+################################################################################
+  PÁGINA 5: ANÁLISIS DE ATRIBUTOS (plantilla Dashboard_atributos_analisis.Rmd)
+  Cambio respecto a la plantilla: se elige también el año (o el último año
+  completo de cada área). Las tablas se construyen al pulsar el botón, con las
+  áreas que tienen todos los atributos ese año.
+################################################################################
+-->
+
+Análisis de atributos
+==================================================
+
+```{r, include=FALSE}
+# ✎ PASO 3: IDENTIFICADOR DE LA PÁGINA
+PAGINA_ID <- "atr"                                                           # ✎
+
+# ✎ PASO 4: LOS DATOS, en formato LARGO: ambito, area, atributo, anio y las
+# variables numéricas. Los atributos son los 10 sectores (sin el Total, que es
+# su suma). Dos conjuntos de áreas: todos los países, y los de la Unión
+# Europea (sin Suiza, Islandia ni Noruega)
+DATOS <- bind_rows(                                                          # ✎
+  GASTO |> mutate(ambito = "Todos los países"),
+  GASTO |> filter(!code %in% c("CH", "IS", "NO")) |> mutate(ambito = "Unión Europea")
+) |>
+  filter(sector != "Total") |>
+  transmute(ambito, area = geo, atributo = sector, anio = as.integer(year(time)),
+            gasto_per_capita, pct_pib, pct_gasto, gasto)
+
+# ✎ PASO 5: RÓTULOS Y OPCIONES DE ARRANQUE
+ETIQUETA_AMBITO     <- "Países:"             # ✎
+ETIQUETA_ANIO       <- "Año:"                # ✎
+ETIQUETA_VARIABLE   <- "Variable:"           # ✎
+ETIQUETAS_VARIABLES <- setNames(names(MEDIDAS), MEDIDAS) # ✎ columna -> rótulo
+RESALTAR            <- c("Europe 27", "Spain") # ✎ áreas resaltadas en el biplot y el k-means
+AMBITO_INICIAL      <- "Todos los países"    # ✎
+ANIO_INICIAL        <- "Último año de cada área" # ✎ o un año concreto
+VARIABLE_INICIAL    <- "pct_gasto"           # ✎ la composición del gasto
+K_INICIAL           <- 3                     # ✎
+YEO_JOHNSON_INICIAL <- TRUE                  # ✎
+
+PAGINAS[[PAGINA_ID]] <- list(
+  datos               = DATOS,
+  etiqueta_ambito     = ETIQUETA_AMBITO,
+  etiqueta_anio       = ETIQUETA_ANIO,
+  etiqueta_variable   = ETIQUETA_VARIABLE,
+  etiquetas_variables = ETIQUETAS_VARIABLES,
+  resaltar            = RESALTAR,
+  ambito_inicial      = AMBITO_INICIAL,
+  anio_inicial        = ANIO_INICIAL,
+  variable_inicial    = VARIABLE_INICIAL,
+  k_inicial           = K_INICIAL,
+  yeo_johnson_inicial = YEO_JOHNSON_INICIAL
+)
+```
+
+```{r, include=FALSE}
+# FUNCIONES DE LA PLANTILLA (no dependen de la página)
+
+# Opción del desplegable de años que toma, en cada área, su último año completo
+ULTIMO_ANIO <- "Último año de cada área"
+
+# TABLA DE ATRIBUTOS de un ámbito, un año y una variable: una fila por área
+# (como nombre de fila) y una columna por atributo. `completos` solo tiene las
+# áreas y años con todos los atributos; con ULTIMO_ANIO, cada área entra con el
+# último de sus años completos
+tabla_atributos <- function(completos, ambito_elegido, anio_elegido, variable) {
+  d <- completos |> filter(ambito == ambito_elegido)
+  if (anio_elegido == ULTIMO_ANIO) {
+    d <- d |> group_by(area) |> filter(anio == max(anio)) |> ungroup()
+  } else {
+    d <- d |> filter(anio == as.integer(anio_elegido))
+  }
+  d |>
+    select(area, atributo, all_of(variable)) |>
+    pivot_wider(names_from = atributo, values_from = all_of(variable)) |>
+    column_to_rownames(var = "area")
+}
+
+# Decimales de los valores originales, según el percentil 10 de su valor absoluto
+decimales_de <- function(tabla) {
+  p10 <- quantile(abs(as.matrix(tabla)), 0.1)
+  if (p10 >= 100) 0 else if (p10 >= 10) 1 else 2
+}
+
+# Tabla interactiva (DT) que ocupa toda la pestaña, con formato español
+tabla_dt <- function(tabla, decimales) {
+  tabla <- as.data.frame(tabla)
+  DT::datatable(tabla, fillContainer = TRUE,
+                options = list(paging = FALSE, scrollX = TRUE,
+                               dom = "ft", # solo el buscador (f) y la tabla (t)
+                               language = list(search = "Buscar:"))) |>
+    DT::formatRound(columns = names(tabla), digits = decimales,
+                    mark = ".", dec.mark = ",")
+}
+
+# PREPARACIÓN DE LA PÁGINA: comprobación de los datos y tablas de atributos
+local({
+  pg    <- PAGINAS[[PAGINA_ID]]
+  datos <- pg$datos
+
+  aviso  <- paste0("Página '", PAGINA_ID, "': ")
+  claves <- c("ambito", "area", "atributo", "anio")
+  faltan <- setdiff(claves, names(datos))
+  if (length(faltan) > 0) {
+    stop(aviso, "a DATOS le faltan las columnas ", paste(faltan, collapse = ", "), ".")
+  }
+  variables <- setdiff(names(datos)[sapply(datos, is.numeric)], claves)
+  if (length(variables) == 0) {
+    stop(aviso, "DATOS no tiene ninguna columna numérica con la que llenar la tabla.")
+  }
+  repetidos <- datos |> count(ambito, area, atributo, anio) |> filter(n > 1)
+  if (nrow(repetidos) > 0) {
+    stop(aviso, "en DATOS hay ", nrow(repetidos), " combinaciones de ámbito, área, ",
+         "atributo y año con más de un valor (la primera: ", repetidos$ambito[1], ", ",
+         repetidos$area[1], ", ", repetidos$atributo[1], ", ", repetidos$anio[1],
+         "). Debe haber uno solo.")
+  }
+
+  # ÁREAS Y AÑOS COMPLETOS: los que tienen todos los atributos con todas las
+  # variables finitas (así un área es la del mismo año al cambiar de variable)
+  n_atributos <- n_distinct(datos$atributo)
+  completos <- datos |>
+    filter(if_all(all_of(variables), is.finite)) |>
+    group_by(ambito, area, anio) |>
+    filter(n() == n_atributos) |>
+    ungroup()
+
+  ambitos <- unique(datos$ambito)
+  anios   <- c(ULTIMO_ANIO, sort(unique(completos$anio), decreasing = TRUE))
+
+  # Áreas del ámbito más pequeño con su último año: fijan el máximo de grupos
+  n_min <- min(sapply(ambitos, function(a)
+    nrow(tabla_atributos(completos, a, ULTIMO_ANIO, variables[1]))))
+  if (n_min < 3) {
+    stop(aviso, "algún ámbito tiene menos de 3 áreas: son demasiado pocas para agruparlas.")
+  }
+
+  etiquetas <- ifelse(variables %in% names(pg$etiquetas_variables),
+                      pg$etiquetas_variables[variables], variables)
+
+  if (!pg$ambito_inicial %in% ambitos)     pg$ambito_inicial   <- ambitos[1]
+  if (!pg$anio_inicial %in% anios)         pg$anio_inicial     <- anios[1]
+  if (!pg$variable_inicial %in% variables) pg$variable_inicial <- variables[1]
+
+  pg$ambitos   <- ambitos
+  pg$anios     <- anios
+  pg$variables <- setNames(variables, etiquetas) # rótulo -> nombre de la columna
+  pg$completos <- completos
+  pg$k         <- 2:min(8, n_min - 1)
+  pg$k_inicial <- min(pg$k_inicial, max(pg$k))
+  pg$datos     <- NULL # ya está en completos: no se guarda dos veces
+
+  p <- PAGINA_ID
+  pg$id <- function(nombre) paste0(p, "_", nombre)
+
+  PAGINAS[[PAGINA_ID]] <<- pg
+})
+```
+
+Menú {.sidebar data-width=200}
+--------------------------------------------------
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+  id <- pg$id
+
+  # UN SOLO CÁLCULO PARA LAS OCHO PESTAÑAS: Yeo-Johnson (si se pide),
+  # tipificar, PCA y k-means. Es un eventReactive(): solo al pulsar «Calcular»
+  pg$calculo <- eventReactive(input[[id("calcular")]], {
+    # La casilla no va dentro de req(): sin marcar vale FALSE
+    req(input[[id("ambito")]], input[[id("anio")]], input[[id("variable")]],
+        input[[id("k")]], !is.null(input[[id("yeo_johnson")]]))
+
+    ambito   <- input[[id("ambito")]]
+    anio     <- input[[id("anio")]]
+    variable <- input[[id("variable")]]
+    k        <- as.numeric(input[[id("k")]])
+    yj       <- input[[id("yeo_johnson")]]
+    etiqueta <- names(pg$variables)[pg$variables == variable]
+
+    original <- tabla_atributos(pg$completos, ambito, anio, variable)
+
+    # En los primeros años hay pocas áreas con todos los atributos
+    validate(need(nrow(original) >= 3 && k < nrow(original), paste0(
+      if (anio == ULTIMO_ANIO) "Con el último año de cada área" else paste("En", anio),
+      " hay ", nrow(original), " áreas de '", ambito,
+      "' con todos los atributos: son demasiado pocas para ", k, " grupos. ",
+      "Elige otro año o menos grupos.")))
+
+    constantes <- names(original)[sapply(original, sd) == 0]
+    validate(need(length(constantes) == 0, paste0(
+      "La variable vale lo mismo en todas las áreas para ",
+      paste(constantes, collapse = ", "), ": no se puede tipificar. ",
+      "Elige otra combinación.")))
+
+    # 1. YEO-JOHNSON: cada atributo con SU lambda
+    normalizada <- original
+    if (yj) {
+      normalizada <- original |>
+        mutate(across(everything(), \(v) aedv_yeo_johnson(v, aedv_yeojohnson_lambda(v))))
+    }
+
+    # 2. TIPIFICAR
+    tipificada <- scale(normalizada)
+
+    # 3. PCA
+    pca <- prcomp(normalizada, scale = TRUE)
+
+    # SIGNO DE LAS COMPONENTES: positivo el loading de mayor valor absoluto
+    signo <- apply(pca$rotation, 2, function(u) sign(u[which.max(abs(u))]))
+    pca$rotation <- sweep(pca$rotation, 2, signo, `*`)
+    pca$x        <- sweep(pca$x, 2, signo, `*`)
+
+    # PC2 SIN VARIANZA: las pestañas que la necesitan lo explican
+    varianza    <- pca$sdev^2 / sum(pca$sdev^2)
+    diagnostico <- NULL
+    if (varianza[2] < 1e-10) {
+      diagnostico <- paste0(
+        "PC2 no tiene varianza: todos los atributos tienen los mismos valores ",
+        "tipificados, así que PC1 recoge el 100 % de la varianza. Sin una segunda ",
+        "componente no tienen sentido ni los loadings de PC2, ni el biplot, ni el k-means.")
+    }
+
+    # 4. K-MEANS sobre las componentes que acumulan el 85 % de la varianza
+    clusters <- if (is.null(diagnostico)) aedv_kmeans(pca, k = k)
+
+    list(
+      ambito      = ambito,
+      etiqueta    = etiqueta,
+      yj          = yj,
+      k           = k,
+      descripcion = paste0(etiqueta, " · ", ambito, " · ", tolower(anio),
+                           if (yj) " · con Yeo-Johnson"),
+      original    = original,
+      tipificada  = tipificada,
+      pca         = pca,
+      clusters    = clusters,
+      diagnostico = diagnostico
+    )
+  })
+  PAGINAS[[PAGINA_ID]] <<- pg
+
+  tagList(
+    selectInput(id("ambito"), pg$etiqueta_ambito,
+                choices = pg$ambitos, selected = pg$ambito_inicial),
+    selectInput(id("anio"), pg$etiqueta_anio,
+                choices = pg$anios, selected = pg$anio_inicial),
+    selectInput(id("variable"), pg$etiqueta_variable,
+                choices = pg$variables, selected = pg$variable_inicial),
+    selectInput(id("k"), "Nº de grupos del k-means:",
+                choices = pg$k, selected = pg$k_inicial),
+    checkboxInput(id("yeo_johnson"), "Normalizar con Yeo-Johnson antes de tipificar",
+                  value = pg$yeo_johnson_inicial),
+
+    # Lanza el cálculo: hasta pulsarlo no se calcula nada
+    actionButton(id("calcular"), "Calcular")
+  )
+})
+```
+
+Column {.tabset}
+--------------------------------------------------
+
+### Originales
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  DT::renderDataTable({
+    resultado <- pg$calculo()
+    tabla_dt(resultado$original, decimales = decimales_de(resultado$original))
+  })
+})
+```
+
+### Tipificados
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  DT::renderDataTable({
+    resultado <- pg$calculo()
+    tabla_dt(resultado$tipificada, decimales = 2)
+  })
+})
+```
+
+### Correlación
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderPlotly({
+    resultado <- pg$calculo()
+    resultado$tipificada |>
+      cor() |>
+      aedv_matriz_correlacion(show_values = TRUE,
+                              title = paste0("Matriz de correlación · ", resultado$descripcion))
+  })
+})
+```
+
+### PC's
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  DT::renderDataTable({
+    resultado <- pg$calculo()
+    tabla_dt(resultado$pca$x, decimales = 2)
+  })
+})
+```
+
+### Loadings
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+  id <- pg$id
+
+  output[[id("loadings_pc1")]] <- renderPlotly({
+    resultado <- pg$calculo()
+    aedv_pca_loadings_grafico(resultado$pca, 1) |> ggplotly()
+  })
+
+  output[[id("loadings_pc2")]] <- renderPlotly({
+    resultado <- pg$calculo()
+    validate(need(is.null(resultado$diagnostico), resultado$diagnostico))
+    aedv_pca_loadings_grafico(resultado$pca, 2) |> ggplotly()
+  })
+
+  fillCol(plotlyOutput(id("loadings_pc1"), height = "100%"),
+          plotlyOutput(id("loadings_pc2"), height = "100%"))
+})
+```
+
+### Varianza
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderPlotly({
+    resultado <- pg$calculo()
+    aedv_pca_varianza_grafico(resultado$pca,
+                              titulo = paste0("Varianza explicada · ", resultado$descripcion)) |>
+      ggplotly()
+  })
+})
+```
+
+### Biplot
+
+```{r}
+# Interactivo (dinamico = TRUE): cada país se rotula con su nombre
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderPlotly({
+    resultado <- pg$calculo()
+    validate(need(is.null(resultado$diagnostico), resultado$diagnostico))
+
+    aedv_pca_biplot(resultado$pca,
+                    titulo   = paste0("Biplot PCA · ", resultado$descripcion),
+                    resaltar = intersect(pg$resaltar, rownames(resultado$pca$x)),
+                    dinamico = TRUE)
+  })
+})
+```
+
+### k-means
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderPlotly({ # interactivo (dinamico = TRUE)
+    resultado <- pg$calculo()
+    validate(need(is.null(resultado$diagnostico), resultado$diagnostico))
+
+    aedv_kmeans_grafico(resultado$clusters,
+                        titulo   = paste0("k-means (k = ", resultado$k, ") sobre ",
+                                          ncol(attr(resultado$clusters, "datos")), " componentes · ",
+                                          resultado$descripcion),
+                        resaltar = intersect(pg$resaltar, rownames(resultado$pca$x)),
+                        dinamico = TRUE)
+  })
+})
+```

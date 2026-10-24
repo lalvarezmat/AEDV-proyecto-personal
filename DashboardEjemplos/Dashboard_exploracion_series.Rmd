@@ -1,0 +1,585 @@
+---
+# PASO 4: TÍTULO DEL CUADRO DE MANDOS
+title: "PLANTILLA VISUALIZACIÓN SERIES MULIDIMENSIONALES"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+runtime: shiny
+---
+
+# Solicitantes de Asilo 
+
+<!-- 
+PLANTILLA VISUALIZACIÓN DE LAS SERIES TEMPORALES DE UN DATASET MULTIDIMENSIONAL QUE PERMITE HACER UNA EXPLORACIÓN PROFUNDA DE LOS DATOS A TRAVÉS DE TODAS SUS DIMENSIONES. LAS CARACTERÍSTICAS PRINCIPALES SON: 
+
+(1) SE SELECCIONA UN ATRIBUTO PRINCIPAL, EN ESTE EJEMPLO geo.name (REGIONES DE ACOGIDA DE SOLICITANTES DE ASILO) QUE SE USARÁ PARA SEPARAR LAS GRÁFICAS CON facet_wrap, SE PUEDEN PONER TODAS LAS OPCIONES POSIBLES DE ESTE ATRIBUTO PRINCIPAL O SELECCIONAR MANUALMENTE ALGUNAS. LA GESTIÓN DE ESTE ATRIBUTO PRINCIPAL SE HACE EN EL PRIMER BLOQUE DEL MENU DE LA IZQUIERDA 
+
+(2) EN EL SEGUNDO BLOQUE DEL MENU PONEMOS LOS ATRIBUTOS QUE PERMITIMOS COMBINAR ENTRE SI PARA GENERAR ATRIBUTOS COMBINADOS COGIENDO VARIAS OPCIONES DE CADA ATRIBUTO. POR EJEMPLO SEXO Y GRUPOS_EDAD, SI ELEGIMOS 2 SEXOS Y 3 GRUPOS DE EDAD OBTENDREMOS 6 OPCIONES DEL ATRIBUTO SEXO/GRUPO_EDAD. ESTOS ATRIBUTOS COMBINADOS SON LOS QUE APARECEN DIBUJADOS EN LOS facet_wrap DE LAS SERIES TEMPORALES. LOS ATRIBUTOS COMBINADOS SOLO APARECEN SI SE ELIGEN VARIAS OPCIONES DE 2 o MÁS ATRIBUTOS. EN CASO CONTRARIO NO HACE FALTA TRABAJAR CON ATRIBUTOS COMBINADOS.   
+
+(3) EN EL TERCER BLOQUE SE PONEN ATRIBUTOS DE LOS QUE SOLO SE ELIGE UNA OPCIÓN Y QUE NO PARTICIPAN EN LOS ATRIBUTOS COMBINADOS. POR EJEMPLO, UN ATRIBUTO DE UNIDAD DE MEDIDA. 
+
+(4) EN EL CUARTO BLOQUE SE ELIGEN PARÁMETROS PARA FORMATEAR EL GRÁFICO TALES COMO : 
+
+   - FIJAR EL Nº COLUMNAS/FILAS PARA EL facet_wrap
+
+   - FIJAR SI LA ESCALA DEL EJE Y ES LIBRE PARA EL facet_wrap
+
+   - LOS DATOS SE PRESENTAN POR PÁGINAS Y EL USUARIO PUEDE SELECCIONAR EL Nº DE LA PÁGINA MOSTRADA
+--> 
+
+```{r,echo=FALSE}
+knitr::opts_chunk$set(
+  warning = FALSE,
+  message = FALSE,
+  echo=FALSE
+)
+```
+
+```{r, echo = FALSE,message = FALSE,warning = FALSE}
+library(plotly)
+library(ggplot2)
+library(tidyverse)
+
+# asociamos funciones a determinadas librerías para evitar posibles errores 
+select <- dplyr::select
+mutate <- dplyr::mutate
+filter <- dplyr::filter
+group_by <- dplyr::group_by
+summarise <- dplyr::summarise
+selectInput <- shiny::selectInput
+
+# theme por defecto para las gráficas
+theme_set(theme_bw(base_size=12))
+
+# LISTA DONDE CADA PÁGINA DE LA PLANTILLA GUARDA SU REACTIVA DE SELECCIÓN,
+# INDEXADA POR SU pageId (VER "GESTIÓN DE LAS INTERACCIONES ENTRE LOS
+# INPUTS" MÁS ABAJO). SE INICIALIZA AQUÍ, FUERA DE LA ZONA PASO 1-4, PORQUE
+# ES COMÚN A TODAS LAS PÁGINAS Y NO HAY QUE TOCARLA AL ADAPTAR LA PLANTILLA
+seleccion <- list()
+```
+
+
+<!-- 
+PARA USAR ESTA PLANTILLA A OTROS DATOS, EL USUARIO DEBE ADAPTAR ESTE CÓDIGO SIGUIENDO LOS SIGUIENTES PASOS: 
+
+(1) PASO 1: LECTURA DE LOS DATOS QUE DEBE ESTAR EN FORMATO TIDY 
+
+(2) PASO 2: SI ES NECESARIO DEFINIR VECTORES CON LAS OPCIONES PARA LOS DIFERENTES ATRIBUTOS EN EL ORDEN QUE ME INTERESE. POR EJEMPLO, PUEDE INTERESAR QUE SIEMPRE APAREZCAN PRIMERO LOS DATOS DE CANARIAS, ESPAÑA Y/O UNA MEDIA DE LA UNIÓN EUROPEA. EN ESE CASO CREO UN VECTOR CON EL ORDEN DE LAS OPTCIONES DE ATRIBUTOS QUE ME INTERESAN. 
+
+(3) PASO 3: DEFINIR CUAL ES EL ATRIBUTO PRINCIPAL (NORMALMENTE SERÁ EL DE REGIÓN GEOGRÁFICA), CUALES SON LOS ATRIBUTOS COMBINABLES ENTRE SI, CUALES SON LOS ATRIBUTOS NO COMBINABLES DE SELECCIÓN SIMPLE. PARA CADA TIPO DE ATRIBUTO HAY QUE DEFINIR LOS PARÁMETROS DE LOS SelectInput  CORRESPONDIENTES
+
+(4) PASO 4: CAMBIAR EL TÍTULO DEL CUADRO DE MANDOS. ES LO ÚNICO QUE HAY QUE TOCAR FUERA DEL CÓDIGO, PORQUE VIVE EN LA CABECERA YAML DE LA PRIMERA LÍNEA DEL FICHERO O BIEN DE LA PÁGINA SI ESTA PLANTILLA SE USA COMO PÁGINA EN UN DASHBOARD
+
+UNA VEZ ADAPTADAS LAS PARTES DEL CÓDIGO QUE CORRESPONDAN SE PODRÁ LANZAR LA EJECUCIÓN DEL DASHBOARD
+-->
+
+```{r}
+#PASO 1: LECTURA DE LOS DATOS
+ASILO <- readRDS(url("https://ctim.es/AEDV/data/ASILO.rds")) |>
+  as_tibble()
+```
+
+
+<!-- PASO 2: CREACIÓN VECTORES PARA ORGANIZAR LAS OPCIONES DE ALGUNAS VARIABLES   --> 
+
+```{r}
+# CONSTRUCCIÓN VECTOR CON LOS NOMBRES DE REGIONES DE ACOGIDA
+# ORDENADOS DESCENDENTE POR EL NÚMERO DE SOLICITANTES
+RegionAcogida <- ASILO |>
+  filter(unit=="asylum.number",sex=="T",age=="TOTAL",citizen.name=="TOTAL") |>
+  group_by(geo.name) |>
+  summarise(value=sum(value)) |>
+  arrange(desc(value)) |>
+  pull(geo.name)
+
+RegionAcogida <- unique(c("EU27_2020","Spain",RegionAcogida))
+```
+
+```{r}
+# CONSTRUCCIÓN VECTOR CON LOS NOMBRES DE PAÍSES SOLICITANTES
+# ORDENADOS DESCENDENTE POR EL NÚMERO DE SOLICITANTES
+PaisOrigen <- ASILO |>
+  filter(unit=="asylum.number",sex=="T",age=="TOTAL") |>
+  group_by(citizen.name) |>
+  summarise(value=sum(value)) |>
+  arrange(desc(value)) |>
+  pull(citizen.name)
+
+PaisOrigen <- unique(c("TOTAL",PaisOrigen))
+
+```
+
+
+<!-- PASO 3: DEFINIR VARIABLES NECESARIAS Y ORGANIZAR LOS BLOQUES DE ATRIBUTOS --> 
+
+```{r}
+# AL tibble DEL DATASET LO LLAMAREMOS EN LO QUE SIGUE data. SI AL LEERLO LE HE PUESTO OTRO NOMBRE 
+# LO CAMBIO AQUI
+data <- ASILO 
+
+# STRING CON EL NOMBRE DEL ATRIBUTO QUE CORRESPONDE A LA FECHA  
+date <- "year"
+
+# STRING CON EL NOMBRE DEL ATRIBUTO QUE CORRESPONDE AL VALOR NUMÉRICO 
+# (SOLO DEBE HABER UNO SI EL FORMATO DE LA TABLA ES tidy)
+value <- "value"
+
+# IDENTIFICADOR DE LA PÁGINA QUE VAMOS A CREAR. PODEMOS PONER LO QUE QUERAMOS. ESTO 
+# SE UTILIZA PARA EVITAR DUPLICIDADES DEL NOMBRE DE LOS INPUTS EN PÁGINAS DISTINTAS DEL 
+# DASHBOARD. SI VAS A PONER VARIAS PÁGINAS DE ESTE TIPO EN EL MISMO DASHBOARD TIENES QUE PONERLES
+# DIFERENTES VALORES A pageId PARA QUE NO HAYA CONFLICTO ENTRE LOS INPUTS. 
+pageId <- "p1" 
+
+# DEFINO LA ETIQUETA DEL checkboxInput DEL ATRIBUTO PRINCIPAL PARA DECIDIR 
+# SI DIBUJO TODAS LAS OPCIONES O UNA SELECCIÓN QUE DEFINE A MANO EL USUARIO. 
+input.main.checkboxInput.pageId <- list(
+  list(label="Todas las Regiones",value=TRUE)
+)
+
+# DEFINO EL ATRIBUTO PRINCIPAL. EN col.name HAY QUE PONER COMO string EL NOMBRE 
+# DE LA COLUMNA DE LA TABLA DEL ATRIBUTO PRINCIPAL. TAMBIÉN DEFINO LOS PARÁMETROS
+# DEL SelectInput CORRESPONDIENTE
+input.main.config.pageId  <- list(
+  list(col.name="geo.name", label="Región acogida", choices=RegionAcogida, selected=RegionAcogida[1:6],multiple=TRUE)
+)
+
+# HAGO LO MISMO PARA LOS ATRIBUTOS DEL BLOQUE DE ATRIBUTOS COMBINADOS.
+# ESTE BLOQUE ES OPCIONAL: SI EL DATASET NO TIENE ATRIBUTOS QUE COMBINAR SE
+# DEJA COMO list() Y EL BLOQUE NO APARECE EN EL MENÚ DE LA IZQUIERDA
+input.multiple.config.pageId  <- list(
+  list(col.name="citizen.name", label="País de Origen Solicitante", choices=PaisOrigen, selected="TOTAL",multiple=TRUE),
+  list(col.name="sex", label="Sexo", choices=c("T","F","M"), selected=c("F","M"),multiple=TRUE),
+  list(col.name="age", label="Edad", choices=unique(ASILO$age), selected="TOTAL",multiple=TRUE)
+)
+
+# HAGO LO MISMO PARA LOS ATRIBUTOS DEL BLOQUE DE ATRIBUTOS CON UN ÚNICO VALOR
+# SELECCIONABLE. TAMBIÉN ES OPCIONAL: SE DEJA COMO list() SI NO HACE FALTA
+input.single.config.pageId  <- list(
+  list(col.name="unit", label="Unidad de medida", choices=unique(ASILO$unit), selected="asylum.rate",multiple=FALSE)
+)
+```
+
+<!-- NORMALMENTE SI HAS DEFINIDO BIEN TODO LO ANTERIOR YA PODRÁS EJECUTAR EL CÓDIGO PUES TODO LO DEMÁS ESTÁ AUTOMATIZADO. LOS NOMBRES DE LOS INPUTS QUE SE CREAN LOS CONSTRUYE LA FUNCIÓN id_control(), QUE ANTEPONE pageId AL NOMBRE DEL ATRIBUTO. POR EJEMPLO, EL INPUT DEL ATRIBUTO PRINCIPAL EN ESTE EJEMPLO SERÁ input$p1.geo.name, Y SE LEE COMO input[[id_control("geo.name")]] . EL HECHO DE AUTOMATIZAR LO MÁS POSIBLE TODO EL PROCESO HACE QUE LA NOTACIÓN QUE SE USA EN EL CÓDIGO QUE SIGUE SEA UN POCO ENREVESADA PORQUE TODO SE GESTIONA DE FORMA DINÁMICA USANDO LOS PARÁMETROS DE CONFIGURACIÓN DEFINIDOS ARRIBA.   -->
+
+```{r}
+# COMPROBACIÓN DE LA CONFIGURACIÓN. UN NOMBRE DE COLUMNA MAL ESCRITO FALLA AQUÍ,
+# AL ARRANCAR Y DICIENDO CUÁL ES, EN VEZ DE FALLAR DENTRO DE UN render, DONDE EL
+# ÚNICO SÍNTOMA SERÍA UN GRÁFICO VACÍO
+# USAMOS vapply, Y NO sapply, PORQUE DEVUELVE character(0) SI LA LISTA ESTÁ VACÍA
+# (LOS BLOQUES 2 Y 3 SON OPCIONALES: PUEDEN CONFIGURARSE COMO list())
+columnas.configuradas <- c(
+  date, value,
+  vapply(c(input.main.config.pageId,input.multiple.config.pageId,
+           input.single.config.pageId), function(x) x$col.name, character(1))
+)
+
+faltan <- setdiff(columnas.configuradas,names(data))
+if(length(faltan)>0)
+  stop("La configuración nombra columnas que no están en los datos: ",
+       paste(faltan,collapse=", "),". Las columnas disponibles son: ",
+       paste(names(data),collapse=", "))
+```
+
+
+<!-- CONSTRUIMOS LOS WIDGETS PARA LOS INPUTS -->
+
+Column {.sidebar data-width=220}
+--------------------------------------------------
+
+```{r}
+# CONSTRUCCIÓN DE LOS IDENTIFICADORES DE LOS CONTROLES. TODOS LLEVAN DELANTE EL
+# IDENTIFICADOR DE LA PÁGINA, ASÍ QUE BASTA CAMBIAR pageId PARA REPETIR ESTA
+# PÁGINA EN EL MISMO CUADRO DE MANDOS SIN QUE SE REPITAN LOS NOMBRES
+id_control <- function(nombre) paste0(pageId,".",nombre)
+
+# FUNCIONES PARA GENERAR VARIOS selectInput SIGUIENDO ALGUNA CONFIGURACIÓN
+# ENTRE LAS DEFINIDAS EN LAS LISTAS ANTERIORES
+
+# CONFIGURACIÓN DE SelectInput DE ATRIBUTOS COMBINABLES Y FIJOS
+crear_selectInput_pageId <- function(config) {
+    lapply(config, function(x) {
+      selectInput(
+        inputId = id_control(x$col.name),
+        label   = x$label,
+        choices = x$choices,
+        selected = x$selected,
+        multiple = x$multiple
+      )
+    })
+}
+
+# CONFIGURACIÓN DE checkboxInput DEL ATRIBUTO PRINCIPAL 
+crear_checkboxInput_pageId <- function(config) {
+    lapply(config, function(x) {
+      checkboxInput(
+        inputId = id_control("checkboxInput"),
+        label   = x$label,
+        value = x$value
+      )
+    })
+}
+
+# CONFIGURACIÓN DE SelectInput DEL ATRIBUTO PRINCIPAL 
+crear_selectInput_pageId_main <- function(config) {
+  val <- input[[id_control("checkboxInput")]]
+  if (isFALSE(val)) {
+    lapply(config, function(x) {
+      selectInput(
+        inputId = id_control(x$col.name),
+        label   = x$label,
+        choices = x$choices,
+        selected = x$selected,
+        multiple = x$multiple
+      )
+    })
+  } else {
+    return(NULL)
+  }
+}
+
+
+
+```
+
+
+<!-- FUNCIONES QUE GENERAN LOS WIDGETS --> 
+
+```{r}
+# BLOQUE 1. GESTIÓN DEL ATRIBUTO PRINCIPAL 
+output$main.checkboxInput_pageId_ui <- renderUI({crear_checkboxInput_pageId(input.main.checkboxInput.pageId)})
+output$main_pageId_ui <- renderUI({crear_selectInput_pageId_main(input.main.config.pageId)})
+# INSERCIÓN SELECTOR DE REGIONES EN UNA CAJA  
+htmltools::div(
+  style = "
+    background-color: rgb(208, 216, 225);
+    padding: 0px 3px 0px 3px;  /* ↑ → ↓ ← */
+    margin-bottom: 5px;
+    border: 2px solid rgb(0,0,0)",
+   uiOutput("main.checkboxInput_pageId_ui"),
+  # INSERCIÓN SELECTOR INDIVIDUAL DE REGIONES (SI PROCEDE)
+  uiOutput("main_pageId_ui")
+)
+```
+
+
+
+```{r}
+# BLOQUE 2. GESTIÓN ATRIBUTOS COMBINABLES CON SELECCIÓN MÚLTIPLE
+# ESTE BLOQUE ES OPCIONAL: SI input.multiple.config.pageId ESTÁ VACÍO NO SE
+# CREA NINGÚN CONTROL Y NO SE DIBUJA LA CAJA (SI NO, QUEDARÍA UN RECUADRO VACÍO)
+if(length(input.multiple.config.pageId)>0){
+  output$multiple_pageId_ui <- renderUI({crear_selectInput_pageId(input.multiple.config.pageId)})
+  htmltools::div(
+    style = "
+      background-color: rgb(208, 216, 225);
+      padding: 0px 3px 0px 3px;  /* ↑ → ↓ ← */
+      margin-bottom: 5px;
+      border: 2px solid rgb(0,0,0)",
+    uiOutput("multiple_pageId_ui")
+  )
+}
+```
+
+```{r}
+# BLOQUE 3. GESTIÓN ATRIBUTOS CON UN SOLO VALOR SELECCIONABLE
+# TAMBIÉN OPCIONAL, COMO EL BLOQUE 2
+if(length(input.single.config.pageId)>0){
+  output$single_pageId_ui <- renderUI({crear_selectInput_pageId(input.single.config.pageId)})
+  htmltools::div(
+    style = "
+      background-color: rgb(208, 216, 225);
+      padding: 0px 3px 0px 3px;  /* ↑ → ↓ ← */
+      margin-bottom: 5px;
+      border: 2px solid rgb(0,0,0)",
+    uiOutput("single_pageId_ui")
+  )
+}
+```
+
+
+```{r}
+# BLOQUE 4. FORMATEO DEL GRÁFICO 
+output$formateo_grafico_pageId_ui <- renderUI({
+htmltools::div(
+  style = "
+    background-color: rgb(208, 216, 225);
+    padding: 0px 3px 0px 3px;  /* ↑ → ↓ ← */
+    margin-bottom: 5px;
+    border: 2px solid rgb(0,0,0)",
+  "FORMATEO GRÁFICOS:",
+  # FORMATEO GRÁFICO
+  div(
+    style = "display: flex; align-items: center; gap: 5px;",
+    tags$label("Nº columnas:", style = "margin: 0"),
+    numericInput(
+        id_control("ncol"),
+        label = NULL,
+        value=4,
+        min=1,
+        max=6,
+        step=1,
+        width = "80px"
+      )
+  ),
+  div(
+    style = "display: flex; align-items: center; gap: 40px;",
+    tags$label("Nº filas:", style = "margin: 0"),
+    numericInput(
+        id_control("nrow"),
+        label = NULL,
+        value=6,
+        min=1,
+        max=8,
+        step=1,
+        width = "80px"
+      )
+  ),
+  # OPCIÓN PARA DEJAR LIBRE O FIJA LA ESCALA DEL EJE Y.
+  checkboxInput(
+    id_control("scale_free_y"), "ESCALA EJE Y LIBRE", value = TRUE),
+  # PERMITE VISUALIZAR EN DIFERENTES PÁGINAS 
+  numericInput(
+    id_control("page"),
+    label = "PÁGINA DATOS MOSTRADA",
+    value=1,
+    min=1,
+    max=100,
+    step=1
+  )
+)
+})
+
+uiOutput("formateo_grafico_pageId_ui")
+
+```
+
+```{r}
+# BOTÓN QUE DISPARA EL DIBUJADO DE LA GRÁFICA. EL IDENTIFICADOR TAMBIÉN PASA
+# POR id_control(), ASÍ QUE SI SE DUPLICA ESTA PÁGINA CON OTRO pageId EN EL
+# MISMO DASHBOARD, CADA COPIA TIENE SU PROPIO BOTÓN SIN CONFLICTO DE NOMBRES
+shiny::actionButton(id_control("dibujar"), "Dibujar gráfica")
+```
+
+Column
+--------------------------------------------------
+
+
+<!--  GESTIÓN DE LAS INTERACCIONES ENTRE LOS INPUTS -->
+
+```{r}
+# RESET DE LA PÁGINA DE DATOS QUE SE PRESENTA SI SE MODIFICA LA FORMA
+# DE SELECCIONAR EL ATRIBUTO PRINCIPAL
+observeEvent(input[[id_control("checkboxInput")]], {
+  updateSelectInput(session, id_control("page"),selected = 1)
+})
+
+# LO MISMO SI SE MODIFICA EL Nº DE FILAS O COLUMNAS A MOSTRAR
+observeEvent(input[[id_control("ncol")]], {
+  updateSelectInput(session, id_control("page"),selected = 1)
+})
+
+observeEvent(input[[id_control("nrow")]], {
+  updateSelectInput(session, id_control("page"),selected = 1)
+})
+
+
+```
+
+```{r}
+# REACTIVA QUE EMPAQUETA TODOS LOS INPUTS DE ESTA PÁGINA Y SOLO SE
+# RECALCULA AL PULSAR EL BOTÓN "dibujar": MIENTRAS NO SE PULSA, CAMBIAR
+# CUALQUIER DESPLEGABLE DEL MENÚ NO VUELVE A DIBUJAR LA GRÁFICA.
+#
+# SE GUARDA EN LA LISTA seleccion, INDEXADA POR pageId, EN VEZ DE EN UNA
+# VARIABLE SUELTA: ASÍ, IGUAL QUE id_control(), SE ADAPTA SOLA SI SE DUPLICA
+# ESTA PÁGINA CON OTRO pageId EN EL MISMO DASHBOARD, SIN TENER QUE RENOMBRAR
+# NADA A MANO. SE LEE MÁS ABAJO COMO seleccion[[pageId]]()
+seleccion[[pageId]] <- shiny::eventReactive(input[[id_control("dibujar")]], {
+  # ESPERAMOS A QUE EXISTAN LOS CONTROLES DEL MENÚ. AL ARRANCAR, ESTA FUNCIÓN
+  # SE EJECUTA UNA VEZ ANTES DE QUE renderUI HAYA CREADO LOS WIDGETS, Y SIN
+  # ESTO EL PANEL MUESTRA UN INSTANTE UN ERROR ("argumento de tipo inválido").
+  # LAS DOS CASILLAS DE VERIFICACIÓN SE COMPRUEBAN CON !is.null() Y NO
+  # PASÁNDOLAS A req() DIRECTAMENTE: VALEN FALSE CUANDO ESTÁN DESMARCADAS, Y
+  # PARA req() UN FALSE ES "TODAVÍA NO DISPONIBLE". LOS TRES CAMPOS NUMÉRICOS
+  # SÍ VAN DIRECTOS, ASÍ ADEMÁS ESPERAN SI EL USUARIO BORRA EL CONTENIDO
+  req(!is.null(input[[id_control("checkboxInput")]]),
+      !is.null(input[[id_control("scale_free_y")]]),
+      input[[id_control("ncol")]],
+      input[[id_control("nrow")]],
+      input[[id_control("page")]])
+
+  list(
+    checkboxInput = input[[id_control("checkboxInput")]],
+    scale_free_y  = input[[id_control("scale_free_y")]],
+    ncol          = input[[id_control("ncol")]],
+    nrow          = input[[id_control("nrow")]],
+    page          = input[[id_control("page")]],
+    # SELECCIÓN DEL ATRIBUTO PRINCIPAL (SOLO SE USA SI checkboxInput ES FALSE)
+    main          = input[[id_control(input.main.config.pageId[[1]]$col.name)]],
+    # UNA ENTRADA POR CADA ATRIBUTO COMBINABLE, EN EL MISMO ORDEN QUE
+    # input.multiple.config.pageId
+    multiple      = lapply(input.multiple.config.pageId, function(x)
+                       input[[id_control(x$col.name)]]),
+    # UNA ENTRADA POR CADA ATRIBUTO DE SELECCIÓN ÚNICA, EN EL MISMO ORDEN QUE
+    # input.single.config.pageId
+    single        = lapply(input.single.config.pageId, function(x)
+                       input[[id_control(x$col.name)]])
+  )
+})
+```
+
+
+<!--  DIBUJAMOS LAS SERIES TEMPORALES EN UNA NUEVA COLUMNA --> 
+
+###
+```{r}
+
+renderPlotly({
+
+   # LEEMOS LA SELECCIÓN EMPAQUETADA AL PULSAR EL BOTÓN "dibujar". AL SOLO
+   # DEPENDER DE ESTA LLAMADA (Y NO DE input[[...]] DIRECTAMENTE), EL GRÁFICO
+   # NO SE RECALCULA CADA VEZ QUE CAMBIA UN DESPLEGABLE, SOLO AL PULSAR
+   datos <- seleccion[[pageId]]()
+
+   # INICIALIZAMOS LA TABLA A DIBUJAR
+   tb <- data
+
+   # FILTRAMOS POR LOS ATRIBUTOS COMBINABLES DE SELECCIÓN MÚLTIPLE
+   # RECORREMOS CON seq_along, Y NO CON 1:length(), PORQUE SI LA LISTA ESTÁ
+   # VACÍA 1:length() RECORRERÍA c(1,0) EN VEZ DE NO ENTRAR EN EL BUCLE
+   for(k in seq_along(input.multiple.config.pageId)){
+      tb <- tb |> filter(!!sym(input.multiple.config.pageId[[k]]$col.name) %in%
+                  datos$multiple[[k]])
+   }
+
+   # FILTRAMOS POR LOS ATRIBUTOS QUE SOLO ADMITEN UNA SELECCIÓN
+   for(k in seq_along(input.single.config.pageId)){
+     tb <- tb |> filter(!!sym(input.single.config.pageId[[k]]$col.name) ==
+                   datos$single[[k]])
+   }
+
+   # FILTRAMOS POR EL ATRIBUTO PRINCIPAL (SI NO SE ELIGEN TODOS)
+   if(isFALSE(datos$checkboxInput)){
+     tb <- tb |> filter(!!sym(input.main.config.pageId[[1]]$col.name) %in%
+                    datos$main)
+   }
+
+  # GESTIONAMOS EL Nº DE GRÁFICAS POR PÁGINA
+  NPlotsPerPage <- datos$ncol*datos$nrow
+  PageInit <- (datos$page-1)*NPlotsPerPage+1
+  PageEnd <- datos$page*NPlotsPerPage
+
+  # FILTRAMOS ATRIBUTO PRINCIPAL EN FUNCIÓN DE LA PÁGINA A MOSTRAR
+  # CONVERTIMOS A factor LA VARIABLE PARA PRESERVAR ORDEN EN LOS GRÁFICOS
+  if(! datos$checkboxInput){
+    tb <- tb |> filter(
+        !!sym(input.main.config.pageId[[1]]$col.name) %in%
+          datos$main[PageInit:PageEnd]
+       ) |>
+       mutate(
+         !!sym(input.main.config.pageId[[1]]$col.name) :=
+           factor(!!sym(input.main.config.pageId[[1]]$col.name),levels=unique(input.main.config.pageId[[1]]$choices))
+       )
+  } else{
+  tb <- tb |> filter(!!sym(input.main.config.pageId[[1]]$col.name) %in%
+                        input.main.config.pageId[[1]]$choices[PageInit:PageEnd]) |>
+    mutate(!!sym(input.main.config.pageId[[1]]$col.name) :=
+             factor(!!sym(input.main.config.pageId[[1]]$col.name),levels=input.main.config.pageId[[1]]$choices))
+  }
+
+  # COMPROBAMOS QUE LA TABLA FINAL NO ESTÁ VACÍA
+  req(nrow(tb)>0)
+
+  # GESTIONAMOS CREACIÓN ATRIBUTOS COMBINADOS
+  # INICIALIZACIÓN NOMBRE Y COLUMNA EN LA TABLA PARA GESTIONAR EL ATRIBUTO COMBINADO
+  atributo.combinado.name <- ""
+  tb <- tb |> mutate(atributo.combinado = "")
+
+  # RECORREMOS LOS ATRIBUTOS COMBINABLES Y SI TIENEN MÁS DE UNA OPCIÓN ELEGIDA LOS AÑADIMOS
+  # AL ATRIBUTO COMBINADO
+  for(k in seq_along(input.multiple.config.pageId)){
+    selected <- datos$multiple[[k]]
+    if(length(selected)>1){
+      atributo.combinado.name <-
+        paste0(atributo.combinado.name,"/",input.multiple.config.pageId[[k]]$col.name)
+      tb <- tb |> mutate(atributo.combinado =
+                          paste0(atributo.combinado,"/",!!sym(input.multiple.config.pageId[[k]]$col.name)))
+    }
+  }
+
+# POR UNA CUESTION ESTÉTICA QUITAMOS EL PRIMER "/" DEL ATRIBUTO COMBINADO
+if(atributo.combinado.name!=""){
+   atributo.combinado.name <- substr(atributo.combinado.name,2,nchar(atributo.combinado.name))
+   tb <- tb |> mutate(atributo.combinado=substr(atributo.combinado,2,nchar(atributo.combinado)))
+}
+
+
+# FIJAMOS LA ESCALA DEL EJE Y
+scale_y <- ifelse(datos$scale_free_y==TRUE,"free_y","fixed")
+
+# CONSTRUIMOS/DIBUJAMOS LA GRÁFICA
+
+# GESTIÓN ATRIBUTO COMBINADO EN LA GRÁFICA
+if(atributo.combinado.name==""){
+   p <- tb |> ggplot(aes(!!sym(date),!!sym(value)))
+} else{
+  p <- tb |> ggplot(aes(!!sym(date),!!sym(value),colour=atributo.combinado))
+}
+
+# AÑADIMOS LAS SERIES TEMPORALES 
+p <- p + geom_line()  
+
+# HACEMOS EL facet_wrap. FIJAMOS EL Nº DE COLUMNAS SI LA PÁGINA ESTÁ COMPLETA 
+# EN CASO CONTRARIO DEJAMOS QUE  facet_wrap LO HAGA AUTOMÁTICO 
+if(length(unique(tb[[input.main.config.pageId[[1]]$col.name]]))<NPlotsPerPage){
+  p <- p + facet_wrap(vars(!!sym(input.main.config.pageId[[1]]$col.name)),scales = scale_y)
+} else{
+  p <- p + facet_wrap(vars(!!sym(input.main.config.pageId[[1]]$col.name)),
+                      scales = scale_y,ncol=datos$ncol)
+}
+
+# GESTIONAMOS TÍTULOS EJES Y DE LA LEYENDA DEL ATRIBUTO COMBINADO 
+p <- p +labs(x="",y="",colour = atributo.combinado.name)
+
+# DIBUJAMOS LA GRÁFICA 
+ggplotly(p)
+  
+})
+```
+
+
+
+```{r}
+knitr::knit_exit()
+```
+
+
+```{verbatim}
+# leemos/procesamos los datos
+ASILO <- read_csv("https://ctim.es/AEDV/data/ASILO.csv") |>
+  as_tibble() |>
+  select(geo.name,citizen.name,sex,age,year=TIME_PERIOD,asylum.number=asylum,asylum.rate)|>
+  pivot_longer(asylum.number:asylum.rate,names_to = "unit", values_to = "value")
+
+# acortamos el nombre de "European Union - 27 countries (from 2020)" poniendo EU27_2020
+ASILO[ASILO=="European Union - 27 countries (from 2020)"] <- "EU27_2020"
+
+# AÑADIMOS EL TOTAL DE SOLICITUDES DE ASILO RECIBIDAS POR CADA PAÍS
+ASILO <-
+  rbind(
+    ASILO |>
+      group_by(geo.name,sex,age,year,unit) |>
+      summarise(
+        citizen.name="TOTAL",
+        value=sum(na.omit(value))
+      ) |> 
+      ungroup() |> 
+      relocate(citizen.name,.after = geo.name),
+    ASILO
+  ) |>
+  mutate(year=as.integer(year))
+  
+saveRDS(ASILO,"ASILO.rds")
+```
+
+

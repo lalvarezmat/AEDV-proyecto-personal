@@ -15,6 +15,7 @@ Autor: Luis Álvarez.
 | `estilos.css` | Estilos de la memoria; debe acompañar al `.Rmd` |
 | `utilidades.R` | Funciones de la asignatura, entre ellas `aedv_incluir_dataset()`, que incorpora los datasets a la memoria; debe acompañar al `.Rmd` |
 | `DashboardInstruccionesServidorShiny.Rmd` / `.html` | Instrucciones para subir y desplegar el cuadro de mandos en el servidor Shiny del DIS |
+| `DashboardEjemplos/` | Los seis cuadros de mandos de referencia que cita la guía de trabajo (sección *Dashboard*); leen los datos y `utilidades.R` de internet |
 | `SelecciónDatasetsProyecto/` | Catálogos y validadores de datasets por fuente |
 
 En `SelecciónDatasetsProyecto/` hay una carpeta por fuente (INE, ISTAC, EUROSTAT,
