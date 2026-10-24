@@ -76,6 +76,7 @@ No intentes desplegar un cuadro de mandos que no hayas probado antes en RStudio 
 - **Respeta mayúsculas y minúsculas** en los nombres de fichero. En Windows y macOS `Datos.rds` y `datos.rds` son el mismo fichero; en el servidor, no. Evita también los espacios y las tildes en los nombres.
 - **Si una función da un error de «no se pudo encontrar la función»** en el servidor, llámala indicando su librería: `libreria::funcion()` (por ejemplo, `dplyr::select()`).
 - **Los datos que se leen de internet** (por ejemplo, desde `https://ctim.es/AEDV/data/...`) no hay que subirlos; los que el cuadro de mandos lee de su carpeta, sí.
+- **Usa solo librerías utilizadas en el curso**: el servidor Shiny solo tiene instaladas las librerías que usamos en el curso. Además entre ellas hay dos que no están: `Polychrome` y  `arrow`. Antes de subir, verifica que que no usas estas librerías ni ninguna otra que no usemos en el curso. 
 
 # Paso 1 — Conéctate a la red del DIS
 
