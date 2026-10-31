@@ -104,7 +104,7 @@ Acredita que el tema elegido es viable e interesante y que los datos seleccionad
 
 Corresponde a los contenidos del primer parcial del curso. En esta entrega se revisan los apartados de la Entrega 1 —en particular las **preguntas de investigación**, que se ajustan a lo que ha ido mostrando el análisis— y se añade una primera versión de los siguientes:
 
-* **3.5 Preparación de los datos**: limpieza, transformaciones y combinación de tablas, y presentación de los primeros resultados con **gráficos estáticos** (`ggplot2`). **La primera gráfica debe mostrar la evolución temporal de las series originales de los indicadores principales con `facet_wrap`**, antes de cualquier gráfico de detalle. Ver sección [Visualizaciones en la memoria](#visualizaciones-en-la-memoria). 
+* **3.5 Preparación de los datos**: limpieza, transformaciones y combinación de tablas, y presentación de los primeros resultados con **gráficos estáticos** (`ggplot2`). **Lo primero es una visión general visual de los indicadores con los que se va a trabajar: la primera gráfica es un `facet_wrap` con un indicador por panel y, en cada panel, la evolución temporal de sus series originales para algunas áreas geográficas de referencia (por ejemplo, Canarias, España, UE-27 o World)**, antes de cualquier gráfico de detalle. Ver sección [Visualizaciones en la memoria](#visualizaciones-en-la-memoria). Si el procesado combina y simplifica los datasets, guarda la tabla final en un nuevo `.rds` (ver el recuadro *Guarda en un `.rds` la tabla final del procesado de los datos*).
 * **3.6 Modelado**: modelado de series temporales con STL, ARIMA y STL+ARIMA. El análisis de los residuos de los modelos no va aquí, sino en 3.7 Evaluación.
 * **3.7 Evaluación**: discusión de la calidad del ajuste de estos modelos en términos de las métricas de ajuste y del **análisis de los residuos de los modelos ARIMA** (tests de validación de los residuos), que se hace en esta sección y no en Modelado. Comentar si fue necesario usar STL+ARIMA o aplicar transformaciones a la serie para mejorar los resultados del ARIMA.
 
@@ -361,10 +361,16 @@ La referencia de las técnicas que hay que usar en el proyecto **no es todo el l
 
 La redacción de la memoria debe tener un **hilo conductor** que vaya conectando unos apartados con otros. Una forma de ayudar a construirlo es que los **títulos de las subsecciones** que vayas creando tengan un **alto significado semántico respecto a los objetivos y las preguntas de investigación**: leyendo solo el índice, debería entenderse qué se estudia en cada apartado y a qué pregunta ayuda a responder.
 
-Los títulos **no pueden ser el tipo de gráfico** que se usa. Los gráficos son una herramienta para comunicar, nunca un objetivo del proyecto en sí mismos. Por ejemplo:
+Los títulos **no pueden ser el tipo de gráfico** que se usa **ni una cuestión técnica** (la técnica, el modelo o la operación con los datos). Los gráficos y las técnicas son herramientas para comunicar y analizar, nunca un objetivo del proyecto en sí mismos. Por ejemplo:
 
-* **Mal**: «Gráfico de disco», «Diagrama de barras», «Mapa coroplético», «Serie temporal».
-* **Bien**: «Peso de cada sector en el gasto público de Canarias», «¿Qué islas concentran la llegada de turistas?», «Evolución del paro juvenil desde la crisis de 2008».
+* **Mal**: «Gráfico de disco», «Diagrama de barras», «Mapa coroplético», «Serie temporal», «Transformación de Yeo-Johnson», «Modelo ARIMA», «PCA y k-means», «Unión de tablas».
+* **Bien**: «Peso de cada sector en el gasto público de Canarias», «¿Qué islas concentran la llegada de turistas?», «Evolución del paro juvenil desde la crisis de 2008», «¿Seguirá creciendo el turismo en los próximos años?», «Grupos de países con una estructura económica parecida».
+</div>
+
+<div class="nota">
+<strong class="bloque-titulo">Guarda en un `.rds` la tabla final del procesado de los datos</strong>
+
+Como resultado de la **Preparación de los datos**, con frecuencia se **combinan y simplifican los datasets** (se filtran, se cambian de formato, se unen tablas…). En ese caso es muy conveniente **guardar en un nuevo `.rds` la tabla final** resultado de ese procesado (`saveRDS()`), para usarla después directamente con `readRDS()` sin repetir todo el proceso. Esto es **especialmente importante para el dashboard**, donde interesa minimizar el tiempo de procesado y de carga de los datos (ver el recuadro *La carga del dashboard puede ser lenta* en la sección [Dashboard](#dashboard)). Recuerda subir ese `.rds` al servidor junto al dashboard.
 </div>
 
 ### Cómo importar los datos en la memoria
@@ -567,7 +573,7 @@ El evaluador comprueba que el alumno entiende los datos que está usando, no sol
 
 Las gráficas son el elemento más visible de la memoria. Una mala gráfica comunica más descuido que páginas de texto.
 
-- **Las primeras gráficas ilustran los conceptos de forma general y clara.** No se debe empezar el análisis con gráficas muy detalladas o de subconjuntos específicos. Las primeras visualizaciones deben dar una visión global del fenómeno estudiado antes de entrar en detalles. Hay que empezar presentando la evolución de las series temporales originales usando `facet_wrap`.
+- **Las primeras gráficas ilustran los conceptos de forma general y clara.** No se debe empezar el análisis con gráficas muy detalladas o de subconjuntos específicos. Las primeras visualizaciones deben dar una visión global del fenómeno estudiado antes de entrar en detalles. Lo primero que hay que hacer es una **visión general visual de los diferentes indicadores con los que vamos a trabajar**, y para ello se usa un primer `facet_wrap`: **un indicador por panel** y, en cada panel, la evolución de las series temporales originales para algunas **áreas geográficas de referencia**, como Canarias, España, UE-27 o World.
 
 - **Calidad profesional: sin textos solapados ni códigos visibles, y autocontenidas.** Los ejes deben tener etiquetas legibles, sin textos solapados ni cortados, las leyendas no deben solaparse con los datos y los títulos deben ser informativos. El tamaño de fuente debe ser legible: usa `theme_minimal()` o similar y ajústalo si hay muchas categorías. Además, cada gráfica debe ser **autocontenida**: entenderse sin ambigüedad con la sola información que aparece en ella; si hace falta, añade un `fig.cap` en el chunk para explicarla mejor.
 

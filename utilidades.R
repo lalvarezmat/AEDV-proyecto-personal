@@ -231,8 +231,12 @@ aedv_tests_residuos <- function(residuos, tiempo = NULL, lag = 10,
 # Si la tabla trae una columna "cond", se muestra tal cual como condición para
 # superar cada test (lo usa aedv_tabla_lm(), donde el test F se supera con un
 # p-valor PEQUEÑO); si no, la condición es "p-valor > alpha" en todas las filas.
+# Con html = TRUE (por omisión cuando gt no está instalada, como en el servidor
+# Shiny del DIS) devuelve la misma tabla construida con htmltools, que viene con
+# shiny: se muestra igual con renderUI() o al imprimirla en un documento.
 aedv_tabla_tests <- function(tests, titulo = "Diagnóstico de residuos",
-                             alpha = 0.05, subtitulo = NULL) {
+                             alpha = 0.05, subtitulo = NULL,
+                             html = !requireNamespace("gt", quietly = TRUE)) {
   if (!"cond" %in% names(tests)) tests$cond <- paste0("p-valor > ", alpha)
   d <- tests |>
     mutate(
@@ -250,6 +254,8 @@ aedv_tabla_tests <- function(tests, titulo = "Diagnóstico de residuos",
   # (mismo estado del generador aleatorio) y dejaba ids duplicados en la página
   id_tabla <- paste0("tests-", gsub("[^a-z0-9]+", "-",
                      tolower(iconv(titulo, to = "ASCII//TRANSLIT"))))
+
+  if (html) return(.aedv_tabla_tests_html(d, tests$supera, titulo, subtitulo, id_tabla))
 
   tb <- d |>
     gt::gt(id = id_tabla) |>
@@ -273,6 +279,35 @@ aedv_tabla_tests <- function(tests, titulo = "Diagnóstico de residuos",
     pinta(filas_ok, "#c8e6c9") |>
     pinta(filas_ko, "#ffcdd2") |>
     pinta(filas_na, "#e0e0e0")
+}
+
+# Versión de aedv_tabla_tests() sin gt: la misma tabla construida con htmltools,
+# con el p-valor y el veredicto en negrita sobre fondo verde, rojo o gris.
+.aedv_tabla_tests_html <- function(d, supera, titulo, subtitulo, id_tabla) {
+  h <- htmltools::tags
+  fondo <- ifelse(is.na(supera), "#e0e0e0", ifelse(supera, "#c8e6c9", "#ffcdd2"))
+  cabecera <- c("Propiedad que se analiza", "Test", "Condición para superarlo",
+                "p-valor", "¿Lo supera?")
+  alinea <- c("left", "left", "left", "center", "center")
+  celda <- "padding: 6px 8px; border-bottom: 1px solid #d3d3d3; text-align: "
+  titulo_fila <- function(texto, estilo)  # fila de título o subtítulo
+    h$tr(h$th(colspan = length(cabecera), texto,
+              style = paste("text-align: center; font-weight: normal;", estilo)))
+  filas <- lapply(seq_len(nrow(d)), function(i)
+    h$tr(lapply(seq_along(cabecera), function(j)
+      h$td(d[[j]][i], style = paste0(celda, alinea[j], ";",
+             if (j >= 4) paste0(" background: ", fondo[i], "; font-weight: bold;"))))))
+  h$table(
+    id = id_tabla,
+    style = paste("border-collapse: collapse; margin: 0 auto; font-size: 13px;",
+                  "border-top: 2px solid #a8a8a8; border-bottom: 2px solid #a8a8a8;"),
+    h$thead(
+      titulo_fila(titulo, "font-size: 125%; padding: 6px 8px 2px;"),
+      if (!is.null(subtitulo)) titulo_fila(subtitulo, "font-size: 85%; padding: 0 8px 6px;"),
+      h$tr(lapply(seq_along(cabecera), function(j)
+        h$th(cabecera[j], style = paste0(celda, alinea[j],
+               "; font-weight: normal; border-top: 2px solid #d3d3d3; border-bottom: 2px solid #d3d3d3;"))))),
+    h$tbody(filas))
 }
 
 
@@ -320,11 +355,12 @@ aedv_lm_error_grafico <- function(x, y, nombres = NULL, titulo = "Error de la re
 
 # Presenta el resultado de aedv_lm_analisis() con el mismo formato que
 # aedv_tabla_tests(): una fila por test (F, Shapiro-Wilk y Breusch-Pagan) con
-# su p-valor en verde o rojo, y la recta, R² y sigma en el subtítulo.
+# su p-valor en verde o rojo, y la recta, R² y sigma en el subtítulo. El
+# argumento html es el de aedv_tabla_tests().
 # Ojo con el test F: su hipótesis nula es que el modelo NO sirve, así que se
 # supera con un p-valor PEQUEÑO (p < alpha), al revés que los otros dos.
 aedv_tabla_lm <- function(analisis, titulo = "Ajuste de la recta de regresión",
-                          alpha = 0.05) {
+                          alpha = 0.05, html = !requireNamespace("gt", quietly = TRUE)) {
   num <- function(v) formatC(v, format = "g", digits = 4)  # 4 cifras significativas
   b <- analisis$termino_indep
   subtitulo <- paste0("Recta: y = ", num(analisis$pendiente), " · x ",
@@ -341,7 +377,7 @@ aedv_tabla_lm <- function(analisis, titulo = "Ajuste de la recta de regresión",
   ) |>
     mutate(supera = if_else(.data$test == "F", .data$p_valor < alpha,
                             .data$p_valor > alpha)) |>
-    aedv_tabla_tests(titulo = titulo, alpha = alpha, subtitulo = subtitulo)
+    aedv_tabla_tests(titulo = titulo, alpha = alpha, subtitulo = subtitulo, html = html)
 }
 
 

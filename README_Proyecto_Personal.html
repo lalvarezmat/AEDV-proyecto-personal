@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-10-23" />
+<meta name="date" content="2026-10-31" />
 
 <title>Proyecto Personal AEDV — Guía de trabajo</title>
 
@@ -1617,7 +1617,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Proyecto Personal AEDV — Guía de
 trabajo</h1>
-<h4 class="date">2026-10-23</h4>
+<h4 class="date">2026-10-31</h4>
 
 </div>
 
@@ -1796,11 +1796,15 @@ siguientes:</p>
 <li><strong>3.5 Preparación de los datos</strong>: limpieza,
 transformaciones y combinación de tablas, y presentación de los primeros
 resultados con <strong>gráficos estáticos</strong>
-(<code>ggplot2</code>). <strong>La primera gráfica debe mostrar la
-evolución temporal de las series originales de los indicadores
-principales con <code>facet_wrap</code></strong>, antes de cualquier
-gráfico de detalle. Ver sección <a href="#visualizaciones-en-la-memoria">Visualizaciones en la
-memoria</a>.</li>
+(<code>ggplot2</code>). <strong>Lo primero es una visión general visual
+de los indicadores con los que se va a trabajar: la primera gráfica es
+un <code>facet_wrap</code> con un indicador por panel y, en cada panel,
+la evolución temporal de sus series originales para algunas áreas
+geográficas de referencia (por ejemplo, Canarias, España, UE-27 o
+World)</strong>, antes de cualquier gráfico de detalle. Ver sección <a href="#visualizaciones-en-la-memoria">Visualizaciones en la memoria</a>.
+Si el procesado combina y simplifica los datasets, guarda la tabla final
+en un nuevo <code>.rds</code> (ver el recuadro <em>Guarda en un
+<code>.rds</code> la tabla final del procesado de los datos</em>).</li>
 <li><strong>3.6 Modelado</strong>: modelado de series temporales con
 STL, ARIMA y STL+ARIMA. El análisis de los residuos de los modelos no va
 aquí, sino en 3.7 Evaluación.</li>
@@ -2350,15 +2354,35 @@ significado semántico respecto a los objetivos y las preguntas de
 investigación</strong>: leyendo solo el índice, debería entenderse qué
 se estudia en cada apartado y a qué pregunta ayuda a responder.</p>
 <p>Los títulos <strong>no pueden ser el tipo de gráfico</strong> que se
-usa. Los gráficos son una herramienta para comunicar, nunca un objetivo
-del proyecto en sí mismos. Por ejemplo:</p>
+usa <strong>ni una cuestión técnica</strong> (la técnica, el modelo o la
+operación con los datos). Los gráficos y las técnicas son herramientas
+para comunicar y analizar, nunca un objetivo del proyecto en sí mismos.
+Por ejemplo:</p>
 <ul>
 <li><strong>Mal</strong>: «Gráfico de disco», «Diagrama de barras»,
-«Mapa coroplético», «Serie temporal».</li>
+«Mapa coroplético», «Serie temporal», «Transformación de Yeo-Johnson»,
+«Modelo ARIMA», «PCA y k-means», «Unión de tablas».</li>
 <li><strong>Bien</strong>: «Peso de cada sector en el gasto público de
 Canarias», «¿Qué islas concentran la llegada de turistas?», «Evolución
-del paro juvenil desde la crisis de 2008».</li>
+del paro juvenil desde la crisis de 2008», «¿Seguirá creciendo el
+turismo en los próximos años?», «Grupos de países con una estructura
+económica parecida».</li>
 </ul>
+</div>
+<div class="nota">
+<p><strong class="bloque-titulo">Guarda en un <code>.rds</code> la tabla
+final del procesado de los datos</strong></p>
+<p>Como resultado de la <strong>Preparación de los datos</strong>, con
+frecuencia se <strong>combinan y simplifican los datasets</strong> (se
+filtran, se cambian de formato, se unen tablas…). En ese caso es muy
+conveniente <strong>guardar en un nuevo <code>.rds</code> la tabla
+final</strong> resultado de ese procesado (<code>saveRDS()</code>), para
+usarla después directamente con <code>readRDS()</code> sin repetir todo
+el proceso. Esto es <strong>especialmente importante para el
+dashboard</strong>, donde interesa minimizar el tiempo de procesado y de
+carga de los datos (ver el recuadro <em>La carga del dashboard puede ser
+lenta</em> en la sección <a href="#dashboard">Dashboard</a>). Recuerda
+subir ese <code>.rds</code> al servidor junto al dashboard.</p>
 </div>
 <div id="cómo-importar-los-datos-en-la-memoria" class="section level3" number="3.4.1">
 <h3><span class="header-section-number">3.4.1</span> Cómo importar los
@@ -3075,8 +3099,13 @@ gráfica comunica más descuido que páginas de texto.</p>
 general y clara.</strong> No se debe empezar el análisis con gráficas
 muy detalladas o de subconjuntos específicos. Las primeras
 visualizaciones deben dar una visión global del fenómeno estudiado antes
-de entrar en detalles. Hay que empezar presentando la evolución de las
-series temporales originales usando <code>facet_wrap</code>.</p></li>
+de entrar en detalles. Lo primero que hay que hacer es una
+<strong>visión general visual de los diferentes indicadores con los que
+vamos a trabajar</strong>, y para ello se usa un primer
+<code>facet_wrap</code>: <strong>un indicador por panel</strong> y, en
+cada panel, la evolución de las series temporales originales para
+algunas <strong>áreas geográficas de referencia</strong>, como Canarias,
+España, UE-27 o World.</p></li>
 <li><p><strong>Calidad profesional: sin textos solapados ni códigos
 visibles, y autocontenidas.</strong> Los ejes deben tener etiquetas
 legibles, sin textos solapados ni cortados, las leyendas no deben
