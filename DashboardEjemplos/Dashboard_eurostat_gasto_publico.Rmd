@@ -15,7 +15,7 @@ runtime: shiny
     1. Exploración de series      (Dashboard_exploracion_series.Rmd)
     2. Predicción                 (Dashboard_prediccion_series.Rmd)
     3. Mapa coroplético           (Dashboard_mapa_coropletico.Rmd)
-    4. Comparación de atributos   (Dashboard_atributos_comparacion.Rmd)
+    4. Comparación de atributos   (Dashboard_atributos_comparacion.Rmd, versión simplificada)
     5. Análisis de atributos      (Dashboard_atributos_analisis.Rmd)
 
   LOS DATOS: eurostat_GASTO_PUBLICO_sector.rds. Gasto de las administraciones
@@ -43,11 +43,12 @@ runtime: shiny
   AISLAMIENTO DE LAS PÁGINAS. En un flexdashboard todas las páginas comparten
   las variables de R, y las reactivas se ejecutan después de leer el documento
   entero: si dos páginas usaran una misma variable global (DATOS, calculo...),
-  las dos verían la de la última. Por eso las páginas 2 a 5 guardan lo suyo en
+  las dos verían la de la última. Por eso las páginas 2, 3 y 5 guardan lo suyo en
   PAGINAS[[PAGINA_ID]] y trabajan dentro de local({ ... }), con los
   identificadores de sus controles precedidos del de la página. La página 1
   usa su propio mecanismo (pageId e id_control()) y variables que no repite
-  ninguna otra página.
+  ninguna otra página, y la 4 lleva "comp" en sus identificadores, en su
+  reactiva y en sus variables.
 
   Requiere el fichero utilidades.R del curso en su versión de octubre de 2026
   o posterior.
@@ -113,7 +114,7 @@ GEOMETRIA <- st_read(tmp, quiet = TRUE) |>
 unlink(tmp)
 
 # Listas donde las páginas guardan lo suyo (ver AISLAMIENTO DE LAS PÁGINAS)
-PAGINAS   <- list() # páginas 2 a 5
+PAGINAS   <- list() # páginas 2, 3 y 5
 seleccion <- list() # página 1
 ```
 
@@ -1145,12 +1146,12 @@ local({
 
 <!--
 ################################################################################
-  PÁGINA 4: COMPARACIÓN DE ATRIBUTOS (plantilla Dashboard_atributos_comparacion.Rmd)
-  Pasada al patrón de página (PAGINAS + local() + ids con prefijo): la
-  plantilla usaba las globales DATOS y calculo, que la página 5 pisaría.
-  Los datos van en formato LARGO y cada indicador se elige con un desplegable
-  por atributo (sector y medida, por separado para x y para y), más el año,
-  común a los dos: no se generan columnas que combinen atributos.
+  PÁGINA 4: COMPARACIÓN DE ATRIBUTOS (versión simplificada de
+  Dashboard_atributos_comparacion.Rmd, a partir de la página 1 del cuadro de
+  mandos del Tema 8). Se elige la medida, el año y el sector de cada eje, con
+  un desplegable cada uno. No usa PAGINAS + local(): sus identificadores, su
+  reactiva y sus variables llevan "comp" para no chocar con los de las otras
+  páginas.
 ################################################################################
 -->
 
@@ -1158,343 +1159,168 @@ Comparación de atributos
 ==================================================
 
 ```{r, include=FALSE}
-PAGINA_ID <- "comp"
+# sectores (atributos) en el orden de los datos, con el Total
+SECTORES_COMP <- unique(GASTO$sector)
 
-# PASO 1: LOS DATOS en formato LARGO: una fila por país (y Europe 27), año,
-# sector y medida, con una sola columna de valores. Cada punto del diagrama es
-# un país; los atributos se eligen con desplegables, sin combinarlos en
-# columnas nuevas
-DATOS <- GASTO |>
-  pivot_longer(all_of(unname(MEDIDAS)), names_to = "medida", values_to = "valor") |>
-  filter(!is.na(valor)) |>
-  transmute(geo,
-            anio   = as.integer(year(time)),
-            sector,
-            medida = names(MEDIDAS)[match(medida, MEDIDAS)], # rótulo con unidades
-            valor)
+# años, del más reciente al más antiguo
+ANIOS_COMP <- sort(unique(year(GASTO$time)), decreasing = TRUE)
 
-# Año con el que arranca: el último que tienen todos los países
-ANIO_INICIAL <- DATOS |>
-  group_by(anio) |>
-  filter(n_distinct(geo) == n_distinct(DATOS$geo)) |>
+# año con el que arranca: el último que tienen todos los países
+ANIO_INICIAL_COMP <- GASTO |>
+  group_by(anio = year(time)) |>
+  summarise(n = n_distinct(geo)) |>
+  filter(n == n_distinct(GASTO$geo)) |>
   pull(anio) |>
   max()
-
-PAGINAS[[PAGINA_ID]] <- list(
-  datos    = DATOS,
-  etiqueta = "geo",   # PASO 2: columna que identifica cada punto
-  valor    = "valor", #         y columna de los valores
-  # PASO 3: ATRIBUTOS (columna = rótulo). Los del INDICADOR se eligen por
-  # separado para x y para y; los COMUNES, una sola vez para los dos
-  atributos_indicador = c(sector = "Sector", medida = "Medida"),
-  atributos_comunes   = c(anio = "Año"),
-  # Valores de arranque
-  x_inicial       = c(sector = "Total", medida = "Gasto per cápita (euros por habitante)"),
-  y_inicial       = c(sector = "Salud", medida = "Gasto per cápita (euros por habitante)"),
-  comunes_inicial = c(anio = ANIO_INICIAL),
-  alfa = 0.05, # nivel de significación de los tests
-  id   = function(nombre) paste0("comp_", nombre)
-)
 ```
 
-```{r, include=FALSE}
-# FUNCIONES DE LA PLANTILLA (no dependen de la página)
-
-# Transformaciones, conservando el signo del dato. Yeo-Johnson solo en y: su
-# lambda se busca con el mejor ajuste lineal con la x ya transformada
-TRANSFORMACIONES_X <- c("none", "sqrt", "log")
-TRANSFORMACIONES_Y <- c("none", "sqrt", "log", "YeoJohnson")
-
-transforma <- function(v, tipo) {
-  switch(tipo,
-    none = v,
-    sqrt = sign(v) * sqrt(abs(v)),
-    log  = sign(v) * log(abs(v)),
-    v
-  )
-}
-
-# Rótulo de un eje: el indicador y, entre paréntesis, lo que se le ha hecho
-rotulo <- function(indicador, tipo, normalizado = FALSE) {
-  partes <- c(if (normalizado) "normalizado", if (tipo != "none") tipo)
-  if (length(partes) == 0) indicador
-  else paste0(indicador, " (", paste(partes, collapse = ", "), ")")
-}
-
-# OPCIONES DE CADA DESPLEGABLE: los valores de cada atributo, en el orden de
-# los datos (los numéricos, como el año, de mayor a menor)
-local({
-  pg <- PAGINAS[[PAGINA_ID]]
-  atributos <- c(names(pg$atributos_indicador), names(pg$atributos_comunes))
-
-  faltan <- setdiff(c(pg$etiqueta, pg$valor, atributos), names(pg$datos))
-  if (length(faltan) > 0) {
-    stop("Página '", PAGINA_ID, "': a DATOS le faltan las columnas ",
-         paste(faltan, collapse = ", "), ".")
-  }
-
-  pg$valores <- lapply(atributos, function(k) {
-    v <- unique(pg$datos[[k]])
-    if (is.numeric(v)) sort(v, decreasing = TRUE) else v
-  })
-  names(pg$valores) <- atributos
-
-  # Un valor de arranque que no existe se cambia por el primero
-  inicial <- function(ini, k) if (isTRUE(ini[[k]] %in% pg$valores[[k]])) ini[[k]] else pg$valores[[k]][1]
-  for (k in names(pg$atributos_indicador)) {
-    pg$x_inicial[k] <- inicial(pg$x_inicial, k)
-    pg$y_inicial[k] <- inicial(pg$y_inicial, k)
-  }
-  for (k in names(pg$atributos_comunes)) {
-    pg$comunes_inicial[k] <- inicial(pg$comunes_inicial, k)
-  }
-  PAGINAS[[PAGINA_ID]] <<- pg
-})
-```
-
-Column {.sidebar data-width=320}
+Column {.sidebar data-width=250}
 --------------------------------------------------
 
 ```{r}
-local({
-  pg <- PAGINAS[[PAGINA_ID]]
-  id <- pg$id
+# medida que se compara
+selectInput("comp_indicador", "Medida:", choices = MEDIDAS, selected = "gasto_per_capita")
 
-  # CÁLCULO CENTRAL, del que beben los tres paneles. Es un eventReactive(): solo
-  # se recalcula al pulsar «Calcular», y al arrancar no calcula nada
-  # VALORES ELEGIDOS de un grupo de atributos ("x_", "y_" o "c_" delante del
-  # nombre de la columna), como vector con nombre
-  elegidos <- function(prefijo, atributos) {
-    v <- lapply(names(atributos), function(k) input[[id(paste0(prefijo, k))]])
-    req(!any(vapply(v, is.null, logical(1))))
-    setNames(unlist(v), names(atributos))
-  }
+# año
+selectInput("comp_anio", "Año:", choices = ANIOS_COMP, selected = ANIO_INICIAL_COMP)
 
-  # Filtra los datos por unos valores elegidos (vector con nombre)
-  filtra <- function(tb, valores) {
-    for (k in names(valores)) tb <- tb |> filter(as.character(.data[[k]]) == valores[[k]])
-    tb
-  }
+# sector del eje x
+selectInput("comp_sector_x", "Sector eje x:", choices = SECTORES_COMP, selected = "Salud")
 
-  # CÁLCULO CENTRAL, del que beben los tres paneles. Es un eventReactive(): solo
-  # se recalcula al pulsar «Calcular», y al arrancar no calcula nada
-  pg$calculo <- eventReactive(input[[id("calcular")]], {
-    req(input[[id("x_scale")]], input[[id("y_scale")]])
-    x_valores  <- elegidos("x_", pg$atributos_indicador)
-    y_valores  <- elegidos("y_", pg$atributos_indicador)
-    comunes    <- elegidos("c_", pg$atributos_comunes)
-    x_nombre   <- paste(x_valores, collapse = ", ")
-    y_nombre   <- paste(y_valores, collapse = ", ")
-    x_scale    <- input[[id("x_scale")]]
-    y_scale    <- input[[id("y_scale")]]
-    normalizar <- isTRUE(input[[id("normalizar")]])
-
-    # Una fila por punto con el valor de x y el de y: los datos de los atributos
-    # comunes, filtrados por separado con los de x y con los de y
-    base <- filtra(pg$datos, comunes)
-    eje  <- function(valores, nombre) {
-      filtra(base, valores) |>
-        select(etiqueta = all_of(pg$etiqueta), !!nombre := all_of(pg$valor))
-    }
-    tb <- inner_join(eje(x_valores, "x"), eje(y_valores, "y"), by = "etiqueta") |>
-      na.omit()
-
-    # NORMALIZACIÓN PREVIA OPCIONAL: cada variable por separado, con el lambda
-    # que más la aproxima a una normal
-    lambda_norm_x <- NA_real_
-    lambda_norm_y <- NA_real_
-    if (normalizar) {
-      lambda_norm_x <- aedv_yeojohnson_lambda(tb$x)
-      lambda_norm_y <- aedv_yeojohnson_lambda(tb$y)
-      tb$x <- aedv_yeo_johnson(tb$x, lambda_norm_x)
-      tb$y <- aedv_yeo_johnson(tb$y, lambda_norm_y)
-    }
-
-    tb$x <- transforma(tb$x, x_scale)
-
-    lambda <- NA_real_
-    if (y_scale == "YeoJohnson") {
-      lambda <- aedv_lambda_optimo(tb$x, tb$y)
-      tb$y   <- aedv_yeo_johnson(tb$y, lambda)
-    } else {
-      tb$y <- transforma(tb$y, y_scale)
-    }
-
-    # El logaritmo de un cero deja valores no finitos, que romperían la regresión
-    tb <- tb |> filter(is.finite(x), is.finite(y))
-    validate(need(nrow(tb) >= 3, paste0(
-      "Hay datos de ", nrow(tb), " países para esa combinación de atributos: ",
-      "son demasiado pocos para la regresión. Elige otra combinación.")))
-
-    fit <- lm(y ~ x, data = tb)
-    tb$residuo <- residuals(fit)
-
-    valores <- if (nrow(tb) <= 5000) aedv_lm_analisis(tb$x, tb$y) else NULL
-
-    # Los controles elegidos viajan dentro del resultado: los rótulos no
-    # cambian hasta que se vuelve a pulsar el botón
-    list(tb = tb, fit = fit, lambda = lambda, valores = valores,
-         lambda_norm_x = lambda_norm_x, lambda_norm_y = lambda_norm_y,
-         x_nombre = x_nombre, y_nombre = y_nombre, y_scale = y_scale,
-         comunes = comunes, normalizar = normalizar,
-         rotulo_x = rotulo(x_nombre, x_scale, normalizar),
-         rotulo_y = rotulo(y_nombre, y_scale, normalizar))
-  })
-  PAGINAS[[PAGINA_ID]] <<- pg
-
-  # Un desplegable por atributo de un grupo
-  desplegables <- function(prefijo, atributos, iniciales, delante = "") {
-    lapply(names(atributos), function(k) {
-      selectInput(id(paste0(prefijo, k)), label = paste0(delante, atributos[[k]]),
-                  choices = pg$valores[[k]], selected = iniciales[[k]])
-    })
-  }
-
-  tagList(
-    # NORMALIZACIÓN PREVIA: un criterio DISTINTO del de la opción "YeoJohnson"
-    # del desplegable de y, que busca el mejor ajuste lineal entre las dos
-    checkboxInput(id("normalizar"),
-                  label = "Normalizar antes cada variable (Yeo-Johnson)",
-                  value = FALSE),
-    desplegables("c_", pg$atributos_comunes, pg$comunes_inicial),
-    desplegables("x_", pg$atributos_indicador, pg$x_inicial, delante = "x: "),
-    selectInput(id("x_scale"), label = "Transformación del indicador x",
-                choices = TRANSFORMACIONES_X, selected = "none"),
-    desplegables("y_", pg$atributos_indicador, pg$y_inicial, delante = "y: "),
-    selectInput(id("y_scale"), label = "Transformación del indicador y",
-                choices = TRANSFORMACIONES_Y, selected = "none"),
-
-    # Lanza el cálculo: hasta pulsarlo no se calcula nada
-    actionButton(id("calcular"), "Calcular")
-  )
-})
+# sector del eje y
+selectInput("comp_sector_y", "Sector eje y:", choices = SECTORES_COMP, selected = "Protección social")
 ```
 
-###
+**Yeo-Johnson**
 
 ```{r}
-# Resumen del análisis. La recta, R2, sigma y los tests van en la tabla de la
-# pestaña del error
-local({
-  pg <- PAGINAS[[PAGINA_ID]]
+# normalizar x e y por separado, cada una con el lambda que la acerca más a una normal
+checkboxInput("comp_normalizar", "Normalizar cada variable por separado", value = FALSE)
 
-  renderUI({
-    resultado <- pg$calculo()
-    tb        <- resultado$tb
+# transformar y con el lambda que hace máximo el R2 de la recta
+checkboxInput("comp_ajuste_yj", "Ajuste lineal (transforma y)", value = FALSE)
 
-    # Los atributos comunes, uno por línea (p. ej. el año)
-    comunes <- paste0("<strong>", tolower(pg$atributos_comunes), ":</strong> ",
-                      resultado$comunes[names(pg$atributos_comunes)], "<br>",
-                      collapse = "")
+# hasta pulsarlo no se calcula nada, ni al arrancar ni al cambiar los controles
+actionButton("comp_calcular", "Calcular")
+```
 
-    texto <- paste(
-      "<strong>ANÁLISIS DE REGRESIÓN LINEAL</strong><br>",
-      comunes,
-      "<strong>x:</strong>", resultado$rotulo_x, "<br>",
-      "<strong>y:</strong>", resultado$rotulo_y, "<br>",
-      "<strong>observaciones:</strong>", nrow(tb),
-      "<br><strong>correlación:</strong>", round(cor(tb$x, tb$y), digits = 4)
-    )
+```{r}
+# tabla común a las tres salidas: solo se recalcula al pulsar «Calcular»
+procesado_comp <- eventReactive(input$comp_calcular, {
+  # una fila por país y el valor de cada sector en una columna
+  tabla <- GASTO |>
+    filter(year(time) == input$comp_anio, # año elegido
+           sector %in% c(input$comp_sector_x, input$comp_sector_y)) |> # sectores elegidos
+    select(geo, sector, valor = input$comp_indicador) |> # medida elegida
+    pivot_wider(names_from = sector, values_from = valor) |> # una columna por sector
+    select(geo, x = input$comp_sector_x, y = input$comp_sector_y) |> # columnas x e y
+    drop_na() |> # países sin dato en alguno de los dos sectores
+    mutate(medida = names(MEDIDAS)[MEDIDAS == input$comp_indicador], # los nombres se guardan en columnas:
+           anio = input$comp_anio,                                   # así los rótulos no cambian
+           sector_x = input$comp_sector_x,                           # hasta volver a pulsar el botón
+           sector_y = input$comp_sector_y)
 
-    if (resultado$normalizar) {
-      texto <- paste(texto,
-        "<br><strong>lambda normalidad (x):</strong>",
-        formatC(resultado$lambda_norm_x, format = "e", digits = 3),
-        "<br><strong>lambda normalidad (y):</strong>",
-        formatC(resultado$lambda_norm_y, format = "e", digits = 3))
-    }
+  # el Total no tiene % del gasto público total, y antes de 1995 hay muy pocos países
+  validate(need(nrow(tabla) >= 3, paste0("Hay datos de ", nrow(tabla), " países para esa combinación: ",
+                                         "son demasiado pocos para la regresión. Elige otra combinación.")))
 
-    if (resultado$y_scale == "YeoJohnson") {
-      texto <- paste(texto, "<br><strong>lambda ajuste lineal (y):</strong>",
-                     formatC(resultado$lambda, format = "e", digits = 3))
-    }
+  # los lambda se guardan en columnas (el mismo valor en todas las filas)
 
-    HTML(texto)
-  })
+  # 1. normalización: x e y por separado, cada una con SU lambda de normalidad
+  if (input$comp_normalizar) {
+    lambda_norm_x <- aedv_yeojohnson_lambda(tabla$x)
+    lambda_norm_y <- aedv_yeojohnson_lambda(tabla$y)
+    tabla <- tabla |>
+      mutate(x = aedv_yeo_johnson(x, lambda_norm_x), lambda_norm_x = lambda_norm_x,
+             y = aedv_yeo_johnson(y, lambda_norm_y), lambda_norm_y = lambda_norm_y)
+  }
+
+  # 2. ajuste lineal: y con el lambda que hace máximo el R2 de la recta
+  if (input$comp_ajuste_yj) {
+    lambda_ajuste <- aedv_lambda_optimo(tabla$x, tabla$y)
+    tabla <- tabla |>
+      mutate(y = aedv_yeo_johnson(y, lambda_ajuste), lambda_ajuste = lambda_ajuste)
+  }
+
+  tabla
 })
 ```
 
-Column {.tabset}
+**Resumen resultados**
+
+```{r}
+renderTable({
+  tabla <- procesado_comp()
+
+  # valores como texto: si no, renderTable() daría a todos los mismos decimales
+  resumen <- tibble(medida = c("nº países", "correlación"),
+                    valor = c(as.character(nrow(tabla)), as.character(round(cor(tabla$x, tabla$y), 4))))
+
+  # los lambda solo existen si se marcó su casilla al pulsar el botón
+  if ("lambda_norm_x" %in% names(tabla)) {
+    resumen <- resumen |>
+      add_row(medida = "lambda x", valor = as.character(round(tabla$lambda_norm_x[1], 4))) |>
+      add_row(medida = "lambda y", valor = as.character(round(tabla$lambda_norm_y[1], 4)))
+  }
+
+  if ("lambda_ajuste" %in% names(tabla)) {
+    resumen <- resumen |> add_row(medida = "lambda ajuste y", valor = as.character(round(tabla$lambda_ajuste[1], 4)))
+  }
+
+  resumen
+})
+```
+
+Column
 --------------------------------------------------
 
-### Diagrama de dispersión
+### Diagrama de dispersión y recta de regresión {data-height=400}
 
 ```{r}
-local({
-  pg <- PAGINAS[[PAGINA_ID]]
+renderPlotly({
+  tabla <- procesado_comp()
 
-  renderPlotly({
-    resultado <- pg$calculo()
+  # un punto por país y la recta de regresión
+  p <- tabla |>
+    ggplot(aes(x, y)) +
+    geom_point(aes(text = paste0(geo, "<br>", # país y valor de cada eje en el cuadro emergente
+                                 sector_x, ": ", round(x, 2), "<br>",
+                                 sector_y, ": ", round(y, 2)),
+                   colour = (geo == "Spain")), # España en rojo
+               size = 2) + # el texto y el color solo en los puntos: en el aes() general, geom_smooth haría una recta por país
+    scale_colour_manual(values = c("FALSE" = "black", "TRUE" = "red")) + # negro, y rojo para España
+    geom_smooth(method = lm, se = FALSE, color = "steelblue") + # recta de regresión
+    labs(title = paste0(tabla$medida[1], " (", tabla$anio[1], "): ",
+                        tabla$sector_y[1], " frente a ", tabla$sector_x[1]),
+         x = tabla$sector_x[1], y = tabla$sector_y[1]) +
+    theme(legend.position = "none", # sin leyenda
+          plot.title = element_text(size = 11)) # título más pequeño, para que no desborde
 
-    p <- resultado$tb |>
-      ggplot(aes(x, y, label = etiqueta)) +
-        geom_point() +
-        geom_smooth(method = lm, se = FALSE, formula = y ~ x) + # recta de regresión
-        labs(x = resultado$rotulo_x, y = resultado$rotulo_y)
-
-    ggplotly(p)
-  })
+  ggplotly(p, tooltip = "text") # solo el texto construido arriba
 })
 ```
 
-### Error del ajuste y tests
+### Error de la recta de regresión {data-height=250}
 
 ```{r}
-local({
-  pg <- PAGINAS[[PAGINA_ID]]
-  id <- pg$id
+renderPlotly({
+  tabla <- procesado_comp()
 
-  # Residuos frente a x: una nube sin forma y de anchura constante alrededor
-  # del cero es lo que se espera de un buen ajuste
-  output[[id("grafico_error")]] <- renderPlotly({
-    resultado <- pg$calculo()
-
-    p <- resultado$tb |>
-      ggplot(aes(x, residuo, label = etiqueta)) +
-        geom_hline(yintercept = 0, linetype = "dashed", colour = "steelblue") +
-        geom_point(alpha = 0.6) +
-        labs(x = resultado$rotulo_x, y = "residuo")
-
-    ggplotly(p)
-  })
-
-  output[[id("tabla_lm")]] <- renderUI({
-    resultado <- pg$calculo()
-    validate(need(!is.null(resultado$valores),
-                  "Tests no disponibles: el test de Shapiro-Wilk admite como mucho 5.000 observaciones."))
-
-    aedv_tabla_lm(resultado$valores, titulo = "Análisis del ajuste de la recta", alpha = pg$alfa)
-  })
-
-  fillCol(flex = c(1, NA),
-          plotlyOutput(id("grafico_error"), height = "100%"),
-          uiOutput(id("tabla_lm")))
+  # error de la recta (a x + b - y) frente a x, con el país en el cuadro emergente
+  aedv_lm_error_grafico(tabla$x, tabla$y, nombres = tabla$geo,
+                        titulo = NULL, # sin título: ya está en el encabezado del panel
+                        x_lab = tabla$sector_x[1], dinamico = TRUE)
 })
 ```
 
-Column {data-width=300}
---------------------------------------------------
-
-### Valor de los indicadores transformados
+### Análisis del ajuste por la recta de regresión {data-height=250}
 
 ```{r}
-local({
-  pg <- PAGINAS[[PAGINA_ID]]
+renderUI({
+  tabla <- procesado_comp()
 
-  renderTable({
-    resultado <- pg$calculo()
-
-    tabla <- resultado$tb |>
-      arrange(desc(x)) |>
-      transmute(
-        etiqueta,
-        x = prettyNum(round(x, digits = 2), big.mark = ","),
-        y = prettyNum(round(y, digits = 2), big.mark = ",")
-      )
-
-    names(tabla) <- c("País", resultado$x_nombre, resultado$y_nombre)
-    tabla
-  })
+  aedv_lm_analisis(tabla$x, tabla$y) |> # recta, R2, sigma y tests de los residuos
+    aedv_tabla_lm(titulo = "") # sin título: ya está en el encabezado del panel
 })
 ```
 
