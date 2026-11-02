@@ -26,7 +26,7 @@ runtime: shiny
     ✎ PASO 4: la lectura de los datos.
     ✎ PASO 5: los rótulos y las opciones de arranque.
   El resto se deduce de los propios datos: los conjuntos de áreas que se
-  ofrecen en el desplegable, las variables entre las que se elige (las columnas
+  ofrecen en el desplegable, los años, las variables entre las que se elige (las columnas
   numéricas), los atributos y el número máximo de grupos del k-means.
 
   ES UNA PÁGINA DENTRO DE UN CUADRO DE MANDOS. Para añadirla a otro cuadro de
@@ -36,8 +36,9 @@ runtime: shiny
   LA PÁGINA" más abajo).
 
   El ejemplo es el de la presentación del Tema 8: el valor añadido bruto (VAB)
-  de Eurostat por sectores económicos, con el último año en que cada área tiene
-  datos de todos los sectores. Hay dos conjuntos de áreas: los países (con
+  de Eurostat por sectores económicos. Se elige el año: uno concreto o, por
+  defecto, el «Último año disponible», con el que cada área entra con el último
+  año en que tiene datos de todos los sectores. Hay dos conjuntos de áreas: los países (con
   Europe 27 y Canarias, tratada como un país más) y las comunidades y ciudades
   autónomas (con Europe 27 y España). Y tres variables: el VAB, la población y
   el VAB per cápita. La población está a propósito: es la misma en todos los
@@ -80,14 +81,14 @@ PAGINA_ID <- "vab"                                                           # �
 #               desplegable de áreas geográficas. Un área puede estar en varios.
 #   - area:     el nombre del área geográfica (la fila de la tabla de atributos)
 #   - atributo: el nombre del atributo (la columna de la tabla de atributos)
+#   - anio:     el año (número entero)
 #   - una o varias columnas NUMÉRICAS: las variables entre las que se elige la
 #     que llena la tabla de atributos.
-# Dentro de cada ámbito tiene que haber un único valor por área y atributo, y
-# ninguno ausente: el PCA no admite NA.
+# Dentro de cada ámbito tiene que haber un único valor por área, atributo y año.
+# Las áreas y años a los que les falta algún atributo, o con alguna variable NA,
+# se descartan solos (el PCA no admite NA).
 #
-# VAB por sector económico (Eurostat), con el último año en que cada área tiene
-# datos de todos los sectores en las tres variables: así, al cambiar de
-# variable, cada área sigue siendo la del mismo año.
+# VAB por sector económico (Eurostat), todos los años.
 VAB_SECTOR <- readRDS(url("https://ctim.es/AEDV/data/eurostat_VAB_sector.rds"))
 
 DATOS <- bind_rows(                                                          # ✎
@@ -100,20 +101,16 @@ DATOS <- bind_rows(                                                          # �
     filter((nuts == 2 & str_starts(code, "ES")) | code %in% c("EU27_2020", "ES")) |>
     mutate(ambito = "CCAA")
 ) |>
-  filter(is.finite(vab), is.finite(population), is.finite(vab_per_capita)) |> # sin NA ni Inf
-  group_by(ambito, code, time) |>
-  filter(n() == n_distinct(VAB_SECTOR$sector)) |> # años con todos los sectores
-  group_by(ambito, code) |>
-  filter(time == max(time)) |> # el último de esos años, en cada área
-  ungroup() |>
   filter(sector != "Total") |> # el total es la suma de los sectores
   transmute(ambito,
             area = str_remove(geo, "^[A-Z]{2}[0-9]* "), # "IE Ireland" -> "Ireland", "ES70 Canarias" -> "Canarias"
             atributo = sector,
+            anio = as.integer(year(time)),
             vab, population, vab_per_capita)
 
 # ✎ PASO 5: RÓTULOS Y OPCIONES DE ARRANQUE
 ETIQUETA_AMBITO   <- "Áreas geográficas:" # ✎ rótulo del desplegable de ámbitos
+ETIQUETA_ANIO     <- "Año:"               # ✎ rótulo del desplegable de años
 ETIQUETA_VARIABLE <- "Variable:"          # ✎ rótulo del desplegable de variables
 
 # ✎ Rótulo de cada variable, con sus unidades, en el desplegable y en los
@@ -132,6 +129,7 @@ RESALTAR <- c("Europe 27", "Spain", "Canarias")
 # en DATOS se usa el primero, así que la plantilla no se rompe al cambiar de
 # datos y olvidarse de tocarlas.
 AMBITO_INICIAL      <- "Países"          # ✎
+ANIO_INICIAL        <- "Último año disponible" # ✎ o un año concreto, p. ej. "2023"
 VARIABLE_INICIAL    <- "vab_per_capita"  # ✎
 K_INICIAL           <- 3                 # ✎ nº de grupos del k-means
 YEO_JOHNSON_INICIAL <- TRUE              # ✎ normalizar con Yeo-Johnson antes de tipificar
@@ -154,10 +152,12 @@ if (!exists("PAGINAS")) PAGINAS <- list()
 PAGINAS[[PAGINA_ID]] <- list(
   datos               = DATOS,
   etiqueta_ambito     = ETIQUETA_AMBITO,
+  etiqueta_anio       = ETIQUETA_ANIO,
   etiqueta_variable   = ETIQUETA_VARIABLE,
   etiquetas_variables = ETIQUETAS_VARIABLES,
   resaltar            = RESALTAR,
   ambito_inicial      = AMBITO_INICIAL,
+  anio_inicial        = ANIO_INICIAL,
   variable_inicial    = VARIABLE_INICIAL,
   k_inicial           = K_INICIAL,
   yeo_johnson_inicial = YEO_JOHNSON_INICIAL
@@ -182,12 +182,23 @@ if (!exists("aedv_kmeans")) source("https://ctim.es/AEDV/utilidades.R")
 # las vuelve a definir exactamente iguales y no pasa nada.
 # ==============================================================================
 
-# TABLA DE ATRIBUTOS de un ámbito con una variable: una fila por área y una
-# columna por atributo. El área va como NOMBRE DE FILA, y no como columna, para
-# que todas las columnas sean numéricas y el área no interfiera en los cálculos.
-tabla_atributos <- function(datos, ambito_elegido, variable) {
-  datos |>
-    filter(ambito == ambito_elegido) |>
+# Opción del desplegable de años con la que cada área entra con su último año
+# completo (el último en que tiene todos los atributos)
+ULTIMO_ANIO <- "Último año disponible"
+
+# TABLA DE ATRIBUTOS de un ámbito, un año y una variable: una fila por área y
+# una columna por atributo. El área va como NOMBRE DE FILA, y no como columna,
+# para que todas las columnas sean numéricas y el área no interfiera en los
+# cálculos. `completos` solo tiene las áreas y años con todos los atributos; con
+# ULTIMO_ANIO, cada área entra con el último de sus años completos.
+tabla_atributos <- function(completos, ambito_elegido, anio_elegido, variable) {
+  d <- completos |> filter(ambito == ambito_elegido)
+  if (anio_elegido == ULTIMO_ANIO) {
+    d <- d |> group_by(area) |> filter(anio == max(anio)) |> ungroup() # último año de cada área
+  } else {
+    d <- d |> filter(anio == as.integer(anio_elegido)) # año elegido
+  }
+  d |>
     select(area, atributo, all_of(variable)) |>
     pivot_wider(names_from = atributo, values_from = all_of(variable)) |> # un atributo por columna
     column_to_rownames(var = "area") # área como nombre de fila
@@ -229,52 +240,42 @@ local({
   # sino más tarde y dentro de una función de cálculo, donde el único síntoma es
   # un panel vacío.
   aviso  <- paste0("Página '", PAGINA_ID, "': ")
-  faltan <- setdiff(c("ambito", "area", "atributo"), names(datos))
+  claves <- c("ambito", "area", "atributo", "anio")
+  faltan <- setdiff(claves, names(datos))
   if (length(faltan) > 0) {
     stop(aviso, "a DATOS le faltan las columnas ", paste(faltan, collapse = ", "), ".")
   }
-  variables <- setdiff(names(datos)[sapply(datos, is.numeric)],
-                       c("ambito", "area", "atributo"))
+  variables <- setdiff(names(datos)[sapply(datos, is.numeric)], claves)
   if (length(variables) == 0) {
     stop(aviso, "DATOS no tiene ninguna columna numérica con la que llenar la tabla.")
   }
-  repetidos <- datos |> count(ambito, area, atributo) |> filter(n > 1)
+  repetidos <- datos |> count(ambito, area, atributo, anio) |> filter(n > 1)
   if (nrow(repetidos) > 0) {
-    stop(aviso, "en DATOS hay ", nrow(repetidos), " combinaciones de ámbito, área ",
-         "y atributo con más de un valor (la primera: ", repetidos$ambito[1], ", ",
-         repetidos$area[1], ", ", repetidos$atributo[1], "). Debe haber uno solo.")
+    stop(aviso, "en DATOS hay ", nrow(repetidos), " combinaciones de ámbito, área, ",
+         "atributo y año con más de un valor (la primera: ", repetidos$ambito[1], ", ",
+         repetidos$area[1], ", ", repetidos$atributo[1], ", ", repetidos$anio[1],
+         "). Debe haber uno solo.")
   }
 
-  # LAS TABLAS DE ATRIBUTOS, una por ámbito y variable. Se construyen todas al
-  # arrancar, una sola vez: son pequeñas, y así se comprueba desde el principio
-  # que ninguna tiene huecos (el PCA no admite NA) ni atributos constantes (no se
-  # pueden tipificar: su desviación típica es 0).
+  # ÁREAS Y AÑOS COMPLETOS: los que tienen todos los atributos con todas las
+  # variables finitas. Así un área es la del mismo año al cambiar de variable.
+  # Las tablas de atributos se construyen con ellos al pulsar «Calcular», con el
+  # año elegido; si quedan pocas áreas o un atributo constante, el cálculo lo
+  # explica en vez de fallar.
+  n_atributos <- n_distinct(datos$atributo)
+  completos <- datos |>
+    filter(if_all(all_of(variables), is.finite)) |>
+    group_by(ambito, area, anio) |>
+    filter(n() == n_atributos) |>
+    ungroup()
+
   ambitos <- unique(datos$ambito)
-  tablas  <- lapply(ambitos, function(a) {
-    t <- lapply(variables, function(v) {
-      tabla <- tabla_atributos(datos, a, v)
-      con_na <- rownames(tabla)[!complete.cases(tabla)]
-      if (length(con_na) > 0) {
-        stop(aviso, "en el ámbito '", a, "' la variable '", v, "' no tiene todos ",
-             "los atributos de ", paste(con_na, collapse = ", "), ". El PCA no ",
-             "admite NA: hay que quitar esas áreas en el PASO 4.")
-      }
-      constantes <- names(tabla)[sapply(tabla, sd) == 0]
-      if (length(constantes) > 0) {
-        stop(aviso, "en el ámbito '", a, "' la variable '", v, "' vale lo mismo ",
-             "en todas las áreas para ", paste(constantes, collapse = ", "),
-             ": no se puede tipificar.")
-      }
-      tabla
-    })
-    names(t) <- variables
-    t
-  })
-  names(tablas) <- ambitos
+  anios   <- c(ULTIMO_ANIO, sort(unique(completos$anio), decreasing = TRUE))
 
   # Nº de grupos del k-means: de 2 a 8, y siempre menos que áreas haya en el
-  # ámbito más pequeño
-  n_min <- min(sapply(tablas, function(t) nrow(t[[1]])))
+  # ámbito más pequeño (cada área con su último año)
+  n_min <- min(sapply(ambitos, function(a)
+    nrow(tabla_atributos(completos, a, ULTIMO_ANIO, variables[1]))))
   if (n_min < 3) {
     stop(aviso, "algún ámbito tiene menos de 3 áreas: son demasiado pocas para agruparlas.")
   }
@@ -285,13 +286,16 @@ local({
                       pg$etiquetas_variables[variables], variables)
 
   if (!pg$ambito_inicial %in% ambitos)     pg$ambito_inicial   <- ambitos[1]
+  if (!pg$anio_inicial %in% anios)         pg$anio_inicial     <- anios[1]
   if (!pg$variable_inicial %in% variables) pg$variable_inicial <- variables[1]
 
   pg$ambitos   <- ambitos
+  pg$anios     <- anios
   pg$variables <- setNames(variables, etiquetas) # rótulo -> nombre de la columna
-  pg$tablas    <- tablas
+  pg$completos <- completos
   pg$k         <- 2:min(8, n_min - 1)
   pg$k_inicial <- min(pg$k_inicial, max(pg$k))
+  pg$datos     <- NULL # ya está en completos: no se guarda dos veces
 
   # IDENTIFICADORES DE LOS CONTROLES Y SALIDAS: el de la página delante, para que
   # no choquen con los de otras páginas ("vab_ambito", "vab_k"...)
@@ -328,17 +332,32 @@ local({
     # Por si se pulsa el botón antes de que existan los controles. La casilla de
     # Yeo-Johnson no puede ir dentro de req(): sin marcar vale FALSE, y
     # req(FALSE) detendría el cálculo.
-    req(input[[id("ambito")]], input[[id("variable")]], input[[id("k")]],
-        !is.null(input[[id("yeo_johnson")]]))
+    req(input[[id("ambito")]], input[[id("anio")]], input[[id("variable")]],
+        input[[id("k")]], !is.null(input[[id("yeo_johnson")]]))
 
     ambito   <- input[[id("ambito")]]
+    anio     <- input[[id("anio")]]
     variable <- input[[id("variable")]]
     k        <- as.numeric(input[[id("k")]])
     yj       <- input[[id("yeo_johnson")]]
     etiqueta <- names(pg$variables)[pg$variables == variable]
 
-    # 0. La tabla de atributos, ya construida al arrancar
-    original <- pg$tablas[[ambito]][[variable]]
+    # 0. La tabla de atributos del ámbito, el año y la variable elegidos
+    original <- tabla_atributos(pg$completos, ambito, anio, variable)
+
+    # En los primeros años hay pocas áreas con todos los atributos
+    validate(need(nrow(original) >= 3 && k < nrow(original), paste0(
+      if (anio == ULTIMO_ANIO) "Con el último año de cada área" else paste("En", anio),
+      " hay ", nrow(original), " áreas de '", ambito,
+      "' con todos los atributos: son demasiado pocas para ", k, " grupos. ",
+      "Elige otro año o menos grupos.")))
+
+    # Un atributo que vale lo mismo en todas las áreas no se puede tipificar
+    constantes <- names(original)[sapply(original, sd) == 0]
+    validate(need(length(constantes) == 0, paste0(
+      "La variable vale lo mismo en todas las áreas para ",
+      paste(constantes, collapse = ", "), ": no se puede tipificar. ",
+      "Elige otra combinación.")))
 
     # 1. YEO-JOHNSON: cada atributo con SU lambda, el que lo acerca más a una
     #    normal. Así ningún valor extremo acapara la varianza del PCA.
@@ -396,7 +415,8 @@ local({
       etiqueta    = etiqueta,
       yj          = yj,
       k           = k,
-      descripcion = paste0(etiqueta, " · ", ambito, if (yj) " · con Yeo-Johnson"),
+      descripcion = paste0(etiqueta, " · ", ambito, " · ", tolower(anio),
+                           if (yj) " · con Yeo-Johnson"),
       original    = original,
       tipificada  = tipificada,
       pca         = pca,
@@ -410,6 +430,9 @@ local({
   tagList(
     selectInput(id("ambito"), pg$etiqueta_ambito,
                 choices = pg$ambitos, selected = pg$ambito_inicial),
+
+    selectInput(id("anio"), pg$etiqueta_anio,
+                choices = pg$anios, selected = pg$anio_inicial),
 
     selectInput(id("variable"), pg$etiqueta_variable,
                 choices = pg$variables, selected = pg$variable_inicial),
