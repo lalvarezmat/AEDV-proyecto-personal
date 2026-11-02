@@ -1018,7 +1018,8 @@ local({
 ################################################################################
   PÁGINA 3: MAPA COROPLÉTICO (plantilla Dashboard_mapa_coropletico.Rmd)
   Adaptada a los datos: además de la medida se elige el sector y el
-  año, y el mapa se centra en Europa.
+  año (por defecto, «Último año disponible»: el último con dato de cada
+  país), y el mapa se centra en Europa.
 ################################################################################
 -->
 
@@ -1035,18 +1036,10 @@ DATOS <- GASTO |>
   mutate(iso3 = unname(ISO3[code]),
          anio = as.integer(year(time)))
 
-# Año con el que arranca: el último que tienen todos los países
-ANIO_INICIAL <- DATOS |>
-  group_by(anio) |>
-  filter(n_distinct(code) == n_distinct(DATOS$code)) |>
-  pull(anio) |>
-  max()
-
 PAGINAS[[PAGINA_ID]] <- list(
   datos        = DATOS,
   sectores     = unique(DATOS$sector),
   anios        = sort(unique(DATOS$anio), decreasing = TRUE),
-  anio_inicial = ANIO_INICIAL,
   id           = function(nombre) paste0("mapa_", nombre)
 )
 ```
@@ -1067,9 +1060,22 @@ local({
     medida <- input[[id("medida")]]
 
     tb <- pg$datos |>
-      filter(sector == input[[id("sector")]], anio == as.integer(input[[id("anio")]])) |>
-      select(iso3, pais = geo, value = all_of(medida)) |>
-      filter(!is.na(value)) |>
+      filter(sector == input[[id("sector")]]) |>
+      select(iso3, pais = geo, anio, value = all_of(medida)) |>
+      filter(!is.na(value))
+
+    # Año elegido, o el último con dato de cada país
+    if (input[[id("anio")]] == "Último año disponible") {
+      tb <- tb |>
+        group_by(pais) |>
+        slice_max(anio, n = 1) |>
+        ungroup()
+    } else {
+      tb <- tb |>
+        filter(anio == as.integer(input[[id("anio")]]))
+    }
+
+    tb <- tb |>
       arrange(desc(value))
 
     # El % del gasto público total no existe para el Total, y en los primeros
@@ -1080,14 +1086,15 @@ local({
 
     list(tb      = tb,
          rotulo  = names(MEDIDAS)[MEDIDAS == medida],
-         titulo  = paste0(input[[id("sector")]], ", ", input[[id("anio")]]))
+         titulo  = input[[id("sector")]])
   })
   PAGINAS[[PAGINA_ID]] <<- pg
 
   tagList(
     selectInput(id("medida"), "Medida:", choices = MEDIDAS, selected = "gasto_per_capita"),
     selectInput(id("sector"), "Sector:", choices = pg$sectores, selected = "Total"),
-    selectInput(id("anio"), "Año:", choices = pg$anios, selected = pg$anio_inicial),
+    selectInput(id("anio"), "Año:", choices = c("Último año disponible", pg$anios),
+                selected = "Último año disponible"),
 
     # Lanza el cálculo: hasta pulsarlo no se calcula nada
     actionButton(id("calcular"), "Calcular")
@@ -1107,6 +1114,7 @@ local({
 
     resultado$tb |>
       transmute(País = pais,
+                Año = anio,
                 valor = format(round(value, 2), big.mark = ".", decimal.mark = ",",
                                nsmall = 2))
   })
@@ -1131,7 +1139,7 @@ local({
 
     etiquetas <- paste0(
       "<strong>", join$ADMIN, "</strong><br>",
-      resultado$titulo, "<br>",
+      resultado$titulo, " (", join$anio, ")<br>",
       resultado$rotulo, ": ",
       format(round(join$value, 2), big.mark = ".", decimal.mark = ",")
     ) |>
@@ -1148,7 +1156,8 @@ local({
 ################################################################################
   PÁGINA 4: COMPARACIÓN DE ATRIBUTOS (versión simplificada de
   Dashboard_atributos_comparacion.Rmd, a partir de la página 1 del cuadro de
-  mandos del Tema 8). Se elige la medida, el año y el sector de cada eje, con
+  mandos del Tema 8). Se elige la medida, el año (por defecto, «Último año
+  disponible»: el último con dato de cada país) y el sector de cada eje, con
   un desplegable cada uno. No usa PAGINAS + local(): sus identificadores, su
   reactiva y sus variables llevan "comp" para no chocar con los de las otras
   páginas.
@@ -1165,13 +1174,6 @@ SECTORES_COMP <- unique(GASTO$sector)
 # años, del más reciente al más antiguo
 ANIOS_COMP <- sort(unique(year(GASTO$time)), decreasing = TRUE)
 
-# año con el que arranca: el último que tienen todos los países
-ANIO_INICIAL_COMP <- GASTO |>
-  group_by(anio = year(time)) |>
-  summarise(n = n_distinct(geo)) |>
-  filter(n == n_distinct(GASTO$geo)) |>
-  pull(anio) |>
-  max()
 ```
 
 Column {.sidebar data-width=250}
@@ -1181,8 +1183,8 @@ Column {.sidebar data-width=250}
 # medida que se compara
 selectInput("comp_indicador", "Medida:", choices = MEDIDAS, selected = "gasto_per_capita")
 
-# año
-selectInput("comp_anio", "Año:", choices = ANIOS_COMP, selected = ANIO_INICIAL_COMP)
+# año, o el último disponible de cada país (opción por defecto)
+selectInput("comp_anio", "Año:", choices = c("Último año disponible", ANIOS_COMP), selected = "Último año disponible")
 
 # sector del eje x
 selectInput("comp_sector_x", "Sector eje x:", choices = SECTORES_COMP, selected = "Salud")
@@ -1215,14 +1217,25 @@ procesado_comp <- eventReactive(input$comp_calcular, {
   lambda_norm_y <- NA
   lambda_ajuste <- NA
 
-  # una fila por país y el valor de cada sector en una columna
+  # una fila por país y año y el valor de cada sector en una columna
   tabla <- GASTO |>
-    filter(year(time) == input$comp_anio, # año elegido
-           sector %in% c(input$comp_sector_x, input$comp_sector_y)) |> # sectores elegidos
-    select(geo, sector, valor = input$comp_indicador) |> # medida elegida
+    filter(sector %in% c(input$comp_sector_x, input$comp_sector_y)) |> # sectores elegidos
+    select(geo, año = time, sector, valor = input$comp_indicador) |> # medida elegida
+    mutate(año = year(año)) |> # el año de la fecha
     pivot_wider(names_from = sector, values_from = valor) |> # una columna por sector
-    select(geo, x = input$comp_sector_x, y = input$comp_sector_y) |> # columnas x e y
-    drop_na() # países sin dato en alguno de los dos sectores
+    select(geo, año, x = input$comp_sector_x, y = input$comp_sector_y) |> # columnas x e y
+    drop_na() # años sin dato en alguno de los dos sectores
+
+  # año elegido, o el último con dato de cada país
+  if (input$comp_anio == "Último año disponible") {
+    tabla <- tabla |>
+      group_by(geo) |>
+      slice_max(año, n = 1) |>
+      ungroup()
+  } else {
+    tabla <- tabla |>
+      filter(año == input$comp_anio)
+  }
 
   # el Total no tiene % del gasto público total, y antes de 1995 hay muy pocos países
   validate(need(nrow(tabla) >= 3, paste0("Hay datos de ", nrow(tabla), " países para esa combinación: ",
@@ -1291,7 +1304,7 @@ renderPlotly({
   # un punto por país y la recta de regresión
   p <- tabla |>
     ggplot(aes(x, y)) +
-    geom_point(aes(text = paste0(geo, "<br>", # país y valor de cada eje en el cuadro emergente
+    geom_point(aes(text = paste0(geo, " (", año, ")<br>", # país, año y valor de cada eje en el cuadro emergente
                                  resultado$sector_x, ": ", round(x, 2), "<br>",
                                  resultado$sector_y, ": ", round(y, 2)),
                    colour = (geo == "Spain")), # España en rojo
@@ -1368,7 +1381,7 @@ ETIQUETA_VARIABLE   <- "Variable:"           # ✎
 ETIQUETAS_VARIABLES <- setNames(names(MEDIDAS), MEDIDAS) # ✎ columna -> rótulo
 RESALTAR            <- c("Europe 27", "Spain") # ✎ áreas resaltadas en el biplot y el k-means
 AMBITO_INICIAL      <- "Todos los países"    # ✎
-ANIO_INICIAL        <- "Último año de cada área" # ✎ o un año concreto
+ANIO_INICIAL        <- "Último año disponible" # ✎ o un año concreto
 VARIABLE_INICIAL    <- "pct_gasto"           # ✎ la composición del gasto
 K_INICIAL           <- 3                     # ✎
 YEO_JOHNSON_INICIAL <- TRUE                  # ✎
@@ -1392,7 +1405,7 @@ PAGINAS[[PAGINA_ID]] <- list(
 # FUNCIONES DE LA PLANTILLA (no dependen de la página)
 
 # Opción del desplegable de años que toma, en cada área, su último año completo
-ULTIMO_ANIO <- "Último año de cada área"
+ULTIMO_ANIO <- "Último año disponible"
 
 # TABLA DE ATRIBUTOS de un ámbito, un año y una variable: una fila por área
 # (como nombre de fila) y una columna por atributo. `completos` solo tiene las
