@@ -74,34 +74,40 @@ actionButton("calcular", "Calcular")
 ```
 
 ```{r}
-# tabla común a las tres salidas: solo se recalcula al pulsar «Calcular»
+# datos comunes a las tres salidas: solo se recalcula al pulsar «Calcular».
+# Devuelve una lista con la tabla, los nombres de los indicadores (así los rótulos
+# no cambian hasta volver a pulsar el botón) y los lambda usados (NA si no se usan)
 procesado <- eventReactive(input$calcular, {
+  # inicializamos a NA los lambda de Yeo-Johnson (se quedan así si no se usan)
+  lambda_norm_x <- NA
+  lambda_norm_y <- NA
+  lambda_ajuste <- NA
+
   # una fila por país con los dos indicadores elegidos
   tabla <- OWID |>
     select(location, x = input$indicador_x, y = input$indicador_y) |> # columnas x e y
-    drop_na() |> # países sin dato en alguno de los dos indicadores
-    mutate(indicador_x = input$indicador_x, # los nombres se guardan en columnas: así los
-           indicador_y = input$indicador_y) # rótulos no cambian hasta volver a pulsar el botón
-
-  # los lambda se guardan en columnas (el mismo valor en todas las filas)
+    drop_na() # países sin dato en alguno de los dos indicadores
 
   # 1. normalización: x e y por separado, cada una con SU lambda de normalidad
   if (input$normalizar) {
     lambda_norm_x <- aedv_yeojohnson_lambda(tabla$x)
     lambda_norm_y <- aedv_yeojohnson_lambda(tabla$y)
     tabla <- tabla |>
-      mutate(x = aedv_yeo_johnson(x, lambda_norm_x), lambda_norm_x = lambda_norm_x,
-             y = aedv_yeo_johnson(y, lambda_norm_y), lambda_norm_y = lambda_norm_y)
+      mutate(x = aedv_yeo_johnson(x, lambda_norm_x),
+             y = aedv_yeo_johnson(y, lambda_norm_y))
   }
 
   # 2. ajuste lineal: y con el lambda que hace máximo el R2 de la recta
   if (input$ajuste_yj) {
     lambda_ajuste <- aedv_lambda_optimo(tabla$x, tabla$y)
     tabla <- tabla |>
-      mutate(y = aedv_yeo_johnson(y, lambda_ajuste), lambda_ajuste = lambda_ajuste)
+      mutate(y = aedv_yeo_johnson(y, lambda_ajuste))
   }
 
-  tabla
+  list(tabla = tabla,
+       indicador_x = input$indicador_x, indicador_y = input$indicador_y,
+       lambda_norm_x = lambda_norm_x, lambda_norm_y = lambda_norm_y,
+       lambda_ajuste = lambda_ajuste)
 })
 ```
 
@@ -109,21 +115,22 @@ procesado <- eventReactive(input$calcular, {
 
 ```{r}
 renderTable({
-  tabla <- procesado()
+  resultado <- procesado() # la tabla, los nombres y los lambda
+  tabla <- resultado$tabla
 
   # valores como texto: si no, renderTable() daría a todos los mismos decimales
   resumen <- tibble(medida = c("nº países", "correlación"),
                     valor = c(as.character(nrow(tabla)), as.character(round(cor(tabla$x, tabla$y), 4))))
 
-  # los lambda solo existen si se marcó su casilla al pulsar el botón
-  if ("lambda_norm_x" %in% names(tabla)) {
+  # los lambda solo valen distinto de NA si se marcó su casilla al pulsar el botón
+  if (!is.na(resultado$lambda_norm_x)) {
     resumen <- resumen |>
-      add_row(medida = "lambda x", valor = as.character(round(tabla$lambda_norm_x[1], 4))) |>
-      add_row(medida = "lambda y", valor = as.character(round(tabla$lambda_norm_y[1], 4)))
+      add_row(medida = "lambda x", valor = as.character(round(resultado$lambda_norm_x, 4))) |>
+      add_row(medida = "lambda y", valor = as.character(round(resultado$lambda_norm_y, 4)))
   }
 
-  if ("lambda_ajuste" %in% names(tabla)) {
-    resumen <- resumen |> add_row(medida = "lambda ajuste y", valor = as.character(round(tabla$lambda_ajuste[1], 4)))
+  if (!is.na(resultado$lambda_ajuste)) {
+    resumen <- resumen |> add_row(medida = "lambda ajuste y", valor = as.character(round(resultado$lambda_ajuste, 4)))
   }
 
   resumen
@@ -137,20 +144,21 @@ Column
 
 ```{r}
 renderPlotly({
-  tabla <- procesado()
+  resultado <- procesado() # la tabla, los nombres y los lambda
+  tabla <- resultado$tabla
 
   # un punto por país y la recta de regresión
   p <- tabla |>
     ggplot(aes(x, y)) +
     geom_point(aes(text = paste0(location, "<br>", # país y valor de cada eje en el cuadro emergente
-                                 indicador_x, ": ", round(x, 2), "<br>",
-                                 indicador_y, ": ", round(y, 2)),
+                                 resultado$indicador_x, ": ", round(x, 2), "<br>",
+                                 resultado$indicador_y, ": ", round(y, 2)),
                    colour = (location == "Spain")), # España en rojo
                size = 2) + # el texto y el color solo en los puntos: en el aes() general, geom_smooth haría una recta por país
     scale_colour_manual(values = c("FALSE" = "black", "TRUE" = "red")) + # negro, y rojo para España
     geom_smooth(method = lm, se = FALSE, color = "steelblue") + # recta de regresión
-    labs(title = paste0(tabla$indicador_y[1], " frente a ", tabla$indicador_x[1]),
-         x = tabla$indicador_x[1], y = tabla$indicador_y[1]) +
+    labs(title = paste0(resultado$indicador_y, " frente a ", resultado$indicador_x),
+         x = resultado$indicador_x, y = resultado$indicador_y) +
     theme(legend.position = "none", # sin leyenda
           plot.title = element_text(size = 11)) # título más pequeño, para que no desborde
 
@@ -162,12 +170,13 @@ renderPlotly({
 
 ```{r}
 renderPlotly({
-  tabla <- procesado()
+  resultado <- procesado() # la tabla, los nombres y los lambda
+  tabla <- resultado$tabla
 
   # error de la recta (a x + b - y) frente a x, con el país en el cuadro emergente
   aedv_lm_error_grafico(tabla$x, tabla$y, nombres = tabla$location,
                         titulo = NULL, # sin título: ya está en el encabezado del panel
-                        x_lab = tabla$indicador_x[1], dinamico = TRUE)
+                        x_lab = resultado$indicador_x, dinamico = TRUE)
 })
 ```
 
@@ -175,7 +184,7 @@ renderPlotly({
 
 ```{r}
 renderUI({
-  tabla <- procesado()
+  tabla <- procesado()$tabla
 
   aedv_lm_analisis(tabla$x, tabla$y) |> # recta, R2, sigma y tests de los residuos
     aedv_tabla_lm(titulo = "") # sin título: ya está en el encabezado del panel
