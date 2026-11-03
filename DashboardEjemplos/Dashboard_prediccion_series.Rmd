@@ -12,8 +12,10 @@ runtime: shiny
 
   Predice una serie con el método que se elija en la barra lateral —un ARIMA
   ajustado directamente sobre la serie, o STL + ARIMA sobre la tendencia— y la
-  estudia en tres pestañas: la predicción, el error del ajuste con los cuatro
-  tests de ruido blanco, y la descomposición STL del tramo ajustado.
+  estudia en dos pestañas: en la primera, la predicción, el error del ajuste
+  (con STL + ARIMA, el remainder de la descomposición) y los cuatro tests de
+  ruido blanco, uno debajo de otro; en la segunda, la descomposición STL del
+  tramo ajustado.
 
   ✎ = LO QUE DEFINE EL USUARIO. Todo lo marcado con ✎ está al principio de la
   página y es lo ÚNICO que hay que tocar para aplicarla a otros datos:
@@ -504,9 +506,15 @@ Column {.tabset}
 --------------------------------------------------
 
 <!--
-  LA COLUMNA DE LA DERECHA VA EN TRES PESTAÑAS: la predicción, el diagnóstico
-  del error del ajuste (gráfica + tests) y la descomposición STL. Todas beben
-  del mismo cálculo, así que cambiar de pestaña no vuelve a ajustar el modelo.
+  LA COLUMNA DE LA DERECHA VA EN DOS PESTAÑAS. En la primera, uno debajo de
+  otro como en la página "Comparación de atributos" del cuadro de mandos del
+  Tema 8: la predicción, el error del ajuste y los tests de ruido blanco sobre
+  ese error. En la segunda, la descomposición STL. Todas beben del mismo
+  cálculo, así que cambiar de pestaña no vuelve a ajustar el modelo.
+
+  SOLO EL ARIMA TIENE ERROR DEL AJUSTE. Con STL + ARIMA lo que se dibuja y se
+  contrasta es el remainder (resto) de la descomposición STL, y así lo dicen los
+  títulos de la gráfica y de la tabla, para no confundirlo con un error de ajuste.
 
   IMPORTANTE: en los paneles de las gráficas no se escribe texto encima. El
   widget ocupa la altura del panel, así que cualquier línea de texto por delante
@@ -519,13 +527,15 @@ Column {.tabset}
   queda en blanco y uno que dice qué ha pasado.
 -->
 
-### Predicción
+### Predicción y tests de ruido blanco
 
 ```{r}
 local({
   pg <- PAGINAS[[PAGINA_ID]]
+  id <- pg$id
 
-  renderPlotly({
+  # LA PREDICCIÓN
+  output[[id("grafico_prediccion")]] <- renderPlotly({
     resultado <- pg$calculo()
     req(resultado)
     validate(need(is.null(resultado$diagnostico), resultado$diagnostico))
@@ -557,55 +567,60 @@ local({
     aedv_dibujar_stl_arima_dinamico(tramo, titulo = titulo, y_lab = pg$etiqueta_valor,
                                     tendencia = tendencia)
   })
-})
-```
 
-### Error del ajuste y tests de ruido blanco
-
-```{r}
-local({
-  pg <- PAGINAS[[PAGINA_ID]]
-  id <- pg$id
-
-  # El error del ajuste en el MISMO tramo que la gráfica de la predicción, para
-  # leer las dos juntas. Lo que se espera de un buen ajuste es una línea que
-  # oscila alrededor del cero sin forma ni tendencia y con una amplitud
-  # constante: un patrón que se repite, un tramo en el que el error crece o un
-  # pico aislado son justo lo que detectan los tests de la tabla de debajo.
+  # EL ERROR DEL AJUSTE (ARIMA) O EL REMAINDER DE LA DESCOMPOSICIÓN STL
+  # (STL + ARIMA), en el MISMO tramo que la gráfica de la predicción, para leer
+  # las dos juntas. Lo que se espera es una línea que oscila alrededor del cero
+  # sin forma ni tendencia y con una amplitud constante: un patrón que se repite,
+  # un tramo en el que crece o un pico aislado son justo lo que detectan los
+  # tests de la tabla de debajo.
   output[[id("grafico_error")]] <- renderPlotly({
     resultado <- pg$calculo()
     req(resultado)
-    validate(need(is.null(resultado$diagnostico),
-                  "Sin ajuste: el tramo tiene huecos (ver la pestaña de la predicción)."))
+    validate(need(is.null(resultado$diagnostico), "Sin ajuste: el tramo tiene huecos."))
+
+    if (resultado$metodo == "ARIMA") {
+      titulo <- paste0("Error del ajuste ARIMA (", resultado$serie, ")")
+      y_lab  <- "error"
+    } else {
+      titulo <- paste0("Remainder descomposición STL (", resultado$serie, ")")
+      y_lab  <- "remainder"
+    }
 
     p <- resultado$error |>
       ggplot(aes(x = fecha, y = error)) +
         geom_hline(yintercept = 0, linetype = "dashed", colour = "steelblue") +
         geom_line(colour = "grey45") +
-        labs(x = NULL, y = "error")
+        labs(x = NULL, y = y_lab, title = titulo) +
+        theme(plot.title = element_text(size = 12)) # título más pequeño, para que no desborde
 
     ggplotly(p)
   })
 
-  # Los cuatro tests de ruido blanco sobre el error del tramo ajustado, con el
-  # p-valor en verde si el test se supera y en rojo si no. aedv_tabla_tests()
-  # devuelve una tabla HTML (gt si está instalada; si no, htmltools), que se
-  # muestra con renderUI.
+  # LOS CUATRO TESTS DE RUIDO BLANCO sobre el error (o el remainder) del tramo
+  # ajustado, con el p-valor en verde si el test se supera y en rojo si no.
+  # aedv_tabla_tests() devuelve una tabla HTML (gt si está instalada; si no,
+  # htmltools), que se muestra con renderUI.
   output[[id("tabla_tests")]] <- renderUI({
     resultado <- pg$calculo()
     req(resultado)
-    validate(need(is.null(resultado$diagnostico),
-                  "Sin ajuste: el tramo tiene huecos (ver la pestaña de la predicción)."))
+    validate(need(is.null(resultado$diagnostico), "Sin ajuste: el tramo tiene huecos."))
 
-    aedv_tabla_tests(resultado$tests,
-                     titulo = paste0("Error del ajuste de ", resultado$metodo,
-                                     " (", resultado$serie, ")"))
+    if (resultado$metodo == "ARIMA") {
+      titulo <- paste0("Tests de ruido blanco del error del ajuste ARIMA (", resultado$serie, ")")
+    } else {
+      titulo <- paste0("Tests de ruido blanco del remainder descomposición STL (", resultado$serie, ")")
+    }
+
+    aedv_tabla_tests(resultado$tests, titulo = titulo)
   })
 
-  # Dos salidas en la misma pestaña: la gráfica del error arriba, ocupando el
-  # alto que quede libre, y la tabla de los tests debajo, con su altura natural
-  # (flex = NA). fillCol() es lo que reparte el alto de la pestaña entre las dos.
-  fillCol(flex = c(1, NA),
+  # Tres salidas en la misma pestaña, una debajo de otra: la predicción y el
+  # error se reparten el alto que deja libre la tabla de los tests (la
+  # predicción, el doble que el error), y la tabla ocupa su altura natural
+  # (flex = NA). fillCol() es lo que reparte el alto de la pestaña.
+  fillCol(flex = c(2, 1, NA),
+          plotlyOutput(id("grafico_prediccion"), height = "100%"),
           plotlyOutput(id("grafico_error"), height = "100%"),
           uiOutput(id("tabla_tests")))
 })
