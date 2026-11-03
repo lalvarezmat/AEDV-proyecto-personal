@@ -2336,9 +2336,17 @@ aedv_dibujar_stl_arima_dinamico <- function(resultado, titulo = NULL,
 # de valores para colorear por cuantiles, las etiquetas de los tooltips y el título
 # de la leyenda. Los argumentos lng, lat y zoom fijan el encuadre inicial del mapa
 # (por defecto, una vista del mundo entero).
+# Se usan 9 tramos; con pocas regiones y valores repetidos, algunos cuantiles
+# coinciden y colorQuantile() falla ("los 'breaks' no son únicos"), así que se
+# reduce el número de tramos hasta que todos los cortes sean distintos.
 aedv_mapa_coropletico <- function(geoj,value,region_labels,legend_title,
                                   lng = 25, lat = 22, zoom = 2){
-pal <- colorQuantile("YlOrRd", value, n = 9)
+n_tramos <- 9
+while (n_tramos > 1 &&
+       anyDuplicated(quantile(value, probs = seq(0, 1, length.out = n_tramos + 1), na.rm = TRUE))) {
+  n_tramos <- n_tramos - 1
+}
+pal <- colorQuantile("YlOrRd", value, n = n_tramos)
 p <-  geoj |>
     leaflet() |>
     setView(lng = lng, lat = lat, zoom = zoom)  |>
