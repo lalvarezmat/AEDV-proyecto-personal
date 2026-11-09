@@ -102,15 +102,15 @@ Mientras la VPN está conectada, **todo tu tráfico de internet pasa por el DIS*
 |---|---|
 | Servidor | `10.22.143.222` |
 | Usuario y contraseña | los de MiDIS |
-| Carpeta donde se suben los ficheros | `/home/a2499` (la carpeta de tu cuenta) |
+| Carpeta donde se suben los ficheros | `/home/a2499/aedv` (al entrar en ella verás que su dirección real es `/opt/shiny-server/samples/sample-apps/a2499/`) |
 | Dirección del cuadro de mandos en el navegador | `http://10.22.143.222:3838/sample-apps/a2499/NombreDelFichero.Rmd` |
 | Carpeta de los ficheros de errores (*logs*) | `/var/log/shiny-server/` |
 
-Fíjate en que, si tu cuenta fuese *a2499*, **lo que subes a `/home/a2499` se ve en el navegador bajo `sample-apps/a2499/`**.
+Fíjate en que, si tu cuenta fuese *a2499*, **lo que subes a `/home/a2499/aedv` se ve en el navegador bajo `sample-apps/a2499/`**.
 
 # Paso 2 — Sube el `.Rmd` y sus ficheros de datos
 
-Sube a la carpeta de tu cuenta el `.Rmd` del cuadro de mandos **y todos los ficheros de datos que lee** (con los mismos nombres que usa el código). Si vuelves a subir un fichero con el mismo nombre, sustituye al anterior.
+Sube a la carpeta de tu cuenta el `.Rmd` del cuadro de mandos **y todos los ficheros de datos que lee** (con los mismos nombres que usa el código). Aunque no es lo normal, en alguna ocasión el cuadro de mandos puede fallar porque un fichero no tiene permiso de lectura. En ese caso hay que cambiar los permisos: en WinSCP, clic derecho sobre los ficheros → *Propiedades*, y marca todas las casillas de lectura y ejecución (las señaladas con **R** y **X**); desde la consola, con `ssh a2499@10.22.143.222` y después `chmod a+rx /home/a2499/aedv/*`.
 
 ## Opción A: con WinSCP (Windows) o Cyberduck / FileZilla (macOS)
 
@@ -131,7 +131,7 @@ Sube a la carpeta de tu cuenta el `.Rmd` del cuadro de mandos **y todos los fich
     ![](shiny_images/winscp_inicio_sesion.png){width=520px}
 
 3. Conéctate. La primera vez la aplicación pregunta si te fías de la clave del servidor: acepta.
-4. En la parte del servidor estarás ya en la carpeta de tu cuenta (`/home/a2499`): **arrastra** a ella el `.Rmd` y sus ficheros de datos.
+4. En la parte del servidor estarás en la carpeta de tu cuenta (`/home/a2499`): **entra en la carpeta `aedv`** y arrastra a ella el `.Rmd` y sus ficheros de datos.
 
 ## Opción B: con `scp` desde la consola (Windows y macOS)
 
@@ -143,7 +143,7 @@ Los comandos son **los mismos** en Windows y en macOS:
 Para subir **un fichero**:
 
 ```
-scp MiDashboard.Rmd a2499@10.22.143.222:/home/a2499/
+scp MiDashboard.Rmd a2499@10.22.143.222:/home/a2499/aedv/
 ```
 
 Así se ve en la consola de Windows, subiendo un fichero `index.Rmd` desde la carpeta `Downloads`:
@@ -153,7 +153,7 @@ Así se ve en la consola de Windows, subiendo un fichero `index.Rmd` desde la ca
 Para subir **varios** a la vez, escríbelos uno detrás de otro:
 
 ```
-scp MiDashboard.Rmd misdatos.rds a2499@10.22.143.222:/home/a2499/
+scp MiDashboard.Rmd misdatos.rds a2499@10.22.143.222:/home/a2499/aedv/
 ```
 
 Cada vez te pedirá la contraseña (al escribirla no se ve nada en la pantalla: es normal). La primera vez preguntará además si te fías del servidor (`Are you sure you want to continue connecting`): responde `yes`.
@@ -161,7 +161,7 @@ Cada vez te pedirá la contraseña (al escribirla no se ve nada en la pantalla: 
 <div class="nota">
 <strong class="bloque-titulo">Cuidado con `scp *`</strong>
 
-`scp * a2499@10.22.143.222:/home/a2499/` sube **todo** lo que haya en la carpeta, incluida la memoria, los `.html` y cualquier fichero grande que no necesite el cuadro de mandos, y **no sube las subcarpetas** (para eso haría falta `scp -r`). Es mejor indicar los ficheros uno a uno.
+`scp * a2499@10.22.143.222:/home/a2499/aedv/` sube **todo** lo que haya en la carpeta, incluida la memoria, los `.html` y cualquier fichero grande que no necesite el cuadro de mandos, y **no sube las subcarpetas** (para eso haría falta `scp -r`). Es mejor indicar los ficheros uno a uno.
 </div>
 
 # Paso 3 — Abre el cuadro de mandos en el navegador
