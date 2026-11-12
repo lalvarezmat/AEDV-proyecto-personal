@@ -181,10 +181,12 @@ seleccion <- list() # página 1
 }
 
 /* Página Comparación: la columna de la derecha se desplaza en vertical si los
-   tres paneles no caben en la ventana. Cada panel deja de encogerse y tiene
-   un alto fijo: la dispersión, el error y la tabla del ajuste */
+   tres paneles no caben en la ventana. Los paneles dejan de encogerse: las dos
+   gráficas tienen un alto fijo y la tabla del ajuste, el de su contenido (para
+   eso su contenido deja de estar posicionado en absoluto) */
 .columna-scroll {
   overflow-y: auto !important;
+  padding-bottom: 10px;
 }
 .columna-scroll > .chart-wrapper {
   flex: 0 0 auto !important;
@@ -196,7 +198,24 @@ seleccion <- list() # página 1
   height: 280px;
 }
 .columna-scroll > .chart-wrapper:nth-of-type(3) {
-  height: 260px;
+  height: auto !important;
+}
+.columna-scroll > .chart-wrapper:nth-of-type(3) .chart-stage {
+  position: static !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+.columna-scroll > .chart-wrapper:nth-of-type(3) .chart-shim {
+  position: static !important;
+}
+
+/* Página Predicción: cada pestaña se desplaza en vertical si su contenido no
+   cabe; la predicción, el error y la tabla de los tests ocupan al menos 950 px */
+.columna-pred .chart-shim {
+  overflow-y: auto !important;
+}
+.columna-pred .chart-shim .flexfill-container {
+  min-height: 950px;
 }
 ```
 
@@ -952,7 +971,7 @@ local({
 })
 ```
 
-Column {.tabset}
+Column {.tabset .columna-pred}
 --------------------------------------------------
 
 <!--
