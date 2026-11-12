@@ -1,5 +1,5 @@
 ---
-title: "Gasto público por sectores (Eurostat)" # ✎ USUARIO: título del cuadro de mandos
+title: "Gasto público" # ✎ USUARIO: título del cuadro de mandos
 output:
   flexdashboard::flex_dashboard:
     orientation: columns
@@ -187,7 +187,7 @@ seleccion <- list() # página 1
 ################################################################################
 -->
 
-Exploración de series
+Series
 ==================================================
 
 ```{r}
@@ -1114,7 +1114,7 @@ local({
 ################################################################################
 -->
 
-Mapa coroplético
+Mapa
 ==================================================
 
 Column {.sidebar data-width=300}
@@ -1227,7 +1227,7 @@ renderLeaflet({
 ################################################################################
 -->
 
-Comparación de atributos
+Comparación
 ================================================================================
 
 Column {.sidebar data-width=250}
@@ -1417,7 +1417,7 @@ renderUI({
 ################################################################################
 -->
 
-Análisis de atributos
+PCA
 ================================================================================
 
 Column {.sidebar data-width=250}
