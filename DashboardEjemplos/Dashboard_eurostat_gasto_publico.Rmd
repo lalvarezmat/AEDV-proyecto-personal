@@ -179,6 +179,25 @@ seleccion <- list() # página 1
   padding-left: 4px !important;
   padding-right: 4px !important;
 }
+
+/* Página Comparación: la columna de la derecha se desplaza en vertical si los
+   tres paneles no caben en la ventana. Cada panel deja de encogerse y tiene
+   un alto fijo: la dispersión, el error y la tabla del ajuste */
+.columna-scroll {
+  overflow-y: auto !important;
+}
+.columna-scroll > .chart-wrapper {
+  flex: 0 0 auto !important;
+}
+.columna-scroll > .chart-wrapper:nth-of-type(1) {
+  height: 420px;
+}
+.columna-scroll > .chart-wrapper:nth-of-type(2) {
+  height: 280px;
+}
+.columna-scroll > .chart-wrapper:nth-of-type(3) {
+  height: 260px;
+}
 ```
 
 <!--
@@ -1217,7 +1236,7 @@ renderLeaflet({
   # centrado en Europa
   aedv_mapa_coropletico(mapa, mapa$valor, etiquetas,
                         paste0(resultado$indicador, "<br>", resultado$unidad), # título de la leyenda
-                        lng = 12, lat = 55, zoom = 3)
+                        lng = 12, lat = 55, zoom = 4)
 })
 ```
 
@@ -1355,7 +1374,7 @@ renderTable({
 })
 ```
 
-Column
+Column {.columna-scroll}
 --------------------------------------------------------------------------------
 
 ### Diagrama de dispersión y recta de regresión {data-height=400}
