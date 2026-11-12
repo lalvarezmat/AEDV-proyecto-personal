@@ -1,5 +1,5 @@
 ---
-title: "Mi Dashboard" # ✎ USUARIO (PASO 1)
+title: "Gasto público por sectores (Eurostat)" # ✎ USUARIO (PASO 1)
 output:
   flexdashboard::flex_dashboard:
     orientation: columns
@@ -8,131 +8,100 @@ runtime: shiny
 
 <!--
 ================================================================================
-  PLANTILLA DE ANÁLISIS DE ATRIBUTOS: PCA Y K-MEANS (UNA PÁGINA)
+  PLANTILLA DE COMPARACIÓN Y ANÁLISIS DE ATRIBUTOS (DOS PÁGINAS)
 
-  Construye la tabla de atributos (una fila por área geográfica y una columna
-  por atributo), la normaliza con Yeo-Johnson si se pide, la tipifica, calcula
-  el PCA y agrupa las áreas con k-means sobre las componentes que acumulan el
-  85 % de la varianza (mínimo 2). Cada paso tiene su
-  pestaña: valores originales, valores tipificados, matriz de correlación,
-  valores de las componentes, loadings de PC1 y PC2, varianza explicada,
-  biplot de PC1 y PC2, y gráfico del k-means.
+  1. Comparación de atributos: dos atributos frente a frente (diagrama de
+     dispersión con la recta de regresión, su error y la tabla del ajuste), con
+     Yeo-Johnson para normalizar cada variable o para mejorar el ajuste lineal.
+  2. Análisis de atributos: la tabla de atributos (una fila por área y una
+     columna por atributo), tipificada, su matriz de correlación, el PCA y el
+     k-means, cada paso en una pestaña.
 
-  ✎ = LO QUE DEFINE EL USUARIO. Todo lo marcado con ✎ está al principio de la
-  página y es lo ÚNICO que hay que tocar para aplicarla a otros datos:
+  En las dos páginas se elige el indicador, el año (uno concreto, el «Último año
+  disponible» de cada área o la «Media en el periodo» de todos sus años) y la
+  unidad: el valor del indicador o su incremento anual en porcentaje. Nada se
+  calcula hasta pulsar el botón «Calcular».
+
+  ✎ = LO QUE DEFINE EL USUARIO. Todo lo marcado con ✎ está al principio y es lo
+  ÚNICO que hay que tocar para aplicar el cuadro de mandos a otros datos:
     ✎ PASO 1: el título del cuadro de mandos (cabecera YAML, arriba del todo).
-    ✎ PASO 2: el título de la página (la línea subrayada con ====).
-    ✎ PASO 3: el identificador de la página.
-    ✎ PASO 4: la lectura de los datos.
-    ✎ PASO 5: los rótulos y las opciones de arranque.
-  El resto se deduce de los propios datos: los conjuntos de áreas que se
-  ofrecen en el desplegable, los años, las variables entre las que se elige (las columnas
-  numéricas), los atributos y el número máximo de grupos del k-means.
+    ✎ PASO 2: la lectura de los datos.
+    ✎ PASO 3: los rótulos y las opciones de arranque.
+  El resto se deduce de los propios datos: los indicadores (las columnas
+  numéricas), los atributos, los años y el incremento anual de cada indicador.
 
-  ES UNA PÁGINA DENTRO DE UN CUADRO DE MANDOS. Para añadirla a otro cuadro de
-  mandos con varias páginas se copia TODO lo que va desde la línea del título
-  de la página (PASO 2) hasta el final del fichero, y se le da en el PASO 3 un
-  identificador distinto del de las demás páginas (ver la nota "AISLAMIENTO DE
-  LA PÁGINA" más abajo).
+  El ejemplo es el gasto de las administraciones públicas por sectores (funciones
+  COFOG) de 30 países europeos y la UE-27, de Eurostat. Metadatos en
+  https://ctim.es/AEDV/data/eurostat_GASTO_PUBLICO_metadatos.xlsx
 
-  El ejemplo es el de la presentación del Tema 8: el valor añadido bruto (VAB)
-  de Eurostat por sectores económicos. Se elige el año: uno concreto o, por
-  defecto, el «Último año disponible», con el que cada área entra con el último
-  año en que tiene datos de todos los sectores. Hay dos conjuntos de áreas: los países (con
-  Europe 27 y Canarias, tratada como un país más) y las comunidades y ciudades
-  autónomas (con Europe 27 y España). Y tres variables: el VAB, la población y
-  el VAB per cápita. La población está a propósito: es la misma en todos los
-  sectores de un área, así que con ella las diez columnas de la tabla son
-  iguales, todo el PCA cabe en PC1 y PC2 no tiene varianza. Sirve para ver cómo
-  el cuadro de mandos lo detecta y lo explica en vez de dibujar los loadings de
-  PC2, el biplot y el k-means sobre lo que solo es error de redondeo.
-
-  Requiere las funciones de Yeo-Johnson, PCA y k-means del fichero utilidades.R
-  del curso, en su versión de octubre de 2026 o posterior (la que trae el
-  argumento resaltar de aedv_kmeans_grafico()).
+  Requiere las funciones de Yeo-Johnson, regresión, PCA y k-means del fichero
+  utilidades.R del curso, en su versión del 22 de octubre de 2026 o posterior
+  (la que trae el argumento dinamico de aedv_pca_biplot() y aedv_kmeans_grafico()).
 ================================================================================
 -->
 
-<!-- ✎ USUARIO (PASO 2): TÍTULO DE LA PÁGINA. AQUÍ EMPIEZA LA PÁGINA -->
+```{r setup, include=FALSE}
+# opciones de los chunks (en un chunk aparte: el chunk global no se repite
+# al abrir el cuadro de mandos otro usuario, y estas opciones sí hacen falta)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE)
+```
 
-Análisis atributos
-==================================================
+```{r global, include=FALSE}
+# chunk "global": se ejecuta una sola vez en el servidor y lo comparten todos
+# los usuarios (librerías, funciones y datos no se vuelven a cargar con cada uno)
+library(flexdashboard) # Estructura del cuadro de mandos
+library(shiny)         # Controles y reactividad
+library(lmtest)        # Test de Breusch-Pagan (aedv_lm_analisis)
+library(factoextra)    # Biplot y gráfico del k-means
+library(plotly)        # Gráficas dinámicas
+library(tidyverse)     # Manipulación de datos y ggplot2 (el último, para que
+                       # dplyr::filter() no quede tapado por plotly)
 
-```{r, include=FALSE}
+# theme por defecto para las gráficas
+theme_set(theme_bw(base_size = 12))
+
+# funciones aedv_ del curso
+source("https://ctim.es/AEDV/utilidades.R")
+
 # ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
 #   ELEMENTOS QUE DEFINE EL USUARIO
-#   Es lo único que hay que cambiar; todo lo que viene después de este chunk se
-#   adapta solo.
+#   Es lo único que hay que cambiar; todo lo que viene después se adapta solo.
 # ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
 
-library(tidyverse) # manipulación de los datos al leerlos
-
-# ✎ PASO 3: IDENTIFICADOR DE LA PÁGINA
-# Una palabra sin espacios ni tildes. Va delante del nombre de todos los
-# controles de la página, para que no choquen con los de otras páginas del mismo
-# cuadro de mandos: si se pone dos veces esta plantilla, cada copia necesita el
-# suyo.
-PAGINA_ID <- "vab"                                                           # ✎
-
-# ✎ PASO 4: LOS DATOS
+# ✎ PASO 2: LOS DATOS
 # Se leen UNA SOLA VEZ al arrancar y han de quedar como una tabla en formato
 # LARGO con estas columnas:
-#   - ambito:   el conjunto de áreas que se estudian juntas; alimenta el
-#               desplegable de áreas geográficas. Un área puede estar en varios.
-#   - area:     el nombre del área geográfica (la fila de la tabla de atributos)
-#   - atributo: el nombre del atributo (la columna de la tabla de atributos)
+#   - area:     el nombre del área geográfica (una fila de la tabla de atributos)
+#   - atributo: el nombre del atributo (una columna de la tabla de atributos)
 #   - anio:     el año (número entero)
-#   - una o varias columnas NUMÉRICAS: las variables entre las que se elige la
-#     que llena la tabla de atributos.
-# Dentro de cada ámbito tiene que haber un único valor por área, atributo y año.
-# Las áreas y años a los que les falta algún atributo, o con alguna variable NA,
-# se descartan solos (el PCA no admite NA).
-#
-# VAB por sector económico (Eurostat), todos los años.
-VAB_SECTOR <- readRDS(url("https://ctim.es/AEDV/data/eurostat_VAB_sector.rds"))
-
-DATOS <- bind_rows(                                                          # ✎
-  # Países (NUTS 0), Europe 27 y Canarias (NUTS 2), tratada como un país más
-  VAB_SECTOR |>
-    filter(nuts == 0 | code %in% c("EU27_2020", "ES70")) |>
-    mutate(ambito = "Países"),
-  # Comunidades y ciudades autónomas (NUTS 2 de España), Europe 27 y España
-  VAB_SECTOR |>
-    filter((nuts == 2 & str_starts(code, "ES")) | code %in% c("EU27_2020", "ES")) |>
-    mutate(ambito = "CCAA")
-) |>
-  filter(sector != "Total") |> # el total es la suma de los sectores
-  transmute(ambito,
-            area = str_remove(geo, "^[A-Z]{2}[0-9]* "), # "IE Ireland" -> "Ireland", "ES70 Canarias" -> "Canarias"
+#   - una o varias columnas NUMÉRICAS: los indicadores entre los que se elige.
+# Tiene que haber un único valor por área, atributo y año. Los NA se descartan
+# solos al construir cada tabla.
+DATOS <- readRDS(url("https://ctim.es/AEDV/data/eurostat_GASTO_PUBLICO_sector.rds")) |> # ✎
+  as_tibble() |>
+  filter(sector != "Total", # sin el Total, que es la suma de los sectores
+         year(time) >= 1995) |> # de 1990 a 1994 solo hay un país
+  transmute(area = case_when(code == "ES" ~ "España", # nombre de España en español
+                             code == "EU27_2020" ~ "UE-27", # nombre corto del agregado europeo
+                             .default = geo), # el resto de nombres no cambia
             atributo = sector,
             anio = as.integer(year(time)),
-            vab, population, vab_per_capita)
+            gasto_per_capita, pct_pib, pct_gasto, gasto) # indicadores (sin population, igual en todos los sectores)
 
-# ✎ PASO 5: RÓTULOS Y OPCIONES DE ARRANQUE
-ETIQUETA_AMBITO   <- "Áreas geográficas:" # ✎ rótulo del desplegable de ámbitos
-ETIQUETA_ANIO     <- "Año:"               # ✎ rótulo del desplegable de años
-ETIQUETA_VARIABLE <- "Variable:"          # ✎ rótulo del desplegable de variables
+# ✎ PASO 3: RÓTULOS Y OPCIONES DE ARRANQUE
+ETIQUETA_ATRIBUTO <- "Sector" # ✎ cómo se llama un atributo en los rótulos de los controles
 
-# ✎ Rótulo de cada variable, con sus unidades, en el desplegable y en los
-# títulos. Una variable que no esté aquí aparece con el nombre de su columna.
-ETIQUETAS_VARIABLES <- c(
-  vab            = "VAB (millones de euros)",
-  population     = "Población (miles de habitantes)",
-  vab_per_capita = "VAB per cápita (euros por habitante)"
-)
+# ✎ Áreas que se pintan en rojo en la dispersión y se rodean con un círculo en
+# el biplot y el k-means. Las que no estén en la tabla se pasan por alto.
+RESALTAR <- c("España", "UE-27")
 
-# ✎ Áreas que se rodean con un círculo en el gráfico del k-means. Las que no
-# estén en el ámbito elegido se pasan por alto.
-RESALTAR <- c("Europe 27", "Spain", "Canarias")
-
-# Opciones con las que arranca la página. Si el ámbito o la variable no existen
-# en DATOS se usa el primero, así que la plantilla no se rompe al cambiar de
-# datos y olvidarse de tocarlas.
-AMBITO_INICIAL      <- "Países"          # ✎
-ANIO_INICIAL        <- "Último año disponible" # ✎ o un año concreto, p. ej. "2023"
-VARIABLE_INICIAL    <- "vab_per_capita"  # ✎
-K_INICIAL           <- 3                 # ✎ nº de grupos del k-means
-YEO_JOHNSON_INICIAL <- TRUE              # ✎ normalizar con Yeo-Johnson antes de tipificar
+# Opciones con las que arrancan los controles. Si alguna no existe en DATOS se
+# usa la primera, así que la plantilla no se rompe al cambiar de datos y
+# olvidarse de tocarlas.
+INDICADOR_INICIAL  <- "gasto_per_capita"  # ✎
+ATRIBUTO_X_INICIAL <- "Salud"             # ✎ atributo del eje x de la comparación
+ATRIBUTO_Y_INICIAL <- "Protección social" # ✎ atributo del eje y de la comparación
+K_INICIAL          <- 3                   # ✎ nº de grupos del k-means
 
 # ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
 #   FIN DE LOS ELEMENTOS QUE DEFINE EL USUARIO
@@ -140,482 +109,423 @@ YEO_JOHNSON_INICIAL <- TRUE              # ✎ normalizar con Yeo-Johnson antes 
 
 # A PARTIR DE AQUÍ NO HAY QUE TOCAR NADA
 
-# AISLAMIENTO DE LA PÁGINA
-# En un cuadro de mandos con varias páginas, todos los chunks comparten las
-# mismas variables, y la página siguiente puede volver a definir DATOS,
-# RESALTAR... (lo hace seguro si es otra copia de esta plantilla). Por eso lo
-# que define el usuario se guarda AHORA en PAGINAS[[PAGINA_ID]], y el resto de
-# la página trabaja dentro de local({ ... }) leyendo solo de ahí: las
-# reactivas, que se ejecutan más tarde, cuando ya se han leído todas las
-# páginas, siguen viendo los datos de la suya.
-if (!exists("PAGINAS")) PAGINAS <- list()
-PAGINAS[[PAGINA_ID]] <- list(
-  datos               = DATOS,
-  etiqueta_ambito     = ETIQUETA_AMBITO,
-  etiqueta_anio       = ETIQUETA_ANIO,
-  etiqueta_variable   = ETIQUETA_VARIABLE,
-  etiquetas_variables = ETIQUETAS_VARIABLES,
-  resaltar            = RESALTAR,
-  ambito_inicial      = AMBITO_INICIAL,
-  anio_inicial        = ANIO_INICIAL,
-  variable_inicial    = VARIABLE_INICIAL,
-  k_inicial           = K_INICIAL,
-  yeo_johnson_inicial = YEO_JOHNSON_INICIAL
-)
+# comprobación de los datos: si falta algo, se avisa al arrancar y no con un
+# panel vacío más tarde
+faltan <- setdiff(c("area", "atributo", "anio"), names(DATOS))
+if (length(faltan) > 0) stop("A DATOS le faltan las columnas ", paste(faltan, collapse = ", "), ".")
+if (anyDuplicated(DATOS[c("area", "atributo", "anio")]) > 0) {
+  stop("En DATOS hay áreas, atributos y años con más de un valor: debe haber uno solo.")
+}
+
+# indicadores: las columnas numéricas, salvo el año
+INDICADORES <- setdiff(names(DATOS)[sapply(DATOS, is.numeric)], "anio")
+
+# atributos, en el orden de la tabla
+ATRIBUTOS <- unique(DATOS$atributo)
+
+# años, del más reciente al más antiguo
+ANIOS <- sort(unique(DATOS$anio), decreasing = TRUE)
+
+# opciones de arranque que no existen en DATOS: la primera
+if (!INDICADOR_INICIAL %in% INDICADORES) INDICADOR_INICIAL <- INDICADORES[1]
+if (!ATRIBUTO_X_INICIAL %in% ATRIBUTOS) ATRIBUTO_X_INICIAL <- ATRIBUTOS[1]
+if (!ATRIBUTO_Y_INICIAL %in% ATRIBUTOS) ATRIBUTO_Y_INICIAL <- ATRIBUTOS[2]
+
+# tabla con la unidad "Valor indicador": los datos tal cual
+DATOS_VALOR <- DATOS |>
+  mutate(unidad = "Valor indicador")
+
+# la misma tabla con la unidad "Incremento anual (%)": variación porcentual de cada
+# indicador respecto al año anterior (NA si falta el año anterior o no es positivo)
+DATOS_INCREMENTO <- DATOS |>
+  arrange(anio) |> # años en orden, para que lag() sea el año anterior
+  group_by(area, atributo) |> # cada área y atributo por separado
+  mutate(across(all_of(INDICADORES),
+                \(v) if_else(lag(anio) == anio - 1 & lag(v) > 0, 100 * (v - lag(v)) / lag(v), NA))) |> # incremento (%)
+  filter(anio > min(anio)) |> # el primer año de cada área no tiene incremento
+  ungroup() |>
+  mutate(unidad = "Incremento anual (%)")
+
+# las dos tablas juntas: el control de la unidad elige una de las dos
+DATOS_UNIDAD <- bind_rows(DATOS_VALOR, DATOS_INCREMENTO)
+
+# opciones de los controles de año y unidad, comunes a las dos páginas
+OPCIONES_ANIO   <- c("Último año disponible", "Media en el periodo", ANIOS)
+OPCIONES_UNIDAD <- c("Valor indicador", "Incremento anual (%)")
 ```
 
-```{r, include=FALSE}
-library(flexdashboard) # Estructura del cuadro de mando en columnas
-library(shiny)         # Reactividad
-library(plotly)        # Gráficas dinámicas: ggplotly convierte los ggplot
-library(factoextra)    # Gráfico del k-means (lo usa aedv_kmeans_grafico)
-library(tidyverse)     # Manipulación de datos y ggplot2
-# Las tablas interactivas son de la librería DT, que se usa con el prefijo DT::
+Comparación de atributos
+================================================================================
 
-# Funciones auxiliares del curso. Si otra página ya las ha cargado no se vuelven
-# a descargar.
-if (!exists("aedv_kmeans")) source("https://ctim.es/AEDV/utilidades.R")
+Column {.sidebar data-width=250}
+--------------------------------------------------------------------------------
 
-# ==============================================================================
-# FUNCIONES DE LA PLANTILLA
-# No dependen de la página: si la plantilla está copiada varias veces, cada copia
-# las vuelve a definir exactamente iguales y no pasa nada.
-# ==============================================================================
+```{r}
+# indicador que se compara
+selectInput("indicador", "Indicador:", choices = INDICADORES, selected = INDICADOR_INICIAL)
 
-# Opción del desplegable de años con la que cada área entra con su último año
-# completo (el último en que tiene todos los atributos)
-ULTIMO_ANIO <- "Último año disponible"
+# año, el último disponible de cada área (opción por defecto) o la media en el periodo
+selectInput("anio", "Año:", choices = OPCIONES_ANIO, selected = "Último año disponible")
 
-# TABLA DE ATRIBUTOS de un ámbito, un año y una variable: una fila por área y
-# una columna por atributo. El área va como NOMBRE DE FILA, y no como columna,
-# para que todas las columnas sean numéricas y el área no interfiera en los
-# cálculos. `completos` solo tiene las áreas y años con todos los atributos; con
-# ULTIMO_ANIO, cada área entra con el último de sus años completos.
-tabla_atributos <- function(completos, ambito_elegido, anio_elegido, variable) {
-  d <- completos |> filter(ambito == ambito_elegido)
-  if (anio_elegido == ULTIMO_ANIO) {
-    d <- d |> group_by(area) |> filter(anio == max(anio)) |> ungroup() # último año de cada área
+# valor del indicador o su incremento (%) respecto al año anterior
+radioButtons("unidad", "Unidad:", choices = OPCIONES_UNIDAD, selected = "Valor indicador")
+
+# atributo del eje x
+selectInput("atributo_x", paste(ETIQUETA_ATRIBUTO, "eje x:"), choices = ATRIBUTOS, selected = ATRIBUTO_X_INICIAL)
+
+# atributo del eje y
+selectInput("atributo_y", paste(ETIQUETA_ATRIBUTO, "eje y:"), choices = ATRIBUTOS, selected = ATRIBUTO_Y_INICIAL)
+```
+
+**Yeo-Johnson**
+
+```{r}
+# normalizar x e y por separado, cada una con el lambda que la acerca más a una normal
+checkboxInput("normalizar", "Normalizar cada variable por separado", value = FALSE)
+
+# transformar y con el lambda que hace máximo el R2 de la recta
+checkboxInput("ajuste_yj", "Ajuste lineal (transforma y)", value = FALSE)
+
+# lanza el cálculo: hasta pulsarlo no se calcula nada, ni al arrancar ni al cambiar los controles
+actionButton("calcular", "Calcular")
+```
+
+```{r}
+# datos comunes a las cuatro salidas: solo se recalcula al pulsar «Calcular».
+# Devuelve una lista con la tabla, los controles elegidos (para los títulos) y
+# los lambda usados (NA si no se usan)
+procesado_page_1 <- eventReactive(input$calcular, {
+  # inicializamos a NA los lambda de Yeo-Johnson (se quedan así si no se usan)
+  lambda_norm_x <- NA
+  lambda_norm_y <- NA
+  lambda_ajuste <- NA
+
+  # una fila por área y año y el valor de cada atributo en una columna
+  tabla <- DATOS_UNIDAD |>
+    filter(unidad == input$unidad, # valor del indicador o incremento anual (%)
+           atributo %in% c(input$atributo_x, input$atributo_y)) |> # atributos elegidos
+    select(area, anio, atributo, valor = input$indicador) |> # indicador elegido
+    pivot_wider(names_from = atributo, values_from = valor) |> # una columna por atributo
+    select(area, anio, x = input$atributo_x, y = input$atributo_y) |> # columnas x e y
+    drop_na() # años sin dato en alguno de los dos atributos
+
+  # año elegido, el último con dato de cada área o la media de todos sus años
+  if (input$anio == "Último año disponible") {
+    tabla <- tabla |>
+      group_by(area) |>
+      slice_max(anio, n = 1) |>
+      ungroup()
+  } else if (input$anio == "Media en el periodo") {
+    tabla <- tabla |>
+      group_by(area) |>
+      summarise(anio = paste0(min(anio), "-", max(anio)), # periodo de la media (para el cuadro emergente)
+                x = mean(x, na.rm = TRUE),
+                y = mean(y, na.rm = TRUE))
   } else {
-    d <- d |> filter(anio == as.integer(anio_elegido)) # año elegido
-  }
-  d |>
-    select(area, atributo, all_of(variable)) |>
-    pivot_wider(names_from = atributo, values_from = all_of(variable)) |> # un atributo por columna
-    column_to_rownames(var = "area") # área como nombre de fila
-}
-
-# Decimales con los que se muestran los valores originales: los justos para que
-# los más pequeños (el percentil 10 de su valor absoluto, no el mínimo, que
-# puede ser un caso aislado) no se lean redondeados a una o dos cifras.
-decimales_de <- function(tabla) {
-  p10 <- quantile(abs(as.matrix(tabla)), 0.1)
-  if (p10 >= 100) 0 else if (p10 >= 10) 1 else 2
-}
-
-# Tabla interactiva (librería DT) que ocupa toda la pestaña: sin paginar, con
-# barras de desplazamiento si no cabe, el buscador para encontrar un área y la
-# ordenación al pulsar en la cabecera de una columna. Los números con el formato
-# español: punto para los miles y coma decimal.
-tabla_dt <- function(tabla, decimales) {
-  tabla <- as.data.frame(tabla)
-  DT::datatable(tabla, fillContainer = TRUE,
-                options = list(paging = FALSE, scrollX = TRUE,
-                               dom = "ft", # solo el buscador (f) y la tabla (t)
-                               language = list(search = "Buscar:"))) |>
-    DT::formatRound(columns = names(tabla), digits = decimales,
-                    mark = ".", dec.mark = ",")
-}
-
-# ==============================================================================
-# PREPARACIÓN DE LA PÁGINA: comprobación de los datos, tablas de atributos y
-# opciones de los controles. Todo se guarda en PAGINAS[[PAGINA_ID]].
-# ==============================================================================
-local({
-  pg    <- PAGINAS[[PAGINA_ID]]
-  datos <- pg$datos
-
-  # COMPROBACIÓN DE LOS DATOS. Se verifica lo que la plantilla da por supuesto de
-  # los datos del PASO 4. Es una costumbre barata que evita el peor modo de fallo
-  # de un cuadro de mando: un problema en los datos que no protesta al arrancar,
-  # sino más tarde y dentro de una función de cálculo, donde el único síntoma es
-  # un panel vacío.
-  aviso  <- paste0("Página '", PAGINA_ID, "': ")
-  claves <- c("ambito", "area", "atributo", "anio")
-  faltan <- setdiff(claves, names(datos))
-  if (length(faltan) > 0) {
-    stop(aviso, "a DATOS le faltan las columnas ", paste(faltan, collapse = ", "), ".")
-  }
-  variables <- setdiff(names(datos)[sapply(datos, is.numeric)], claves)
-  if (length(variables) == 0) {
-    stop(aviso, "DATOS no tiene ninguna columna numérica con la que llenar la tabla.")
-  }
-  repetidos <- datos |> count(ambito, area, atributo, anio) |> filter(n > 1)
-  if (nrow(repetidos) > 0) {
-    stop(aviso, "en DATOS hay ", nrow(repetidos), " combinaciones de ámbito, área, ",
-         "atributo y año con más de un valor (la primera: ", repetidos$ambito[1], ", ",
-         repetidos$area[1], ", ", repetidos$atributo[1], ", ", repetidos$anio[1],
-         "). Debe haber uno solo.")
+    tabla <- tabla |>
+      filter(anio == input$anio)
   }
 
-  # ÁREAS Y AÑOS COMPLETOS: los que tienen todos los atributos con todas las
-  # variables finitas. Así un área es la del mismo año al cambiar de variable.
-  # Las tablas de atributos se construyen con ellos al pulsar «Calcular», con el
-  # año elegido; si quedan pocas áreas o un atributo constante, el cálculo lo
-  # explica en vez de fallar.
-  n_atributos <- n_distinct(datos$atributo)
-  completos <- datos |>
-    filter(if_all(all_of(variables), is.finite)) |>
-    group_by(ambito, area, anio) |>
-    filter(n() == n_atributos) |>
-    ungroup()
+  # con menos de 3 áreas no hay recta ni tests que calcular
+  validate(need(nrow(tabla) >= 3, paste0(
+    "Con esta combinación hay ", nrow(tabla), " áreas con dato en los dos atributos: ",
+    "son demasiado pocas. Elige otro año o la otra unidad.")))
 
-  ambitos <- unique(datos$ambito)
-  anios   <- c(ULTIMO_ANIO, sort(unique(completos$anio), decreasing = TRUE))
-
-  # Nº de grupos del k-means: de 2 a 8, y siempre menos que áreas haya en el
-  # ámbito más pequeño (cada área con su último año)
-  n_min <- min(sapply(ambitos, function(a)
-    nrow(tabla_atributos(completos, a, ULTIMO_ANIO, variables[1]))))
-  if (n_min < 3) {
-    stop(aviso, "algún ámbito tiene menos de 3 áreas: son demasiado pocas para agruparlas.")
+  # 1. normalización: x e y por separado, cada una con SU lambda de normalidad
+  if (input$normalizar) {
+    lambda_norm_x <- aedv_yeojohnson_lambda(tabla$x)
+    lambda_norm_y <- aedv_yeojohnson_lambda(tabla$y)
+    tabla <- tabla |>
+      mutate(x = aedv_yeo_johnson(x, lambda_norm_x),
+             y = aedv_yeo_johnson(y, lambda_norm_y))
   }
 
-  # Rótulos de las variables en el desplegable: los del PASO 5, o el nombre de
-  # la columna si falta alguno
-  etiquetas <- ifelse(variables %in% names(pg$etiquetas_variables),
-                      pg$etiquetas_variables[variables], variables)
+  # 2. ajuste lineal: y con el lambda que hace máximo el R2 de la recta
+  if (input$ajuste_yj) {
+    lambda_ajuste <- aedv_lambda_optimo(tabla$x, tabla$y)
+    tabla <- tabla |>
+      mutate(y = aedv_yeo_johnson(y, lambda_ajuste))
+  }
 
-  if (!pg$ambito_inicial %in% ambitos)     pg$ambito_inicial   <- ambitos[1]
-  if (!pg$anio_inicial %in% anios)         pg$anio_inicial     <- anios[1]
-  if (!pg$variable_inicial %in% variables) pg$variable_inicial <- variables[1]
-
-  pg$ambitos   <- ambitos
-  pg$anios     <- anios
-  pg$variables <- setNames(variables, etiquetas) # rótulo -> nombre de la columna
-  pg$completos <- completos
-  pg$k         <- 2:min(8, n_min - 1)
-  pg$k_inicial <- min(pg$k_inicial, max(pg$k))
-  pg$datos     <- NULL # ya está en completos: no se guarda dos veces
-
-  # IDENTIFICADORES DE LOS CONTROLES Y SALIDAS: el de la página delante, para que
-  # no choquen con los de otras páginas ("vab_ambito", "vab_k"...)
-  p <- PAGINA_ID
-  pg$id <- function(nombre) paste0(p, "_", nombre)
-
-  PAGINAS[[PAGINA_ID]] <<- pg
+  # los controles viajan dentro del resultado: así los títulos no cambian hasta
+  # volver a pulsar el botón
+  list(tabla = tabla,
+       indicador = input$indicador, anio = input$anio, unidad = input$unidad,
+       atributo_x = input$atributo_x, atributo_y = input$atributo_y,
+       lambda_norm_x = lambda_norm_x, lambda_norm_y = lambda_norm_y,
+       lambda_ajuste = lambda_ajuste)
 })
 ```
 
-Menú {.sidebar data-width=200}
---------------------------------------------------
+**Resumen resultados**
 
 ```{r}
-local({
-  pg <- PAGINAS[[PAGINA_ID]]
-  id <- pg$id
+renderTable({
+  resultado <- procesado_page_1() # la tabla y los lambda
+  tabla <- resultado$tabla
 
-  # ============================================================================
-  # UN SOLO CÁLCULO REACTIVO PARA TODAS LAS PESTAÑAS DE LA PÁGINA
-  # Aquí se hacen, en orden, los pasos del análisis de atributos: Yeo-Johnson
-  # (si se pide), tipificar, PCA y k-means. El resultado lo comparten todas las
-  # pestañas: si cada una lo calculara por su cuenta, el PCA se repetiría ocho
-  # veces.
-  #
-  # Es un eventReactive(): solo se recalcula al pulsar el botón «Calcular», no
-  # cada vez que se toca un control. Así se pueden cambiar varios controles
-  # seguidos y hacer el cálculo (y redibujar las pestañas) una sola vez. Al
-  # arrancar NO se calcula nada, para que el cuadro de mandos cargue antes: las
-  # pestañas quedan vacías hasta el primer clic. Se guarda en
-  # PAGINAS[[PAGINA_ID]] para que lo lean los demás chunks de la página.
-  # ============================================================================
-  pg$calculo <- eventReactive(input[[id("calcular")]], {
-    # Por si se pulsa el botón antes de que existan los controles. La casilla de
-    # Yeo-Johnson no puede ir dentro de req(): sin marcar vale FALSE, y
-    # req(FALSE) detendría el cálculo.
-    req(input[[id("ambito")]], input[[id("anio")]], input[[id("variable")]],
-        input[[id("k")]], !is.null(input[[id("yeo_johnson")]]))
+  # valores como texto: si no, renderTable() daría a todos los mismos decimales
+  resumen <- tibble(medida = c("nº áreas", "correlación"),
+                    valor = c(as.character(nrow(tabla)), as.character(round(cor(tabla$x, tabla$y), 4))))
 
-    ambito   <- input[[id("ambito")]]
-    anio     <- input[[id("anio")]]
-    variable <- input[[id("variable")]]
-    k        <- as.numeric(input[[id("k")]])
-    yj       <- input[[id("yeo_johnson")]]
-    etiqueta <- names(pg$variables)[pg$variables == variable]
+  if (!is.na(resultado$lambda_norm_x)) {
+    resumen <- resumen |>
+      add_row(medida = "lambda x", valor = as.character(round(resultado$lambda_norm_x, 4))) |>
+      add_row(medida = "lambda y", valor = as.character(round(resultado$lambda_norm_y, 4)))
+  }
 
-    # 0. La tabla de atributos del ámbito, el año y la variable elegidos
-    original <- tabla_atributos(pg$completos, ambito, anio, variable)
+  if (!is.na(resultado$lambda_ajuste)) {
+    resumen <- resumen |> add_row(medida = "lambda ajuste y", valor = as.character(round(resultado$lambda_ajuste, 4)))
+  }
 
-    # En los primeros años hay pocas áreas con todos los atributos
-    validate(need(nrow(original) >= 3 && k < nrow(original), paste0(
-      if (anio == ULTIMO_ANIO) "Con el último año de cada área" else paste("En", anio),
-      " hay ", nrow(original), " áreas de '", ambito,
-      "' con todos los atributos: son demasiado pocas para ", k, " grupos. ",
-      "Elige otro año o menos grupos.")))
+  resumen
+})
+```
 
-    # Un atributo que vale lo mismo en todas las áreas no se puede tipificar
-    constantes <- names(original)[sapply(original, sd) == 0]
-    validate(need(length(constantes) == 0, paste0(
-      "La variable vale lo mismo en todas las áreas para ",
-      paste(constantes, collapse = ", "), ": no se puede tipificar. ",
-      "Elige otra combinación.")))
+Column
+--------------------------------------------------------------------------------
 
-    # 1. YEO-JOHNSON: cada atributo con SU lambda, el que lo acerca más a una
-    #    normal. Así ningún valor extremo acapara la varianza del PCA.
-    normalizada <- original
-    if (yj) {
-      normalizada <- original |>
-        mutate(across(everything(), \(v) aedv_yeo_johnson(v, aedv_yeojohnson_lambda(v))))
-    }
+### Diagrama de dispersión y recta de regresión {data-height=400}
 
-    # 2. TIPIFICAR: restar a cada atributo su media y dividir por su desviación
-    #    típica, para que todos pesen por igual
-    tipificada <- scale(normalizada)
+```{r}
+renderPlotly({
+  resultado <- procesado_page_1()
+  tabla <- resultado$tabla
 
-    # 3. PCA. Con scale = TRUE, prcomp() tipifica por su cuenta exactamente igual
-    #    que scale(), así que las componentes salen de la tabla tipificada
-    pca <- prcomp(normalizada, scale = TRUE)
+  # un punto por área y la recta de regresión
+  p <- tabla |>
+    ggplot(aes(x, y)) +
+    geom_point(aes(text = paste0(area, " (", anio, ")<br>", # área, año(s) y valor de cada eje en el cuadro emergente
+                                 resultado$atributo_x, ": ", round(x, 2), "<br>",
+                                 resultado$atributo_y, ": ", round(y, 2)),
+                   colour = (area %in% RESALTAR)), # las áreas resaltadas en rojo
+               size = 2) + # el texto y el color solo en los puntos: en el aes() general, geom_smooth haría una recta por área
+    scale_colour_manual(values = c("FALSE" = "black", "TRUE" = "red")) + # negro, y rojo para las resaltadas
+    geom_smooth(method = lm, se = FALSE, color = "steelblue") + # recta de regresión
+    labs(title = paste0(resultado$indicador, " (", resultado$anio, ", ", resultado$unidad, "): ",
+                        resultado$atributo_y, " frente a ", resultado$atributo_x),
+         x = resultado$atributo_x, y = resultado$atributo_y) +
+    theme(legend.position = "none", # sin leyenda
+          plot.title = element_text(size = 11)) # título más pequeño, para que no desborde
 
-    # SIGNO DE LAS COMPONENTES. El signo de cada componente es arbitrario: se
-    # elige el que hace POSITIVO su loading de mayor valor absoluto, para que la
-    # componente crezca con el atributo que más pesa en ella. Se cambia a la vez
-    # en los loadings (rotation) y en los valores de las componentes (x), así
-    # que el PCA sigue siendo el mismo.
-    signo <- apply(pca$rotation, 2, function(u) sign(u[which.max(abs(u))]))
-    pca$rotation <- sweep(pca$rotation, 2, signo, `*`)
-    pca$x        <- sweep(pca$x, 2, signo, `*`)
+  ggplotly(p, tooltip = "text") # solo el texto construido arriba
+})
+```
 
-    # PC2 SIN VARIANZA: si todas las columnas tipificadas son iguales, toda la
-    # información cabe en PC1 y PC2 vale 0 (salvo errores de redondeo, del orden
-    # de 1e-16). Sus loadings son entonces una dirección cualquiera, y el
-    # gráfico del k-means, que estandariza PC1 y PC2 antes de dibujar, ampliaría
-    # ese ruido hasta parecer una nube de puntos de verdad. Esas pestañas se
-    # sustituyen por esta explicación.
-    varianza    <- pca$sdev^2 / sum(pca$sdev^2)
-    diagnostico <- NULL
-    if (varianza[2] < 1e-10) {
-      diagnostico <- paste0(
-        "PC2 no tiene varianza: todos los atributos tienen los mismos valores ",
-        "tipificados, así que PC1 recoge el 100 % de la varianza y PC2 vale 0 en ",
-        "todas las áreas (salvo errores de redondeo). Sin una segunda componente ",
-        "no tienen sentido ni los loadings de PC2, ni el biplot, ni el k-means sobre PC1 y PC2. ",
-        "Es lo que pasa con una variable que no depende del atributo, como la ",
-        "población de un área, que es la misma en todos los sectores.")
-    }
+### Error de la recta de regresión {data-height=250}
 
-    # 4. K-MEANS sobre las componentes que acumulan al menos el 85 % de la
-    #    varianza, con un mínimo de dos (el valor por omisión de aedv_kmeans();
-    #    con una utilidades.R anterior al 2026-10-12, las dos primeras)
-    clusters <- if (is.null(diagnostico)) aedv_kmeans(pca, k = k)
+```{r}
+renderPlotly({
+  resultado <- procesado_page_1()
+  tabla <- resultado$tabla
 
-    # Los controles elegidos viajan DENTRO del resultado, junto a los datos que
-    # les corresponden, para que las pestañas no tengan que volver a leerlos de
-    # input (y para los títulos)
-    list(
-      ambito      = ambito,
-      etiqueta    = etiqueta,
-      yj          = yj,
-      k           = k,
-      descripcion = paste0(etiqueta, " · ", ambito, " · ", tolower(anio),
-                           if (yj) " · con Yeo-Johnson"),
-      original    = original,
-      tipificada  = tipificada,
-      pca         = pca,
-      clusters    = clusters,
-      diagnostico = diagnostico
-    )
-  })
-  PAGINAS[[PAGINA_ID]] <<- pg
+  # error de la recta (a x + b - y) frente a x, con el área en el cuadro emergente
+  aedv_lm_error_grafico(tabla$x, tabla$y, nombres = tabla$area,
+                        titulo = NULL, # sin título: ya está en el encabezado del panel
+                        x_lab = resultado$atributo_x, dinamico = TRUE)
+})
+```
 
-  # LOS CONTROLES. No dependen unos de otros, así que se crean una sola vez
-  tagList(
-    selectInput(id("ambito"), pg$etiqueta_ambito,
-                choices = pg$ambitos, selected = pg$ambito_inicial),
+### Análisis del ajuste por la recta de regresión {data-height=250}
 
-    selectInput(id("anio"), pg$etiqueta_anio,
-                choices = pg$anios, selected = pg$anio_inicial),
+```{r}
+renderUI({
+  tabla <- procesado_page_1()$tabla
 
-    selectInput(id("variable"), pg$etiqueta_variable,
-                choices = pg$variables, selected = pg$variable_inicial),
+  aedv_lm_analisis(tabla$x, tabla$y) |> # recta, R2, sigma y tests de los residuos
+    aedv_tabla_lm(titulo = "") # sin título: ya está en el encabezado del panel
+})
+```
 
-    selectInput(id("k"), "Nº de grupos del k-means:",
-                choices = pg$k, selected = pg$k_inicial),
+Análisis de atributos
+================================================================================
 
-    checkboxInput(id("yeo_johnson"), "Normalizar con Yeo-Johnson antes de tipificar",
-                  value = pg$yeo_johnson_inicial),
+Column {.sidebar data-width=250}
+--------------------------------------------------------------------------------
 
-    # Lanza el cálculo: hasta pulsarlo no se calcula nada, ni al arrancar ni al
-    # cambiar los controles
-    actionButton(id("calcular"), "Calcular")
-  )
+```{r}
+# indicador con el que se llena la tabla de atributos (identificador distinto al de la página 1)
+selectInput("indicador_2", "Indicador:", choices = INDICADORES, selected = INDICADOR_INICIAL)
+
+# año, el último disponible de cada área (opción por defecto) o la media en el periodo
+selectInput("anio_2", "Año:", choices = OPCIONES_ANIO, selected = "Último año disponible")
+
+# valor del indicador o su incremento (%) respecto al año anterior
+radioButtons("unidad_2", "Unidad:", choices = OPCIONES_UNIDAD, selected = "Valor indicador")
+
+# número de grupos del k-means
+selectInput("k", "Nº de grupos del k-means:", choices = 2:8, selected = K_INICIAL)
+
+# normalizar cada atributo con Yeo-Johnson (cada uno con su lambda) antes de tipificar
+checkboxInput("yeo_johnson_2", "Normalizar con Yeo-Johnson antes de tipificar", value = TRUE)
+
+# lanza el cálculo: hasta pulsarlo no se calcula nada, ni al arrancar ni al cambiar los controles
+actionButton("calcular_2", "Calcular")
+```
+
+```{r}
+# todo el análisis, en un solo cálculo que comparten las 8 pestañas: solo se
+# recalcula al pulsar «Calcular». Devuelve una lista con cada paso y una
+# descripción de los controles elegidos (para los títulos)
+procesado_page_2 <- eventReactive(input$calcular_2, {
+  k <- as.numeric(input$k)
+
+  # tabla de atributos: una fila por área y año y un atributo (columna) por atributo
+  tabla <- DATOS_UNIDAD |>
+    filter(unidad == input$unidad_2) |> # valor del indicador o incremento anual (%)
+    select(area, anio, atributo, valor = input$indicador_2) |> # indicador elegido
+    pivot_wider(names_from = atributo, values_from = valor) |> # una fila por área y año, un atributo por columna
+    drop_na() # años sin todos los atributos
+
+  # año elegido, el último con todos los atributos de cada área o la media de todos sus años
+  if (input$anio_2 == "Último año disponible") {
+    tabla <- tabla |>
+      group_by(area) |>
+      slice_max(anio, n = 1) |>
+      ungroup()
+  } else if (input$anio_2 == "Media en el periodo") {
+    tabla <- tabla |>
+      group_by(area) |>
+      summarise(anio = paste0(min(anio), "-", max(anio)), # periodo de la media (no se usa: se quita debajo)
+                across(all_of(ATRIBUTOS), \(v) mean(v, na.rm = TRUE))) # media de cada atributo
+  } else {
+    tabla <- tabla |>
+      filter(anio == input$anio_2)
+  }
+
+  atributos <- tabla |>
+    select(-anio) |> # el año ya no hace falta
+    column_to_rownames(var = "area") # el área como nombre de fila
+
+  # en algunos años hay pocas áreas con todos los atributos
+  validate(need(nrow(atributos) > k, paste0(
+    "Con esta combinación hay ", nrow(atributos), " áreas con todos los atributos: ",
+    "son demasiado pocas para ", k, " grupos. Elige otro año, la otra unidad o menos grupos.")))
+
+  # un atributo que vale lo mismo en todas las áreas no se puede tipificar
+  constantes <- names(atributos)[sapply(atributos, sd) == 0]
+  validate(need(length(constantes) == 0, paste0(
+    "El indicador vale lo mismo en todas las áreas para ", paste(constantes, collapse = ", "),
+    ": no se puede tipificar. Elige otra combinación.")))
+
+  # tabla de atributos normalizada con Yeo-Johnson (si se marca la casilla)
+  normalizada <- atributos
+  if (input$yeo_johnson_2) {
+    normalizada <- atributos |>
+      mutate(across(everything(), \(v) aedv_yeo_johnson(v, aedv_yeojohnson_lambda(v)))) # cada atributo con SU lambda
+  }
+
+  # PCA de la tabla normalizada, con el signo de cada componente fijado
+  pca <- prcomp(normalizada, scale = TRUE) # tipifica y calcula el PCA
+  signo <- apply(pca$rotation, 2, \(u) sign(u[which.max(abs(u))])) # signo del loading de mayor valor absoluto
+  pca$rotation <- sweep(pca$rotation, 2, signo, `*`) # ese loading pasa a ser positivo...
+  pca$x <- sweep(pca$x, 2, signo, `*`) # ...y cambiamos igual el signo de las componentes de cada área
+
+  list(atributos = atributos,
+       normalizada = normalizada,
+       pca = pca,
+       k = k,
+       descripcion = paste0(input$indicador_2, " (", input$anio_2, ", ", input$unidad_2, ")"))
 })
 ```
 
 Column {.tabset}
---------------------------------------------------
-
-<!--
-  LA COLUMNA DE LA DERECHA VA EN OCHO PESTAÑAS, en el orden de los pasos del
-  análisis. Todas beben del mismo cálculo, así que cambiar de pestaña no vuelve
-  a calcular nada, y solo se actualizan al pulsar «Calcular».
-
-  IMPORTANTE: en los paneles de las gráficas no se escribe texto encima. El
-  widget ocupa la altura del panel, así que cualquier línea de texto por delante
-  lo empuja hacia abajo y flexdashboard le recorta el borde inferior, que es
-  precisamente donde están las etiquetas del eje horizontal.
--->
+--------------------------------------------------------------------------------
 
 ### Originales
 
 ```{r}
-# La tabla de atributos tal como sale de los datos, con la variable elegida
-local({
-  pg <- PAGINAS[[PAGINA_ID]]
-
-  DT::renderDataTable({
-    resultado <- pg$calculo()
-    tabla_dt(resultado$original,
-             decimales = decimales_de(resultado$original))
-  })
-})
+# tabla con el área como nombre de fila (el panel pone el scroll)
+renderTable({
+  procesado_page_2()$atributos |>
+    round(2) # dos decimales
+}, rownames = TRUE)
 ```
 
 ### Tipificados
 
 ```{r}
-# Así entran los datos en el PCA: normalizados con Yeo-Johnson, si se ha pedido,
-# y tipificados (media 0 y desviación típica 1 en cada atributo)
-local({
-  pg <- PAGINAS[[PAGINA_ID]]
-
-  DT::renderDataTable({
-    resultado <- pg$calculo()
-    tabla_dt(resultado$tipificada,
-             decimales = 2)
-  })
-})
+# tabla con el área como nombre de fila (el panel pone el scroll)
+renderTable({
+  procesado_page_2()$normalizada |>
+    scale() |> # así entra en el PCA
+    round(2) # dos decimales
+}, rownames = TRUE)
 ```
 
 ### Correlación
 
 ```{r}
-# La correlación de todos los pares de atributos, sobre los valores tipificados
-# (tipificar no cambia la correlación, pero Yeo-Johnson sí)
-local({
-  pg <- PAGINAS[[PAGINA_ID]]
-
-  renderPlotly({
-    resultado <- pg$calculo()
-    resultado$tipificada |>
-      cor() |> # matriz de correlación
-      aedv_matriz_correlacion(show_values = TRUE,
-                              title = paste0("Matriz de correlación · ", resultado$descripcion))
-  })
+renderPlotly({
+  resultado <- procesado_page_2()
+  resultado$normalizada |>
+    cor() |>
+    aedv_matriz_correlacion(show_values = TRUE,
+                            title = paste0("Matriz de correlación: ", resultado$descripcion))
 })
 ```
 
 ### PC's
 
 ```{r}
-# El valor de cada componente principal en cada área (pca$x)
-local({
-  pg <- PAGINAS[[PAGINA_ID]]
-
-  DT::renderDataTable({
-    resultado <- pg$calculo()
-    tabla_dt(resultado$pca$x,
-             decimales = 2)
-  })
-})
+# tabla con el área como nombre de fila (el panel pone el scroll)
+renderTable({
+  procesado_page_2()$pca$x |> # componentes principales de cada área
+    round(2) # dos decimales
+}, rownames = TRUE)
 ```
 
 ### Loadings
 
 ```{r}
-# Contribución (y signo) de cada atributo a PC1 y a PC2, una gráfica debajo de
-# la otra
-local({
-  pg <- PAGINAS[[PAGINA_ID]]
-  id <- pg$id
-
-  output[[id("loadings_pc1")]] <- renderPlotly({
-    resultado <- pg$calculo()
-    aedv_pca_loadings_grafico(resultado$pca, 1) |> ggplotly()
-  })
-
-  output[[id("loadings_pc2")]] <- renderPlotly({
-    resultado <- pg$calculo()
-    validate(need(is.null(resultado$diagnostico), resultado$diagnostico))
-    aedv_pca_loadings_grafico(resultado$pca, 2) |> ggplotly()
-  })
-
-  # fillCol() reparte el alto de la pestaña entre las dos gráficas
-  fillCol(plotlyOutput(id("loadings_pc1"), height = "100%"),
-          plotlyOutput(id("loadings_pc2"), height = "100%"))
+# contribución de cada atributo a PC1 y a PC2, una gráfica debajo de la otra
+output$loadings_pc1 <- renderPlotly({
+  aedv_pca_loadings_grafico(procesado_page_2()$pca, 1) |> ggplotly()
 })
+
+output$loadings_pc2 <- renderPlotly({
+  aedv_pca_loadings_grafico(procesado_page_2()$pca, 2) |> ggplotly()
+})
+
+fillCol(plotlyOutput("loadings_pc1", height = "100%"),
+        plotlyOutput("loadings_pc2", height = "100%"))
 ```
 
 ### Varianza
 
 ```{r}
-# Porcentaje de la varianza total que explica cada componente: sirve para
-# decidir con cuántas quedarse
-local({
-  pg <- PAGINAS[[PAGINA_ID]]
-
-  renderPlotly({
-    resultado <- pg$calculo()
-    aedv_pca_varianza_grafico(resultado$pca,
-                              titulo = paste0("Varianza explicada · ", resultado$descripcion)) |>
-      ggplotly()
-  })
+renderPlotly({
+  resultado <- procesado_page_2()
+  aedv_pca_varianza_grafico(resultado$pca,
+                            titulo = paste0("Varianza explicada: ", resultado$descripcion)) |>
+    ggplotly()
 })
 ```
 
 ### Biplot
 
 ```{r}
-# Biplot del PCA: cada área es un punto en el plano de PC1 y PC2, y cada
-# atributo una flecha desde el origen. Versión interactiva (dinamico = TRUE):
-# cada área se rotula con su nombre, al pasar el ratón por su punto aparecen sus
-# coordenadas y, al pasarlo por la punta de una flecha, los loadings del atributo. (La versión estática
-# usa factoextra, que con ggplotly() pierde los rótulos.)
-local({
-  pg <- PAGINAS[[PAGINA_ID]]
-
-  renderPlotly({
-    resultado <- pg$calculo()
-    validate(need(is.null(resultado$diagnostico), resultado$diagnostico))
-
-    aedv_pca_biplot(resultado$pca,
-                    titulo   = paste0("Biplot PCA · ", resultado$descripcion),
-                    # solo las áreas que están en el ámbito elegido
-                    resaltar = intersect(pg$resaltar, rownames(resultado$pca$x)),
-                    dinamico = TRUE)
-  })
+renderPlotly({
+  resultado <- procesado_page_2()
+  aedv_pca_biplot(resultado$pca,
+                  titulo = paste0("Biplot PCA: ", resultado$descripcion),
+                  resaltar = intersect(RESALTAR, rownames(resultado$pca$x)), # solo las áreas que están en la tabla
+                  dinamico = TRUE) # versión interactiva
 })
 ```
 
 ### k-means
 
 ```{r}
-# Las áreas agrupadas con k-means sobre las componentes que acumulan el 85 %
-# de la varianza (mínimo 2), dibujadas en el plano de PC1 y PC2. Versión
-# interactiva (dinamico = TRUE): cada área se rotula con su nombre y, al pasar
-# el ratón, se ve también su grupo.
-local({
-  pg <- PAGINAS[[PAGINA_ID]]
+renderPlotly({
+  resultado <- procesado_page_2()
 
-  renderPlotly({
-    resultado <- pg$calculo()
-    validate(need(is.null(resultado$diagnostico), resultado$diagnostico))
+  # k-means sobre las componentes que acumulan el 85 % de la varianza
+  clusters <- aedv_kmeans(resultado$pca, k = resultado$k)
 
-    aedv_kmeans_grafico(resultado$clusters,
-                        titulo   = paste0("k-means (k = ", resultado$k, ") sobre ",
-                                          ncol(attr(resultado$clusters, "datos")), " componentes · ",
-                                          resultado$descripcion),
-                        # solo las áreas que están en el ámbito elegido
-                        resaltar = intersect(pg$resaltar, rownames(resultado$pca$x)),
-                        dinamico = TRUE)
-  })
+  aedv_kmeans_grafico(clusters,
+                      titulo = paste0("k-means (k = ", resultado$k, "): ", resultado$descripcion),
+                      resaltar = intersect(RESALTAR, rownames(resultado$pca$x)), # solo las áreas que están en la tabla
+                      dinamico = TRUE) # versión interactiva
 })
 ```

@@ -1,78 +1,107 @@
 ---
-title: "Mi Dashboard" # ✎ USUARIO (PASO 1)
+title: "Gasto público por sectores (Eurostat)" # ✎ USUARIO (PASO 1)
 output: flexdashboard::flex_dashboard
 runtime: shiny
 ---
 
 <!--
 ================================================================================
-  PLANTILLA DE MAPA COROPLÉTICO (UNA PÁGINA)
+  PLANTILLA DE MAPA COROPLÉTICO
 
-  Dibuja un mapa coroplético con el indicador que se elija en la barra lateral
-  y, a su lado, la tabla de las áreas ordenadas de mayor a menor valor.
+  Dibuja un mapa coroplético con el indicador, el atributo, el año y la unidad
+  que se elijan en la barra lateral y, en la barra lateral, la tabla de las
+  áreas ordenadas de mayor a menor valor. El año puede ser uno concreto, el
+  «Último año disponible» de cada área o la «Media en el periodo» de todos sus
+  años, y la unidad, el valor del indicador o su incremento anual en porcentaje.
+  Nada se calcula hasta pulsar el botón «Calcular».
 
-  ✎ = LO QUE DEFINE EL USUARIO. Todo lo marcado con ✎ está al principio de la
-  página y es lo ÚNICO que hay que tocar para aplicarla a otros datos:
+  ✎ = LO QUE DEFINE EL USUARIO. Todo lo marcado con ✎ está al principio y es lo
+  ÚNICO que hay que tocar para aplicar el cuadro de mandos a otros datos:
     ✎ PASO 1: el título del cuadro de mandos (cabecera YAML, arriba del todo).
-    ✎ PASO 2: el título de la página (la línea subrayada con ====).
-    ✎ PASO 3: el identificador de la página.
-    ✎ PASO 4: la lectura de los datos y de la geometría.
-    ✎ PASO 5: los rótulos, el indicador inicial y el centro del mapa.
+    ✎ PASO 2: la lectura de los datos y de la geometría.
+    ✎ PASO 3: los rótulos, las opciones de arranque y el centro del mapa.
+  El resto se deduce de los propios datos: los indicadores (las columnas
+  numéricas), los atributos, los años y el incremento anual de cada indicador.
 
-  ES UNA PÁGINA DENTRO DE UN CUADRO DE MANDOS. Para añadirla a otro cuadro de
-  mandos con varias páginas se copia TODO lo que va desde la línea del título
-  de la página (PASO 2) hasta el final del fichero, y se le da en el PASO 3 un
-  identificador distinto del de las demás páginas (ver la nota "AISLAMIENTO DE
-  LA PÁGINA" más abajo).
-
-  El ejemplo son los indicadores por país de la tabla owid_country.
+  El ejemplo es el gasto de las administraciones públicas por sectores (funciones
+  COFOG) de 30 países europeos y la UE-27, de Eurostat. Metadatos en
+  https://ctim.es/AEDV/data/eurostat_GASTO_PUBLICO_metadatos.xlsx
 ================================================================================
 -->
 
-<!-- ✎ USUARIO (PASO 2): TÍTULO DE LA PÁGINA. AQUÍ EMPIEZA LA PÁGINA -->
+```{r setup, include=FALSE}
+# opciones de los chunks (en un chunk aparte: el chunk global no se repite
+# al abrir el cuadro de mandos otro usuario, y estas opciones sí hacen falta)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE)
+```
 
-Mapa coroplético
-==================================================
+```{r global, include=FALSE}
+# chunk "global": se ejecuta una sola vez en el servidor y lo comparten todos
+# los usuarios (librerías, funciones y datos no se vuelven a cargar con cada uno)
+library(flexdashboard) # Estructura del cuadro de mandos
+library(shiny)         # Controles y reactividad
+library(leaflet)       # Mapas interactivos
+library(sf)            # Lectura de la geometría (st_read)
+library(tidyverse)     # Manipulación de datos
 
-```{r, include=FALSE}
+# funciones aedv_ del curso (aedv_mapa_coropletico)
+source("https://ctim.es/AEDV/utilidades.R")
+
 # ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
 #   ELEMENTOS QUE DEFINE EL USUARIO
-#   Es lo único que hay que cambiar; todo lo que viene después de este chunk se
-#   adapta solo.
+#   Es lo único que hay que cambiar; todo lo que viene después se adapta solo.
 # ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
 
-library(openxlsx)  # lectura de los datos (read.xlsx)
-library(sf)        # lectura de la geometría (st_read)
-library(tidyverse) # manipulación de los datos al leerlos
-
-# ✎ PASO 3: IDENTIFICADOR DE LA PÁGINA
-# Una palabra sin espacios ni tildes. Va delante del nombre de todos los
-# controles de la página, para que no choquen con los de otras páginas del mismo
-# cuadro de mandos.
-PAGINA_ID <- "mapa"                                                          # ✎
-
-# ✎ PASO 4: LOS DATOS Y LA GEOMETRÍA
+# ✎ PASO 2: LOS DATOS Y LA GEOMETRÍA
 # Se leen UNA SOLA VEZ al arrancar.
-#   - DATOS: una fila por área, con una columna `codigo` (el código del área,
-#     el mismo que en la geometría), una columna `nombre` y una columna numérica
-#     por indicador, que son las opciones del desplegable.
+#   - DATOS: una tabla en formato LARGO con estas columnas:
+#       - codigo:   el código del área, el mismo que en la geometría (un área sin
+#                   polígono, como la UE-27, sale en la tabla pero no en el mapa)
+#       - nombre:   el nombre del área
+#       - atributo: el nombre del atributo (en el ejemplo, el sector del gasto)
+#       - anio:     el año (número entero)
+#       - una o varias columnas NUMÉRICAS: los indicadores entre los que se elige.
+#     Tiene que haber un único valor por área, atributo y año. Los NA se
+#     descartan solos.
 #   - GEOMETRIA: los polígonos de las áreas, con una columna `codigo` que casa
 #     con la de DATOS y una columna `nombre` para las etiquetas del mapa.
-DATOS <- read.xlsx("https://ctim.es/AEDV/data/owid_country.xlsx", sheet = 1) |> # ✎
+
+# código ISO de tres letras de la geometría de cada código de país de Eurostat (con EL para Grecia)
+ISO3 <- c(AT = "AUT", BE = "BEL", BG = "BGR", CH = "CHE", CY = "CYP", CZ = "CZE",
+          DE = "DEU", DK = "DNK", EE = "EST", EL = "GRC", ES = "ESP", FI = "FIN",
+          FR = "FRA", HR = "HRV", HU = "HUN", IE = "IRL", IS = "ISL", IT = "ITA",
+          LT = "LTU", LU = "LUX", LV = "LVA", MT = "MLT", NL = "NLD", NO = "NOR",
+          PL = "POL", PT = "PRT", RO = "ROU", SE = "SWE", SI = "SVN", SK = "SVK")
+
+DATOS <- readRDS(url("https://ctim.es/AEDV/data/eurostat_GASTO_PUBLICO_sector.rds")) |> # ✎
   as_tibble() |>
-  select(codigo = iso_code, nombre = location, population:human_development_index)
+  filter(year(time) >= 1995) |> # de 1990 a 1994 solo hay un país
+  transmute(codigo = coalesce(unname(ISO3[code]), code), # código de la geometría (la UE-27 conserva el suyo)
+            nombre = case_when(code == "ES" ~ "España", # nombre de España en español
+                               code == "EU27_2020" ~ "UE-27", # nombre corto del agregado europeo
+                               .default = geo), # el resto de nombres no cambia
+            atributo = sector,
+            anio = as.integer(year(time)),
+            gasto_per_capita, pct_pib, pct_gasto, gasto) # indicadores (sin population, igual en todos los sectores)
 
 # La geometría se descarga primero a un fichero temporal porque, en algunos
 # sistemas, st_read no puede acceder directamente a URLs https
 tmp <- tempfile(fileext = ".geojson")
-curl::curl_download("https://ctim.es/AEDV/data/geo_countries.geojson", tmp)  # ✎
+curl::curl_download("https://ctim.es/AEDV/data/geo_countries.geojson", tmp) # ✎
 GEOMETRIA <- st_read(tmp, quiet = TRUE) |>
   select(codigo = ISO_A3, nombre = ADMIN)
+unlink(tmp)
 
-# ✎ PASO 5: RÓTULOS, INDICADOR INICIAL Y CENTRO DEL MAPA
-ETIQUETA_INDICADOR <- "Indicador:"     # ✎ rótulo del desplegable
-INDICADOR_INICIAL  <- "population"     # ✎ indicador con el que arranca la página
-VISTA <- list(lng = 25, lat = 22, zoom = 2) # ✎ centro y zoom del mapa (todo el mundo)
+# ✎ PASO 3: RÓTULOS, OPCIONES DE ARRANQUE Y CENTRO DEL MAPA
+ETIQUETA_ATRIBUTO <- "Sector" # ✎ cómo se llama un atributo en el rótulo de su control
+
+# Opciones con las que arrancan los controles. Si alguna no existe en DATOS se
+# usa la primera, así que la plantilla no se rompe al cambiar de datos y
+# olvidarse de tocarlas.
+INDICADOR_INICIAL <- "gasto_per_capita" # ✎
+ATRIBUTO_INICIAL  <- "Total"            # ✎
+
+VISTA <- list(lng = 12, lat = 55, zoom = 3) # ✎ centro y zoom del mapa (Europa)
 
 # ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
 #   FIN DE LOS ELEMENTOS QUE DEFINE EL USUARIO
@@ -80,102 +109,135 @@ VISTA <- list(lng = 25, lat = 22, zoom = 2) # ✎ centro y zoom del mapa (todo e
 
 # A PARTIR DE AQUÍ NO HAY QUE TOCAR NADA
 
-# AISLAMIENTO DE LA PÁGINA
-# En un cuadro de mandos con varias páginas, todos los chunks comparten las
-# mismas variables, y otra página puede volver a definir DATOS, GEOMETRIA...
-# Por eso lo que define el usuario se guarda AHORA en PAGINAS[[PAGINA_ID]], y
-# el resto de la página trabaja dentro de local({ ... }) leyendo solo de ahí:
-# las reactivas, que se ejecutan más tarde, cuando ya se han leído todas las
-# páginas, siguen viendo los datos de la suya.
-if (!exists("PAGINAS")) PAGINAS <- list()
+# comprobación de los datos: si falta algo, se avisa al arrancar y no con un
+# panel vacío más tarde
+faltan <- setdiff(c("codigo", "nombre", "atributo", "anio"), names(DATOS))
+if (length(faltan) > 0) stop("A DATOS le faltan las columnas ", paste(faltan, collapse = ", "), ".")
+if (anyDuplicated(DATOS[c("codigo", "atributo", "anio")]) > 0) {
+  stop("En DATOS hay áreas, atributos y años con más de un valor: debe haber uno solo.")
+}
 
-indicadores <- DATOS |> select(where(is.numeric)) |> colnames()
-if (!INDICADOR_INICIAL %in% indicadores) INDICADOR_INICIAL <- indicadores[1]
+# geometría recortada a las áreas de los datos: es lo que viaja al navegador en cada mapa
+GEOMETRIA <- GEOMETRIA |>
+  filter(codigo %in% DATOS$codigo)
 
-PAGINAS[[PAGINA_ID]] <- list(
-  datos              = DATOS,
-  geometria          = GEOMETRIA,
-  indicadores        = indicadores,
-  etiqueta_indicador = ETIQUETA_INDICADOR,
-  indicador_inicial  = INDICADOR_INICIAL,
-  vista              = VISTA,
-  # identificadores de los controles con el de la página delante ("mapa_indicador"...)
-  id                 = local({ p <- PAGINA_ID; function(nombre) paste0(p, "_", nombre) })
-)
+# indicadores: las columnas numéricas, salvo el año
+INDICADORES <- setdiff(names(DATOS)[sapply(DATOS, is.numeric)], "anio")
+
+# atributos, en el orden de la tabla
+ATRIBUTOS <- unique(DATOS$atributo)
+
+# años, del más reciente al más antiguo
+ANIOS <- sort(unique(DATOS$anio), decreasing = TRUE)
+
+# opciones de arranque que no existen en DATOS: la primera
+if (!INDICADOR_INICIAL %in% INDICADORES) INDICADOR_INICIAL <- INDICADORES[1]
+if (!ATRIBUTO_INICIAL %in% ATRIBUTOS) ATRIBUTO_INICIAL <- ATRIBUTOS[1]
+
+# tabla con la unidad "Valor indicador": los datos tal cual
+DATOS_VALOR <- DATOS |>
+  mutate(unidad = "Valor indicador")
+
+# la misma tabla con la unidad "Incremento anual (%)": variación porcentual de cada
+# indicador respecto al año anterior (NA si falta el año anterior o no es positivo)
+DATOS_INCREMENTO <- DATOS |>
+  arrange(anio) |> # años en orden, para que lag() sea el año anterior
+  group_by(codigo, atributo) |> # cada área y atributo por separado
+  mutate(across(all_of(INDICADORES),
+                \(v) if_else(lag(anio) == anio - 1 & lag(v) > 0, 100 * (v - lag(v)) / lag(v), NA))) |> # incremento (%)
+  filter(anio > min(anio)) |> # el primer año de cada área no tiene incremento
+  ungroup() |>
+  mutate(unidad = "Incremento anual (%)")
+
+# las dos tablas juntas: el control de la unidad elige una de las dos
+DATOS_UNIDAD <- bind_rows(DATOS_VALOR, DATOS_INCREMENTO)
 ```
 
-```{r, include=FALSE}
-library(flexdashboard) # Estructura del cuadro de mando en columnas
-library(shiny)         # Reactividad
-library(leaflet)       # Mapas interactivos
-library(tidyverse)     # Manipulación de datos
-
-# Funciones auxiliares del curso (aedv_mapa_coropletico). Si otra página ya las
-# ha cargado no se vuelven a descargar.
-if (!exists("aedv_mapa_coropletico")) source("https://ctim.es/AEDV/utilidades.R")
-
-# asociamos funciones a determinadas librerías para evitar posibles errores
-filter      <- dplyr::filter
-select      <- dplyr::select
-mutate      <- dplyr::mutate
-arrange     <- dplyr::arrange
-selectInput <- shiny::selectInput
+```{css}
+/* tabla de la barra lateral: letra algo más pequeña y celdas con menos relleno
+   (flexdashboard les pone 12 px por lado), para que los números quepan */
+.sidebar table {
+  font-size: 90%;
+}
+.sidebar table th, .sidebar table td {
+  padding-left: 4px !important;
+  padding-right: 4px !important;
+}
 ```
 
-Column {.sidebar data-width=250}
+Column {.sidebar data-width=300}
 --------------------------------------------------
 
 ```{r}
-local({
-  pg <- PAGINAS[[PAGINA_ID]]
-  id <- pg$id
+# indicador que se representa
+selectInput("indicador", "Indicador:", choices = INDICADORES, selected = INDICADOR_INICIAL)
 
-  # Procesado de los datos al pulsar el botón «Calcular» (eventReactive): al
-  # arrancar no se calcula nada, para que el cuadro de mandos cargue antes, y
-  # la tabla y el mapa quedan vacíos hasta el primer clic
-  pg$calculo <- eventReactive(input[[id("calcular")]], {
-    req(input[[id("indicador")]])
-    indicador <- input[[id("indicador")]]
+# atributo (en el ejemplo, el sector del gasto)
+selectInput("atributo", paste0(ETIQUETA_ATRIBUTO, ":"), choices = ATRIBUTOS, selected = ATRIBUTO_INICIAL)
 
-    tb <- pg$datos |>
-      select(codigo, nombre, value = all_of(indicador)) |>
-      na.omit() |>
-      arrange(desc(value))
+# año, el último disponible de cada área (opción por defecto) o la media en el periodo
+selectInput("anio", "Año:", choices = c("Último año disponible", "Media en el periodo", ANIOS),
+            selected = "Último año disponible")
 
-    # el rótulo viaja con el resultado: no cambia hasta volver a pulsar el botón
-    list(tb = tb, indicador = indicador)
-  })
-  PAGINAS[[PAGINA_ID]] <<- pg
+# valor del indicador o su incremento (%) respecto al año anterior
+radioButtons("unidad", "Unidad:", choices = c("Valor indicador", "Incremento anual (%)"),
+             selected = "Valor indicador")
 
-  tagList(
-    selectInput(id("indicador"), label = pg$etiqueta_indicador,
-                choices = pg$indicadores, selected = pg$indicador_inicial),
+# lanza el cálculo: hasta pulsarlo no se calcula nada, ni al arrancar ni al cambiar los controles
+actionButton("calcular", "Calcular")
+```
 
-    # botón que lanza el cálculo: hasta pulsarlo no se calcula nada, ni al
-    # arrancar ni al cambiar el indicador
-    actionButton(id("calcular"), "Calcular")
-  )
+```{r}
+# datos comunes a la tabla y al mapa: solo se recalcula al pulsar «Calcular».
+# Devuelve una lista con la tabla y los controles elegidos (para los rótulos)
+procesado <- eventReactive(input$calcular, {
+  # una fila por área y año con el valor del indicador
+  tabla <- DATOS_UNIDAD |>
+    filter(unidad == input$unidad, # valor del indicador o incremento anual (%)
+           atributo == input$atributo) |> # atributo elegido
+    select(codigo, nombre, anio, valor = input$indicador) |> # indicador elegido
+    drop_na() # años sin dato
+
+  # año elegido, el último con dato de cada área o la media de todos sus años
+  if (input$anio == "Último año disponible") {
+    tabla <- tabla |>
+      group_by(codigo, nombre) |>
+      slice_max(anio, n = 1) |>
+      ungroup()
+  } else if (input$anio == "Media en el periodo") {
+    tabla <- tabla |>
+      group_by(codigo, nombre) |>
+      summarise(anio = paste0(min(anio), "-", max(anio)), # periodo de la media
+                valor = mean(valor, na.rm = TRUE),
+                .groups = "drop")
+  } else {
+    tabla <- tabla |>
+      filter(anio == input$anio)
+  }
+
+  # con menos de 3 áreas no hay nada que colorear
+  validate(need(nrow(tabla) >= 3, paste0(
+    "Con esta combinación hay ", nrow(tabla), " áreas con dato: son demasiado pocas ",
+    "para el mapa. Elige otro año, otro ", tolower(ETIQUETA_ATRIBUTO), " o la otra unidad.")))
+
+  # los controles viajan dentro del resultado: así los rótulos no cambian hasta
+  # volver a pulsar el botón
+  list(tabla = tabla |> arrange(desc(valor)), # de mayor a menor
+       indicador = input$indicador, atributo = input$atributo,
+       anio = input$anio, unidad = input$unidad)
 })
 ```
 
-###
+**Valores, de mayor a menor**
 
 ```{r}
-# Tabla con el indicador seleccionado, de mayor a menor
-local({
-  pg <- PAGINAS[[PAGINA_ID]]
+renderTable({
+  resultado <- procesado()
 
-  renderTable({
-    resultado <- pg$calculo()
-    tb <- resultado$tb
-
-    tb |>
-      mutate(value = prettyNum(round(value,
-        digits = max(5 - nchar(as.character(round(max(tb$value)))), 0)),
-        big.mark = ",")) |>
-      select(nombre, value) |>
-      rename(!!resultado$indicador := value)
-  })
+  resultado$tabla |>
+    transmute(Área = nombre,
+              Año = anio,
+              valor = format(round(valor, 2), big.mark = ".", decimal.mark = ",", nsmall = 2))
 })
 ```
 
@@ -185,25 +247,25 @@ Column
 ###
 
 ```{r}
-# Mapa coroplético: se unen los datos a la geometría, así cada valor queda con
+# mapa coroplético: se unen los datos a la geometría, así cada valor queda con
 # su polígono (las áreas sin dato salen sin color)
-local({
-  pg <- PAGINAS[[PAGINA_ID]]
+renderLeaflet({
+  resultado <- procesado()
 
-  leaflet::renderLeaflet({
-    resultado <- pg$calculo()
+  mapa <- GEOMETRIA |>
+    left_join(resultado$tabla |> select(codigo, anio, valor), by = "codigo")
 
-    join <- pg$geometria |>
-      left_join(resultado$tb |> select(codigo, value), by = "codigo")
+  # cuadro emergente de cada área: nombre, atributo, año(s) y valor
+  etiquetas <- paste0(
+    "<strong>", mapa$nombre, "</strong><br>",
+    resultado$atributo, " (", mapa$anio, ")<br>",
+    resultado$indicador, ": ",
+    format(round(mapa$valor, 2), big.mark = ".", decimal.mark = ",")
+  ) |>
+    lapply(htmltools::HTML)
 
-    etiquetas <- paste(
-      "<strong> ", join$nombre, "</strong><br>", resultado$indicador,
-      ": ", prettyNum(round(join$value, digits = 2), big.mark = ",", scientific = FALSE)
-    ) |>
-      lapply(htmltools::HTML)
-
-    aedv_mapa_coropletico(join, join$value, etiquetas, resultado$indicador,
-                          lng = pg$vista$lng, lat = pg$vista$lat, zoom = pg$vista$zoom)
-  })
+  aedv_mapa_coropletico(mapa, mapa$valor, etiquetas,
+                        paste0(resultado$indicador, "<br>", resultado$unidad), # título de la leyenda
+                        lng = VISTA$lng, lat = VISTA$lat, zoom = VISTA$zoom)
 })
 ```

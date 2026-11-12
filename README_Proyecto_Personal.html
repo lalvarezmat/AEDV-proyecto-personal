@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-11-09" />
+<meta name="date" content="2026-11-12" />
 
 <title>Proyecto Personal AEDV — Guía de trabajo</title>
 
@@ -1617,7 +1617,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Proyecto Personal AEDV — Guía de
 trabajo</h1>
-<h4 class="date">2026-11-09</h4>
+<h4 class="date">2026-11-12</h4>
 
 </div>
 
@@ -2841,8 +2841,8 @@ disco, barra, HeatMap, caja</td>
 </tr>
 <tr class="odd">
 <td>21</td>
-<td>Dashboard bien diseñado, cubre todas las variables e incluye los
-cinco cuadros de mandos de referencia</td>
+<td>Dashboard bien diseñado, cubre todas las variables e incluye las
+cinco páginas de los cuadros de mandos de referencia</td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center">✓</td>
@@ -3204,28 +3204,35 @@ desplegado y accesible el día de la entrega.</p>
 <div class="discusion">
 <p><strong class="bloque-titulo">Los cuadros de mandos de referencia son
 obligatorios</strong></p>
-<p>Tu dashboard debe incluir <strong>obligatoriamente, como páginas, los
-cinco cuadros de mandos de referencia de la asignatura, adaptados a tus
-datos</strong>. Puedes descargarlos desde estos enlaces:</p>
+<p>Tu dashboard debe incluir <strong>obligatoriamente, como páginas, las
+cinco páginas de los cuadros de mandos de referencia de la asignatura,
+adaptadas a tus datos</strong>. Son plantillas: lo que hay que cambiar
+para usarlas con otros datos va marcado con ✎ al principio de cada
+fichero. Puedes descargarlas desde estos enlaces:</p>
 <ul>
 <li><a href="https://ctim.es/AEDV/Dashboard_exploracion_series.Rmd">Dashboard_exploracion_series.Rmd</a>:
 exploración de series temporales.</li>
 <li><a href="https://ctim.es/AEDV/Dashboard_prediccion_series.Rmd">Dashboard_prediccion_series.Rmd</a>:
-predicción de series temporales con ARIMA.</li>
+predicción de series temporales con ARIMA o STL + ARIMA y análisis del
+error del ajuste.</li>
 <li><a href="https://ctim.es/AEDV/Dashboard_mapa_coropletico.Rmd">Dashboard_mapa_coropletico.Rmd</a>:
 mapas coropléticos.</li>
-<li><a href="https://ctim.es/AEDV/Dashboard_atributos_comparacion.Rmd">Dashboard_atributos_comparacion.Rmd</a>:
-comparación de atributos con Yeo-Johnson.</li>
 <li><a href="https://ctim.es/AEDV/Dashboard_atributos_analisis.Rmd">Dashboard_atributos_analisis.Rmd</a>:
-matriz de correlación, PCA y k-means.</li>
+dos páginas, la comparación de atributos con Yeo-Johnson y el análisis
+de atributos (matriz de correlación, PCA y k-means).</li>
 </ul>
+<p>Todos usan como ejemplo el gasto público por sectores de Eurostat.
+Además del indicador y del año (uno concreto o el último disponible de
+cada país; en el mapa y en los atributos, también la media en el
+periodo), permiten elegir la <strong>unidad</strong>: el valor del
+indicador o su <strong>incremento anual en porcentaje</strong>, que se
+calcula una sola vez al arrancar.</p>
 <p>Como <strong>ejemplo mínimo</strong> de un dashboard que reúne las
-cinco páginas aplicadas a un mismo dataset tienes <a href="https://ctim.es/AEDV/Dashboard_eurostat_gasto_publico.Rmd">Dashboard_eurostat_gasto_publico.Rmd</a>,
-con el gasto público por sectores de Eurostat. Cada página elige cada
-atributo (país, sector, medida, año) con su propio desplegable y ofrece
-todas las opciones de los datos. Es un punto de partida: tu dashboard
-tiene que cubrir <strong>todas las variables de tu dataset</strong>, con
-el mismo criterio.</p>
+cinco páginas aplicadas a un mismo dataset tienes <a href="https://ctim.es/AEDV/Dashboard_eurostat_gasto_publico.Rmd">Dashboard_eurostat_gasto_publico.Rmd</a>.
+Cada página elige cada atributo (país, sector, indicador, año, unidad)
+con su propio desplegable y ofrece todas las opciones de los datos. Es
+un punto de partida: tu dashboard tiene que cubrir <strong>todas las
+variables de tu dataset</strong>, con el mismo criterio.</p>
 </div>
 <div class="nota">
 <p><strong class="bloque-titulo">La carga del dashboard puede ser lenta:

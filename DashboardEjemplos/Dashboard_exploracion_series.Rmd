@@ -1,22 +1,22 @@
 ---
 # PASO 4: TÍTULO DEL CUADRO DE MANDOS
-title: "PLANTILLA VISUALIZACIÓN SERIES MULIDIMENSIONALES"
+title: "Gasto público por sectores (Eurostat)"
 output: 
   flexdashboard::flex_dashboard:
     orientation: columns
 runtime: shiny
 ---
 
-# Solicitantes de Asilo 
+# Exploración de series
 
 <!-- 
 PLANTILLA VISUALIZACIÓN DE LAS SERIES TEMPORALES DE UN DATASET MULTIDIMENSIONAL QUE PERMITE HACER UNA EXPLORACIÓN PROFUNDA DE LOS DATOS A TRAVÉS DE TODAS SUS DIMENSIONES. LAS CARACTERÍSTICAS PRINCIPALES SON: 
 
-(1) SE SELECCIONA UN ATRIBUTO PRINCIPAL, EN ESTE EJEMPLO geo.name (REGIONES DE ACOGIDA DE SOLICITANTES DE ASILO) QUE SE USARÁ PARA SEPARAR LAS GRÁFICAS CON facet_wrap, SE PUEDEN PONER TODAS LAS OPCIONES POSIBLES DE ESTE ATRIBUTO PRINCIPAL O SELECCIONAR MANUALMENTE ALGUNAS. LA GESTIÓN DE ESTE ATRIBUTO PRINCIPAL SE HACE EN EL PRIMER BLOQUE DEL MENU DE LA IZQUIERDA 
+(1) SE SELECCIONA UN ATRIBUTO PRINCIPAL, EN ESTE EJEMPLO area (LOS PAÍSES) QUE SE USARÁ PARA SEPARAR LAS GRÁFICAS CON facet_wrap, SE PUEDEN PONER TODAS LAS OPCIONES POSIBLES DE ESTE ATRIBUTO PRINCIPAL O SELECCIONAR MANUALMENTE ALGUNAS. LA GESTIÓN DE ESTE ATRIBUTO PRINCIPAL SE HACE EN EL PRIMER BLOQUE DEL MENU DE LA IZQUIERDA 
 
-(2) EN EL SEGUNDO BLOQUE DEL MENU PONEMOS LOS ATRIBUTOS QUE PERMITIMOS COMBINAR ENTRE SI PARA GENERAR ATRIBUTOS COMBINADOS COGIENDO VARIAS OPCIONES DE CADA ATRIBUTO. POR EJEMPLO SEXO Y GRUPOS_EDAD, SI ELEGIMOS 2 SEXOS Y 3 GRUPOS DE EDAD OBTENDREMOS 6 OPCIONES DEL ATRIBUTO SEXO/GRUPO_EDAD. ESTOS ATRIBUTOS COMBINADOS SON LOS QUE APARECEN DIBUJADOS EN LOS facet_wrap DE LAS SERIES TEMPORALES. LOS ATRIBUTOS COMBINADOS SOLO APARECEN SI SE ELIGEN VARIAS OPCIONES DE 2 o MÁS ATRIBUTOS. EN CASO CONTRARIO NO HACE FALTA TRABAJAR CON ATRIBUTOS COMBINADOS.   
+(2) EN EL SEGUNDO BLOQUE DEL MENU PONEMOS LOS ATRIBUTOS QUE PERMITIMOS COMBINAR ENTRE SI PARA GENERAR ATRIBUTOS COMBINADOS COGIENDO VARIAS OPCIONES DE CADA ATRIBUTO. POR EJEMPLO SEXO Y GRUPOS DE EDAD: SI ELEGIMOS 2 SEXOS Y 3 GRUPOS DE EDAD OBTENDREMOS 6 OPCIONES DEL ATRIBUTO SEXO/GRUPO_EDAD (EN ESTE EJEMPLO SOLO HAY UNO, EL SECTOR). ESTOS ATRIBUTOS COMBINADOS SON LOS QUE APARECEN DIBUJADOS EN LOS facet_wrap DE LAS SERIES TEMPORALES. LOS ATRIBUTOS COMBINADOS SOLO APARECEN SI SE ELIGEN VARIAS OPCIONES DE 2 o MÁS ATRIBUTOS. EN CASO CONTRARIO NO HACE FALTA TRABAJAR CON ATRIBUTOS COMBINADOS.   
 
-(3) EN EL TERCER BLOQUE SE PONEN ATRIBUTOS DE LOS QUE SOLO SE ELIGE UNA OPCIÓN Y QUE NO PARTICIPAN EN LOS ATRIBUTOS COMBINADOS. POR EJEMPLO, UN ATRIBUTO DE UNIDAD DE MEDIDA. 
+(3) EN EL TERCER BLOQUE SE PONEN ATRIBUTOS DE LOS QUE SOLO SE ELIGE UNA OPCIÓN Y QUE NO PARTICIPAN EN LOS ATRIBUTOS COMBINADOS. EN ESTE EJEMPLO, EL INDICADOR Y LA UNIDAD (EL VALOR DEL INDICADOR O SU INCREMENTO ANUAL EN PORCENTAJE). 
 
 (4) EN EL CUARTO BLOQUE SE ELIGEN PARÁMETROS PARA FORMATEAR EL GRÁFICO TALES COMO : 
 
@@ -74,48 +74,63 @@ UNA VEZ ADAPTADAS LAS PARTES DEL CÓDIGO QUE CORRESPONDAN SE PODRÁ LANZAR LA EJ
 -->
 
 ```{r}
-#PASO 1: LECTURA DE LOS DATOS
-ASILO <- readRDS(url("https://ctim.es/AEDV/data/ASILO.rds")) |>
-  as_tibble()
+# PASO 1: LECTURA DE LOS DATOS, QUE DEBEN QUEDAR EN FORMATO TIDY: UNA FILA POR
+# CADA COMBINACIÓN DE LOS ATRIBUTOS Y AÑO, Y UNA SOLA COLUMNA DE VALORES.
+# EJEMPLO: GASTO DE LAS ADMINISTRACIONES PÚBLICAS POR SECTORES (EUROSTAT). METADATOS EN
+# https://ctim.es/AEDV/data/eurostat_GASTO_PUBLICO_metadatos.xlsx
+GASTO <- readRDS(url("https://ctim.es/AEDV/data/eurostat_GASTO_PUBLICO_sector.rds")) |>
+  as_tibble() |>
+  filter(year(time) >= 1995) |> # de 1990 a 1994 solo hay un país
+  transmute(area = case_when(code == "ES" ~ "España", # nombre de España en español
+                             code == "EU27_2020" ~ "UE-27", # nombre corto del agregado europeo
+                             .default = geo), # el resto de nombres no cambia
+            sector,
+            year = as.integer(year(time)),
+            gasto_per_capita, pct_pib, pct_gasto, gasto) # indicadores (sin population, igual en todos los sectores)
+
+INDICADORES <- c("gasto_per_capita", "pct_pib", "pct_gasto", "gasto")
+
+# INCREMENTO ANUAL (%) DE CADA INDICADOR RESPECTO AL AÑO ANTERIOR, PRECALCULADO
+# AQUÍ PARA QUE LA UNIDAD SEA UN ATRIBUTO MÁS (NA SI FALTA EL AÑO ANTERIOR O NO ES POSITIVO)
+GASTO_INCREMENTO <- GASTO |>
+  arrange(year) |> # años en orden, para que lag() sea el año anterior
+  group_by(area, sector) |> # cada país y sector por separado
+  mutate(across(all_of(INDICADORES),
+                \(v) if_else(lag(year) == year - 1 & lag(v) > 0, 100 * (v - lag(v)) / lag(v), NA))) |> # incremento (%)
+  ungroup()
+
+# LAS DOS UNIDADES JUNTAS Y EN FORMATO TIDY: UN INDICADOR Y UNA UNIDAD POR FILA
+data <- bind_rows(GASTO |> mutate(unidad = "Valor indicador"),
+                  GASTO_INCREMENTO |> mutate(unidad = "Incremento anual (%)")) |>
+  pivot_longer(all_of(INDICADORES), names_to = "indicador", values_to = "value") |>
+  filter(!is.na(value)) # pct_gasto no existe en el Total, y el primer año no tiene incremento
 ```
 
 
 <!-- PASO 2: CREACIÓN VECTORES PARA ORGANIZAR LAS OPCIONES DE ALGUNAS VARIABLES   --> 
 
 ```{r}
-# CONSTRUCCIÓN VECTOR CON LOS NOMBRES DE REGIONES DE ACOGIDA
-# ORDENADOS DESCENDENTE POR EL NÚMERO DE SOLICITANTES
-RegionAcogida <- ASILO |>
-  filter(unit=="asylum.number",sex=="T",age=="TOTAL",citizen.name=="TOTAL") |>
-  group_by(geo.name) |>
-  summarise(value=sum(value)) |>
-  arrange(desc(value)) |>
-  pull(geo.name)
+# PAÍSES, ORDENADOS DE MAYOR A MENOR GASTO PER CÁPITA TOTAL EN SU ÚLTIMO AÑO,
+# CON ESPAÑA Y LA UE-27 DELANTE
+Paises <- GASTO |>
+  filter(sector == "Total") |>
+  group_by(area) |>
+  slice_max(year, n = 1) |>
+  ungroup() |>
+  arrange(desc(gasto_per_capita)) |>
+  pull(area)
 
-RegionAcogida <- unique(c("EU27_2020","Spain",RegionAcogida))
-```
+Paises <- unique(c("España", "UE-27", Paises))
 
-```{r}
-# CONSTRUCCIÓN VECTOR CON LOS NOMBRES DE PAÍSES SOLICITANTES
-# ORDENADOS DESCENDENTE POR EL NÚMERO DE SOLICITANTES
-PaisOrigen <- ASILO |>
-  filter(unit=="asylum.number",sex=="T",age=="TOTAL") |>
-  group_by(citizen.name) |>
-  summarise(value=sum(value)) |>
-  arrange(desc(value)) |>
-  pull(citizen.name)
-
-PaisOrigen <- unique(c("TOTAL",PaisOrigen))
-
+# SECTORES EN EL ORDEN DE LA CLASIFICACIÓN COFOG, CON EL TOTAL AL FINAL
+Sectores <- unique(GASTO$sector)
 ```
 
 
 <!-- PASO 3: DEFINIR VARIABLES NECESARIAS Y ORGANIZAR LOS BLOQUES DE ATRIBUTOS --> 
 
 ```{r}
-# AL tibble DEL DATASET LO LLAMAREMOS EN LO QUE SIGUE data. SI AL LEERLO LE HE PUESTO OTRO NOMBRE 
-# LO CAMBIO AQUI
-data <- ASILO 
+# AL tibble DEL DATASET LO LLAMAMOS data (YA SE HA HECHO EN EL PASO 1)
 
 # STRING CON EL NOMBRE DEL ATRIBUTO QUE CORRESPONDE A LA FECHA  
 date <- "year"
@@ -133,33 +148,32 @@ pageId <- "p1"
 # DEFINO LA ETIQUETA DEL checkboxInput DEL ATRIBUTO PRINCIPAL PARA DECIDIR 
 # SI DIBUJO TODAS LAS OPCIONES O UNA SELECCIÓN QUE DEFINE A MANO EL USUARIO. 
 input.main.checkboxInput.pageId <- list(
-  list(label="Todas las Regiones",value=TRUE)
+  list(label="Todos los países",value=TRUE)
 )
 
 # DEFINO EL ATRIBUTO PRINCIPAL. EN col.name HAY QUE PONER COMO string EL NOMBRE 
 # DE LA COLUMNA DE LA TABLA DEL ATRIBUTO PRINCIPAL. TAMBIÉN DEFINO LOS PARÁMETROS
 # DEL SelectInput CORRESPONDIENTE
 input.main.config.pageId  <- list(
-  list(col.name="geo.name", label="Región acogida", choices=RegionAcogida, selected=RegionAcogida[1:6],multiple=TRUE)
+  list(col.name="area", label="País", choices=Paises, selected=c("España","UE-27","France","Portugal","Germany","Italy"),multiple=TRUE)
 )
 
 # HAGO LO MISMO PARA LOS ATRIBUTOS DEL BLOQUE DE ATRIBUTOS COMBINADOS.
 # ESTE BLOQUE ES OPCIONAL: SI EL DATASET NO TIENE ATRIBUTOS QUE COMBINAR SE
 # DEJA COMO list() Y EL BLOQUE NO APARECE EN EL MENÚ DE LA IZQUIERDA
 input.multiple.config.pageId  <- list(
-  list(col.name="citizen.name", label="País de Origen Solicitante", choices=PaisOrigen, selected="TOTAL",multiple=TRUE),
-  list(col.name="sex", label="Sexo", choices=c("T","F","M"), selected=c("F","M"),multiple=TRUE),
-  list(col.name="age", label="Edad", choices=unique(ASILO$age), selected="TOTAL",multiple=TRUE)
+  list(col.name="sector", label="Sector", choices=Sectores, selected=c("Salud","Educación","Protección social"),multiple=TRUE)
 )
 
 # HAGO LO MISMO PARA LOS ATRIBUTOS DEL BLOQUE DE ATRIBUTOS CON UN ÚNICO VALOR
 # SELECCIONABLE. TAMBIÉN ES OPCIONAL: SE DEJA COMO list() SI NO HACE FALTA
 input.single.config.pageId  <- list(
-  list(col.name="unit", label="Unidad de medida", choices=unique(ASILO$unit), selected="asylum.rate",multiple=FALSE)
+  list(col.name="indicador", label="Indicador", choices=INDICADORES, selected="pct_pib",multiple=FALSE),
+  list(col.name="unidad", label="Unidad", choices=c("Valor indicador","Incremento anual (%)"), selected="Valor indicador",multiple=FALSE)
 )
 ```
 
-<!-- NORMALMENTE SI HAS DEFINIDO BIEN TODO LO ANTERIOR YA PODRÁS EJECUTAR EL CÓDIGO PUES TODO LO DEMÁS ESTÁ AUTOMATIZADO. LOS NOMBRES DE LOS INPUTS QUE SE CREAN LOS CONSTRUYE LA FUNCIÓN id_control(), QUE ANTEPONE pageId AL NOMBRE DEL ATRIBUTO. POR EJEMPLO, EL INPUT DEL ATRIBUTO PRINCIPAL EN ESTE EJEMPLO SERÁ input$p1.geo.name, Y SE LEE COMO input[[id_control("geo.name")]] . EL HECHO DE AUTOMATIZAR LO MÁS POSIBLE TODO EL PROCESO HACE QUE LA NOTACIÓN QUE SE USA EN EL CÓDIGO QUE SIGUE SEA UN POCO ENREVESADA PORQUE TODO SE GESTIONA DE FORMA DINÁMICA USANDO LOS PARÁMETROS DE CONFIGURACIÓN DEFINIDOS ARRIBA.   -->
+<!-- NORMALMENTE SI HAS DEFINIDO BIEN TODO LO ANTERIOR YA PODRÁS EJECUTAR EL CÓDIGO PUES TODO LO DEMÁS ESTÁ AUTOMATIZADO. LOS NOMBRES DE LOS INPUTS QUE SE CREAN LOS CONSTRUYE LA FUNCIÓN id_control(), QUE ANTEPONE pageId AL NOMBRE DEL ATRIBUTO. POR EJEMPLO, EL INPUT DEL ATRIBUTO PRINCIPAL EN ESTE EJEMPLO SERÁ input$p1.area, Y SE LEE COMO input[[id_control("area")]] . EL HECHO DE AUTOMATIZAR LO MÁS POSIBLE TODO EL PROCESO HACE QUE LA NOTACIÓN QUE SE USA EN EL CÓDIGO QUE SIGUE SEA UN POCO ENREVESADA PORQUE TODO SE GESTIONA DE FORMA DINÁMICA USANDO LOS PARÁMETROS DE CONFIGURACIÓN DEFINIDOS ARRIBA.   -->
 
 ```{r}
 # COMPROBACIÓN DE LA CONFIGURACIÓN. UN NOMBRE DE COLUMNA MAL ESCRITO FALLA AQUÍ,
@@ -546,40 +560,3 @@ ggplotly(p)
   
 })
 ```
-
-
-
-```{r}
-knitr::knit_exit()
-```
-
-
-```{verbatim}
-# leemos/procesamos los datos
-ASILO <- read_csv("https://ctim.es/AEDV/data/ASILO.csv") |>
-  as_tibble() |>
-  select(geo.name,citizen.name,sex,age,year=TIME_PERIOD,asylum.number=asylum,asylum.rate)|>
-  pivot_longer(asylum.number:asylum.rate,names_to = "unit", values_to = "value")
-
-# acortamos el nombre de "European Union - 27 countries (from 2020)" poniendo EU27_2020
-ASILO[ASILO=="European Union - 27 countries (from 2020)"] <- "EU27_2020"
-
-# AÑADIMOS EL TOTAL DE SOLICITUDES DE ASILO RECIBIDAS POR CADA PAÍS
-ASILO <-
-  rbind(
-    ASILO |>
-      group_by(geo.name,sex,age,year,unit) |>
-      summarise(
-        citizen.name="TOTAL",
-        value=sum(na.omit(value))
-      ) |> 
-      ungroup() |> 
-      relocate(citizen.name,.after = geo.name),
-    ASILO
-  ) |>
-  mutate(year=as.integer(year))
-  
-saveRDS(ASILO,"ASILO.rds")
-```
-
-
