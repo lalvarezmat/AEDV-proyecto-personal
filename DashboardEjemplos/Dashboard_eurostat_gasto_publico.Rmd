@@ -412,6 +412,10 @@ htmltools::div(
     margin-bottom: 5px;
     border: 2px solid rgb(0,0,0)",
   "FORMATEO GRÁFICOS:",
+  # UN PANEL POR PAÍS (EL ATRIBUTO PRINCIPAL) O UNO POR SECTOR (EL PRIMER
+  # ATRIBUTO COMBINABLE); EL OTRO PASA A DAR EL COLOR DE LAS LÍNEAS
+  selectInput(id_control("distribucion"), "Distribución paneles:",
+              choices = c("Por regiones", "Por sectores"), selected = "Por regiones"),
   div(
     style = "display: flex; align-items: center; gap: 5px;",
     tags$label("Nº columnas:", style = "margin: 0"),
@@ -448,12 +452,27 @@ Column
 # O EL Nº DE FILAS O COLUMNAS
 observeEvent(input[[id_control("checkboxInput")]], {
   updateNumericInput(session, id_control("page"), value = 1)
+  # TODOS LOS PAÍSES: UN PANEL POR PAÍS (POR SECTORES SERÍAN 31 COLORES)
+  if (isTRUE(input[[id_control("checkboxInput")]]) &&
+      identical(input[[id_control("distribucion")]], "Por sectores")) {
+    updateSelectInput(session, id_control("distribucion"), selected = "Por regiones")
+  }
 })
 observeEvent(input[[id_control("ncol")]], {
   updateNumericInput(session, id_control("page"), value = 1)
 })
 observeEvent(input[[id_control("nrow")]], {
   updateNumericInput(session, id_control("page"), value = 1)
+})
+
+# PANELES POR SECTORES: CADA PAÍS ES UNA LÍNEA DE COLOR, ASÍ QUE SE DESMARCA
+# "TODOS LOS PAÍSES" (31 COLORES NO SE DISTINGUEN) PARA ELEGIRLOS A MANO
+observeEvent(input[[id_control("distribucion")]], {
+  updateNumericInput(session, id_control("page"), value = 1)
+  if (input[[id_control("distribucion")]] == "Por sectores" &&
+      isTRUE(input[[id_control("checkboxInput")]])) {
+    updateCheckboxInput(session, id_control("checkboxInput"), value = FALSE)
+  }
 })
 ```
 
@@ -467,9 +486,11 @@ seleccion[[pageId]] <- shiny::eventReactive(input[[id_control("dibujar")]], {
       !is.null(input[[id_control("scale_free_y")]]),
       input[[id_control("ncol")]],
       input[[id_control("nrow")]],
-      input[[id_control("page")]])
+      input[[id_control("page")]],
+      input[[id_control("distribucion")]])
 
   list(
+    distribucion  = input[[id_control("distribucion")]],
     checkboxInput = input[[id_control("checkboxInput")]],
     scale_free_y  = input[[id_control("scale_free_y")]],
     ncol          = input[[id_control("ncol")]],
@@ -517,24 +538,41 @@ renderPlotly({
   PageInit <- (datos$page - 1) * NPlotsPerPage + 1
   PageEnd  <- datos$page * NPlotsPerPage
 
-  # FILTRAMOS EL ATRIBUTO PRINCIPAL SEGÚN LA PÁGINA MOSTRADA Y LO PASAMOS A
+  # ATRIBUTOS DE LOS PANELES Y DEL COLOR. POR REGIONES: UN PANEL POR PAÍS (EL
+  # ATRIBUTO PRINCIPAL) Y EL COLOR PARA LOS ATRIBUTOS COMBINABLES. POR SECTORES:
+  # UN PANEL POR SECTOR (EL PRIMER ATRIBUTO COMBINABLE) Y EL PAÍS PASA AL COLOR,
+  # JUNTO CON LOS DEMÁS ATRIBUTOS COMBINABLES. EN LOS DOS CASOS, LAS OPCIONES
+  # ELEGIDAS DE CADA UNO, EN EL ORDEN DE SUS DESPLEGABLES
+  paises <- if (isFALSE(datos$checkboxInput)) datos$main else input.main.config.pageId[[1]]$choices
+  color.cols <- lapply(input.multiple.config.pageId, function(x) x$col.name)
+  color.sel  <- datos$multiple
+  if (datos$distribucion == "Por sectores") {
+    panel.col      <- input.multiple.config.pageId[[1]]$col.name
+    panel.choices  <- input.multiple.config.pageId[[1]]$choices
+    opciones       <- intersect(panel.choices, datos$multiple[[1]])
+    color.cols     <- c(list(main.col), color.cols[-1])
+    color.sel      <- c(list(paises), color.sel[-1])
+  } else {
+    panel.col      <- main.col
+    panel.choices  <- input.main.config.pageId[[1]]$choices
+    opciones       <- paises
+  }
+
+  # FILTRAMOS EL ATRIBUTO DE LOS PANELES SEGÚN LA PÁGINA MOSTRADA Y LO PASAMOS A
   # factor PARA CONSERVAR EL ORDEN EN LAS GRÁFICAS
-  opciones <- if (isFALSE(datos$checkboxInput)) datos$main else input.main.config.pageId[[1]]$choices
   tb <- tb |>
-    filter(!!sym(main.col) %in% opciones[PageInit:PageEnd]) |>
-    mutate(!!sym(main.col) := factor(!!sym(main.col), levels = unique(input.main.config.pageId[[1]]$choices)))
+    filter(!!sym(panel.col) %in% opciones[PageInit:PageEnd]) |>
+    mutate(!!sym(panel.col) := factor(!!sym(panel.col), levels = unique(panel.choices)))
 
   req(nrow(tb) > 0)
 
-  # ATRIBUTO COMBINADO: LOS ATRIBUTOS COMBINABLES CON MÁS DE UNA OPCIÓN ELEGIDA
+  # ATRIBUTO COMBINADO: LOS ATRIBUTOS DEL COLOR CON MÁS DE UNA OPCIÓN ELEGIDA
   atributo.combinado.name <- ""
   tb <- tb |> mutate(atributo.combinado = "")
-  for (k in seq_along(input.multiple.config.pageId)) {
-    if (length(datos$multiple[[k]]) > 1) {
-      atributo.combinado.name <-
-        paste0(atributo.combinado.name, "/", input.multiple.config.pageId[[k]]$col.name)
-      tb <- tb |> mutate(atributo.combinado =
-                           paste0(atributo.combinado, "/", !!sym(input.multiple.config.pageId[[k]]$col.name)))
+  for (k in seq_along(color.cols)) {
+    if (length(color.sel[[k]]) > 1) {
+      atributo.combinado.name <- paste0(atributo.combinado.name, "/", color.cols[[k]])
+      tb <- tb |> mutate(atributo.combinado = paste0(atributo.combinado, "/", !!sym(color.cols[[k]])))
     }
   }
   if (atributo.combinado.name != "") {
@@ -553,10 +591,10 @@ renderPlotly({
   p <- p + geom_line()
 
   # facet_wrap: Nº DE COLUMNAS FIJO SOLO SI LA PÁGINA ESTÁ COMPLETA
-  if (length(unique(tb[[main.col]])) < NPlotsPerPage) {
-    p <- p + facet_wrap(vars(!!sym(main.col)), scales = scale_y)
+  if (length(unique(tb[[panel.col]])) < NPlotsPerPage) {
+    p <- p + facet_wrap(vars(!!sym(panel.col)), scales = scale_y)
   } else {
-    p <- p + facet_wrap(vars(!!sym(main.col)), scales = scale_y, ncol = datos$ncol)
+    p <- p + facet_wrap(vars(!!sym(panel.col)), scales = scale_y, ncol = datos$ncol)
   }
 
   p <- p + labs(x = "", y = "", colour = atributo.combinado.name)
