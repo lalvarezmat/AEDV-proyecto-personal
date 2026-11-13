@@ -1,5 +1,5 @@
 ---
-title: "Gasto público" # ✎ USUARIO: nombre de la pestaña del navegador (en la barra superior no se muestra: ver el {css})
+title: "Gasto público" # ✎ USUARIO (PASO 1): nombre de la pestaña del navegador (en la barra superior no se muestra: ver el {css})
 output:
   flexdashboard::flex_dashboard:
     orientation: columns
@@ -8,47 +8,56 @@ runtime: shiny
 
 <!--
 ================================================================================
-  CUADRO DE MANDOS DEL GASTO PÚBLICO POR SECTORES (EUROSTAT, COFOG)
+  PLANTILLA DE CUADRO DE MANDOS DE VARIAS PÁGINAS
 
-  Reúne en un solo cuadro de mandos, una página detrás de otra, las plantillas
-  de DashboardEjemplos aplicadas a los mismos datos:
-    1. Exploración de series      (Dashboard_exploracion_series.Rmd)
-    2. Predicción                 (Dashboard_prediccion_series.Rmd)
-    3. Mapa coroplético           (Dashboard_mapa_coropletico.Rmd)
-    4. Comparación de atributos   (Dashboard_atributos_analisis.Rmd, página 1)
-    5. Análisis de atributos      (Dashboard_atributos_analisis.Rmd, página 2)
+  Seis páginas aplicadas a los mismos datos:
+    0. Presentación de los datos   (solo texto)
+    1. Series                      (Dashboard_exploracion_series.Rmd)
+    2. Predicción                  (Dashboard_prediccion_series.Rmd)
+    3. Mapa                        (Dashboard_mapa_coropletico.Rmd)
+    4. Comparación                 (Dashboard_atributos_analisis.Rmd, página 1)
+    5. PCA                         (Dashboard_atributos_analisis.Rmd, página 2)
 
-  LOS DATOS: eurostat_GASTO_PUBLICO_sector.rds. Gasto de las administraciones
-  públicas (S13) de 30 países europeos y la UE-27, por año (desde 1995) y por
-  función del gasto (las 10 divisiones COFOG más el Total), en cuatro
-  indicadores: gasto (millones de euros), gasto_per_capita (euros por
-  habitante), pct_pib (% del PIB) y pct_gasto (% del gasto público total).
-  Metadatos en https://ctim.es/AEDV/data/eurostat_GASTO_PUBLICO_metadatos.xlsx
+  ✎ = LO QUE DEFINE EL USUARIO. Para aplicar el cuadro de mandos a otros datos
+  solo hay que tocar lo marcado con ✎, en cuatro sitios:
+    ✎ PASO 1: el título (cabecera YAML, arriba del todo).
+    ✎ PASO 2: la lectura de los datos y de la geometría (chunk "global").
+    ✎ PASO 3: los rótulos y las opciones de arranque (chunk "global").
+    ✎ PASO 4: el título y el texto de la página de presentación de los datos.
+  Todo lo demás se deduce de los datos: los indicadores (las columnas
+  numéricas), las áreas, los atributos, los años, el incremento anual de cada
+  indicador y las opciones de todos los controles.
 
-  UNIDAD Y MEDIA EN EL PERIODO. En todas las páginas se elige la unidad:
-  el valor del indicador o su incremento anual en porcentaje, que se calcula
-  UNA SOLA VEZ, en el chunk "global" (tabla DATOS_UNIDAD). En las páginas 3, 4
-  y 5 el año puede ser uno concreto, el «Último año disponible» de cada país o
-  la «Media en el periodo» de todos sus años.
+  LOS DATOS son una tabla en formato largo: una fila por área (país, región...),
+  atributo (sector, grupo de edad...) y año, y una columna por indicador. En el
+  ejemplo, el gasto de las administraciones públicas por sectores (funciones
+  COFOG) de 30 países europeos y la UE-27, de Eurostat. Metadatos en
+  https://ctim.es/AEDV/data/eurostat_GASTO_PUBLICO_metadatos.xlsx
+
+  UNIDAD Y MEDIA EN EL PERIODO. En todas las páginas se elige la unidad: el
+  valor del indicador o su incremento anual en porcentaje, que se calcula UNA
+  SOLA VEZ, en el chunk "global" (tabla DATOS_UNIDAD). En el mapa, la
+  comparación y el PCA el año puede ser uno concreto, el «Último año
+  disponible» de cada área o la «Media en el periodo» de todos sus años.
 
   CARGA RÁPIDA Y MEMORIA. Lo que comparten todas las páginas (librerías,
-  funciones del curso, datos y geometría de los países) se hace UNA SOLA VEZ en
-  el chunk llamado "global": en un servidor Shiny ese chunk se ejecuta una vez
-  por proceso y sus objetos los comparten todos los usuarios, mientras que el
-  resto del documento se vuelve a ejecutar con cada usuario que lo abre. Además:
-    - la geometría se recorta al arrancar a los 30 países de los datos (diez
-      veces menos que la del mundo entero, y es lo que viaja al navegador en
-      cada mapa);
-    - la página de predicción no separa las series al arrancar (más de 1.300):
-      cada serie se extrae cuando se elige;
+  funciones del curso, datos y geometría) se hace UNA SOLA VEZ en el chunk
+  llamado "global": en un servidor Shiny ese chunk se ejecuta una vez por
+  proceso y sus objetos los comparten todos los usuarios, mientras que el resto
+  del documento se vuelve a ejecutar con cada usuario que lo abre. Además:
+    - la geometría se recorta al arrancar a las áreas de los datos (es lo que
+      viaja al navegador en cada mapa);
+    - la página de predicción no separa las series al arrancar: cada serie se
+      extrae cuando se elige;
     - ninguna página calcula nada al arrancar: todas tienen un botón que lanza
       el cálculo.
 
   IDENTIFICADORES DE LAS PÁGINAS. En un flexdashboard todas las páginas
   comparten las variables de R y los identificadores de los controles. La
-  página 1 usa su propio mecanismo (pageId e id_control()), la 2 guarda lo suyo
-  en PAGINAS[[PAGINA_ID]] y trabaja dentro de local({ ... }), la 3 lleva
-  "mapa" en sus identificadores y en su reactiva, y la 5, "_2".
+  página Series usa su propio mecanismo (pageId e id_control()), la de
+  Predicción guarda lo suyo en PAGINAS[[PAGINA_ID]] y trabaja dentro de
+  local({ ... }), la del Mapa lleva "mapa" en sus identificadores y en su
+  reactiva, y la de PCA, "_2".
 
   Requiere el fichero utilidades.R del curso en su versión del 22 de octubre de
   2026 o posterior.
@@ -70,7 +79,7 @@ library(shiny)         # Reactividad
 library(fpp3)          # tsibble, feasts y fable: series temporales, STL y ARIMA
 library(lmtest)        # Test de Breusch-Pagan (aedv_tests_residuos, aedv_lm_analisis)
 library(leaflet)       # Mapa coroplético
-library(sf)            # Geometría de los países
+library(sf)            # Geometría de las áreas
 library(factoextra)    # Biplot y gráfico del k-means
 library(plotly)        # Gráficas dinámicas: ggplotly convierte los ggplot
 library(tidyverse)     # Manipulación de datos y ggplot2 (el último, para que
@@ -90,6 +99,28 @@ theme_set(theme_bw(base_size = 12))
 # Funciones auxiliares del curso
 source("https://ctim.es/AEDV/utilidades.R")
 
+# ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
+#   ELEMENTOS QUE DEFINE EL USUARIO (PASOS 2 Y 3)
+#   Es lo único que hay que cambiar en el código; todo lo que viene después se
+#   adapta solo. Faltan el título (PASO 1, arriba del todo) y el texto de la
+#   página de presentación de los datos (PASO 4, justo después de este chunk).
+# ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
+
+# ✎ PASO 2: LOS DATOS Y LA GEOMETRÍA. Se leen UNA SOLA VEZ al arrancar.
+#   - DATOS: una tabla en formato LARGO con estas columnas:
+#       - codigo:   el código del área, el mismo que en la geometría (un área
+#                   sin polígono, como la UE-27, sale en todas las páginas
+#                   salvo en el mapa)
+#       - area:     el nombre del área
+#       - atributo: el nombre del atributo (en el ejemplo, el sector del gasto)
+#       - anio:     el año (número entero)
+#       - una o varias columnas NUMÉRICAS: los indicadores entre los que se
+#         elige (las demás columnas no numéricas que haya se ignoran).
+#     Tiene que haber un único valor por área, atributo y año. Los NA se
+#     descartan solos.
+#   - GEOMETRIA: los polígonos de las áreas, con una columna `codigo` que casa
+#     con la de DATOS y una columna `nombre` para las etiquetas del mapa.
+
 # código ISO de tres letras de la geometría de cada código de país de Eurostat (con EL para Grecia)
 ISO3 <- c(AT = "AUT", BE = "BEL", BG = "BGR", CH = "CHE", CY = "CYP", CZ = "CZE",
           DE = "DEU", DK = "DNK", EE = "EST", EL = "GRC", ES = "ESP", FI = "FIN",
@@ -97,31 +128,107 @@ ISO3 <- c(AT = "AUT", BE = "BEL", BG = "BGR", CH = "CHE", CY = "CYP", CZ = "CZE"
           LT = "LTU", LU = "LUX", LV = "LVA", MT = "MLT", NL = "NLD", NO = "NOR",
           PL = "POL", PT = "PRT", RO = "ROU", SE = "SWE", SI = "SVN", SK = "SVK")
 
-# LOS DATOS, una sola descarga para las cinco páginas: una fila por país, sector
-# (con el Total) y año, desde 1995 (de 1990 a 1994 solo hay un país), y una
-# columna por indicador (sin population, que vale lo mismo en todos los sectores)
-DATOS <- readRDS(url("https://ctim.es/AEDV/data/eurostat_GASTO_PUBLICO_sector.rds")) |>
+DATOS <- readRDS(url("https://ctim.es/AEDV/data/eurostat_GASTO_PUBLICO_sector.rds")) |> # ✎
   as_tibble() |>
-  filter(year(time) >= 1995) |>
+  filter(year(time) >= 1995) |> # de 1990 a 1994 solo hay un país
   transmute(codigo = coalesce(unname(ISO3[code]), code), # código de la geometría (la UE-27 conserva el suyo)
             area = case_when(code == "ES" ~ "España", # nombre de España en español
                              code == "EU27_2020" ~ "UE-27", # nombre corto del agregado europeo
                              .default = geo), # el resto de nombres no cambia
             atributo = sector,
             anio = as.integer(year(time)),
-            gasto_per_capita, pct_pib, pct_gasto, gasto)
+            gasto_per_capita, pct_pib, pct_gasto, gasto) # indicadores (sin population, igual en todos los sectores)
+
+# La geometría se descarga primero a un fichero temporal porque, en algunos
+# sistemas, st_read no puede acceder directamente a URLs https
+tmp <- tempfile(fileext = ".geojson")
+curl::curl_download("https://ctim.es/AEDV/data/geo_countries.geojson", tmp) # ✎
+GEOMETRIA <- st_read(tmp, quiet = TRUE) |>
+  select(codigo = ISO_A3, nombre = ADMIN) # ✎
+unlink(tmp)
+
+# ✎ PASO 3: RÓTULOS Y OPCIONES DE ARRANQUE
+ETIQUETA_AREA     <- "País"             # ✎ cómo se llama un área en los rótulos
+ETIQUETA_AREAS    <- "países"           # ✎ en plural, para los avisos
+ETIQUETA_ATRIBUTO <- "Sector"           # ✎ cómo se llama un atributo en los rótulos
+TODAS_LAS_AREAS   <- "Todos los países" # ✎ casilla de la página Series
+POR_AREAS         <- "Por regiones"     # ✎ página Series: un panel por área
+POR_ATRIBUTOS     <- "Por sectores"     # ✎ página Series: un panel por atributo
+
+# ✎ Atributo que es la suma de los demás: sale en Series, Predicción y Mapa,
+# pero no en Comparación ni en PCA. NA si no hay ninguno.
+ATRIBUTO_TOTAL <- "Total"
+
+# ✎ Áreas destacadas: van las primeras en los desplegables, en rojo en la
+# dispersión y rodeadas con un círculo en el biplot y el k-means.
+RESALTAR <- c("España", "UE-27")
+
+# Opciones con las que arrancan los controles. Si alguna no existe en DATOS se
+# usa la primera disponible, así que la plantilla no se rompe al cambiar de
+# datos y olvidarse de tocarlas.
+INDICADOR_INICIAL   <- "gasto_per_capita"                    # ✎ en todas las páginas
+AREA_INICIAL        <- "España"                              # ✎ serie inicial de la predicción
+AREAS_INICIALES     <- c("España", "UE-27", "France", "Portugal", "Germany", "Italy") # ✎ Series, al desmarcar la casilla
+ATRIBUTO_INICIAL    <- "Total"                               # ✎ predicción y mapa
+ATRIBUTOS_INICIALES <- c("Salud", "Educación", "Protección social") # ✎ Series
+ATRIBUTO_X_INICIAL  <- "Salud"                               # ✎ Comparación, eje x
+ATRIBUTO_Y_INICIAL  <- "Protección social"                   # ✎ Comparación, eje y
+K_INICIAL           <- 3                                     # ✎ nº de grupos del k-means
+VISTA <- list(lng = 12, lat = 55, zoom = 4)                  # ✎ centro y zoom del mapa (Europa)
+
+# ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
+#   FIN DE LOS ELEMENTOS QUE DEFINE EL USUARIO
+# ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
+
+# A PARTIR DE AQUÍ NO HAY QUE TOCAR NADA
+
+# COMPROBACIÓN DE LOS DATOS: si falta algo, se avisa al arrancar y no con un
+# panel vacío más tarde
+faltan <- setdiff(c("codigo", "area", "atributo", "anio"), names(DATOS))
+if (length(faltan) > 0) stop("A DATOS le faltan las columnas ", paste(faltan, collapse = ", "), ".")
+faltan <- setdiff(c("codigo", "nombre"), names(GEOMETRIA))
+if (length(faltan) > 0) stop("A GEOMETRIA le faltan las columnas ", paste(faltan, collapse = ", "), ".")
+DATOS <- DATOS |>
+  mutate(across(c(codigo, area, atributo), as.character), anio = as.integer(anio))
+if (anyDuplicated(DATOS[c("area", "atributo", "anio")]) > 0) {
+  stop("En DATOS hay áreas, atributos y años con más de un valor: debe haber uno solo.")
+}
 
 # indicadores: las columnas numéricas, salvo el año
-INDICADORES <- c("gasto_per_capita", "pct_pib", "pct_gasto", "gasto")
+INDICADORES <- setdiff(names(DATOS)[sapply(DATOS, is.numeric)], "anio")
+if (length(INDICADORES) == 0) stop("DATOS no tiene ninguna columna numérica con los indicadores.")
+DATOS <- DATOS |> select(codigo, area, atributo, anio, all_of(INDICADORES))
 
-# sectores en el orden de la clasificación COFOG, con el Total al final
-SECTORES <- unique(DATOS$atributo)
-
-# atributos de las páginas 4 y 5: los sectores sin el Total, que es su suma
-ATRIBUTOS <- setdiff(SECTORES, "Total")
+# atributos, en el orden de los datos, y los que entran en Comparación y PCA (sin el total)
+ATRIBUTOS          <- unique(DATOS$atributo)
+ATRIBUTOS_ANALISIS <- setdiff(ATRIBUTOS, ATRIBUTO_TOTAL)
 
 # años, del más reciente al más antiguo
 ANIOS <- sort(unique(DATOS$anio), decreasing = TRUE)
+
+# opciones de arranque que no existen en DATOS: la primera disponible
+if (!INDICADOR_INICIAL %in% INDICADORES) INDICADOR_INICIAL <- INDICADORES[1]
+if (!ATRIBUTO_INICIAL %in% ATRIBUTOS) ATRIBUTO_INICIAL <- ATRIBUTOS[1]
+ATRIBUTOS_INICIALES <- intersect(ATRIBUTOS_INICIALES, ATRIBUTOS)
+if (length(ATRIBUTOS_INICIALES) == 0) ATRIBUTOS_INICIALES <- head(ATRIBUTOS, 3)
+if (!ATRIBUTO_X_INICIAL %in% ATRIBUTOS_ANALISIS) ATRIBUTO_X_INICIAL <- ATRIBUTOS_ANALISIS[1]
+if (!ATRIBUTO_Y_INICIAL %in% ATRIBUTOS_ANALISIS) ATRIBUTO_Y_INICIAL <- tail(head(ATRIBUTOS_ANALISIS, 2), 1)
+
+# ÁREAS, en el orden de los desplegables: las resaltadas delante y el resto de
+# mayor a menor valor del indicador inicial en el atributo inicial, en su
+# último año (las que no tienen ese dato, al final)
+RESALTAR <- intersect(RESALTAR, unique(DATOS$area))
+AREAS <- DATOS |>
+  filter(atributo == ATRIBUTO_INICIAL, !is.na(.data[[INDICADOR_INICIAL]])) |>
+  group_by(area) |>
+  slice_max(anio, n = 1, with_ties = FALSE) |>
+  ungroup() |>
+  arrange(desc(.data[[INDICADOR_INICIAL]])) |>
+  pull(area)
+AREAS <- unique(c(RESALTAR, AREAS, sort(unique(DATOS$area))))
+if (!AREA_INICIAL %in% AREAS) AREA_INICIAL <- AREAS[1]
+AREAS_INICIALES <- intersect(AREAS_INICIALES, AREAS)
+if (length(AREAS_INICIALES) == 0) AREAS_INICIALES <- head(AREAS, 6)
 
 # tabla con la unidad "Valor indicador": los datos tal cual
 DATOS_VALOR <- DATOS |>
@@ -131,10 +238,10 @@ DATOS_VALOR <- DATOS |>
 # indicador respecto al año anterior (NA si falta el año anterior o no es positivo)
 DATOS_INCREMENTO <- DATOS |>
   arrange(anio) |> # años en orden, para que lag() sea el año anterior
-  group_by(area, atributo) |> # cada país y sector por separado
+  group_by(area, atributo) |> # cada área y atributo por separado
   mutate(across(all_of(INDICADORES),
                 \(v) if_else(lag(anio) == anio - 1 & lag(v) > 0, 100 * (v - lag(v)) / lag(v), NA))) |> # incremento (%)
-  filter(anio > min(anio)) |> # el primer año de cada país no tiene incremento
+  filter(anio > min(anio)) |> # el primer año de cada área no tiene incremento
   ungroup() |>
   mutate(unidad = "Incremento anual (%)")
 
@@ -145,27 +252,13 @@ DATOS_UNIDAD <- bind_rows(DATOS_VALOR, DATOS_INCREMENTO)
 OPCIONES_ANIO   <- c("Último año disponible", "Media en el periodo", ANIOS)
 OPCIONES_UNIDAD <- c("Valor indicador", "Incremento anual (%)")
 
-# rótulos y opciones de arranque de las páginas 3, 4 y 5
-ETIQUETA_ATRIBUTO  <- "Sector"
-RESALTAR           <- c("España", "UE-27") # en rojo en la dispersión y con un círculo en el biplot y el k-means
-INDICADOR_INICIAL  <- "gasto_per_capita"
-ATRIBUTO_X_INICIAL <- "Salud"
-ATRIBUTO_Y_INICIAL <- "Protección social"
-K_INICIAL          <- 3
-
-# GEOMETRÍA DE LOS PAÍSES, recortada a los de los datos. Se descarga primero a
-# un fichero temporal porque, en algunos sistemas, st_read no puede acceder
-# directamente a URLs https.
-tmp <- tempfile(fileext = ".geojson")
-curl::curl_download("https://ctim.es/AEDV/data/geo_countries.geojson", tmp)
-GEOMETRIA <- st_read(tmp, quiet = TRUE) |>
-  select(codigo = ISO_A3, nombre = ADMIN) |>
+# geometría recortada a las áreas de los datos: es lo que viaja al navegador en cada mapa
+GEOMETRIA <- GEOMETRIA |>
   filter(codigo %in% DATOS$codigo)
-unlink(tmp)
 
-# Listas donde las páginas 1 y 2 guardan lo suyo (ver IDENTIFICADORES DE LAS PÁGINAS)
-PAGINAS   <- list() # página 2
-seleccion <- list() # página 1
+# Listas donde las páginas Series y Predicción guardan lo suyo (ver IDENTIFICADORES DE LAS PÁGINAS)
+PAGINAS   <- list() # página Predicción
+seleccion <- list() # página Series
 ```
 
 ```{css}
@@ -181,13 +274,13 @@ seleccion <- list() # página 1
 }
 
 /* Sin título en la barra superior (con title vacío flexdashboard pondría el
-   nombre del fichero): la primera página, Gasto público, explica los datos */
+   nombre del fichero): la primera página explica los datos */
 .navbar-brand {
   display: none !important;
 }
 
-/* Página Gasto público (explicación de los datos): texto legible, la tabla de
-   los sectores con la primera columna estrecha, y scroll si no cabe */
+/* Página de presentación de los datos: texto legible, las tablas con la
+   primera columna estrecha, y scroll si no cabe */
 .datos-explicacion .chart-stage {
   overflow-y: auto !important;
   font-size: 16px;
@@ -248,8 +341,12 @@ seleccion <- list() # página 1
 
 <!--
 ################################################################################
-  PÁGINA 0: LOS DATOS. Solo texto: qué gastos incluye cada sector, qué mide
-  cada indicador y qué es cada unidad
+  PÁGINA 0: PRESENTACIÓN DE LOS DATOS. Solo texto, en Markdown.
+
+  ✎ PASO 4: el título de la página (la línea subrayada con ====) y el texto que
+  va debajo de "### {.datos-explicacion}": qué son los datos, qué significa
+  cada atributo y qué mide cada indicador. La explicación de la unidad, al
+  final, vale para cualquier conjunto de datos.
 ################################################################################
 -->
 
@@ -259,9 +356,9 @@ Gasto público
 Column
 --------------------------------------------------
 
-### Gasto de las administraciones públicas por sectores (Eurostat) {.datos-explicacion}
+### {.datos-explicacion}
 
-Gasto de las administraciones públicas de 30 países europeos y la UE-27, por año (desde 1995) y por sector (función del gasto según la clasificación **COFOG**), con el Total como suma de los diez sectores. Metadatos en [eurostat_GASTO_PUBLICO_metadatos.xlsx](https://ctim.es/AEDV/data/eurostat_GASTO_PUBLICO_metadatos.xlsx).
+Gasto de las administraciones públicas de 30 países europeos y la UE-27, por año (desde 1995) y por sector (función del gasto según la clasificación **COFOG**), con el Total como suma de los diez sectores.
 
 #### Sectores del gasto público (COFOG)
 
@@ -300,82 +397,51 @@ Series
 ==================================================
 
 ```{r}
-# PASO 1: LOS DATOS EN FORMATO TIDY: una fila por país, sector, indicador,
-# unidad y año, con una sola columna de valores (el incremento anual ya está
-# calculado en el chunk global)
+# CONFIGURACIÓN DE LA PÁGINA, DEDUCIDA DEL CHUNK GLOBAL (no hay que tocarla)
+
+# LOS DATOS EN FORMATO TIDY: una fila por área, atributo, indicador, unidad y
+# año, con una sola columna de valores (el incremento anual ya está calculado)
 data <- DATOS_UNIDAD |>
   pivot_longer(all_of(INDICADORES), names_to = "indicador", values_to = "value") |>
-  filter(!is.na(value)) |> # pct_gasto no existe en el Total
-  select(area, sector = atributo, indicador, unidad, year = anio, value)
-```
+  filter(!is.na(value)) |> # indicadores que no existen en algún atributo (pct_gasto en el Total)
+  select(area, atributo, indicador, unidad, year = anio, value)
 
-```{r}
-# PASO 2: VECTORES CON LAS OPCIONES ORDENADAS
-# PAÍSES, ORDENADOS DE MAYOR A MENOR GASTO PER CÁPITA TOTAL EN SU ÚLTIMO AÑO,
-# CON ESPAÑA Y LA UE-27 DELANTE
-Paises <- DATOS |>
-  filter(atributo == "Total") |>
-  group_by(area) |>
-  slice_max(anio, n = 1) |>
-  ungroup() |>
-  arrange(desc(gasto_per_capita)) |>
-  pull(area)
-
-Paises <- unique(c("España", "UE-27", Paises))
-```
-
-```{r}
-# PASO 3: VARIABLES Y BLOQUES DE ATRIBUTOS
-
-# STRING CON EL NOMBRE DEL ATRIBUTO QUE CORRESPONDE A LA FECHA
-date <- "year"
-
-# STRING CON EL NOMBRE DEL ATRIBUTO QUE CORRESPONDE AL VALOR NUMÉRICO
+# NOMBRE DE LAS COLUMNAS DE LA FECHA Y DEL VALOR NUMÉRICO
+date  <- "year"
 value <- "value"
 
 # IDENTIFICADOR DE LA PÁGINA: VA DELANTE DEL NOMBRE DE TODOS SUS CONTROLES
 pageId <- "expl"
 
-# checkboxInput DEL ATRIBUTO PRINCIPAL: TODOS LOS PAÍSES O UNA SELECCIÓN
+# checkboxInput DEL ATRIBUTO PRINCIPAL: TODAS LAS ÁREAS O UNA SELECCIÓN
 input.main.checkboxInput.pageId <- list(
-  list(label = "Todos los países", value = TRUE)
+  list(label = TODAS_LAS_AREAS, value = TRUE)
 )
 
-# ATRIBUTO PRINCIPAL: SEPARA LAS GRÁFICAS DEL facet_wrap
+# ATRIBUTO PRINCIPAL (LAS ÁREAS): SEPARA LAS GRÁFICAS DEL facet_wrap
 input.main.config.pageId <- list(
-  list(col.name = "area", label = "País", choices = Paises,
-       selected = c("España", "UE-27", "France", "Portugal", "Germany", "Italy"), multiple = TRUE)
+  list(col.name = "area", label = ETIQUETA_AREA, choices = AREAS,
+       selected = AREAS_INICIALES, multiple = TRUE)
 )
 
 # ATRIBUTOS COMBINABLES: CADA OPCIÓN ELEGIDA ES UNA LÍNEA DE COLOR EN CADA GRÁFICA
 input.multiple.config.pageId <- list(
-  list(col.name = "sector", label = "Sector", choices = SECTORES,
-       selected = c("Salud", "Educación", "Protección social"), multiple = TRUE)
+  list(col.name = "atributo", label = ETIQUETA_ATRIBUTO, choices = ATRIBUTOS,
+       selected = ATRIBUTOS_INICIALES, multiple = TRUE)
 )
 
 # ATRIBUTOS CON UN ÚNICO VALOR SELECCIONABLE (EN LA MISMA CAJA)
 input.single.config.pageId <- list(
   list(col.name = "indicador", label = "Indicador", choices = INDICADORES,
-       selected = "pct_pib", multiple = FALSE),
+       selected = INDICADOR_INICIAL, multiple = FALSE),
   list(col.name = "unidad", label = "Unidad", choices = OPCIONES_UNIDAD,
        selected = "Valor indicador", multiple = FALSE)
 )
-```
 
-```{r}
-# COMPROBACIÓN DE LA CONFIGURACIÓN. UN NOMBRE DE COLUMNA MAL ESCRITO FALLA AQUÍ,
-# AL ARRANCAR Y DICIENDO CUÁL ES, EN VEZ DE FALLAR DENTRO DE UN render
-columnas.configuradas <- c(
-  date, value,
-  vapply(c(input.main.config.pageId, input.multiple.config.pageId,
-           input.single.config.pageId), function(x) x$col.name, character(1))
-)
-
-faltan <- setdiff(columnas.configuradas, names(data))
-if (length(faltan) > 0)
-  stop("La configuración nombra columnas que no están en los datos: ",
-       paste(faltan, collapse = ", "), ". Las columnas disponibles son: ",
-       paste(names(data), collapse = ", "))
+# RÓTULO DE CADA COLUMNA (PARA LA LEYENDA DE LOS COLORES)
+etiquetas.columnas <- unlist(lapply(c(input.main.config.pageId, input.multiple.config.pageId,
+                                      input.single.config.pageId),
+                                    function(x) setNames(x$label, x$col.name)))
 ```
 
 Column {.sidebar data-width=220}
@@ -483,10 +549,10 @@ htmltools::div(
     margin-bottom: 5px;
     border: 2px solid rgb(0,0,0)",
   "FORMATEO GRÁFICOS:",
-  # UN PANEL POR PAÍS (EL ATRIBUTO PRINCIPAL) O UNO POR SECTOR (EL PRIMER
+  # UN PANEL POR ÁREA (EL ATRIBUTO PRINCIPAL) O UNO POR ATRIBUTO (EL PRIMER
   # ATRIBUTO COMBINABLE); EL OTRO PASA A DAR EL COLOR DE LAS LÍNEAS
   selectInput(id_control("distribucion"), "Distribución paneles:",
-              choices = c("Por regiones", "Por sectores"), selected = "Por regiones"),
+              choices = c(POR_AREAS, POR_ATRIBUTOS), selected = POR_AREAS),
   div(
     style = "display: flex; align-items: center; gap: 5px;",
     tags$label("Nº columnas:", style = "margin: 0"),
@@ -523,10 +589,11 @@ Column
 # O EL Nº DE FILAS O COLUMNAS
 observeEvent(input[[id_control("checkboxInput")]], {
   updateNumericInput(session, id_control("page"), value = 1)
-  # TODOS LOS PAÍSES: UN PANEL POR PAÍS (POR SECTORES SERÍAN 31 COLORES)
+  # TODAS LAS ÁREAS: UN PANEL POR ÁREA (CON UN PANEL POR ATRIBUTO HABRÍA UN
+  # COLOR POR ÁREA, DEMASIADOS PARA DISTINGUIRLOS)
   if (isTRUE(input[[id_control("checkboxInput")]]) &&
-      identical(input[[id_control("distribucion")]], "Por sectores")) {
-    updateSelectInput(session, id_control("distribucion"), selected = "Por regiones")
+      identical(input[[id_control("distribucion")]], POR_ATRIBUTOS)) {
+    updateSelectInput(session, id_control("distribucion"), selected = POR_AREAS)
   }
 })
 observeEvent(input[[id_control("ncol")]], {
@@ -536,11 +603,11 @@ observeEvent(input[[id_control("nrow")]], {
   updateNumericInput(session, id_control("page"), value = 1)
 })
 
-# PANELES POR SECTORES: CADA PAÍS ES UNA LÍNEA DE COLOR, ASÍ QUE SE DESMARCA
-# "TODOS LOS PAÍSES" (31 COLORES NO SE DISTINGUEN) PARA ELEGIRLOS A MANO
+# UN PANEL POR ATRIBUTO: CADA ÁREA ES UNA LÍNEA DE COLOR, ASÍ QUE SE DESMARCA
+# LA CASILLA DE TODAS LAS ÁREAS (DEMASIADOS COLORES) PARA ELEGIRLAS A MANO
 observeEvent(input[[id_control("distribucion")]], {
   updateNumericInput(session, id_control("page"), value = 1)
-  if (input[[id_control("distribucion")]] == "Por sectores" &&
+  if (input[[id_control("distribucion")]] == POR_ATRIBUTOS &&
       isTRUE(input[[id_control("checkboxInput")]])) {
     updateCheckboxInput(session, id_control("checkboxInput"), value = FALSE)
   }
@@ -609,24 +676,24 @@ renderPlotly({
   PageInit <- (datos$page - 1) * NPlotsPerPage + 1
   PageEnd  <- datos$page * NPlotsPerPage
 
-  # ATRIBUTOS DE LOS PANELES Y DEL COLOR. POR REGIONES: UN PANEL POR PAÍS (EL
-  # ATRIBUTO PRINCIPAL) Y EL COLOR PARA LOS ATRIBUTOS COMBINABLES. POR SECTORES:
-  # UN PANEL POR SECTOR (EL PRIMER ATRIBUTO COMBINABLE) Y EL PAÍS PASA AL COLOR,
-  # JUNTO CON LOS DEMÁS ATRIBUTOS COMBINABLES. EN LOS DOS CASOS, LAS OPCIONES
-  # ELEGIDAS DE CADA UNO, EN EL ORDEN DE SUS DESPLEGABLES
-  paises <- if (isFALSE(datos$checkboxInput)) datos$main else input.main.config.pageId[[1]]$choices
+  # ATRIBUTOS DE LOS PANELES Y DEL COLOR. UN PANEL POR ÁREA (EL ATRIBUTO
+  # PRINCIPAL) Y EL COLOR PARA LOS ATRIBUTOS COMBINABLES, O UN PANEL POR
+  # ATRIBUTO (EL PRIMER ATRIBUTO COMBINABLE) Y EL ÁREA PASA AL COLOR, JUNTO CON
+  # LOS DEMÁS ATRIBUTOS COMBINABLES. EN LOS DOS CASOS, LAS OPCIONES ELEGIDAS DE
+  # CADA UNO, EN EL ORDEN DE SUS DESPLEGABLES
+  areas <- if (isFALSE(datos$checkboxInput)) datos$main else input.main.config.pageId[[1]]$choices
   color.cols <- lapply(input.multiple.config.pageId, function(x) x$col.name)
   color.sel  <- datos$multiple
-  if (datos$distribucion == "Por sectores") {
+  if (datos$distribucion == POR_ATRIBUTOS) {
     panel.col      <- input.multiple.config.pageId[[1]]$col.name
     panel.choices  <- input.multiple.config.pageId[[1]]$choices
     opciones       <- intersect(panel.choices, datos$multiple[[1]])
     color.cols     <- c(list(main.col), color.cols[-1])
-    color.sel      <- c(list(paises), color.sel[-1])
+    color.sel      <- c(list(areas), color.sel[-1])
   } else {
     panel.col      <- main.col
     panel.choices  <- input.main.config.pageId[[1]]$choices
-    opciones       <- paises
+    opciones       <- areas
   }
 
   # FILTRAMOS EL ATRIBUTO DE LOS PANELES SEGÚN LA PÁGINA MOSTRADA Y LO PASAMOS A
@@ -642,7 +709,7 @@ renderPlotly({
   tb <- tb |> mutate(atributo.combinado = "")
   for (k in seq_along(color.cols)) {
     if (length(color.sel[[k]]) > 1) {
-      atributo.combinado.name <- paste0(atributo.combinado.name, "/", color.cols[[k]])
+      atributo.combinado.name <- paste0(atributo.combinado.name, "/", etiquetas.columnas[[color.cols[[k]]]]) # rótulo de la columna
       tb <- tb |> mutate(atributo.combinado = paste0(atributo.combinado, "/", !!sym(color.cols[[k]])))
     }
   }
@@ -678,7 +745,8 @@ renderPlotly({
 ################################################################################
   PÁGINA 2: PREDICCIÓN (plantilla Dashboard_prediccion_series.Rmd)
   Cambios respecto a la plantilla:
-    - DATOS admite VARIAS columnas key (aquí país, sector y medida), cada una
+    - DATOS admite VARIAS columnas key (aquí área, atributo, indicador y
+      unidad), cada una
       con su desplegable: la serie es la combinación de los valores elegidos,
       sin construir una columna que los junte. Si la combinación no tiene
       datos, el cuadro de mandos lo dice.
@@ -692,28 +760,30 @@ Predicción
 ==================================================
 
 ```{r, include=FALSE}
-# ✎ PASO 3: IDENTIFICADOR DE LA PÁGINA
-PAGINA_ID <- "pred"                                                          # ✎
+# CONFIGURACIÓN DE LA PÁGINA, DEDUCIDA DEL CHUNK GLOBAL (no hay que tocarla)
 
-# ✎ PASO 4: LOS DATOS. Un tsibble LARGO con un índice temporal, una o varias
-# columnas key y UNA de valores. Cada columna key es un atributo con su propio
-# desplegable, y la serie es la combinación de un valor de cada uno: aquí el
-# país, el sector, la medida y la unidad (valor del indicador o incremento
-# anual en %, ya calculado en el chunk global). Las combinaciones sin datos
-# (el % del gasto público total del Total) no forman serie.
-DATOS_PRED <- DATOS_UNIDAD |>                                                # ✎
-  pivot_longer(all_of(INDICADORES), names_to = "medida", values_to = "valor") |>
-  filter(!is.na(valor)) |> # pct_gasto no existe en el Total, y el incremento falta si el año anterior vale 0
-  transmute(fecha = anio, geo = area, sector = atributo, medida, unidad, valor) |>
-  as_tsibble(index = fecha, key = c(geo, sector, medida, unidad))
+# IDENTIFICADOR DE LA PÁGINA
+PAGINA_ID <- "pred"
 
-# ✎ PASO 5: RÓTULOS Y OPCIONES DE ARRANQUE
-ETIQUETAS_ATRIBUTOS <- c(geo = "País:", sector = "Sector:", medida = "Indicador:", unidad = "Unidad:") # ✎ rótulo de cada key
-ATRIBUTO_UNIDAD     <- c("medida", "unidad") # ✎ keys cuyos valores rotulan el eje vertical (NULL: el nombre de la columna de valores)
-SERIE_INICIAL       <- c(geo = "España", sector = "Total", medida = "pct_pib", unidad = "Valor indicador") # ✎
-METODO_INICIAL      <- "ARIMA"  # ✎ "ARIMA" o "STL + ARIMA"
+# LOS DATOS: un tsibble LARGO con el año como índice, una columna key por
+# desplegable (área, atributo, indicador y unidad) y UNA de valores. La serie
+# es la combinación de un valor de cada key. Las combinaciones sin datos (un
+# indicador que no existe en un atributo) no forman serie.
+DATOS_PRED <- DATOS_UNIDAD |>
+  pivot_longer(all_of(INDICADORES), names_to = "indicador", values_to = "valor") |>
+  filter(!is.na(valor)) |> # sin dato, o incremento sin año anterior positivo
+  transmute(fecha = anio, area, atributo, indicador, unidad, valor) |>
+  as_tsibble(index = fecha, key = c(area, atributo, indicador, unidad))
 
-# AISLAMIENTO DE LA PÁGINA: lo que define el usuario se guarda AHORA en
+# RÓTULOS Y OPCIONES DE ARRANQUE
+ETIQUETAS_ATRIBUTOS <- c(area = paste0(ETIQUETA_AREA, ":"), atributo = paste0(ETIQUETA_ATRIBUTO, ":"),
+                         indicador = "Indicador:", unidad = "Unidad:") # rótulo de cada key
+ATRIBUTO_UNIDAD     <- c("indicador", "unidad") # keys cuyos valores rotulan el eje vertical
+SERIE_INICIAL       <- c(area = AREA_INICIAL, atributo = ATRIBUTO_INICIAL,
+                         indicador = INDICADOR_INICIAL, unidad = "Valor indicador")
+METODO_INICIAL      <- "ARIMA" # "ARIMA" o "STL + ARIMA"
+
+# AISLAMIENTO DE LA PÁGINA: lo que necesita se guarda AHORA en
 # PAGINAS[[PAGINA_ID]], y el resto de la página lo lee solo de ahí
 PAGINAS[[PAGINA_ID]] <- list(
   datos               = DATOS_PRED,
@@ -811,7 +881,7 @@ local({
   # COMPROBACIÓN DE LOS DATOS
   aviso <- paste0("Página '", PAGINA_ID, "': ")
   if (!tsibble::is_tsibble(ts)) {
-    stop(aviso, "DATOS no es un tsibble: conviértelo con as_tsibble() en el PASO 4.")
+    stop(aviso, "DATOS_PRED no es un tsibble: conviértelo con as_tsibble().")
   }
   if (length(tsibble::key_vars(ts)) == 0) {
     stop(aviso, "DATOS no tiene columnas key: hace falta al menos una, ",
@@ -829,18 +899,19 @@ local({
   # LONGITUD DE CADA SERIE (cada combinación de las keys), todas de una vez
   tabla    <- as_tibble(ts) |> mutate(across(all_of(col_keys), as.character))
   longitud <- tabla |> count(across(all_of(col_keys)))
-  cortas   <- longitud |> filter(n < 12)
-  if (nrow(cortas) > 0) {
-    stop(aviso, nrow(cortas), " serie(s) tienen menos de 12 observaciones (la ",
-         "primera: ", paste(unlist(cortas[1, col_keys]), collapse = " · "),
-         "): son demasiado pocas para ajustar un modelo.")
+  # SERIES DEMASIADO CORTAS (menos de 12 observaciones) para ajustar un modelo:
+  # se quitan, y si se elige una, el cuadro de mandos lo explica
+  longitud <- longitud |> filter(n >= 12)
+  if (nrow(longitud) == 0) {
+    stop(aviso, "ninguna serie tiene al menos 12 observaciones: son demasiado pocas ",
+         "para ajustar un modelo.")
   }
 
   # OPCIONES DE CADA DESPLEGABLE: los valores de cada key, en el orden de los datos
   valores <- lapply(col_keys, function(k) unique(tabla[[k]]))
   names(valores) <- col_keys
 
-  # Rótulo de cada desplegable: el del PASO 5 o, si falta, el nombre de la columna
+  # Rótulo de cada desplegable: el de ETIQUETAS_ATRIBUTOS o, si falta, el nombre de la columna
   etiquetas <- setNames(as.list(col_keys), col_keys)
   for (k in intersect(names(pg$etiquetas_atributos), col_keys)) {
     etiquetas[[k]] <- pg$etiquetas_atributos[[k]]
@@ -866,7 +937,7 @@ local({
       as_tsibble(index = all_of(col_fecha))
   }
 
-  # Serie de arranque: la del PASO 5 o, si no existe, la primera
+  # Serie de arranque: la de SERIE_INICIAL o, si no existe, la primera
   if (!existe(pg$serie_inicial)) pg$serie_inicial <- unlist(longitud[1, col_keys])
 
   unidad <- pg$atributo_unidad
@@ -950,8 +1021,8 @@ local({
       return(list(
         serie       = nombre,
         metodo      = metodo,
-        diagnostico = paste0("No hay datos de la combinación elegida (", nombre,
-                             "). Elige otra.")
+        diagnostico = paste0("No hay datos suficientes de la combinación elegida (", nombre,
+                             "): hacen falta al menos 12 observaciones. Elige otra.")
       ))
     }
 
@@ -1271,10 +1342,10 @@ Column {.sidebar data-width=220}
 # indicador que se representa
 selectInput("mapa_indicador", "Indicador:", choices = INDICADORES, selected = INDICADOR_INICIAL)
 
-# sector
-selectInput("mapa_atributo", paste0(ETIQUETA_ATRIBUTO, ":"), choices = SECTORES, selected = "Total")
+# atributo
+selectInput("mapa_atributo", paste0(ETIQUETA_ATRIBUTO, ":"), choices = ATRIBUTOS, selected = ATRIBUTO_INICIAL)
 
-# año, el último disponible de cada país (opción por defecto) o la media en el periodo
+# año, el último disponible de cada área (opción por defecto) o la media en el periodo
 selectInput("mapa_anio", "Año:", choices = OPCIONES_ANIO, selected = "Último año disponible")
 
 # valor del indicador o su incremento (%) respecto al año anterior
@@ -1288,14 +1359,14 @@ actionButton("mapa_calcular", "Calcular")
 # datos comunes a la tabla y al mapa: solo se recalcula al pulsar «Calcular».
 # Devuelve una lista con la tabla y los controles elegidos (para los rótulos)
 procesado_mapa <- eventReactive(input$mapa_calcular, {
-  # una fila por país y año con el valor del indicador
+  # una fila por área y año con el valor del indicador
   tabla <- DATOS_UNIDAD |>
     filter(unidad == input$mapa_unidad, # valor del indicador o incremento anual (%)
-           atributo == input$mapa_atributo) |> # sector elegido
+           atributo == input$mapa_atributo) |> # atributo elegido
     select(codigo, nombre = area, anio, valor = input$mapa_indicador) |> # indicador elegido
     drop_na() # años sin dato
 
-  # año elegido, el último con dato de cada país o la media de todos sus años
+  # año elegido, el último con dato de cada área o la media de todos sus años
   if (input$mapa_anio == "Último año disponible") {
     tabla <- tabla |>
       group_by(codigo, nombre) |>
@@ -1312,10 +1383,11 @@ procesado_mapa <- eventReactive(input$mapa_calcular, {
       filter(anio == input$mapa_anio)
   }
 
-  # con menos de 3 países no hay nada que colorear
+  # con menos de 3 áreas no hay nada que colorear
   validate(need(nrow(tabla) >= 3, paste0(
-    "Con esta combinación hay ", nrow(tabla), " países con dato: son demasiado pocos ",
-    "para el mapa. Elige otro año, otro sector o la otra unidad.")))
+    "Con esta combinación solo hay ", nrow(tabla), " ", ETIQUETA_AREAS, " con dato y hacen ",
+    "falta al menos 3 para el mapa. Elige otro año, otro ", tolower(ETIQUETA_ATRIBUTO),
+    " o la otra unidad.")))
 
   # los controles viajan dentro del resultado: así los rótulos no cambian hasta
   # volver a pulsar el botón
@@ -1332,7 +1404,7 @@ renderTable({
   resultado <- procesado_mapa()
 
   resultado$tabla |>
-    transmute(País = nombre,
+    transmute(!!ETIQUETA_AREA := nombre,
               Año = anio,
               valor = format(round(valor, 2), big.mark = ".", decimal.mark = ",", nsmall = 2))
 })
@@ -1345,14 +1417,14 @@ Column
 
 ```{r}
 # mapa coroplético: se unen los datos a la geometría, así cada valor queda con
-# su polígono (la UE-27 no es un país: sale en la tabla, pero no en el mapa)
+# su polígono (un área sin polígono, como la UE-27, sale en la tabla pero no en el mapa)
 renderLeaflet({
   resultado <- procesado_mapa()
 
   mapa <- GEOMETRIA |>
     left_join(resultado$tabla |> select(codigo, anio, valor), by = "codigo")
 
-  # cuadro emergente de cada país: nombre, sector, año(s) y valor
+  # cuadro emergente de cada área: nombre, atributo, año(s) y valor
   etiquetas <- paste0(
     "<strong>", mapa$nombre, "</strong><br>",
     resultado$atributo, " (", mapa$anio, ")<br>",
@@ -1361,10 +1433,10 @@ renderLeaflet({
   ) |>
     lapply(htmltools::HTML)
 
-  # centrado en Europa
+  # centro y zoom del mapa: los de VISTA (PASO 3)
   aedv_mapa_coropletico(mapa, mapa$valor, etiquetas,
                         paste0(resultado$indicador, "<br>", resultado$unidad), # título de la leyenda
-                        lng = 12, lat = 55, zoom = 4)
+                        lng = VISTA$lng, lat = VISTA$lat, zoom = VISTA$zoom)
 })
 ```
 
@@ -1391,10 +1463,10 @@ selectInput("anio", "Año:", choices = OPCIONES_ANIO, selected = "Último año d
 radioButtons("unidad", "Unidad:", choices = OPCIONES_UNIDAD, selected = "Valor indicador")
 
 # atributo del eje x
-selectInput("atributo_x", paste(ETIQUETA_ATRIBUTO, "eje x:"), choices = ATRIBUTOS, selected = ATRIBUTO_X_INICIAL)
+selectInput("atributo_x", paste(ETIQUETA_ATRIBUTO, "eje x:"), choices = ATRIBUTOS_ANALISIS, selected = ATRIBUTO_X_INICIAL)
 
 # atributo del eje y
-selectInput("atributo_y", paste(ETIQUETA_ATRIBUTO, "eje y:"), choices = ATRIBUTOS, selected = ATRIBUTO_Y_INICIAL)
+selectInput("atributo_y", paste(ETIQUETA_ATRIBUTO, "eje y:"), choices = ATRIBUTOS_ANALISIS, selected = ATRIBUTO_Y_INICIAL)
 ```
 
 **Yeo-Johnson**
@@ -1560,7 +1632,7 @@ renderUI({
 <!--
 ################################################################################
   PÁGINA 5: ANÁLISIS DE ATRIBUTOS (Dashboard_atributos_analisis.Rmd, página 2).
-  Los atributos son los 10 sectores, sin el Total.
+  Los atributos son todos salvo el total (ATRIBUTO_TOTAL, PASO 3).
 ################################################################################
 -->
 
@@ -1600,7 +1672,7 @@ procesado_page_2 <- eventReactive(input$calcular_2, {
   # tabla de atributos: una fila por área y año y un atributo (columna) por atributo
   tabla <- DATOS_UNIDAD |>
     filter(unidad == input$unidad_2, # valor del indicador o incremento anual (%)
-           atributo %in% ATRIBUTOS) |> # sin el Total
+           atributo %in% ATRIBUTOS_ANALISIS) |> # sin el total
     select(area, anio, atributo, valor = input$indicador_2) |> # indicador elegido
     pivot_wider(names_from = atributo, values_from = valor) |> # una fila por área y año, un atributo por columna
     drop_na() # años sin todos los atributos
@@ -1615,7 +1687,7 @@ procesado_page_2 <- eventReactive(input$calcular_2, {
     tabla <- tabla |>
       group_by(area) |>
       summarise(anio = paste0(min(anio), "-", max(anio)), # periodo de la media (no se usa: se quita debajo)
-                across(all_of(ATRIBUTOS), \(v) mean(v, na.rm = TRUE))) # media de cada atributo
+                across(any_of(ATRIBUTOS_ANALISIS), \(v) mean(v, na.rm = TRUE))) # media de cada atributo
   } else {
     tabla <- tabla |>
       filter(anio == input$anio_2)
