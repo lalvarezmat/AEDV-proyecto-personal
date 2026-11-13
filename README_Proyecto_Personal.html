@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-11-12" />
+<meta name="date" content="2026-11-13" />
 
 <title>Proyecto Personal AEDV — Guía de trabajo</title>
 
@@ -1617,7 +1617,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Proyecto Personal AEDV — Guía de
 trabajo</h1>
-<h4 class="date">2026-11-12</h4>
+<h4 class="date">2026-11-13</h4>
 
 </div>
 
@@ -2842,7 +2842,7 @@ disco, barra, HeatMap, caja</td>
 <tr class="odd">
 <td>21</td>
 <td>Dashboard bien diseñado, cubre todas las variables e incluye las
-cinco páginas de los cuadros de mandos de referencia</td>
+cinco páginas del cuadro de mandos de referencia</td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center">✓</td>
@@ -3202,37 +3202,56 @@ datos |&gt; select(region, fecha, valor) |&gt; slice(1:10) |&gt; knitr::kable()
 <p>El dashboard es el entregable técnico más exigente. Debe estar
 desplegado y accesible el día de la entrega.</p>
 <div class="discusion">
-<p><strong class="bloque-titulo">Los cuadros de mandos de referencia son
-obligatorios</strong></p>
-<p>Tu dashboard debe incluir <strong>obligatoriamente, como páginas, las
-cinco páginas de los cuadros de mandos de referencia de la asignatura,
-adaptadas a tus datos</strong>. Son plantillas: lo que hay que cambiar
-para usarlas con otros datos va marcado con ✎ al principio de cada
-fichero. Puedes descargarlas desde estos enlaces:</p>
+<p><strong class="bloque-titulo">El cuadro de mandos de referencia es
+obligatorio</strong></p>
+<p>Tu dashboard tiene que partir <strong>obligatoriamente</strong> del
+cuadro de mandos de referencia de la asignatura, <a href="https://ctim.es/AEDV/Dashboard_eurostat_gasto_publico.Rmd">Dashboard_eurostat_gasto_publico.Rmd</a>,
+<strong>adaptado a tus datos</strong>. Está organizado como una
+<strong>plantilla</strong>: para aplicarlo a otro dataset solo hay que
+cambiar lo marcado con ✎, en cuatro sitios:</p>
+<ol style="list-style-type: decimal">
+<li><strong>PASO 1</strong>: el título (cabecera YAML).</li>
+<li><strong>PASO 2</strong>: la lectura de los datos y de la geometría
+(chunk <code>global</code>). Los datos tienen que quedar como una tabla
+en formato largo con las columnas <code>codigo</code> (el código del
+área en la geometría), <code>area</code>, <code>atributo</code>,
+<code>anio</code> y una columna numérica por indicador.</li>
+<li><strong>PASO 3</strong>: los rótulos (cómo se llaman las áreas y los
+atributos de tus datos) y las opciones con las que arrancan los
+controles (chunk <code>global</code>).</li>
+<li><strong>PASO 4</strong>: el título y el texto de la página de
+presentación de los datos.</li>
+</ol>
+<p>Todo lo demás (los indicadores, las áreas, los atributos, los años,
+el incremento anual y las opciones de todos los controles) se deduce de
+los datos. El ejemplo es el gasto público por sectores de Eurostat, con
+una página de presentación de los datos y las cinco páginas
+obligatorias:</p>
 <ul>
-<li><a href="https://ctim.es/AEDV/Dashboard_exploracion_series.Rmd">Dashboard_exploracion_series.Rmd</a>:
-exploración de series temporales.</li>
-<li><a href="https://ctim.es/AEDV/Dashboard_prediccion_series.Rmd">Dashboard_prediccion_series.Rmd</a>:
-predicción de series temporales con ARIMA o STL + ARIMA y análisis del
-error del ajuste.</li>
-<li><a href="https://ctim.es/AEDV/Dashboard_mapa_coropletico.Rmd">Dashboard_mapa_coropletico.Rmd</a>:
-mapas coropléticos.</li>
-<li><a href="https://ctim.es/AEDV/Dashboard_atributos_analisis.Rmd">Dashboard_atributos_analisis.Rmd</a>:
-dos páginas, la comparación de atributos con Yeo-Johnson y el análisis
-de atributos (matriz de correlación, PCA y k-means).</li>
+<li><strong>Series</strong>: exploración de las series temporales, con
+un panel por área o por atributo.</li>
+<li><strong>Predicción</strong>: predicción con ARIMA o STL + ARIMA y
+análisis del error del ajuste.</li>
+<li><strong>Mapa</strong>: mapa coroplético.</li>
+<li><strong>Comparación</strong>: dos atributos frente a frente
+(dispersión, recta de regresión y tests), con Yeo-Johnson.</li>
+<li><strong>PCA</strong>: matriz de correlación, PCA y k-means.</li>
 </ul>
-<p>Todos usan como ejemplo el gasto público por sectores de Eurostat.
-Además del indicador y del año (uno concreto o el último disponible de
-cada país; en el mapa y en los atributos, también la media en el
-periodo), permiten elegir la <strong>unidad</strong>: el valor del
-indicador o su <strong>incremento anual en porcentaje</strong>, que se
-calcula una sola vez al arrancar.</p>
-<p>Como <strong>ejemplo mínimo</strong> de un dashboard que reúne las
-cinco páginas aplicadas a un mismo dataset tienes <a href="https://ctim.es/AEDV/Dashboard_eurostat_gasto_publico.Rmd">Dashboard_eurostat_gasto_publico.Rmd</a>.
-Cada página elige cada atributo (país, sector, indicador, año, unidad)
-con su propio desplegable y ofrece todas las opciones de los datos. Es
-un punto de partida: tu dashboard tiene que cubrir <strong>todas las
-variables de tu dataset</strong>, con el mismo criterio.</p>
+<p>En todas las páginas se elige el indicador y la
+<strong>unidad</strong>: el valor del indicador o su <strong>incremento
+anual en porcentaje</strong>, que se calcula una sola vez al arrancar.
+En el mapa, la comparación y el PCA el año puede ser uno concreto, el
+último disponible de cada área o la media en el periodo.</p>
+<p>Cada página procede de uno de estos cuadros de mandos más sencillos,
+útiles para estudiar cada técnica por separado: <a href="https://ctim.es/AEDV/Dashboard_exploracion_series.Rmd">Dashboard_exploracion_series.Rmd</a>,
+<a href="https://ctim.es/AEDV/Dashboard_prediccion_series.Rmd">Dashboard_prediccion_series.Rmd</a>,
+<a href="https://ctim.es/AEDV/Dashboard_mapa_coropletico.Rmd">Dashboard_mapa_coropletico.Rmd</a>
+y <a href="https://ctim.es/AEDV/Dashboard_atributos_analisis.Rmd">Dashboard_atributos_analisis.Rmd</a>
+(comparación y PCA).</p>
+<p>La plantilla es un punto de partida: tu dashboard tiene que cubrir
+<strong>todas las variables de tu dataset</strong>, con el mismo
+criterio (un desplegable por atributo y todas las opciones de los
+datos).</p>
 </div>
 <div class="nota">
 <p><strong class="bloque-titulo">La carga del dashboard puede ser lenta:
@@ -3240,7 +3259,8 @@ cómo acelerarla</strong></p>
 <p>Un dashboard con varias páginas puede tardar en abrirse, porque al
 arrancar se ejecuta todo el documento: se cargan las librerías, se leen
 los datos y se calculan todas las páginas. Algunas estrategias sencillas
-para acelerarlo (el ejemplo mínimo de arriba aplica casi todas):</p>
+para acelerarlo (la plantilla de referencia de arriba aplica casi
+todas):</p>
 <ol style="list-style-type: decimal">
 <li><strong>Guarda los datos ya preprocesados en un
 <code>.rds</code>.</strong> Si antes de usar los datos los filtras,
@@ -3277,8 +3297,8 @@ generalidad.</strong> El dashboard no es un subconjunto de la memoria:
 debe permitir explorar todas las variables originales del dataset, no
 solo las que se analizaron en la memoria. El diseño visual debe ser
 limpio, con paneles bien organizados y controles intuitivos. Además,
-debe incluir, como mínimo, las páginas de los cinco cuadros de mandos de
-referencia adaptados a tus datos (recuadro de arriba).</p></li>
+debe incluir, como mínimo, las cinco páginas del cuadro de mandos de
+referencia adaptadas a tus datos (recuadro de arriba).</p></li>
 <li><p><strong>Variables fijadas dinámicamente con Inputs.</strong>
 Todas las variables del dashboard deben controlarse mediante Inputs
 interactivos (selectores, sliders, etc.). No se deben fijar valores a

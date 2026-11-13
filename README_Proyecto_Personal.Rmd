@@ -494,7 +494,7 @@ La evaluación del proyecto personal se estructura en torno a 29 criterios agrup
 | 19 | No repetir la misma gráfica con datos distintos | | ✓ | ✓ |
 | 20 | Tipos requeridos: series temporales con `facet_wrap`, disco, barra, HeatMap, caja | | ✓ | ✓ |
 | | ***Dashboard*** | | | |
-| 21 | Dashboard bien diseñado, cubre todas las variables e incluye las cinco páginas de los cuadros de mandos de referencia | | | ✓ |
+| 21 | Dashboard bien diseñado, cubre todas las variables e incluye las cinco páginas del cuadro de mandos de referencia | | | ✓ |
 | 22 | Dashboard: series temporales con `facet_wrap` | | | ✓ |
 | 23 | Dashboard: predicción con ARIMA o STL + ARIMA | | | ✓ |
 | 24 | Dashboard: mapas coropléticos | | | ✓ |
@@ -625,25 +625,35 @@ Las gráficas son el elemento más visible de la memoria. Una mala gráfica comu
 El dashboard es el entregable técnico más exigente. Debe estar desplegado y accesible el día de la entrega.
 
 <div class="discusion">
-<strong class="bloque-titulo">Los cuadros de mandos de referencia son obligatorios</strong>
+<strong class="bloque-titulo">El cuadro de mandos de referencia es obligatorio</strong>
 
-Tu dashboard debe incluir **obligatoriamente, como páginas, las cinco páginas de los cuadros de mandos de referencia de la asignatura, adaptadas a tus datos**. Son plantillas: lo que hay que cambiar para usarlas con otros datos va marcado con ✎ al principio de cada fichero. Puedes descargarlas desde estos enlaces:
+Tu dashboard tiene que partir **obligatoriamente** del cuadro de mandos de referencia de la asignatura, [Dashboard_eurostat_gasto_publico.Rmd](https://ctim.es/AEDV/Dashboard_eurostat_gasto_publico.Rmd), **adaptado a tus datos**. Está organizado como una **plantilla**: para aplicarlo a otro dataset solo hay que cambiar lo marcado con ✎, en cuatro sitios:
 
-* [Dashboard_exploracion_series.Rmd](https://ctim.es/AEDV/Dashboard_exploracion_series.Rmd): exploración de series temporales.
-* [Dashboard_prediccion_series.Rmd](https://ctim.es/AEDV/Dashboard_prediccion_series.Rmd): predicción de series temporales con ARIMA o STL + ARIMA y análisis del error del ajuste.
-* [Dashboard_mapa_coropletico.Rmd](https://ctim.es/AEDV/Dashboard_mapa_coropletico.Rmd): mapas coropléticos.
-* [Dashboard_atributos_analisis.Rmd](https://ctim.es/AEDV/Dashboard_atributos_analisis.Rmd): dos páginas, la comparación de atributos con Yeo-Johnson y el análisis de atributos (matriz de correlación, PCA y k-means).
+1. **PASO 1**: el título (cabecera YAML).
+2. **PASO 2**: la lectura de los datos y de la geometría (chunk `global`). Los datos tienen que quedar como una tabla en formato largo con las columnas `codigo` (el código del área en la geometría), `area`, `atributo`, `anio` y una columna numérica por indicador.
+3. **PASO 3**: los rótulos (cómo se llaman las áreas y los atributos de tus datos) y las opciones con las que arrancan los controles (chunk `global`).
+4. **PASO 4**: el título y el texto de la página de presentación de los datos.
 
-Todos usan como ejemplo el gasto público por sectores de Eurostat. Además del indicador y del año (uno concreto o el último disponible de cada país; en el mapa y en los atributos, también la media en el periodo), permiten elegir la **unidad**: el valor del indicador o su **incremento anual en porcentaje**, que se calcula una sola vez al arrancar.
+Todo lo demás (los indicadores, las áreas, los atributos, los años, el incremento anual y las opciones de todos los controles) se deduce de los datos. El ejemplo es el gasto público por sectores de Eurostat, con una página de presentación de los datos y las cinco páginas obligatorias:
 
-Como **ejemplo mínimo** de un dashboard que reúne las cinco páginas aplicadas a un mismo dataset tienes [Dashboard_eurostat_gasto_publico.Rmd](https://ctim.es/AEDV/Dashboard_eurostat_gasto_publico.Rmd). Cada página elige cada atributo (país, sector, indicador, año, unidad) con su propio desplegable y ofrece todas las opciones de los datos. Es un punto de partida: tu dashboard tiene que cubrir **todas las variables de tu dataset**, con el mismo criterio.
+* **Series**: exploración de las series temporales, con un panel por área o por atributo.
+* **Predicción**: predicción con ARIMA o STL + ARIMA y análisis del error del ajuste.
+* **Mapa**: mapa coroplético.
+* **Comparación**: dos atributos frente a frente (dispersión, recta de regresión y tests), con Yeo-Johnson.
+* **PCA**: matriz de correlación, PCA y k-means.
+
+En todas las páginas se elige el indicador y la **unidad**: el valor del indicador o su **incremento anual en porcentaje**, que se calcula una sola vez al arrancar. En el mapa, la comparación y el PCA el año puede ser uno concreto, el último disponible de cada área o la media en el periodo.
+
+Cada página procede de uno de estos cuadros de mandos más sencillos, útiles para estudiar cada técnica por separado: [Dashboard_exploracion_series.Rmd](https://ctim.es/AEDV/Dashboard_exploracion_series.Rmd), [Dashboard_prediccion_series.Rmd](https://ctim.es/AEDV/Dashboard_prediccion_series.Rmd), [Dashboard_mapa_coropletico.Rmd](https://ctim.es/AEDV/Dashboard_mapa_coropletico.Rmd) y [Dashboard_atributos_analisis.Rmd](https://ctim.es/AEDV/Dashboard_atributos_analisis.Rmd) (comparación y PCA).
+
+La plantilla es un punto de partida: tu dashboard tiene que cubrir **todas las variables de tu dataset**, con el mismo criterio (un desplegable por atributo y todas las opciones de los datos).
 
 </div>
 
 <div class="nota">
 <strong class="bloque-titulo">La carga del dashboard puede ser lenta: cómo acelerarla</strong>
 
-Un dashboard con varias páginas puede tardar en abrirse, porque al arrancar se ejecuta todo el documento: se cargan las librerías, se leen los datos y se calculan todas las páginas. Algunas estrategias sencillas para acelerarlo (el ejemplo mínimo de arriba aplica casi todas):
+Un dashboard con varias páginas puede tardar en abrirse, porque al arrancar se ejecuta todo el documento: se cargan las librerías, se leen los datos y se calculan todas las páginas. Algunas estrategias sencillas para acelerarlo (la plantilla de referencia de arriba aplica casi todas):
 
 1. **Guarda los datos ya preprocesados en un `.rds`.** Si antes de usar los datos los filtras, cambias de formato o unes tablas, haz ese preprocesado una sola vez fuera del dashboard, guarda el resultado con `saveRDS()` y, en el dashboard, carga directamente esa tabla procesada con `readRDS()`.
 2. **No calcules todas las páginas de golpe.** Pon en cada página un botón para calcular, rellenar o actualizar sus resultados (`actionButton()` con `eventReactive()`): así, al abrir el dashboard no se calcula nada, y cada página solo hace sus cuentas cuando el usuario lo pide.
@@ -653,7 +663,7 @@ Un dashboard con varias páginas puede tardar en abrirse, porque al arrancar se 
 
 </div>
 
-- **Bien diseñado e ilustra los datos en su máxima generalidad.** El dashboard no es un subconjunto de la memoria: debe permitir explorar todas las variables originales del dataset, no solo las que se analizaron en la memoria. El diseño visual debe ser limpio, con paneles bien organizados y controles intuitivos. Además, debe incluir, como mínimo, las páginas de los cinco cuadros de mandos de referencia adaptados a tus datos (recuadro de arriba).
+- **Bien diseñado e ilustra los datos en su máxima generalidad.** El dashboard no es un subconjunto de la memoria: debe permitir explorar todas las variables originales del dataset, no solo las que se analizaron en la memoria. El diseño visual debe ser limpio, con paneles bien organizados y controles intuitivos. Además, debe incluir, como mínimo, las cinco páginas del cuadro de mandos de referencia adaptadas a tus datos (recuadro de arriba).
 
 
 
