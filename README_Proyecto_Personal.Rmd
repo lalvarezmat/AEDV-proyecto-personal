@@ -639,7 +639,7 @@ Para aplicar la plantilla a otro dataset solo hay que cambiar lo marcado con ✎
 3. **PASO 3**: qué columnas son atributos y cuál es su total, los rótulos (cómo se llaman las áreas y los atributos de tus datos) y las opciones con las que arrancan los controles (chunk `global`).
 4. **PASO 4**: el título y el texto de la página de presentación de los datos.
 
-Todo lo demás (los indicadores, las áreas, las categorías de los atributos, los años, el incremento anual y las opciones de todos los controles) se deduce de los datos. Los dos ejemplos tienen una página de presentación de los datos, que termina con una muestra de la tabla que leen, y las cinco páginas obligatorias:
+Todo lo demás (los indicadores, las áreas, las categorías de los atributos, los periodos, el incremento respecto al año anterior y las opciones de todos los controles) se deduce de los datos. Los dos ejemplos tienen una página de presentación de los datos, que termina con una muestra de la tabla que leen, y las cinco páginas obligatorias:
 
 * **Series**: exploración de las series temporales, con un panel por área o por categoría de un atributo.
 * **Predicción**: predicción con ARIMA o STL + ARIMA y análisis del error del ajuste.
@@ -647,7 +647,7 @@ Todo lo demás (los indicadores, las áreas, las categorías de los atributos, l
 * **Comparación**: dos combinaciones de atributos frente a frente (dispersión, recta de regresión y tests), con Yeo-Johnson.
 * **PCA**: matriz de correlación, PCA y k-means. Las columnas son las categorías de un atributo o, si en el desplegable múltiple «Atributos del PCA» se eligen varios, las combinaciones de sus categorías (sexo y sector: «Mujeres · Servicios»…); los atributos no elegidos se fijan en una categoría.
 
-En todas las páginas se elige el indicador y la **unidad**: el valor del indicador o su **incremento anual en porcentaje**, que se calcula una sola vez al arrancar. En el mapa, la comparación y el PCA el año puede ser uno concreto, el último disponible de cada área o la media en el periodo.
+En todas las páginas se elige el indicador y la **unidad**: el valor del indicador o su **incremento en porcentaje respecto al año anterior** (con datos trimestrales o mensuales, respecto al mismo trimestre o mes del año anterior: el incremento interanual), que se calcula una sola vez al arrancar. En el mapa, la comparación y el PCA el periodo (año, trimestre o mes) puede ser uno concreto, el último disponible de cada área o la media en el periodo.
 
 La plantilla es un punto de partida: tu dashboard tiene que cubrir **todas las variables de tu dataset**, con el mismo criterio (un desplegable por atributo y todas las opciones de los datos).
 
@@ -666,23 +666,23 @@ GEOMETRIA <- leer_geojson("mi_geometria.geojson") |>
 
 (Los dos ejemplos leen sus ficheros desde `ctim.es` para poder abrirlos sin descargar nada más; tu dashboard, no.)
 
-**Los datos son una tabla *tidy***, con una fila por área, combinación de los atributos, año e indicador, y estas columnas:
+**Los datos son una tabla *tidy***, con una fila por área, combinación de los atributos, periodo e indicador, y estas columnas:
 
 * `codigo`: el código del área, el mismo que en la geometría (el código NUTS de cada región, el ISO de cada país…). Un área sin polígono, como el total de España o de la UE-27, sale en todas las páginas salvo en el mapa.
 * `area`: el nombre del área.
 * `nivel` (opcional): el nivel territorial del área, si tus datos **mezclan áreas de varios niveles** (comunidades, islas, municipios…). Ver más abajo.
 * **Una columna por atributo**, con el nombre que quieras. Un atributo es una **variable categórica que no es un indicador**: el sector, el sexo, el grupo de edad… Sus categorías son los valores de su columna, y si tiene una categoría que es la suma de las demás (el total), va en la misma columna, como una categoría más.
-* `anio`: el año (la plantilla trabaja con datos anuales).
+* `periodo`: el periodo de cada dato, **con la frecuencia de los datos originales**: el año (un número entero), el trimestre o el mes. **No hay que pasar los datos a años**: los rótulos, el incremento y la predicción (con estacionalidad si el dato es trimestral o mensual) se adaptan solos. El trimestre y el mes pueden ir como `yearquarter()` y `yearmonth()` de `tsibble`, o como texto con el formato del INE («2024T3», «2024M07»).
 * `indicador`: el nombre del indicador. **Todos los indicadores van en esta misma columna**, no uno por columna.
 * `valor`: el valor numérico del indicador.
 
 El **sexo, el grupo de edad** (y cualquier otra variable categórica, como el sector económico) van cada uno en **su propia columna**, con una fila por cada combinación de sus categorías, **incluidas las de los totales** («Ambos sexos», «Total»…). No hay que juntarlos en una sola columna: el dashboard pone un desplegable por atributo y los combina él solo. Una combinación sin dato no lleva fila (no hace falta una fila con `NA`).
 
-**Ejemplo con un atributo: el gasto público** (`Dashboard_eurostat_gasto_publico.Rmd`). El único atributo es el **sector** (con el «Total» como una categoría más), y los **cuatro indicadores** van en la columna `indicador`: `gasto` (millones de euros), `gasto_per_capita` (euros por habitante), `pct_pib` (% del PIB) y `pct_gasto` (% del gasto público total, que no existe en el Total y por eso no tiene fila). Algunas filas:
+**Ejemplo con un atributo y datos anuales: el gasto público** (`Dashboard_eurostat_gasto_publico.Rmd`). El único atributo es el **sector** (con el «Total» como una categoría más), y los **cuatro indicadores** van en la columna `indicador`: `gasto` (millones de euros), `gasto_per_capita` (euros por habitante), `pct_pib` (% del PIB) y `pct_gasto` (% del gasto público total, que no existe en el Total y por eso no tiene fila). Algunas filas:
 
 <div class="tabla-scroll">
 
-| codigo | area | sector | anio | indicador | valor |
+| codigo | area | sector | periodo | indicador | valor |
 |---|---|---|---|---|---|
 | ESP | España | Salud | 2023 | gasto | 98630 |
 | ESP | España | Salud | 2023 | gasto_per_capita | 2039.8 |
@@ -697,28 +697,28 @@ El **sexo, el grupo de edad** (y cualquier otra variable categórica, como el se
 
 `ESP` es el código ISO de tres letras, el mismo de la geometría de los países; la UE-27 no tiene polígono y sale en todas las páginas salvo en el mapa.
 
-**Ejemplo con tres atributos y dos niveles territoriales: los ocupados de la EPA** (`Dashboard_epa_ocupados.Rmd`). Los atributos son el **sexo**, el **grupo de edad** y el **sector**, cada uno en su columna y con su total; los indicadores, `ocupados` (miles de personas, media anual) y `ocupados_por_100` (ocupados por cada 100 personas de 16 y más años del mismo sexo y edad); y la columna `nivel` separa las comunidades de las provincias. Algunas filas:
+**Ejemplo con tres atributos, datos trimestrales y dos niveles territoriales: los ocupados de la EPA** (`Dashboard_epa_ocupados.Rmd`). Los atributos son el **sexo**, el **grupo de edad** y el **sector**, cada uno en su columna y con su total; los indicadores, `ocupados` (miles de personas, un dato por trimestre) y `ocupados_por_100` (ocupados por cada 100 personas de 16 y más años del mismo sexo y edad); y la columna `nivel` separa las comunidades de las provincias. Algunas filas:
 
 <div class="tabla-scroll">
 
-| codigo | area | nivel | sexo | edad | sector | anio | indicador | valor |
+| codigo | area | nivel | sexo | edad | sector | periodo | indicador | valor |
 |---|---|---|---|---|---|---|---|---|
-| 05 | Canarias | Comunidad | Hombres | De 25 a 54 años | Servicios | 2024 | ocupados | 306.4 |
-| 05 | Canarias | Comunidad | Mujeres | De 25 a 54 años | Servicios | 2024 | ocupados | 334.1 |
-| 05 | Canarias | Comunidad | Ambos sexos | De 25 a 54 años | Servicios | 2024 | ocupados | 640.4 |
-| 05 | Canarias | Comunidad | Ambos sexos | Total | Servicios | 2024 | ocupados | 862.6 |
-| 05 | Canarias | Comunidad | Ambos sexos | De 25 a 54 años | Total | 2024 | ocupados | 741.5 |
-| 05 | Canarias | Comunidad | Ambos sexos | Total | Total | 2024 | ocupados | 1005.6 |
-| 05 | Canarias | Comunidad | Ambos sexos | Total | Total | 2024 | ocupados_por_100 | 51.4 |
-| 35 | Las Palmas | Provincia | Ambos sexos | Total | Servicios | 2024 | ocupados | 450.3 |
-| 35 | Las Palmas | Provincia | Ambos sexos | Total | Total | 2024 | ocupados | 527.8 |
-| 38 | Santa Cruz de Tenerife | Provincia | Ambos sexos | Total | Total | 2024 | ocupados | 477.9 |
+| 05 | Canarias | Comunidad | Hombres | De 25 a 54 años | Servicios | 2026 Q3 | ocupados | 320.1 |
+| 05 | Canarias | Comunidad | Mujeres | De 25 a 54 años | Servicios | 2026 Q3 | ocupados | 351.5 |
+| 05 | Canarias | Comunidad | Ambos sexos | De 25 a 54 años | Servicios | 2026 Q3 | ocupados | 671.6 |
+| 05 | Canarias | Comunidad | Ambos sexos | Total | Servicios | 2026 Q3 | ocupados | 942.5 |
+| 05 | Canarias | Comunidad | Ambos sexos | De 25 a 54 años | Total | 2026 Q3 | ocupados | 766.7 |
+| 05 | Canarias | Comunidad | Ambos sexos | Total | Total | 2026 Q3 | ocupados | 1073.6 |
+| 05 | Canarias | Comunidad | Ambos sexos | Total | Total | 2026 Q3 | ocupados_por_100 | 53.8 |
+| 35 | Las Palmas | Provincia | Ambos sexos | Total | Servicios | 2026 Q3 | ocupados | 492.3 |
+| 35 | Las Palmas | Provincia | Ambos sexos | Total | Total | 2026 Q3 | ocupados | 557.6 |
+| 38 | Santa Cruz de Tenerife | Provincia | Ambos sexos | Total | Total | 2026 Q3 | ocupados | 516.0 |
 
 </div>
 
-Los hombres y las mujeres suman «Ambos sexos» (306.4 + 334.1 = 640.4), y las dos provincias, Canarias (527.8 + 477.9 = 1005.6 en el total). Los códigos son los del INE: `05` es Canarias como comunidad, y `35` y `38`, sus provincias.
+Los hombres y las mujeres suman «Ambos sexos» (320.1 + 351.5 = 671.6), y las dos provincias, Canarias (557.6 + 516.0 = 1073.6 en el total). Los códigos son los del INE: `05` es Canarias como comunidad, y `35` y `38`, sus provincias. El periodo es el trimestre (`2026 Q3`, el tercero de 2026, como lo imprime R), la frecuencia con la que publica la EPA.
 
-**Varios niveles territoriales.** Una tabla puede mezclar áreas de distintos niveles (comunidades autónomas, islas, municipios; países y regiones…). Entonces la columna `nivel` dice el de cada fila («Comunidad», «Isla», «Municipio»…), y no es un atributo ni un indicador: el dashboard pone un desplegable «Nivel territorial» y cada página trabaja con las áreas de un nivel. Un mismo nombre puede repetirse en dos niveles (Madrid comunidad y Madrid provincia), y en cada nivel no puede haber filas repetidas para la misma área, combinación de atributos, año e indicador. Un nivel no tiene por qué tener todas las combinaciones de atributos: el ejemplo de la EPA tiene los grupos de edad por comunidad, pero no por provincia. Los códigos de las áreas (NUTS, INE…) van en la columna `codigo`. Cualquier otra columna que no sea de las de arriba se descarta.
+**Varios niveles territoriales.** Una tabla puede mezclar áreas de distintos niveles (comunidades autónomas, islas, municipios; países y regiones…). Entonces la columna `nivel` dice el de cada fila («Comunidad», «Isla», «Municipio»…), y no es un atributo ni un indicador: el dashboard pone un desplegable «Nivel territorial» y cada página trabaja con las áreas de un nivel. Un mismo nombre puede repetirse en dos niveles (Madrid comunidad y Madrid provincia), y en cada nivel no puede haber filas repetidas para la misma área, combinación de atributos, periodo e indicador. Un nivel no tiene por qué tener todas las combinaciones de atributos: el ejemplo de la EPA tiene los grupos de edad por comunidad, pero no por provincia. Los códigos de las áreas (NUTS, INE…) van en la columna `codigo`. Cualquier otra columna que no sea de las de arriba se descarta.
 
 **La geometría** se lee de un fichero `geojson`, del que se eligen dos columnas: `codigo` (el mismo que en los datos) y `nombre`. Con varios niveles, cada uno tiene su fichero, y la geometría es una lista con el nombre de cada nivel:
 
@@ -737,10 +737,10 @@ Un nivel sin geometría (el total nacional, por ejemplo) sale en todas las pági
 
 1. **Elige el ejemplo más parecido a tus datos**: el del gasto público si tienen un solo atributo, el de la EPA si tienen varios. Descarga su `.Rmd` y guárdalo en la carpeta de tu dashboard.
 2. **Ten tus datos en el `.rds`** del recuadro anterior, organizado como allí se explica (`mis_datos.rds`, tidy), y la geometría en sus ficheros `geojson`, en la misma carpeta.
-3. **Comprueba que el `.rds` está bien organizado**. Debe haber un solo valor por nivel, área, combinación de atributos, año e indicador, y conviene saber qué áreas no tienen polígono:
+3. **Comprueba que el `.rds` está bien organizado**. Debe haber un solo valor por nivel, área, combinación de atributos, periodo e indicador, y conviene saber qué áreas no tienen polígono:
 
     ```{verbatim}
-    datos |> count(nivel, area, sexo, edad, anio, indicador) |> filter(n > 1) # tiene que salir vacío
+    datos |> count(nivel, area, sexo, edad, sector, periodo, indicador) |> filter(n > 1) # tiene que salir vacío
     setdiff(datos$codigo, geometria$codigo) # áreas sin polígono (no salen en el mapa)
     ```
 
@@ -754,11 +754,11 @@ Un nivel sin geometría (el total nacional, por ejemplo) sale en todas las pági
 Te adjunto la plantilla de cuadro de mandos Dashboard_epa_ocupados.Rmd. Tengo
 mis datos organizados como pide la plantilla (PASO 2):
 - mis_datos.rds: una tabla tidy con las columnas codigo, area, <nivel, si
-  mezcla varios niveles territoriales>, <mis atributos>, anio, indicador y valor;
+  mezcla varios niveles territoriales>, <mis atributos>, periodo, indicador y valor;
 - la geometría en <mi_geometria.geojson, o un geojson por nivel>, con el código
   del área en la columna <...> y su nombre en la columna <...>.
 Mis datos son <qué son las áreas y sus niveles; qué atributos hay y cuál es el
-total de cada uno; qué indicadores; qué años>.
+total de cada uno; qué indicadores; si los datos son anuales, trimestrales o mensuales, y de qué periodo>.
 
 Adapta la plantilla a mis datos cambiando SOLO lo marcado con ✎ (PASOS 1 a 4),
 y lee los ficheros en local con readRDS() y leer_geojson(). No cambies nada
