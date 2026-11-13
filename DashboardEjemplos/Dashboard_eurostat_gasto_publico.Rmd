@@ -227,7 +227,7 @@ ATRIBUTO_INICIAL    <- c(sector = "Total")                   # ✎ predicción, 
 ATRIBUTOS_INICIALES <- list(sector = c("Salud", "Educación", "Protección social")) # ✎ Series
 ATRIBUTO_X_INICIAL  <- c(sector = "Salud")                   # ✎ Comparación, eje x
 ATRIBUTO_Y_INICIAL  <- c(sector = "Protección social")       # ✎ Comparación, eje y
-COLUMNA_PCA_INICIAL <- "sector"                              # ✎ atributo cuyas categorías son las columnas del PCA
+COLUMNAS_PCA_INICIALES <- "sector"                           # ✎ atributo(s) del PCA: sus categorías (o sus combinaciones) son las columnas
 K_INICIAL           <- 3                                     # ✎ nº de grupos del k-means
 VISTA <- list(lng = 12, lat = 55, zoom = 4)                  # ✎ centro y zoom del mapa (Europa)
 
@@ -297,7 +297,8 @@ categoria_valida <- function(valor, opciones, defecto) {
   unname(if (length(valor) == 1 && !is.na(valor) && valor %in% opciones) valor else defecto) # sin nombre: lo pone sapply()
 }
 if (!INDICADOR_INICIAL %in% INDICADORES) INDICADOR_INICIAL <- INDICADORES[1]
-if (!COLUMNA_PCA_INICIAL %in% COLS_ATR) COLUMNA_PCA_INICIAL <- COLS_ATR[1]
+COLUMNAS_PCA_INICIALES <- intersect(COLUMNAS_PCA_INICIALES, COLS_ATR)
+if (length(COLUMNAS_PCA_INICIALES) == 0) COLUMNAS_PCA_INICIALES <- COLS_ATR[1]
 ATRIBUTO_INICIAL <- sapply(COLS_ATR, \(col) categoria_valida(
   ATRIBUTO_INICIAL[col], CATEGORIAS[[col]], if (!is.na(TOTALES[col])) TOTALES[[col]] else CATEGORIAS[[col]][1]))
 ATRIBUTOS_INICIALES <- lapply(setNames(COLS_ATR, COLS_ATR), \(col) {
@@ -400,9 +401,10 @@ seleccion <- list() # página Series
   margin-top: 18px;
   font-weight: bold;
 }
-/* caja con scroll horizontal y vertical para la muestra de la tabla de entrada */
+/* caja con scroll horizontal y vertical para la muestra de la tabla de entrada:
+   a la vista, la cabecera y 5 filas */
 .datos-explicacion .tabla-scroll-xy {
-  max-height: 420px;
+  max-height: 215px;
   overflow: auto;
   border: 1px solid #ddd;
   margin-bottom: 15px;
@@ -1790,8 +1792,11 @@ renderUI({
 ################################################################################
   PÁGINA 5: ANÁLISIS DE ATRIBUTOS (Dashboard_atributos_analisis.Rmd, página 2).
   Las columnas del PCA son las categorías de un atributo, sin su total (TOTALES,
-  PASO 3). Con varios atributos, se elige cuál y los demás se fijan en una
-  categoría (por ejemplo, los grupos de edad de las mujeres).
+  PASO 3). Con varios atributos, se eligen los del PCA en un desplegable
+  múltiple: si se eligen varios, las columnas son las combinaciones de sus
+  categorías (sexo y edad: «Mujeres · De 25 a 34 años»...), y los atributos no
+  elegidos se fijan en una categoría (por ejemplo, los grupos de edad de las
+  mujeres).
 ################################################################################
 -->
 
@@ -1811,18 +1816,19 @@ selectInput("anio_2", "Año:", choices = OPCIONES_ANIO, selected = "Último año
 # valor del indicador o su incremento (%) respecto al año anterior
 radioButtons("unidad_2", "Unidad:", choices = OPCIONES_UNIDAD, selected = "Valor indicador")
 
-# con varios atributos: el que da las columnas del PCA y, debajo, una categoría
-# fija de cada uno de los demás (cambian al cambiar el atributo del PCA)
+# con varios atributos: los que dan las columnas del PCA (selección múltiple:
+# si se eligen varios, las columnas son las combinaciones de sus categorías) y,
+# debajo, una categoría fija de cada uno de los demás (cambian al cambiar los
+# atributos del PCA)
 if (length(COLS_ATR) > 1) {
   output$pca_fijos <- renderUI({
-    req(input$pca_columna)
-    tagList(lapply(setdiff(COLS_ATR, input$pca_columna), function(col)
+    tagList(lapply(setdiff(COLS_ATR, input$pca_columnas), function(col)
       selectInput(paste0("pca_fijo_", col), paste0(COLUMNAS_ATRIBUTO[[col]], ":"),
                   choices = CATEGORIAS[[col]], selected = ATRIBUTO_INICIAL[[col]])))
   })
   tagList(
-    selectInput("pca_columna", "Atributo del PCA:", choices = setNames(COLS_ATR, COLUMNAS_ATRIBUTO),
-                selected = COLUMNA_PCA_INICIAL),
+    selectInput("pca_columnas", "Atributos del PCA (se combinan):", choices = setNames(COLS_ATR, COLUMNAS_ATRIBUTO),
+                selected = COLUMNAS_PCA_INICIALES, multiple = TRUE),
     uiOutput("pca_fijos")
   )
 }
@@ -1844,23 +1850,28 @@ actionButton("calcular_2", "Calcular")
 procesado_page_2 <- eventReactive(input$calcular_2, {
   k <- as.numeric(input$k)
 
-  # atributo cuyas categorías son las columnas del PCA, y categoría fija de
-  # cada uno de los demás atributos
-  col_pca <- if (length(COLS_ATR) > 1) input$pca_columna else COLS_ATR[1]
-  fijos <- sapply(setdiff(COLS_ATR, col_pca), \(col) input[[paste0("pca_fijo_", col)]])
-  req(col_pca, all(lengths(fijos) == 1)) # por si se pulsa antes de que existan los controles
+  # atributos cuyas categorías (o sus combinaciones) son las columnas del PCA,
+  # en el orden de COLUMNAS_ATRIBUTO, y categoría fija de cada uno de los demás
+  cols_pca <- if (length(COLS_ATR) > 1) intersect(COLS_ATR, input$pca_columnas) else COLS_ATR
+  validate(need(length(cols_pca) > 0, "Elige al menos un atributo para las columnas del PCA."))
+  fijos <- sapply(setdiff(COLS_ATR, cols_pca), \(col) input[[paste0("pca_fijo_", col)]])
+  req(all(lengths(fijos) == 1)) # por si se pulsa antes de que existan los controles
 
-  # tabla de atributos: una fila por área y año y una columna por categoría
+  # tabla de atributos: una fila por área y año y una columna por combinación de categorías
   tabla <- DATOS_UNIDAD |>
-    filter(unidad == input$unidad_2, # valor del indicador o incremento anual (%)
-           .data[[col_pca]] %in% CATEGORIAS_ANALISIS[[col_pca]]) # sin el total
+    filter(unidad == input$unidad_2) # valor del indicador o incremento anual (%)
+  for (col in cols_pca) {
+    tabla <- tabla |> filter(.data[[col]] %in% CATEGORIAS_ANALISIS[[col]]) # sin los totales
+  }
   for (col in names(fijos)) {
     tabla <- tabla |> filter(.data[[col]] == fijos[[col]]) # categoría fija de los demás atributos
   }
   tabla <- tabla |>
-    select(area, anio, columna = all_of(col_pca), valor = input$indicador_2) |> # indicador elegido
-    pivot_wider(names_from = columna, values_from = valor) |> # una fila por área y año, una categoría por columna
-    drop_na() # años sin todas las categorías
+    mutate(columna = do.call(paste, c(across(all_of(cols_pca)), sep = " · "))) |> # "Mujeres · De 25 a 34 años"
+    select(area, anio, columna, valor = input$indicador_2) |> # indicador elegido
+    pivot_wider(names_from = columna, values_from = valor) |> # una fila por área y año, una columna por combinación
+    drop_na() # años sin todas las columnas
+  columnas <- setdiff(names(tabla), c("area", "anio")) # las columnas del PCA
 
   # año elegido, el último con todos los atributos de cada área o la media de todos sus años
   if (input$anio_2 == "Último año disponible") {
@@ -1872,7 +1883,7 @@ procesado_page_2 <- eventReactive(input$calcular_2, {
     tabla <- tabla |>
       group_by(area) |>
       summarise(anio = paste0(min(anio), "-", max(anio)), # periodo de la media (no se usa: se quita debajo)
-                across(any_of(CATEGORIAS_ANALISIS[[col_pca]]), \(v) mean(v, na.rm = TRUE))) # media de cada categoría
+                across(all_of(columnas), \(v) mean(v, na.rm = TRUE))) # media de cada columna
   } else {
     tabla <- tabla |>
       filter(anio == input$anio_2)

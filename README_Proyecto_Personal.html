@@ -3215,7 +3215,8 @@ el gasto público por sectores de Eurostat, con <strong>un
 atributo</strong> (el sector).</li>
 <li><a href="https://ctim.es/AEDV/Dashboard_epa_ocupados.Rmd">Dashboard_epa_ocupados.Rmd</a>:
 los ocupados de la EPA por comunidad autónoma, con <strong>dos
-atributos</strong> (el sexo y el grupo de edad).</li>
+atributos</strong> (el sexo y el grupo de edad) y dos indicadores (los
+ocupados y los ocupados por cada 100 personas en edad de trabajar).</li>
 </ul>
 <p>Para aplicar la plantilla a otro dataset solo hay que cambiar lo
 marcado con ✎, en cuatro sitios:</p>
@@ -3244,9 +3245,11 @@ análisis del error del ajuste.</li>
 <li><strong>Mapa</strong>: mapa coroplético.</li>
 <li><strong>Comparación</strong>: dos combinaciones de atributos frente
 a frente (dispersión, recta de regresión y tests), con Yeo-Johnson.</li>
-<li><strong>PCA</strong>: matriz de correlación, PCA y k-means, con las
-categorías de un atributo como columnas (con varios atributos, los demás
-se fijan en una categoría).</li>
+<li><strong>PCA</strong>: matriz de correlación, PCA y k-means. Las
+columnas son las categorías de un atributo o, si en el desplegable
+múltiple «Atributos del PCA» se eligen varios, las combinaciones de sus
+categorías (sexo y edad: «Mujeres · De 25 a 34 años»…); los atributos no
+elegidos se fijan en una categoría.</li>
 </ul>
 <p>En todas las páginas se elige el indicador y la
 <strong>unidad</strong>: el valor del indicador o su <strong>incremento

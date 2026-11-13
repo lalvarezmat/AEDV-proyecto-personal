@@ -630,7 +630,7 @@ El dashboard es el entregable técnico más exigente. Debe estar desplegado y ac
 Tu dashboard tiene que partir **obligatoriamente** de la plantilla de cuadro de mandos de la asignatura, **adaptada a tus datos**. Hay dos ejemplos de la misma plantilla, que solo se diferencian en lo marcado con ✎; parte del que más se parezca a tus datos:
 
 * [Dashboard_eurostat_gasto_publico.Rmd](https://ctim.es/AEDV/Dashboard_eurostat_gasto_publico.Rmd): el gasto público por sectores de Eurostat, con **un atributo** (el sector).
-* [Dashboard_epa_ocupados.Rmd](https://ctim.es/AEDV/Dashboard_epa_ocupados.Rmd): los ocupados de la EPA por comunidad autónoma, con **dos atributos** (el sexo y el grupo de edad).
+* [Dashboard_epa_ocupados.Rmd](https://ctim.es/AEDV/Dashboard_epa_ocupados.Rmd): los ocupados de la EPA por comunidad autónoma, con **dos atributos** (el sexo y el grupo de edad) y dos indicadores (los ocupados y los ocupados por cada 100 personas en edad de trabajar).
 
 Para aplicar la plantilla a otro dataset solo hay que cambiar lo marcado con ✎, en cuatro sitios:
 
@@ -645,7 +645,7 @@ Todo lo demás (los indicadores, las áreas, las categorías de los atributos, l
 * **Predicción**: predicción con ARIMA o STL + ARIMA y análisis del error del ajuste.
 * **Mapa**: mapa coroplético.
 * **Comparación**: dos combinaciones de atributos frente a frente (dispersión, recta de regresión y tests), con Yeo-Johnson.
-* **PCA**: matriz de correlación, PCA y k-means, con las categorías de un atributo como columnas (con varios atributos, los demás se fijan en una categoría).
+* **PCA**: matriz de correlación, PCA y k-means. Las columnas son las categorías de un atributo o, si en el desplegable múltiple «Atributos del PCA» se eligen varios, las combinaciones de sus categorías (sexo y edad: «Mujeres · De 25 a 34 años»…); los atributos no elegidos se fijan en una categoría.
 
 En todas las páginas se elige el indicador y la **unidad**: el valor del indicador o su **incremento anual en porcentaje**, que se calcula una sola vez al arrancar. En el mapa, la comparación y el PCA el año puede ser uno concreto, el último disponible de cada área o la media en el periodo.
 
