@@ -35,8 +35,8 @@ runtime: shiny
 
   HAY DOS EJEMPLOS DE ESTA PLANTILLA, que solo se diferencian en lo marcado
   con ✎: Dashboard_eurostat_gasto_publico.Rmd, con un atributo (el sector del
-  gasto público de Eurostat), y Dashboard_epa_ocupados.Rmd, con dos (el sexo y
-  el grupo de edad de los ocupados de la EPA). Sus datos se prepararon con
+  gasto público de Eurostat), y Dashboard_epa_ocupados.Rmd, con tres (el sexo,
+  el grupo de edad y el sector económico de los ocupados de la EPA). Sus datos se prepararon con
   preparar_datos_gasto_publico.R y preparar_datos_epa_ocupados.R.
 
   EN ESTE CUADRO DE MANDOS: el gasto de las administraciones públicas por
@@ -166,22 +166,22 @@ source("https://ctim.es/AEDV/utilidades.R")
 #       ESP     España   Total      2023  pct_pib             45.4
 #       ...
 #
-#     Ejemplo con DOS atributos, el sexo y el grupo de edad (la EPA, ocupados
-#     en miles): cada uno en su columna, y una fila por cada combinación de
-#     sexo y grupo de edad, incluidas las de los totales («Ambos sexos» y
-#     «Total»):
+#     Ejemplo con TRES atributos, el sexo, el grupo de edad y el sector
+#     económico (la EPA, ocupados en miles): cada uno en su columna, y una
+#     fila por cada combinación de sus categorías, incluidas las de los totales
+#     («Ambos sexos», «Total» y «Total»):
 #
-#       codigo  area       sexo         edad              anio  indicador  valor
-#       05      Canarias   Hombres      De 25 a 34 años   2024  ocupados   103.2
-#       05      Canarias   Mujeres      De 25 a 34 años   2024  ocupados    98.9
-#       05      Canarias   Ambos sexos  De 25 a 34 años   2024  ocupados   202.1
-#       05      Canarias   Hombres      Total             2024  ocupados   536.7
-#       05      Canarias   Mujeres      Total             2024  ocupados   469.0
-#       05      Canarias   Ambos sexos  Total             2024  ocupados  1005.6
+#       codigo  area      sexo         edad              sector     anio  indicador  valor
+#       05      Canarias  Hombres      De 25 a 54 años   Servicios  2024  ocupados   306.4
+#       05      Canarias  Mujeres      De 25 a 54 años   Servicios  2024  ocupados   334.1
+#       05      Canarias  Ambos sexos  De 25 a 54 años   Servicios  2024  ocupados   640.4
+#       05      Canarias  Ambos sexos  Total             Servicios  2024  ocupados   862.6
+#       05      Canarias  Ambos sexos  De 25 a 54 años   Total      2024  ocupados   741.5
+#       05      Canarias  Ambos sexos  Total             Total      2024  ocupados  1005.6
 #       ...
 #
-#     NO hay que juntar el sexo y la edad en una sola columna: el cuadro de
-#     mandos pone un desplegable por atributo y los combina él solo.
+#     NO hay que juntar los atributos en una sola columna: el cuadro de mandos
+#     pone un desplegable por atributo y los combina él solo.
 #
 #   - GEOMETRIA: los polígonos de las áreas (un objeto sf, de la librería sf),
 #     con una columna `codigo` que casa con la de DATOS y una columna `nombre`

@@ -3214,9 +3214,10 @@ datos:</p>
 el gasto público por sectores de Eurostat, con <strong>un
 atributo</strong> (el sector).</li>
 <li><a href="https://ctim.es/AEDV/Dashboard_epa_ocupados.Rmd">Dashboard_epa_ocupados.Rmd</a>:
-los ocupados de la EPA por comunidad autónoma, con <strong>dos
-atributos</strong> (el sexo y el grupo de edad) y dos indicadores (los
-ocupados y los ocupados por cada 100 personas en edad de trabajar).</li>
+los ocupados de la EPA por comunidad autónoma, con <strong>tres
+atributos</strong> (el sexo, el grupo de edad y el sector económico) y
+dos indicadores (los ocupados y los ocupados por cada 100 personas en
+edad de trabajar).</li>
 </ul>
 <p>Para aplicar la plantilla a otro dataset solo hay que cambiar lo
 marcado con ✎, en cuatro sitios:</p>
@@ -3248,7 +3249,7 @@ a frente (dispersión, recta de regresión y tests), con Yeo-Johnson.</li>
 <li><strong>PCA</strong>: matriz de correlación, PCA y k-means. Las
 columnas son las categorías de un atributo o, si en el desplegable
 múltiple «Atributos del PCA» se eligen varios, las combinaciones de sus
-categorías (sexo y edad: «Mujeres · De 25 a 34 años»…); los atributos no
+categorías (sexo y sector: «Mujeres · Servicios»…); los atributos no
 elegidos se fijan en una categoría.</li>
 </ul>
 <p>En todas las páginas se elige el indicador y la
@@ -3306,21 +3307,23 @@ más.</li>
 indicadores van en esta misma columna</strong>, no uno por columna.</li>
 <li><code>valor</code>: el valor numérico del indicador.</li>
 </ul>
-<p>El <strong>sexo y el grupo de edad</strong> van cada uno en
-<strong>su propia columna</strong>, con una fila por cada combinación de
-sexo y grupo de edad, <strong>incluidas las de los totales</strong>
-(«Ambos sexos» y «Total»). No hay que juntarlos en una sola columna: el
-dashboard pone un desplegable por atributo y los combina él solo. Por
-ejemplo, los ocupados de la EPA (en miles):</p>
-<table style="width:100%;">
+<p>El <strong>sexo, el grupo de edad</strong> (y cualquier otra variable
+categórica, como el sector económico) van cada uno en <strong>su propia
+columna</strong>, con una fila por cada combinación de sus categorías,
+<strong>incluidas las de los totales</strong> («Ambos sexos», «Total»…).
+No hay que juntarlos en una sola columna: el dashboard pone un
+desplegable por atributo y los combina él solo. Por ejemplo, los
+ocupados de la EPA (en miles), con tres atributos:</p>
+<table>
 <colgroup>
-<col width="14%" />
-<col width="14%" />
-<col width="14%" />
-<col width="14%" />
-<col width="14%" />
-<col width="14%" />
-<col width="14%" />
+<col width="12%" />
+<col width="12%" />
+<col width="12%" />
+<col width="12%" />
+<col width="12%" />
+<col width="12%" />
+<col width="12%" />
+<col width="12%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -3328,6 +3331,7 @@ ejemplo, los ocupados de la EPA (en miles):</p>
 <th>area</th>
 <th>sexo</th>
 <th>edad</th>
+<th>sector</th>
 <th>anio</th>
 <th>indicador</th>
 <th>valor</th>
@@ -3338,51 +3342,57 @@ ejemplo, los ocupados de la EPA (en miles):</p>
 <td>05</td>
 <td>Canarias</td>
 <td>Hombres</td>
-<td>De 25 a 34 años</td>
+<td>De 25 a 54 años</td>
+<td>Servicios</td>
 <td>2024</td>
 <td>ocupados</td>
-<td>103.2</td>
+<td>306.4</td>
 </tr>
 <tr class="even">
 <td>05</td>
 <td>Canarias</td>
 <td>Mujeres</td>
-<td>De 25 a 34 años</td>
+<td>De 25 a 54 años</td>
+<td>Servicios</td>
 <td>2024</td>
 <td>ocupados</td>
-<td>98.9</td>
+<td>334.1</td>
 </tr>
 <tr class="odd">
 <td>05</td>
 <td>Canarias</td>
 <td>Ambos sexos</td>
-<td>De 25 a 34 años</td>
+<td>De 25 a 54 años</td>
+<td>Servicios</td>
 <td>2024</td>
 <td>ocupados</td>
-<td>202.1</td>
-</tr>
-<tr class="even">
-<td>05</td>
-<td>Canarias</td>
-<td>Hombres</td>
-<td>Total</td>
-<td>2024</td>
-<td>ocupados</td>
-<td>536.7</td>
-</tr>
-<tr class="odd">
-<td>05</td>
-<td>Canarias</td>
-<td>Mujeres</td>
-<td>Total</td>
-<td>2024</td>
-<td>ocupados</td>
-<td>469.0</td>
+<td>640.4</td>
 </tr>
 <tr class="even">
 <td>05</td>
 <td>Canarias</td>
 <td>Ambos sexos</td>
+<td>Total</td>
+<td>Servicios</td>
+<td>2024</td>
+<td>ocupados</td>
+<td>862.6</td>
+</tr>
+<tr class="odd">
+<td>05</td>
+<td>Canarias</td>
+<td>Ambos sexos</td>
+<td>De 25 a 54 años</td>
+<td>Total</td>
+<td>2024</td>
+<td>ocupados</td>
+<td>741.5</td>
+</tr>
+<tr class="even">
+<td>05</td>
+<td>Canarias</td>
+<td>Ambos sexos</td>
+<td>Total</td>
 <td>Total</td>
 <td>2024</td>
 <td>ocupados</td>
