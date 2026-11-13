@@ -1,5 +1,5 @@
 ---
-title: "Gasto público" # ✎ USUARIO: título del cuadro de mandos
+title: "Gasto público" # ✎ USUARIO: nombre de la pestaña del navegador (en la barra superior no se muestra: ver el {css})
 output:
   flexdashboard::flex_dashboard:
     orientation: columns
@@ -180,6 +180,33 @@ seleccion <- list() # página 1
   padding-right: 4px !important;
 }
 
+/* Sin título en la barra superior (con title vacío flexdashboard pondría el
+   nombre del fichero): la primera página, Gasto público, explica los datos */
+.navbar-brand {
+  display: none !important;
+}
+
+/* Página Gasto público (explicación de los datos): texto legible, la tabla de
+   los sectores con la primera columna estrecha, y scroll si no cabe */
+.datos-explicacion .chart-stage {
+  overflow-y: auto !important;
+  font-size: 16px;
+  padding: 10px 20px;
+}
+.datos-explicacion table {
+  width: 100%;
+  margin-bottom: 15px;
+}
+.datos-explicacion table td:first-child {
+  width: 20%;
+  font-weight: bold;
+  white-space: nowrap;
+}
+.datos-explicacion h4 {
+  margin-top: 18px;
+  font-weight: bold;
+}
+
 /* Página Comparación: la columna de la derecha se desplaza en vertical si los
    tres paneles no caben en la ventana. Los paneles dejan de encogerse: las dos
    gráficas tienen un alto fijo y la tabla del ajuste, el de su contenido (para
@@ -218,6 +245,50 @@ seleccion <- list() # página 1
   min-height: 950px;
 }
 ```
+
+<!--
+################################################################################
+  PÁGINA 0: LOS DATOS. Solo texto: qué gastos incluye cada sector, qué mide
+  cada indicador y qué es cada unidad
+################################################################################
+-->
+
+Gasto público
+==================================================
+
+Column
+--------------------------------------------------
+
+### Gasto de las administraciones públicas por sectores (Eurostat) {.datos-explicacion}
+
+Gasto de las administraciones públicas de 30 países europeos y la UE-27, por año (desde 1995) y por sector (función del gasto según la clasificación **COFOG**), con el Total como suma de los diez sectores. Metadatos en [eurostat_GASTO_PUBLICO_metadatos.xlsx](https://ctim.es/AEDV/data/eurostat_GASTO_PUBLICO_metadatos.xlsx).
+
+#### Sectores del gasto público (COFOG)
+
+| Sector | Qué gastos incluye |
+|-----|--------------------|
+| Servicios generales | Funcionamiento de la administración, ayuda exterior, intereses de la deuda pública e investigación básica. |
+| Defensa | Defensa militar y civil, ayuda militar al exterior e I+D de defensa. |
+| Orden público | Policía, bomberos, tribunales de justicia y prisiones. |
+| Asuntos económicos | Transporte e infraestructuras, energía, agricultura, pesca, industria, comunicaciones, comercio, turismo, empleo y ayudas a empresas. |
+| Medio ambiente | Recogida y tratamiento de residuos, aguas residuales y lucha contra la contaminación. |
+| Vivienda | Vivienda y urbanismo, abastecimiento de agua y alumbrado público. |
+| Salud | Hospitales, atención primaria y ambulatoria, medicamentos y equipos médicos, y salud pública. |
+| Ocio y cultura | Deporte, cultura, radio y televisión públicas, y servicios religiosos y comunitarios. |
+| Educación | Todos los niveles de enseñanza, comedor y transporte escolar. |
+| Protección social | Pensiones de jubilación y viudedad, enfermedad e incapacidad, desempleo, familia e hijos, vivienda social y exclusión social. |
+
+#### Indicadores (un valor por país, sector y año)
+
+- `gasto`: gasto en millones de euros.
+- `gasto_per_capita`: gasto por habitante, en euros.
+- `pct_pib`: gasto en % del PIB del país.
+- `pct_gasto`: % que supone el sector sobre el gasto público total del país (no existe para el Total, que sería siempre 100).
+
+#### Unidad
+
+- **Valor indicador**: el dato tal cual.
+- **Incremento anual (%)**: variación porcentual respecto al año anterior, $100 \cdot \frac{x_t - x_{t-1}}{x_{t-1}}$.
 
 <!--
 ################################################################################
