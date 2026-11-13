@@ -630,12 +630,12 @@ El dashboard es el entregable técnico más exigente. Debe estar desplegado y ac
 Tu dashboard tiene que partir **obligatoriamente** de la plantilla de cuadro de mandos de la asignatura, **adaptada a tus datos**. Hay dos ejemplos de la misma plantilla, que solo se diferencian en lo marcado con ✎; parte del que más se parezca a tus datos:
 
 * [Dashboard_eurostat_gasto_publico.Rmd](https://ctim.es/AEDV/Dashboard_eurostat_gasto_publico.Rmd): el gasto público por sectores de Eurostat, con **un atributo** (el sector).
-* [Dashboard_epa_ocupados.Rmd](https://ctim.es/AEDV/Dashboard_epa_ocupados.Rmd): los ocupados de la EPA por comunidad autónoma, con **tres atributos** (el sexo, el grupo de edad y el sector económico) y dos indicadores (los ocupados y los ocupados por cada 100 personas en edad de trabajar).
+* [Dashboard_epa_ocupados.Rmd](https://ctim.es/AEDV/Dashboard_epa_ocupados.Rmd): los ocupados de la EPA, con **tres atributos** (el sexo, el grupo de edad y el sector económico), dos indicadores (los ocupados y los ocupados por cada 100 personas en edad de trabajar) y **dos niveles territoriales**, las comunidades autónomas y las provincias, cada uno con su mapa.
 
 Para aplicar la plantilla a otro dataset solo hay que cambiar lo marcado con ✎, en cuatro sitios:
 
 1. **PASO 1**: el título (cabecera YAML).
-2. **PASO 2**: la lectura de los datos y de la geometría (chunk `global`), dos `.rds` organizados como se explica en el recuadro siguiente.
+2. **PASO 2**: la lectura de los datos (un `.rds` organizado como se explica en el recuadro siguiente) y de la geometría (ficheros `geojson`), en el chunk `global`.
 3. **PASO 3**: qué columnas son atributos y cuál es su total, los rótulos (cómo se llaman las áreas y los atributos de tus datos) y las opciones con las que arrancan los controles (chunk `global`).
 4. **PASO 4**: el título y el texto de la página de presentación de los datos.
 
@@ -656,19 +656,21 @@ La plantilla es un punto de partida: tu dashboard tiene que cubrir **todas las v
 <div class="discusion">
 <strong class="bloque-titulo">Cómo tienen que llegar los datos al dashboard</strong>
 
-El dashboard **no lee los datos originales**, sino **dos ficheros `.rds`**: los datos, organizados como se explica a continuación, y la geometría del mapa. Esos `.rds` van **en la misma carpeta que el dashboard**, se suben al servidor junto a él, y el PASO 2 solo los lee **en local**:
+El dashboard **no lee los datos originales**, sino un fichero **`.rds`** con los datos organizados como se explica a continuación, y la geometría del mapa, de ficheros **`geojson`**. Todos van **en la misma carpeta que el dashboard**, se suben al servidor junto a él, y el PASO 2 solo los lee **en local**. De la geometría se eligen dos columnas, la del código del área y la de su nombre:
 
 ```{verbatim}
 DATOS     <- readRDS("mis_datos.rds")
-GEOMETRIA <- readRDS("mi_geometria.rds")
+GEOMETRIA <- leer_geojson("mi_geometria.geojson") |>
+  select(codigo = <columna con el código del área>, nombre = <columna con su nombre>)
 ```
 
-(Los dos ejemplos leen sus `.rds` desde `ctim.es` para poder abrirlos sin descargar nada más; tu dashboard, no.)
+(Los dos ejemplos leen sus ficheros desde `ctim.es` para poder abrirlos sin descargar nada más; tu dashboard, no.)
 
 **Los datos son una tabla *tidy***, con una fila por área, combinación de los atributos, año e indicador, y estas columnas:
 
 * `codigo`: el código del área, el mismo que en la geometría (el código NUTS de cada región, el ISO de cada país…). Un área sin polígono, como el total de España o de la UE-27, sale en todas las páginas salvo en el mapa.
 * `area`: el nombre del área.
+* `nivel` (opcional): el nivel territorial del área, si tus datos **mezclan áreas de varios niveles** (comunidades, islas, municipios…). Ver más abajo.
 * **Una columna por atributo**, con el nombre que quieras. Un atributo es una **variable categórica que no es un indicador**: el sector, el sexo, el grupo de edad… Sus categorías son los valores de su columna, y si tiene una categoría que es la suma de las demás (el total), va en la misma columna, como una categoría más.
 * `anio`: el año (la plantilla trabaja con datos anuales).
 * `indicador`: el nombre del indicador. **Todos los indicadores van en esta misma columna**, no uno por columna.
@@ -685,9 +687,17 @@ El **sexo, el grupo de edad** (y cualquier otra variable categórica, como el se
 | 05 | Canarias | Ambos sexos | De 25 a 54 años | Total | 2024 | ocupados | 741.5 |
 | 05 | Canarias | Ambos sexos | Total | Total | 2024 | ocupados | 1005.6 |
 
-**Otras variables categóricas, como el nivel NUTS, tampoco son indicadores.** Los códigos NUTS de las regiones van en la columna `codigo`, y la tabla tiene **un solo nivel NUTS** (países, comunidades o provincias, no mezclados): no puede haber filas repetidas para la misma área, combinación de atributos, año e indicador. Cualquier otra columna que no sea de las de arriba se descarta.
+**Varios niveles territoriales.** Una tabla puede mezclar áreas de distintos niveles (comunidades autónomas, islas, municipios; países y regiones…). Entonces la columna `nivel` dice el de cada fila («Comunidad», «Isla», «Municipio»…), y no es un atributo ni un indicador: el dashboard pone un desplegable «Nivel territorial» y cada página trabaja con las áreas de un nivel. Un mismo nombre puede repetirse en dos niveles (Madrid comunidad y Madrid provincia), y en cada nivel no puede haber filas repetidas para la misma área, combinación de atributos, año e indicador. Un nivel no tiene por qué tener todas las combinaciones de atributos: el ejemplo de la EPA tiene los grupos de edad por comunidad, pero no por provincia. Los códigos de las áreas (NUTS, INE…) van en la columna `codigo`. Cualquier otra columna que no sea de las de arriba se descarta.
 
-**La geometría** es un objeto `sf` (librería `sf`) con dos columnas, `codigo` (el mismo que en los datos) y `nombre`, recortado a las áreas de tus datos.
+**La geometría** se lee de un fichero `geojson`, del que se eligen dos columnas: `codigo` (el mismo que en los datos) y `nombre`. Con varios niveles, cada uno tiene su fichero, y la geometría es una lista con el nombre de cada nivel:
+
+```{verbatim}
+GEOMETRIA <- list(
+  Comunidad = leer_geojson("ccaa.geojson") |> select(codigo = codauto, nombre = ccaa.shortname.es),
+  Isla      = leer_geojson("islas.geojson") |> select(codigo = ..., nombre = ...))
+```
+
+Un nivel sin geometría (el total nacional, por ejemplo) sale en todas las páginas salvo en el mapa.
 
 </div>
 
@@ -695,32 +705,33 @@ El **sexo, el grupo de edad** (y cualquier otra variable categórica, como el se
 <strong class="bloque-titulo">Cómo adaptar la plantilla a tus datos (también con ayuda de la IA)</strong>
 
 1. **Elige el ejemplo más parecido a tus datos**: el del gasto público si tienen un solo atributo, el de la EPA si tienen varios. Descarga su `.Rmd` y guárdalo en la carpeta de tu dashboard.
-2. **Ten tus datos en los dos `.rds`** del recuadro anterior, organizados como allí se explica (`mis_datos.rds`, tidy, y `mi_geometria.rds`), en la misma carpeta.
-3. **Comprueba que los `.rds` están bien organizados**. Debe haber un solo valor por área, combinación de atributos, año e indicador, y conviene saber qué áreas no tienen polígono:
+2. **Ten tus datos en el `.rds`** del recuadro anterior, organizado como allí se explica (`mis_datos.rds`, tidy), y la geometría en sus ficheros `geojson`, en la misma carpeta.
+3. **Comprueba que el `.rds` está bien organizado**. Debe haber un solo valor por nivel, área, combinación de atributos, año e indicador, y conviene saber qué áreas no tienen polígono:
 
     ```{verbatim}
-    datos |> count(area, sexo, edad, anio, indicador) |> filter(n > 1) # tiene que salir vacío
+    datos |> count(nivel, area, sexo, edad, anio, indicador) |> filter(n > 1) # tiene que salir vacío
     setdiff(datos$codigo, geometria$codigo) # áreas sin polígono (no salen en el mapa)
     ```
 
-4. **Adapta el `.Rmd` cambiando SOLO lo marcado con ✎**: el título (PASO 1); la lectura de tus dos `.rds` en local (PASO 2); qué columnas son atributos y su total, los rótulos y las opciones con las que arranca cada control (PASO 3); y el título y el texto de la página de presentación de tus datos (PASO 4).
+4. **Adapta el `.Rmd` cambiando SOLO lo marcado con ✎**: el título (PASO 1); la lectura de tu `.rds` y de tus `geojson` en local (PASO 2); qué columnas son atributos y su total, los rótulos y las opciones con las que arranca cada control (PASO 3); y el título y el texto de la página de presentación de tus datos (PASO 4).
 5. **Pruébalo en tu ordenador** con *Run Document*. Si los datos no están organizados como espera la plantilla, el dashboard se para al arrancar y dice qué falla. Mira la muestra de la tabla de entrada al final de la primera página y recorre todas las páginas y controles.
-6. **Despliégalo** en el servidor Shiny del DIS (Paso 4): sube el `.Rmd` y los dos `.rds`.
+6. **Despliégalo** en el servidor Shiny del DIS (Paso 4): sube el `.Rmd`, el `.rds` y los `geojson`.
 
 **Si usas un asistente de IA**, dale el `.Rmd` del ejemplo y descríbele bien tus datos. Por ejemplo:
 
 ```{verbatim}
 Te adjunto la plantilla de cuadro de mandos Dashboard_epa_ocupados.Rmd. Tengo
-mis datos en dos ficheros organizados como pide la plantilla (PASO 2):
-- mis_datos.rds: una tabla tidy con las columnas codigo, area, <mis atributos>,
-  anio, indicador y valor;
-- mi_geometria.rds: un objeto sf con las columnas codigo y nombre.
-Mis datos son <qué son las áreas; qué atributos hay y cuál es el total de cada
-uno; qué indicadores; qué años>.
+mis datos organizados como pide la plantilla (PASO 2):
+- mis_datos.rds: una tabla tidy con las columnas codigo, area, <nivel, si
+  mezcla varios niveles territoriales>, <mis atributos>, anio, indicador y valor;
+- la geometría en <mi_geometria.geojson, o un geojson por nivel>, con el código
+  del área en la columna <...> y su nombre en la columna <...>.
+Mis datos son <qué son las áreas y sus niveles; qué atributos hay y cuál es el
+total de cada uno; qué indicadores; qué años>.
 
 Adapta la plantilla a mis datos cambiando SOLO lo marcado con ✎ (PASOS 1 a 4),
-y lee los dos .rds en local con readRDS("mis_datos.rds") y
-readRDS("mi_geometria.rds"). No cambies nada más y explícame cada cambio.
+y lee los ficheros en local con readRDS() y leer_geojson(). No cambies nada
+más y explícame cada cambio.
 ```
 
 Recuerda los límites del uso de la IA (*Errores frecuentes a evitar*): tienes que **entender y poder explicar** los cambios del dashboard, y **comprobar tú** el resultado con los pasos 3 y 5.

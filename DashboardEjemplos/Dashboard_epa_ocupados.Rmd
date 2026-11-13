@@ -29,16 +29,18 @@ runtime: shiny
   columna indicador), las áreas, las categorías de los atributos, los años, el
   incremento anual de cada indicador y las opciones de todos los controles.
 
-  CON UN ASISTENTE DE IA. Dale tus dos .rds (los datos y la geometría),
-  organizados como se describe en el PASO 2, y pídele que en este fichero
-  cambie SOLO lo marcado con ✎ (PASOS 1 a 4). Lo demás no se toca. Comprueba
+  CON UN ASISTENTE DE IA. Dale tu .rds de datos, organizado como se describe
+  en el PASO 2, y tus ficheros geojson de geometría, y pídele que en este
+  fichero cambie SOLO lo marcado con ✎ (PASOS 1 a 4). Lo demás no se toca. Comprueba
   después con la muestra de la tabla de entrada, al final de la primera
   página, que los datos están bien organizados.
 
   LOS DATOS son un .rds con una tabla tidy: una fila por área
   (país, región...), combinación de los atributos, año e indicador, con UNA
   COLUMNA POR ATRIBUTO (el sector; o el sexo y el grupo de edad...), una con
-  el nombre del indicador y otra con su valor (ver el PASO 2).
+  el nombre del indicador y otra con su valor (ver el PASO 2). Puede mezclar
+  áreas de varios niveles territoriales (comunidades, islas, municipios...):
+  una columna nivel dice el de cada fila, y cada página trabaja con un nivel.
 
   HAY DOS EJEMPLOS DE ESTA PLANTILLA, que solo se diferencian en lo marcado
   con ✎: Dashboard_eurostat_gasto_publico.Rmd, con un atributo (el sector del
@@ -46,9 +48,10 @@ runtime: shiny
   el grupo de edad y el sector económico de los ocupados de la EPA).
 
   EN ESTE CUADRO DE MANDOS: los ocupados (miles de personas, media anual) y los
-  ocupados por cada 100 personas de 16 y más años, por comunidad autónoma,
-  sexo, grupo de edad y sector económico, de la Encuesta de Población Activa
-  del INE (tablas 65304 y 65285).
+  ocupados por cada 100 personas de 16 y más años, por sexo, grupo de edad y
+  sector económico, de la Encuesta de Población Activa del INE, en DOS
+  NIVELES TERRITORIALES: las comunidades autónomas (con España) y las
+  provincias, cada uno con su geometría.
 
   UNIDAD Y MEDIA EN EL PERIODO. En todas las páginas se elige la unidad: el
   valor del indicador o su incremento anual en porcentaje, que se calcula UNA
@@ -115,6 +118,18 @@ theme_set(theme_bw(base_size = 12))
 # Funciones auxiliares del curso
 source("https://ctim.es/AEDV/utilidades.R")
 
+# lectura de un fichero geojson (local o de una URL) como objeto sf. Una URL se
+# descarga primero a un fichero temporal porque, en algunos sistemas, st_read
+# no puede acceder directamente a URLs https
+leer_geojson <- function(fichero) {
+  if (grepl("^https?://", fichero)) {
+    tmp <- tempfile(fileext = ".geojson")
+    curl::curl_download(fichero, tmp)
+    fichero <- tmp
+  }
+  st_read(fichero, quiet = TRUE)
+}
+
 # ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
 #   ELEMENTOS QUE DEFINE EL USUARIO (PASOS 2 Y 3)
 #   Es lo único que hay que cambiar en el código; todo lo que viene después se
@@ -124,13 +139,14 @@ source("https://ctim.es/AEDV/utilidades.R")
 
 # ✎ PASO 2: LOS DATOS Y LA GEOMETRÍA. Se leen UNA SOLA VEZ al arrancar.
 #
-#   EL CUADRO DE MANDOS NO LEE LOS DATOS ORIGINALES, sino dos .rds: los datos,
-#   con la organización que se describe aquí, y la geometría. Los de este
-#   ejemplo se leen de ctim.es. En TU PROYECTO, los .rds van en la MISMA
-#   CARPETA que el cuadro de mandos, se suben al servidor junto a él y se leen
-#   en local:
+#   EL CUADRO DE MANDOS NO LEE LOS DATOS ORIGINALES, sino un .rds con la
+#   organización que se describe aquí. La geometría se lee de ficheros
+#   geojson. Los de este ejemplo se leen de ctim.es. En TU PROYECTO, los
+#   ficheros van en la MISMA CARPETA que el cuadro de mandos, se suben al
+#   servidor junto a él y se leen en local:
 #     DATOS     <- readRDS("mis_datos.rds")
-#     GEOMETRIA <- readRDS("mi_geometria.rds")
+#     GEOMETRIA <- leer_geojson("mi_geometria.geojson") |>
+#       select(codigo = <columna con el código del área>, nombre = <columna con su nombre>)
 #
 #   - DATOS: una tabla TIDY (en formato largo), con una fila por área,
 #     combinación de los atributos, año e indicador, y estas columnas:
@@ -138,6 +154,11 @@ source("https://ctim.es/AEDV/utilidades.R")
 #                    sin polígono, como la UE-27 o el total de España, sale en
 #                    todas las páginas salvo en el mapa)
 #       - area:      el nombre del área
+#       - nivel:     (opcional) el nivel territorial del área, si la tabla mezcla
+#                    áreas de varios niveles ("Comunidad", "Isla", "Municipio"...).
+#                    Cada página trabaja con las áreas de un nivel, que se elige
+#                    en un desplegable, y el mapa usa la geometría de ese nivel.
+#                    Sin esta columna, todas las áreas son del mismo nivel.
 #       - UNA COLUMNA POR ATRIBUTO, con el nombre que se quiera (se declaran
 #         en COLUMNAS_ATRIBUTO, en el PASO 3). Un atributo es una variable
 #         categórica que no es un indicador (el sector, el sexo, el grupo de
@@ -149,15 +170,14 @@ source("https://ctim.es/AEDV/utilidades.R")
 #       - indicador: el nombre del indicador (TODOS los indicadores en esta
 #                    misma columna, no uno por columna)
 #       - valor:     el valor numérico del indicador
-#     Tiene que haber un único valor por área, combinación de atributos, año e
-#     indicador. Los NA se descartan solos. Las demás columnas que haya se
-#     descartan: una variable categórica que no se declare como atributo (el
-#     nivel NUTS, por ejemplo) no debe hacer que se repitan filas: la tabla
-#     tiene un solo nivel NUTS (países, comunidades...). Los códigos de las
-#     áreas (el NUTS de cada región) van en la columna codigo. Los nombres area,
-#     codigo, anio, atributo, indicador, unidad, valor, value, year y fecha están
-#     reservados: no se pueden usar como nombre de un atributo ni de un
-#     indicador.
+#     Tiene que haber un único valor por nivel, área, combinación de atributos,
+#     año e indicador. Los NA se descartan solos. Las demás columnas que haya
+#     se descartan: una variable categórica que no se declare como atributo no
+#     debe hacer que se repitan filas. Los códigos de las áreas (NUTS, INE...)
+#     van en la columna codigo, y basta con que no se repitan dentro de cada
+#     nivel. Los nombres area, codigo, nivel, anio, atributo, indicador,
+#     unidad, valor, value, year y fecha están reservados: no se pueden usar
+#     como nombre de un atributo ni de un indicador.
 #
 #     Ejemplo con UN atributo (el de esta plantilla): el sector del gasto.
 #
@@ -187,14 +207,24 @@ source("https://ctim.es/AEDV/utilidades.R")
 #     NO hay que juntar los atributos en una sola columna: el cuadro de mandos
 #     pone un desplegable por atributo y los combina él solo.
 #
-#   - GEOMETRIA: los polígonos de las áreas (un objeto sf, de la librería sf),
-#     con una columna `codigo` que casa con la de DATOS y una columna `nombre`
-#     para las etiquetas del mapa, recortados a las áreas de los datos.
+#   - GEOMETRIA: los polígonos de las áreas, leídos de un fichero geojson con
+#     leer_geojson(), y de los que se eligen dos columnas: `codigo`, que casa
+#     con la de DATOS, y `nombre`, para las etiquetas del mapa (el cuadro de
+#     mandos la recorta a las áreas de los datos). Con varios niveles, una
+#     lista con la geometría de cada uno, con el nombre del nivel:
+#     list(Comunidad = leer_geojson(...) |> select(...), Isla = ...). Un nivel sin geometría (el
+#     total nacional, por ejemplo) sale en todas las páginas salvo en el mapa.
 
-# ocupados de la EPA por comunidad, sexo, grupo de edad y sector (media anual)
-# y polígonos de las comunidades, organizados como pide la plantilla
+# ocupados de la EPA por sexo, grupo de edad y sector (media anual), en dos
+# niveles (columna nivel: "Comunidad" y "Provincia"), organizados como pide la
+# plantilla, y la geometría de cada nivel (código INE de la comunidad o de la
+# provincia, el mismo de los datos, y nombre corto)
 DATOS     <- readRDS(url("https://ctim.es/AEDV/data/epa_ocupados_dashboard.rds")) # ✎
-GEOMETRIA <- readRDS(url("https://ctim.es/AEDV/data/geo_ccaa_epa.rds")) # ✎
+GEOMETRIA <- list( # ✎
+  Comunidad = leer_geojson("https://ctim.es/AEDV/data/ccaa.geojson") |> # ✎
+    select(codigo = codauto, nombre = ccaa.shortname.es), # ✎
+  Provincia = leer_geojson("https://ctim.es/AEDV/data/esp_prov.geojson") |> # ✎
+    select(codigo = cpro, nombre = prov.shortname.es)) # ✎
 
 # ✎ PASO 3: ATRIBUTOS, RÓTULOS Y OPCIONES DE ARRANQUE
 
@@ -209,16 +239,16 @@ COLUMNAS_ATRIBUTO <- c(sexo = "Sexo", edad = "Edad", sector = "Sector")
 # Ejemplo con sexo y edad: c(sexo = "Ambos sexos", edad = "Total")
 TOTALES <- c(sexo = "Ambos sexos", edad = "Total", sector = "Total")
 
-ETIQUETA_AREA   <- "Comunidad"             # ✎ cómo se llama un área en los rótulos
-ETIQUETA_AREAS  <- "comunidades"           # ✎ en plural, para los avisos
-TODAS_LAS_AREAS <- "Todas las comunidades" # ✎ casilla de la página Series
-POR_AREAS       <- "Por comunidades"     # ✎ página Series: un panel por área
+ETIQUETA_AREA   <- "Territorio"             # ✎ cómo se llama un área en los rótulos
+ETIQUETA_AREAS  <- "territorios"           # ✎ en plural, para los avisos
+TODAS_LAS_AREAS <- "Todos los territorios" # ✎ casilla de la página Series
+POR_AREAS       <- "Por territorios"     # ✎ página Series: un panel por área
 POR_ATRIBUTOS   <- c(sexo = "Por sexo", edad = "Por edad", sector = "Por sectores") # ✎ página Series: un panel por categoría de cada atributo
                                               #   (ejemplo: c(sexo = "Por sexo", edad = "Por edad"))
 
 # ✎ Áreas destacadas: van las primeras en los desplegables, en rojo en la
 # dispersión y rodeadas con un círculo en el biplot y el k-means.
-RESALTAR <- c("Canarias", "España")
+RESALTAR <- c("Canarias", "España", "Las Palmas", "Santa Cruz de Tenerife")
 
 # Opciones con las que arrancan los controles. Las de los atributos llevan una
 # categoría (o varias) por atributo, con el nombre de su columna. Si alguna no
@@ -233,6 +263,7 @@ ATRIBUTO_X_INICIAL  <- c(sexo = "Mujeres", edad = "De 25 a 54 años", sector = "
 ATRIBUTO_Y_INICIAL  <- c(sexo = "Hombres", edad = "De 25 a 54 años", sector = "Servicios")       # ✎ Comparación, eje y
 COLUMNAS_PCA_INICIALES <- "sector"                           # ✎ atributo(s) del PCA: sus categorías (o sus combinaciones) son las columnas
 K_INICIAL           <- 3                                     # ✎ nº de grupos del k-means
+NIVEL_INICIAL       <- "Comunidad"                         # ✎ nivel territorial con el que arrancan las páginas (si hay columna nivel)
 VISTA <- list(lng = -8, lat = 36, zoom = 5)                  # ✎ centro y zoom del mapa (España, con Canarias)
 
 # ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
@@ -248,7 +279,7 @@ DATOS_LEIDOS <- DATOS
 # COMPROBACIÓN DE LOS DATOS: si falta algo, se avisa al arrancar y no con un
 # panel vacío más tarde
 COLS_ATR <- names(COLUMNAS_ATRIBUTO)
-RESERVADOS <- c("area", "codigo", "anio", "atributo", "indicador", "unidad", "valor", "value", "year", "fecha")
+RESERVADOS <- c("area", "codigo", "nivel", "anio", "atributo", "indicador", "unidad", "valor", "value", "year", "fecha")
 if (length(COLS_ATR) == 0) stop("COLUMNAS_ATRIBUTO está vacío: hace falta al menos un atributo.")
 if (any(COLS_ATR %in% RESERVADOS)) {
   stop("Un atributo no puede llamarse ", paste(intersect(COLS_ATR, RESERVADOS), collapse = ", "),
@@ -256,19 +287,23 @@ if (any(COLS_ATR %in% RESERVADOS)) {
 }
 faltan <- setdiff(c("codigo", "area", COLS_ATR, "anio", "indicador", "valor"), names(DATOS))
 if (length(faltan) > 0) stop("A DATOS le faltan las columnas ", paste(faltan, collapse = ", "), ".")
-faltan <- setdiff(c("codigo", "nombre"), names(GEOMETRIA))
-if (length(faltan) > 0) stop("A GEOMETRIA le faltan las columnas ", paste(faltan, collapse = ", "), ".")
 DATOS <- DATOS |>
   ungroup() |>
-  as_tibble() |>
-  select(codigo, area, all_of(COLS_ATR), anio, indicador, valor) |> # el resto de columnas se descarta
-  mutate(across(c(codigo, area, all_of(COLS_ATR), indicador), as.character),
+  as_tibble()
+if (!"nivel" %in% names(DATOS)) DATOS$nivel <- "Único" # sin columna nivel: todas las áreas son del mismo nivel
+DATOS <- DATOS |>
+  select(codigo, area, nivel, all_of(COLS_ATR), anio, indicador, valor) |> # el resto de columnas se descarta
+  mutate(across(c(codigo, area, nivel, all_of(COLS_ATR), indicador), as.character),
          anio = as.integer(anio), valor = as.numeric(valor)) |>
   filter(!is.na(valor))
-if (anyDuplicated(DATOS[c("area", COLS_ATR, "anio", "indicador")]) > 0) {
-  stop("En DATOS hay áreas, combinaciones de atributos, años e indicadores con más de un valor: ",
-       "debe haber uno solo (¿falta declarar algún atributo en COLUMNAS_ATRIBUTO?).")
+if (anyDuplicated(DATOS[c("nivel", "area", COLS_ATR, "anio", "indicador")]) > 0) {
+  stop("En DATOS hay niveles, áreas, combinaciones de atributos, años e indicadores con más de un valor: ",
+       "debe haber uno solo (¿falta declarar algún atributo en COLUMNAS_ATRIBUTO, o la columna nivel?).")
 }
+
+# niveles territoriales, en el orden de los datos
+NIVELES <- unique(DATOS$nivel)
+if (length(NIVEL_INICIAL) != 1 || !NIVEL_INICIAL %in% NIVELES) NIVEL_INICIAL <- NIVELES[1]
 
 # indicadores, en el orden de los datos
 INDICADORES <- unique(DATOS$indicador)
@@ -326,7 +361,7 @@ COMBINACION_INICIAL <- paste(ATRIBUTO_INICIAL[COLS_ATR], collapse = " · ")
 RESALTAR <- intersect(RESALTAR, unique(DATOS$area))
 AREAS <- DATOS |>
   filter(atributo == COMBINACION_INICIAL, !is.na(.data[[INDICADOR_INICIAL]])) |>
-  group_by(area) |>
+  group_by(nivel, area) |>
   slice_max(anio, n = 1, with_ties = FALSE) |>
   ungroup() |>
   arrange(desc(.data[[INDICADOR_INICIAL]])) |>
@@ -344,7 +379,7 @@ DATOS_VALOR <- DATOS |>
 # indicador respecto al año anterior (NA si falta el año anterior o no es positivo)
 DATOS_INCREMENTO <- DATOS |>
   arrange(anio) |> # años en orden, para que lag() sea el año anterior
-  group_by(area, atributo) |> # cada área y combinación de atributos por separado
+  group_by(nivel, area, atributo) |> # cada área y combinación de atributos por separado
   mutate(across(all_of(INDICADORES),
                 \(v) if_else(lag(anio) == anio - 1 & lag(v) > 0, 100 * (v - lag(v)) / lag(v), NA))) |> # incremento (%)
   filter(anio > min(anio)) |> # el primer año de cada área no tiene incremento
@@ -358,9 +393,23 @@ DATOS_UNIDAD <- bind_rows(DATOS_VALOR, DATOS_INCREMENTO)
 OPCIONES_ANIO   <- c("Último año disponible", "Media en el periodo", ANIOS)
 OPCIONES_UNIDAD <- c("Valor indicador", "Incremento anual (%)")
 
-# geometría recortada a las áreas de los datos: es lo que viaja al navegador en cada mapa
-GEOMETRIA <- GEOMETRIA |>
-  filter(codigo %in% DATOS$codigo)
+# GEOMETRÍA DE CADA NIVEL: una sola para todos, o una lista con una por nivel.
+# Cada una se recorta a las áreas de su nivel: es lo que viaja al navegador en
+# cada mapa. El mapa solo ofrece los niveles que tienen geometría.
+GEOMETRIAS <- if (inherits(GEOMETRIA, "sf")) setNames(rep(list(GEOMETRIA), length(NIVELES)), NIVELES) else GEOMETRIA
+if (!is.list(GEOMETRIAS) || is.null(names(GEOMETRIAS))) {
+  stop("GEOMETRIA debe ser un objeto sf o una lista con nombre: list(nivel1 = ..., nivel2 = ...).")
+}
+GEOMETRIAS <- GEOMETRIAS[intersect(names(GEOMETRIAS), NIVELES)]
+for (n in names(GEOMETRIAS)) {
+  faltan <- setdiff(c("codigo", "nombre"), names(GEOMETRIAS[[n]]))
+  if (length(faltan) > 0) stop("A la geometría del nivel ", n, " le faltan las columnas ", paste(faltan, collapse = ", "), ".")
+  GEOMETRIAS[[n]] <- GEOMETRIAS[[n]] |>
+    filter(codigo %in% DATOS$codigo[DATOS$nivel == n])
+}
+NIVELES_MAPA <- names(GEOMETRIAS)
+if (length(NIVELES_MAPA) == 0) stop("Ningún nivel de DATOS tiene geometría: revisa los nombres de la lista GEOMETRIA.")
+NIVEL_INICIAL_MAPA <- if (NIVEL_INICIAL %in% NIVELES_MAPA) NIVEL_INICIAL else NIVELES_MAPA[1]
 
 # Listas donde las páginas Series y Predicción guardan lo suyo (ver IDENTIFICADORES DE LAS PÁGINAS)
 PAGINAS   <- list() # página Predicción
@@ -490,7 +539,12 @@ Column
 
 ### {.datos-explicacion}
 
-Ocupados por comunidad autónoma, sexo, grupo de edad y sector económico, de la Encuesta de Población Activa del INE (tablas 65304 de ocupados y 65285 de población), de 2008 a 2025: la media anual de los cuatro trimestres. España es el total nacional. El INE no publica el dato cuando la muestra es demasiado pequeña (por ejemplo, los jóvenes de una comunidad pequeña en la agricultura), así que algunas combinaciones no tienen dato.
+Ocupados por sexo, grupo de edad y sector económico, de la Encuesta de Población Activa del INE, de 2008 a 2025: la media anual de los cuatro trimestres. El INE no publica el dato cuando la muestra es demasiado pequeña, así que algunas combinaciones no tienen dato.
+
+#### Niveles territoriales
+
+- **Comunidad**: las 17 comunidades autónomas, Ceuta, Melilla y España (el total nacional), con los tres atributos cruzados (tablas 65304 y 65285).
+- **Provincia**: las 52 provincias, con el sector para ambos sexos y el sexo para todos los sectores, y solo el total de edad (tablas 65354 y 65345): el INE no publica más detalle por provincia.
 
 #### Atributos
 
@@ -540,7 +594,7 @@ Series
 data <- DATOS_UNIDAD |>
   pivot_longer(all_of(INDICADORES), names_to = "indicador", values_to = "value") |>
   filter(!is.na(value)) |> # indicadores que no existen en algún atributo (pct_gasto en el Total)
-  select(area, all_of(COLS_ATR), indicador, unidad, year = anio, value)
+  select(area, nivel, all_of(COLS_ATR), indicador, unidad, year = anio, value)
 
 # NOMBRE DE LAS COLUMNAS DE LA FECHA Y DEL VALOR NUMÉRICO
 date  <- "year"
@@ -574,6 +628,14 @@ input.single.config.pageId <- list(
   list(col.name = "unidad", label = "Unidad", choices = OPCIONES_UNIDAD,
        selected = "Valor indicador", multiple = FALSE)
 )
+
+# CON VARIOS NIVELES TERRITORIALES, EL NIVEL ES OTRO ATRIBUTO DE VALOR ÚNICO
+if (length(NIVELES) > 1) {
+  input.single.config.pageId <- c(
+    list(list(col.name = "nivel", label = "Nivel territorial", choices = NIVELES,
+              selected = NIVEL_INICIAL, multiple = FALSE)),
+    input.single.config.pageId)
+}
 
 # RÓTULO DE CADA COLUMNA (PARA LA LEYENDA DE LOS COLORES)
 etiquetas.columnas <- unlist(lapply(c(input.main.config.pageId, input.multiple.config.pageId,
@@ -819,6 +881,9 @@ renderPlotly({
   # ATRIBUTOS COMBINABLES. EN LOS DOS CASOS, LAS OPCIONES ELEGIDAS DE
   # CADA UNO, EN EL ORDEN DE SUS DESPLEGABLES
   areas <- if (isFALSE(datos$checkboxInput)) datos$main else input.main.config.pageId[[1]]$choices
+  areas <- intersect(areas, unique(as.character(tb[[main.col]]))) # solo las que tienen datos (las del nivel elegido)
+  validate(need(length(areas) > 0,
+                "Ninguna de las áreas elegidas tiene datos con esta selección (¿son de otro nivel territorial?)."))
   color.cols <- lapply(input.multiple.config.pageId, function(x) x$col.name)
   color.sel  <- datos$multiple
   if (datos$distribucion %in% POR_ATRIBUTOS) {
@@ -907,17 +972,18 @@ PAGINA_ID <- "pred"
 # desplegable (área, cada atributo, indicador y unidad) y UNA de valores. La serie
 # es la combinación de un valor de cada key. Las combinaciones sin datos (un
 # indicador que no existe en un atributo) no forman serie.
+CLAVES <- c(if (length(NIVELES) > 1) "nivel", "area", COLS_ATR, "indicador", "unidad") # con varios niveles, también el nivel
 DATOS_PRED <- DATOS_UNIDAD |>
   pivot_longer(all_of(INDICADORES), names_to = "indicador", values_to = "valor") |>
   filter(!is.na(valor)) |> # sin dato, o incremento sin año anterior positivo
-  select(fecha = anio, area, all_of(COLS_ATR), indicador, unidad, valor) |>
-  as_tsibble(index = fecha, key = c(area, all_of(COLS_ATR), indicador, unidad))
+  select(fecha = anio, all_of(CLAVES), valor) |>
+  as_tsibble(index = fecha, key = all_of(CLAVES))
 
 # RÓTULOS Y OPCIONES DE ARRANQUE
-ETIQUETAS_ATRIBUTOS <- c(area = paste0(ETIQUETA_AREA, ":"), setNames(paste0(COLUMNAS_ATRIBUTO, ":"), COLS_ATR),
+ETIQUETAS_ATRIBUTOS <- c(nivel = "Nivel territorial:", area = paste0(ETIQUETA_AREA, ":"), setNames(paste0(COLUMNAS_ATRIBUTO, ":"), COLS_ATR),
                          indicador = "Indicador:", unidad = "Unidad:") # rótulo de cada key
 ATRIBUTO_UNIDAD     <- c("indicador", "unidad") # keys cuyos valores rotulan el eje vertical
-SERIE_INICIAL       <- c(area = AREA_INICIAL, ATRIBUTO_INICIAL, # una categoría por atributo
+SERIE_INICIAL       <- c(nivel = NIVEL_INICIAL, area = AREA_INICIAL, ATRIBUTO_INICIAL, # una categoría por atributo
                          indicador = INDICADOR_INICIAL, unidad = "Valor indicador")
 METODO_INICIAL      <- "ARIMA" # "ARIMA" o "STL + ARIMA"
 
@@ -1477,6 +1543,11 @@ Column {.sidebar data-width=220}
 --------------------------------------------------
 
 ```{r}
+# nivel territorial, si hay varios con geometría
+if (length(NIVELES_MAPA) > 1) {
+  selectInput("mapa_nivel", "Nivel territorial:", choices = NIVELES_MAPA, selected = NIVEL_INICIAL_MAPA)
+}
+
 # indicador que se representa
 selectInput("mapa_indicador", "Indicador:", choices = INDICADORES, selected = INDICADOR_INICIAL)
 
@@ -1499,12 +1570,16 @@ actionButton("mapa_calcular", "Calcular")
 # datos comunes a la tabla y al mapa: solo se recalcula al pulsar «Calcular».
 # Devuelve una lista con la tabla y los controles elegidos (para los rótulos)
 procesado_mapa <- eventReactive(input$mapa_calcular, {
+  # nivel territorial: el elegido, o el único con geometría
+  nivel_elegido <- if (length(NIVELES_MAPA) > 1) input$mapa_nivel else NIVELES_MAPA[1]
+
   # combinación de las categorías elegidas de los atributos ("Mujeres · Total")
   combinacion <- paste(sapply(COLS_ATR, \(col) input[[paste0("mapa_atr_", col)]]), collapse = " · ")
 
   # una fila por área y año con el valor del indicador
   tabla <- DATOS_UNIDAD |>
-    filter(unidad == input$mapa_unidad, # valor del indicador o incremento anual (%)
+    filter(nivel == nivel_elegido, # áreas del nivel elegido
+           unidad == input$mapa_unidad, # valor del indicador o incremento anual (%)
            atributo == combinacion) |> # categorías elegidas de los atributos
     select(codigo, nombre = area, anio, valor = input$mapa_indicador) |> # indicador elegido
     drop_na() # años sin dato
@@ -1535,7 +1610,7 @@ procesado_mapa <- eventReactive(input$mapa_calcular, {
   # los controles viajan dentro del resultado: así los rótulos no cambian hasta
   # volver a pulsar el botón
   list(tabla = tabla |> arrange(desc(valor)), # de mayor a menor
-       indicador = input$mapa_indicador, atributo = combinacion,
+       nivel = nivel_elegido, indicador = input$mapa_indicador, atributo = combinacion,
        anio = input$mapa_anio, unidad = input$mapa_unidad)
 })
 ```
@@ -1564,7 +1639,7 @@ Column
 renderLeaflet({
   resultado <- procesado_mapa()
 
-  mapa <- GEOMETRIA |>
+  mapa <- GEOMETRIAS[[resultado$nivel]] |> # la geometría del nivel elegido
     left_join(resultado$tabla |> select(codigo, anio, valor), by = "codigo")
 
   # cuadro emergente de cada área: nombre, atributo, año(s) y valor
@@ -1596,6 +1671,11 @@ Column {.sidebar data-width=220}
 --------------------------------------------------------------------------------
 
 ```{r}
+# nivel territorial, si hay varios
+if (length(NIVELES) > 1) {
+  selectInput("nivel", "Nivel territorial:", choices = NIVELES, selected = NIVEL_INICIAL)
+}
+
 # indicador que se compara
 selectInput("indicador", "Indicador:", choices = INDICADORES, selected = INDICADOR_INICIAL)
 
@@ -1644,12 +1724,24 @@ procesado_page_1 <- eventReactive(input$calcular, {
   atributo_y <- paste(sapply(COLS_ATR, \(col) input[[paste0("atr_y_", col)]]), collapse = " · ")
   validate(need(atributo_x != atributo_y, "Elige categorías distintas para el eje x y el eje y."))
 
+  # nivel territorial: el elegido, o el único
+  nivel_elegido <- if (length(NIVELES) > 1) input$nivel else NIVELES[1]
+
   # una fila por área y año y el valor de cada combinación en una columna
   tabla <- DATOS_UNIDAD |>
-    filter(unidad == input$unidad, # valor del indicador o incremento anual (%)
+    filter(nivel == nivel_elegido, # áreas del nivel elegido
+           unidad == input$unidad, # valor del indicador o incremento anual (%)
            atributo %in% c(atributo_x, atributo_y)) |> # combinaciones elegidas
     select(area, anio, atributo, valor = input$indicador) |> # indicador elegido
-    pivot_wider(names_from = atributo, values_from = valor) |> # una columna por combinación
+    pivot_wider(names_from = atributo, values_from = valor) # una columna por combinación
+
+  # una combinación puede no tener datos en este nivel territorial
+  sin_datos <- setdiff(c(atributo_x, atributo_y), names(tabla))
+  validate(need(length(sin_datos) == 0, paste0(
+    "No hay datos de ", paste(sin_datos, collapse = " ni de "), " en este nivel territorial. ",
+    "Elige otras categorías u otro nivel.")))
+
+  tabla <- tabla |>
     select(area, anio, x = all_of(atributo_x), y = all_of(atributo_y)) |> # columnas x e y
     drop_na() # años sin dato en alguno de los dos atributos
 
@@ -1800,6 +1892,11 @@ Column {.sidebar data-width=220}
 --------------------------------------------------------------------------------
 
 ```{r}
+# nivel territorial, si hay varios
+if (length(NIVELES) > 1) {
+  selectInput("nivel_2", "Nivel territorial:", choices = NIVELES, selected = NIVEL_INICIAL)
+}
+
 # indicador con el que se llena la tabla de atributos (identificador distinto al de la página 1)
 selectInput("indicador_2", "Indicador:", choices = INDICADORES, selected = INDICADOR_INICIAL)
 
@@ -1851,8 +1948,10 @@ procesado_page_2 <- eventReactive(input$calcular_2, {
   req(all(lengths(fijos) == 1)) # por si se pulsa antes de que existan los controles
 
   # tabla de atributos: una fila por área y año y una columna por combinación de categorías
+  nivel_elegido <- if (length(NIVELES) > 1) input$nivel_2 else NIVELES[1] # nivel territorial
   tabla <- DATOS_UNIDAD |>
-    filter(unidad == input$unidad_2) # valor del indicador o incremento anual (%)
+    filter(nivel == nivel_elegido, # áreas del nivel elegido
+           unidad == input$unidad_2) # valor del indicador o incremento anual (%)
   for (col in cols_pca) {
     tabla <- tabla |> filter(.data[[col]] %in% CATEGORIAS_ANALISIS[[col]]) # sin los totales
   }

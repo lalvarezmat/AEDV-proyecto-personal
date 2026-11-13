@@ -3216,18 +3216,20 @@ datos:</p>
 el gasto público por sectores de Eurostat, con <strong>un
 atributo</strong> (el sector).</li>
 <li><a href="https://ctim.es/AEDV/Dashboard_epa_ocupados.Rmd">Dashboard_epa_ocupados.Rmd</a>:
-los ocupados de la EPA por comunidad autónoma, con <strong>tres
-atributos</strong> (el sexo, el grupo de edad y el sector económico) y
-dos indicadores (los ocupados y los ocupados por cada 100 personas en
-edad de trabajar).</li>
+los ocupados de la EPA, con <strong>tres atributos</strong> (el sexo, el
+grupo de edad y el sector económico), dos indicadores (los ocupados y
+los ocupados por cada 100 personas en edad de trabajar) y <strong>dos
+niveles territoriales</strong>, las comunidades autónomas y las
+provincias, cada uno con su mapa.</li>
 </ul>
 <p>Para aplicar la plantilla a otro dataset solo hay que cambiar lo
 marcado con ✎, en cuatro sitios:</p>
 <ol style="list-style-type: decimal">
 <li><strong>PASO 1</strong>: el título (cabecera YAML).</li>
-<li><strong>PASO 2</strong>: la lectura de los datos y de la geometría
-(chunk <code>global</code>), dos <code>.rds</code> organizados como se
-explica en el recuadro siguiente.</li>
+<li><strong>PASO 2</strong>: la lectura de los datos (un
+<code>.rds</code> organizado como se explica en el recuadro siguiente) y
+de la geometría (ficheros <code>geojson</code>), en el chunk
+<code>global</code>.</li>
 <li><strong>PASO 3</strong>: qué columnas son atributos y cuál es su
 total, los rótulos (cómo se llaman las áreas y los atributos de tus
 datos) y las opciones con las que arrancan los controles (chunk
@@ -3267,17 +3269,18 @@ datos).</p>
 <div class="discusion">
 <p><strong class="bloque-titulo">Cómo tienen que llegar los datos al
 dashboard</strong></p>
-<p>El dashboard <strong>no lee los datos originales</strong>, sino
-<strong>dos ficheros <code>.rds</code></strong>: los datos, organizados
-como se explica a continuación, y la geometría del mapa. Esos
-<code>.rds</code> van <strong>en la misma carpeta que el
-dashboard</strong>, se suben al servidor junto a él, y el PASO 2 solo
-los lee <strong>en local</strong>:</p>
+<p>El dashboard <strong>no lee los datos originales</strong>, sino un
+fichero <strong><code>.rds</code></strong> con los datos organizados
+como se explica a continuación, y la geometría del mapa, de ficheros
+<strong><code>geojson</code></strong>. Todos van <strong>en la misma
+carpeta que el dashboard</strong>, se suben al servidor junto a él, y el
+PASO 2 solo los lee <strong>en local</strong>. De la geometría se eligen
+dos columnas, la del código del área y la de su nombre:</p>
 <pre class="default"><code>DATOS     &lt;- readRDS(&quot;mis_datos.rds&quot;)
-GEOMETRIA &lt;- readRDS(&quot;mi_geometria.rds&quot;)</code></pre>
-<p>(Los dos ejemplos leen sus <code>.rds</code> desde
-<code>ctim.es</code> para poder abrirlos sin descargar nada más; tu
-dashboard, no.)</p>
+GEOMETRIA &lt;- leer_geojson(&quot;mi_geometria.geojson&quot;) |&gt;
+  select(codigo = &lt;columna con el código del área&gt;, nombre = &lt;columna con su nombre&gt;)</code></pre>
+<p>(Los dos ejemplos leen sus ficheros desde <code>ctim.es</code> para
+poder abrirlos sin descargar nada más; tu dashboard, no.)</p>
 <p><strong>Los datos son una tabla <em>tidy</em></strong>, con una fila
 por área, combinación de los atributos, año e indicador, y estas
 columnas:</p>
@@ -3287,6 +3290,9 @@ geometría (el código NUTS de cada región, el ISO de cada país…). Un área
 sin polígono, como el total de España o de la UE-27, sale en todas las
 páginas salvo en el mapa.</li>
 <li><code>area</code>: el nombre del área.</li>
+<li><code>nivel</code> (opcional): el nivel territorial del área, si tus
+datos <strong>mezclan áreas de varios niveles</strong> (comunidades,
+islas, municipios…). Ver más abajo.</li>
 <li><strong>Una columna por atributo</strong>, con el nombre que
 quieras. Un atributo es una <strong>variable categórica que no es un
 indicador</strong>: el sector, el sexo, el grupo de edad… Sus categorías
@@ -3392,17 +3398,29 @@ ocupados de la EPA (en miles), con tres atributos:</p>
 </tr>
 </tbody>
 </table>
-<p><strong>Otras variables categóricas, como el nivel NUTS, tampoco son
-indicadores.</strong> Los códigos NUTS de las regiones van en la columna
-<code>codigo</code>, y la tabla tiene <strong>un solo nivel
-NUTS</strong> (países, comunidades o provincias, no mezclados): no puede
-haber filas repetidas para la misma área, combinación de atributos, año
-e indicador. Cualquier otra columna que no sea de las de arriba se
-descarta.</p>
-<p><strong>La geometría</strong> es un objeto <code>sf</code> (librería
-<code>sf</code>) con dos columnas, <code>codigo</code> (el mismo que en
-los datos) y <code>nombre</code>, recortado a las áreas de tus
-datos.</p>
+<p><strong>Varios niveles territoriales.</strong> Una tabla puede
+mezclar áreas de distintos niveles (comunidades autónomas, islas,
+municipios; países y regiones…). Entonces la columna <code>nivel</code>
+dice el de cada fila («Comunidad», «Isla», «Municipio»…), y no es un
+atributo ni un indicador: el dashboard pone un desplegable «Nivel
+territorial» y cada página trabaja con las áreas de un nivel. Un mismo
+nombre puede repetirse en dos niveles (Madrid comunidad y Madrid
+provincia), y en cada nivel no puede haber filas repetidas para la misma
+área, combinación de atributos, año e indicador. Un nivel no tiene por
+qué tener todas las combinaciones de atributos: el ejemplo de la EPA
+tiene los grupos de edad por comunidad, pero no por provincia. Los
+códigos de las áreas (NUTS, INE…) van en la columna <code>codigo</code>.
+Cualquier otra columna que no sea de las de arriba se descarta.</p>
+<p><strong>La geometría</strong> se lee de un fichero
+<code>geojson</code>, del que se eligen dos columnas:
+<code>codigo</code> (el mismo que en los datos) y <code>nombre</code>.
+Con varios niveles, cada uno tiene su fichero, y la geometría es una
+lista con el nombre de cada nivel:</p>
+<pre class="default"><code>GEOMETRIA &lt;- list(
+  Comunidad = leer_geojson(&quot;ccaa.geojson&quot;) |&gt; select(codigo = codauto, nombre = ccaa.shortname.es),
+  Isla      = leer_geojson(&quot;islas.geojson&quot;) |&gt; select(codigo = ..., nombre = ...))</code></pre>
+<p>Un nivel sin geometría (el total nacional, por ejemplo) sale en todas
+las páginas salvo en el mapa.</p>
 </div>
 <div class="discusion">
 <p><strong class="bloque-titulo">Cómo adaptar la plantilla a tus datos
@@ -3412,43 +3430,46 @@ datos.</p>
 del gasto público si tienen un solo atributo, el de la EPA si tienen
 varios. Descarga su <code>.Rmd</code> y guárdalo en la carpeta de tu
 dashboard.</p></li>
-<li><p><strong>Ten tus datos en los dos <code>.rds</code></strong> del
-recuadro anterior, organizados como allí se explica
-(<code>mis_datos.rds</code>, tidy, y <code>mi_geometria.rds</code>), en
-la misma carpeta.</p></li>
-<li><p><strong>Comprueba que los <code>.rds</code> están bien
-organizados</strong>. Debe haber un solo valor por área, combinación de
-atributos, año e indicador, y conviene saber qué áreas no tienen
-polígono:</p>
-<pre class="default"><code>datos |&gt; count(area, sexo, edad, anio, indicador) |&gt; filter(n &gt; 1) # tiene que salir vacío
+<li><p><strong>Ten tus datos en el <code>.rds</code></strong> del
+recuadro anterior, organizado como allí se explica
+(<code>mis_datos.rds</code>, tidy), y la geometría en sus ficheros
+<code>geojson</code>, en la misma carpeta.</p></li>
+<li><p><strong>Comprueba que el <code>.rds</code> está bien
+organizado</strong>. Debe haber un solo valor por nivel, área,
+combinación de atributos, año e indicador, y conviene saber qué áreas no
+tienen polígono:</p>
+<pre class="default"><code>datos |&gt; count(nivel, area, sexo, edad, anio, indicador) |&gt; filter(n &gt; 1) # tiene que salir vacío
 setdiff(datos$codigo, geometria$codigo) # áreas sin polígono (no salen en el mapa)</code></pre></li>
 <li><p><strong>Adapta el <code>.Rmd</code> cambiando SOLO lo marcado con
-✎</strong>: el título (PASO 1); la lectura de tus dos <code>.rds</code>
-en local (PASO 2); qué columnas son atributos y su total, los rótulos y
-las opciones con las que arranca cada control (PASO 3); y el título y el
-texto de la página de presentación de tus datos (PASO 4).</p></li>
+✎</strong>: el título (PASO 1); la lectura de tu <code>.rds</code> y de
+tus <code>geojson</code> en local (PASO 2); qué columnas son atributos y
+su total, los rótulos y las opciones con las que arranca cada control
+(PASO 3); y el título y el texto de la página de presentación de tus
+datos (PASO 4).</p></li>
 <li><p><strong>Pruébalo en tu ordenador</strong> con <em>Run
 Document</em>. Si los datos no están organizados como espera la
 plantilla, el dashboard se para al arrancar y dice qué falla. Mira la
 muestra de la tabla de entrada al final de la primera página y recorre
 todas las páginas y controles.</p></li>
 <li><p><strong>Despliégalo</strong> en el servidor Shiny del DIS (Paso
-4): sube el <code>.Rmd</code> y los dos <code>.rds</code>.</p></li>
+4): sube el <code>.Rmd</code>, el <code>.rds</code> y los
+<code>geojson</code>.</p></li>
 </ol>
 <p><strong>Si usas un asistente de IA</strong>, dale el
 <code>.Rmd</code> del ejemplo y descríbele bien tus datos. Por
 ejemplo:</p>
 <pre class="default"><code>Te adjunto la plantilla de cuadro de mandos Dashboard_epa_ocupados.Rmd. Tengo
-mis datos en dos ficheros organizados como pide la plantilla (PASO 2):
-- mis_datos.rds: una tabla tidy con las columnas codigo, area, &lt;mis atributos&gt;,
-  anio, indicador y valor;
-- mi_geometria.rds: un objeto sf con las columnas codigo y nombre.
-Mis datos son &lt;qué son las áreas; qué atributos hay y cuál es el total de cada
-uno; qué indicadores; qué años&gt;.
+mis datos organizados como pide la plantilla (PASO 2):
+- mis_datos.rds: una tabla tidy con las columnas codigo, area, &lt;nivel, si
+  mezcla varios niveles territoriales&gt;, &lt;mis atributos&gt;, anio, indicador y valor;
+- la geometría en &lt;mi_geometria.geojson, o un geojson por nivel&gt;, con el código
+  del área en la columna &lt;...&gt; y su nombre en la columna &lt;...&gt;.
+Mis datos son &lt;qué son las áreas y sus niveles; qué atributos hay y cuál es el
+total de cada uno; qué indicadores; qué años&gt;.
 
 Adapta la plantilla a mis datos cambiando SOLO lo marcado con ✎ (PASOS 1 a 4),
-y lee los dos .rds en local con readRDS(&quot;mis_datos.rds&quot;) y
-readRDS(&quot;mi_geometria.rds&quot;). No cambies nada más y explícame cada cambio.</code></pre>
+y lee los ficheros en local con readRDS() y leer_geojson(). No cambies nada
+más y explícame cada cambio.</code></pre>
 <p>Recuerda los límites del uso de la IA (<em>Errores frecuentes a
 evitar</em>): tienes que <strong>entender y poder explicar</strong> los
 cambios del dashboard, y <strong>comprobar tú</strong> el resultado con
