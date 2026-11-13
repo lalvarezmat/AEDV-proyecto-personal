@@ -22,11 +22,19 @@ runtime: shiny
   solo hay que tocar lo marcado con ✎, en cuatro sitios:
     ✎ PASO 1: el título (cabecera YAML, arriba del todo).
     ✎ PASO 2: la lectura de los datos y de la geometría (chunk "global").
-    ✎ PASO 3: los rótulos y las opciones de arranque (chunk "global").
+    ✎ PASO 3: qué columnas son atributos y su total, los rótulos y las
+              opciones de arranque (chunk "global").
     ✎ PASO 4: el título y el texto de la página de presentación de los datos.
-  Todo lo demás se deduce de los datos: los indicadores (las columnas
-  numéricas), las áreas, los atributos, los años, el incremento anual de cada
-  indicador y las opciones de todos los controles.
+  Todo lo demás se deduce de los datos: los indicadores (los valores de la
+  columna indicador), las áreas, las categorías de los atributos, los años, el
+  incremento anual de cada indicador y las opciones de todos los controles.
+
+  CON UN ASISTENTE DE IA. Pídele que prepare tus datos en un script aparte, como
+  preparar_datos_gasto_publico.R o preparar_datos_epa_ocupados.R, que guarde
+  dos .rds organizados como se describe en el PASO 2 (los datos y la
+  geometría), y que en este fichero cambie SOLO lo marcado con ✎ (PASOS 1 a
+  4). Lo demás no se toca. Comprueba después con la muestra de la tabla de
+  entrada, al final de la primera página, que los datos están bien organizados.
 
   LOS DATOS son un .rds YA PREPARADO con una tabla tidy: una fila por área
   (país, región...), combinación de los atributos, año e indicador, con UNA

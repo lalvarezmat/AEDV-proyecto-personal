@@ -2532,10 +2532,12 @@ Cyberduck/FileZilla en macOS) o con <code>scp</code> y <code>ssh</code>
 desde la consola, en <strong><a href="DashboardInstruccionesServidorShiny.html">DashboardInstruccionesServidorShiny.html</a></strong>.
 En resumen:</p>
 <ol style="list-style-type: decimal">
-<li><strong>Construye el cuadro de mandos en local</strong>, en un
-fichero <code>NombreApellido1Dashboard.Rmd</code> (por ejemplo,
-<code>LuisAlvarezDashboard.Rmd</code>) que lea los ficheros de datos de
-su misma carpeta, sin rutas.</li>
+<li><strong>Construye el cuadro de mandos en local</strong> a partir de
+uno de los dos ejemplos de la plantilla (sección <em>Dashboard</em>,
+recuadro <em>Cómo adaptar la plantilla a tus datos</em>), en un fichero
+<code>NombreApellido1Dashboard.Rmd</code> (por ejemplo,
+<code>LuisAlvarezDashboard.Rmd</code>) que lea sus dos <code>.rds</code>
+de su misma carpeta, sin rutas.</li>
 <li><strong>Conéctate a la red del DIS.</strong> Desde fuera de su red
 interna, con la VPN del DIS
 (<code>https://www.dis.ulpgc.es/vpn/</code>). El fichero
@@ -3257,12 +3259,6 @@ elegidos se fijan en una categoría.</li>
 anual en porcentaje</strong>, que se calcula una sola vez al arrancar.
 En el mapa, la comparación y el PCA el año puede ser uno concreto, el
 último disponible de cada área o la media en el periodo.</p>
-<p>Cada página procede de uno de estos cuadros de mandos más sencillos,
-útiles para estudiar cada técnica por separado: <a href="https://ctim.es/AEDV/Dashboard_exploracion_series.Rmd">Dashboard_exploracion_series.Rmd</a>,
-<a href="https://ctim.es/AEDV/Dashboard_prediccion_series.Rmd">Dashboard_prediccion_series.Rmd</a>,
-<a href="https://ctim.es/AEDV/Dashboard_mapa_coropletico.Rmd">Dashboard_mapa_coropletico.Rmd</a>
-y <a href="https://ctim.es/AEDV/Dashboard_atributos_analisis.Rmd">Dashboard_atributos_analisis.Rmd</a>
-(comparación y PCA).</p>
 <p>La plantilla es un punto de partida: tu dashboard tiene que cubrir
 <strong>todas las variables de tu dataset</strong>, con el mismo
 criterio (un desplegable por atributo y todas las opciones de los
@@ -3411,6 +3407,66 @@ sea de las de arriba se descarta.</p>
 <code>sf</code>) con dos columnas, <code>codigo</code> (el mismo que en
 los datos) y <code>nombre</code>, recortado a las áreas de tus
 datos.</p>
+</div>
+<div class="discusion">
+<p><strong class="bloque-titulo">Cómo adaptar la plantilla a tus datos
+(también con ayuda de la IA)</strong></p>
+<ol style="list-style-type: decimal">
+<li><p><strong>Elige el ejemplo más parecido a tus datos</strong>: el
+del gasto público si tienen un solo atributo, el de la EPA si tienen
+varios. Descarga su <code>.Rmd</code> y su script de preparación
+(<code>preparar_datos_*.R</code>), y guárdalos en la carpeta de tu
+dashboard.</p></li>
+<li><p><strong>Escribe tu script de preparación</strong>, a partir del
+del ejemplo. Lee tus datos originales y guarda en la carpeta del
+dashboard los dos <code>.rds</code> del recuadro anterior: los datos
+(<code>mis_datos.rds</code>, tidy) y la geometría
+(<code>mi_geometria.rds</code>). Si tus datos son trimestrales o
+mensuales, pásalos a años (por ejemplo, con la media): la plantilla
+trabaja por años.</p></li>
+<li><p><strong>Comprueba los <code>.rds</code></strong> antes de seguir.
+Debe haber un solo valor por área, combinación de atributos, año e
+indicador, y conviene saber qué áreas no tienen polígono:</p>
+<pre class="default"><code>datos |&gt; count(area, sexo, edad, anio, indicador) |&gt; filter(n &gt; 1) # tiene que salir vacío
+setdiff(datos$codigo, geometria$codigo) # áreas sin polígono (no salen en el mapa)</code></pre></li>
+<li><p><strong>Adapta el <code>.Rmd</code> cambiando SOLO lo marcado con
+✎</strong>: el título (PASO 1); la lectura de tus dos <code>.rds</code>
+en local (PASO 2); qué columnas son atributos y su total, los rótulos y
+las opciones con las que arranca cada control (PASO 3); y el título y el
+texto de la página de presentación de tus datos (PASO 4).</p></li>
+<li><p><strong>Pruébalo en tu ordenador</strong> con <em>Run
+Document</em>. Si los datos no están organizados como espera la
+plantilla, el dashboard se para al arrancar y dice qué falla. Mira la
+muestra de la tabla de entrada al final de la primera página y recorre
+todas las páginas y controles.</p></li>
+<li><p><strong>Despliégalo</strong> en el servidor Shiny del DIS (Paso
+4): sube el <code>.Rmd</code> y los dos <code>.rds</code>.</p></li>
+</ol>
+<p><strong>Si usas un asistente de IA</strong>, dale el
+<code>.Rmd</code> y el script de preparación del ejemplo, y descríbele
+bien tus datos. Por ejemplo:</p>
+<pre class="default"><code>Te adjunto la plantilla de cuadro de mandos Dashboard_epa_ocupados.Rmd y el
+script con el que se prepararon sus datos, preparar_datos_epa_ocupados.R.
+Quiero aplicarla a mis datos: &lt;fuente y fichero de los datos originales; qué
+son las áreas y qué geometría tienen; qué atributos (variables categóricas
+como el sexo o el grupo de edad) y cuál es el total de cada uno; qué
+indicadores; qué años&gt;.
+
+1. Escribe un script preparar_datos.R, siguiendo el del ejemplo, que lea mis
+   datos originales y guarde en la carpeta del cuadro de mandos:
+   - mis_datos.rds: una tabla tidy con las columnas codigo, area, una columna
+     por atributo (con su total como una categoría más), anio, indicador y valor;
+   - mi_geometria.rds: un objeto sf con las columnas codigo y nombre,
+     recortado a mis áreas.
+   Explica cada paso.
+2. En el .Rmd cambia SOLO lo marcado con ✎ (PASOS 1 a 4), leyendo los dos .rds
+   en local con readRDS(&quot;mis_datos.rds&quot;) y readRDS(&quot;mi_geometria.rds&quot;). No
+   cambies nada más.
+3. Usa solo las librerías y el estilo de código del script de ejemplo.</code></pre>
+<p>Recuerda los límites del uso de la IA (<em>Errores frecuentes a
+evitar</em>): tienes que <strong>entender y poder explicar</strong> el
+script de preparación y los cambios del dashboard, y <strong>comprobar
+tú</strong> el resultado con los pasos 3 y 5.</p>
 </div>
 <div class="nota">
 <p><strong class="bloque-titulo">La carga del dashboard puede ser lenta:

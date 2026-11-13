@@ -15,7 +15,7 @@ Autor: Luis Álvarez.
 | `estilos.css` | Estilos de la memoria; debe acompañar al `.Rmd` |
 | `utilidades.R` | Funciones de la asignatura, entre ellas `aedv_incluir_dataset()`, que incorpora los datasets a la memoria; debe acompañar al `.Rmd` |
 | `DashboardInstruccionesServidorShiny.Rmd` / `.html` | Instrucciones para subir y desplegar el cuadro de mandos en el servidor Shiny del DIS |
-| `DashboardEjemplos/` | Los cuadros de mandos de referencia que cita la guía de trabajo (sección *Dashboard*): `Dashboard_eurostat_gasto_publico.Rmd` (un atributo) y `Dashboard_epa_ocupados.Rmd` (tres: sexo, edad y sector económico) son la plantilla de referencia para el dashboard del proyecto (las cinco páginas obligatorias; se adapta cambiando lo marcado con ✎), con los scripts `preparar_datos_*.R` que preparan sus datos; los otros cuatro, las técnicas de cada página por separado; leen los datos y `utilidades.R` de internet |
+| `DashboardEjemplos/` | Los cuadros de mandos de referencia que cita la guía de trabajo (sección *Dashboard*): `Dashboard_eurostat_gasto_publico.Rmd` (un atributo) y `Dashboard_epa_ocupados.Rmd` (tres: sexo, edad y sector económico) son la plantilla de referencia para el dashboard del proyecto (las cinco páginas obligatorias; se adapta cambiando lo marcado con ✎), con los scripts `preparar_datos_*.R` que preparan sus datos; leen los datos y `utilidades.R` de internet |
 | `SelecciónDatasetsProyecto/` | Catálogos y validadores de datasets por fuente |
 
 En `SelecciónDatasetsProyecto/` hay una carpeta por fuente (INE, ISTAC, EUROSTAT,

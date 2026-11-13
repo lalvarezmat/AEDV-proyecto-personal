@@ -429,7 +429,7 @@ Con frecuencia, para explicar el significado de las variables hace falta **recur
 
 El dashboard es **el elemento más importante de la fase de Despliegue**. Se construye y se prueba primero **en tu ordenador**, y cuando funciona se despliega en el servidor Shiny del DIS. Todo el proceso está explicado paso a paso, con WinSCP (o Cyberduck/FileZilla en macOS) o con `scp` y `ssh` desde la consola, en **[DashboardInstruccionesServidorShiny.html](DashboardInstruccionesServidorShiny.html)**. En resumen:
 
-1. **Construye el cuadro de mandos en local**, en un fichero `NombreApellido1Dashboard.Rmd` (por ejemplo, `LuisAlvarezDashboard.Rmd`) que lea los ficheros de datos de su misma carpeta, sin rutas.
+1. **Construye el cuadro de mandos en local** a partir de uno de los dos ejemplos de la plantilla (sección *Dashboard*, recuadro *Cómo adaptar la plantilla a tus datos*), en un fichero `NombreApellido1Dashboard.Rmd` (por ejemplo, `LuisAlvarezDashboard.Rmd`) que lea sus dos `.rds` de su misma carpeta, sin rutas.
 2. **Conéctate a la red del DIS.** Desde fuera de su red interna, con la VPN del DIS (`https://www.dis.ulpgc.es/vpn/`). El fichero `.ovpn` de la VPN y el usuario y la contraseña de tu cuenta en el servidor Shiny están en MiDIS (`https://www.dis.ulpgc.es/midis/`), al que se entra con las claves del Campus Virtual.
 3. **Sube el `.Rmd` y sus ficheros de datos** a la carpeta `aedv` de tu cuenta en el servidor (`10.22.143.222`), con WinSCP o Cyberduck/FileZilla (en macOS), o con `scp` desde la consola.
 4. **Ábrelo en el navegador**: `http://10.22.143.222:3838/sample-apps/aXXXX/NombreApellido1Dashboard.Rmd`, sustituyendo `aXXXX` por tu cuenta del servidor.
@@ -649,8 +649,6 @@ Todo lo demás (los indicadores, las áreas, las categorías de los atributos, l
 
 En todas las páginas se elige el indicador y la **unidad**: el valor del indicador o su **incremento anual en porcentaje**, que se calcula una sola vez al arrancar. En el mapa, la comparación y el PCA el año puede ser uno concreto, el último disponible de cada área o la media en el periodo.
 
-Cada página procede de uno de estos cuadros de mandos más sencillos, útiles para estudiar cada técnica por separado: [Dashboard_exploracion_series.Rmd](https://ctim.es/AEDV/Dashboard_exploracion_series.Rmd), [Dashboard_prediccion_series.Rmd](https://ctim.es/AEDV/Dashboard_prediccion_series.Rmd), [Dashboard_mapa_coropletico.Rmd](https://ctim.es/AEDV/Dashboard_mapa_coropletico.Rmd) y [Dashboard_atributos_analisis.Rmd](https://ctim.es/AEDV/Dashboard_atributos_analisis.Rmd) (comparación y PCA).
-
 La plantilla es un punto de partida: tu dashboard tiene que cubrir **todas las variables de tu dataset**, con el mismo criterio (un desplegable por atributo y todas las opciones de los datos).
 
 </div>
@@ -690,6 +688,49 @@ El **sexo, el grupo de edad** (y cualquier otra variable categórica, como el se
 **Otras variables categóricas, como el nivel NUTS, tampoco son indicadores.** Los códigos NUTS de las regiones van en la columna `codigo`. Si tus datos mezclan varios niveles NUTS (países, comunidades, provincias), elige uno al preparar el `.rds`: en una misma tabla no puede haber filas repetidas para la misma área, combinación de atributos, año e indicador. Cualquier otra columna que no sea de las de arriba se descarta.
 
 **La geometría** es un objeto `sf` (librería `sf`) con dos columnas, `codigo` (el mismo que en los datos) y `nombre`, recortado a las áreas de tus datos.
+
+</div>
+
+<div class="discusion">
+<strong class="bloque-titulo">Cómo adaptar la plantilla a tus datos (también con ayuda de la IA)</strong>
+
+1. **Elige el ejemplo más parecido a tus datos**: el del gasto público si tienen un solo atributo, el de la EPA si tienen varios. Descarga su `.Rmd` y su script de preparación (`preparar_datos_*.R`), y guárdalos en la carpeta de tu dashboard.
+2. **Escribe tu script de preparación**, a partir del del ejemplo. Lee tus datos originales y guarda en la carpeta del dashboard los dos `.rds` del recuadro anterior: los datos (`mis_datos.rds`, tidy) y la geometría (`mi_geometria.rds`). Si tus datos son trimestrales o mensuales, pásalos a años (por ejemplo, con la media): la plantilla trabaja por años.
+3. **Comprueba los `.rds`** antes de seguir. Debe haber un solo valor por área, combinación de atributos, año e indicador, y conviene saber qué áreas no tienen polígono:
+
+    ```{verbatim}
+    datos |> count(area, sexo, edad, anio, indicador) |> filter(n > 1) # tiene que salir vacío
+    setdiff(datos$codigo, geometria$codigo) # áreas sin polígono (no salen en el mapa)
+    ```
+
+4. **Adapta el `.Rmd` cambiando SOLO lo marcado con ✎**: el título (PASO 1); la lectura de tus dos `.rds` en local (PASO 2); qué columnas son atributos y su total, los rótulos y las opciones con las que arranca cada control (PASO 3); y el título y el texto de la página de presentación de tus datos (PASO 4).
+5. **Pruébalo en tu ordenador** con *Run Document*. Si los datos no están organizados como espera la plantilla, el dashboard se para al arrancar y dice qué falla. Mira la muestra de la tabla de entrada al final de la primera página y recorre todas las páginas y controles.
+6. **Despliégalo** en el servidor Shiny del DIS (Paso 4): sube el `.Rmd` y los dos `.rds`.
+
+**Si usas un asistente de IA**, dale el `.Rmd` y el script de preparación del ejemplo, y descríbele bien tus datos. Por ejemplo:
+
+```{verbatim}
+Te adjunto la plantilla de cuadro de mandos Dashboard_epa_ocupados.Rmd y el
+script con el que se prepararon sus datos, preparar_datos_epa_ocupados.R.
+Quiero aplicarla a mis datos: <fuente y fichero de los datos originales; qué
+son las áreas y qué geometría tienen; qué atributos (variables categóricas
+como el sexo o el grupo de edad) y cuál es el total de cada uno; qué
+indicadores; qué años>.
+
+1. Escribe un script preparar_datos.R, siguiendo el del ejemplo, que lea mis
+   datos originales y guarde en la carpeta del cuadro de mandos:
+   - mis_datos.rds: una tabla tidy con las columnas codigo, area, una columna
+     por atributo (con su total como una categoría más), anio, indicador y valor;
+   - mi_geometria.rds: un objeto sf con las columnas codigo y nombre,
+     recortado a mis áreas.
+   Explica cada paso.
+2. En el .Rmd cambia SOLO lo marcado con ✎ (PASOS 1 a 4), leyendo los dos .rds
+   en local con readRDS("mis_datos.rds") y readRDS("mi_geometria.rds"). No
+   cambies nada más.
+3. Usa solo las librerías y el estilo de código del script de ejemplo.
+```
+
+Recuerda los límites del uso de la IA (*Errores frecuentes a evitar*): tienes que **entender y poder explicar** el script de preparación y los cambios del dashboard, y **comprobar tú** el resultado con los pasos 3 y 5.
 
 </div>
 

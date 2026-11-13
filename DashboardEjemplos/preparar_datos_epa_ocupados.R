@@ -25,6 +25,22 @@
 # ==============================================================================
 
 library(tidyverse)
+library(sf)
+
+# GEOMETRÍA: los polígonos de las comunidades autónomas, con las columnas
+# codigo (el código INE de la comunidad, "05") y nombre (el nombre corto:
+# "Madrid", "Baleares"). Se lee la primera porque sus nombres cortos son
+# también los de las áreas de los datos. Se descarga primero a un fichero
+# temporal porque, en algunos sistemas, st_read no puede acceder directamente
+# a URLs https.
+tmp <- tempfile(fileext = ".geojson")
+curl::curl_download("https://ctim.es/AEDV/data/ccaa.geojson", tmp)
+geometria <- st_read(tmp, quiet = TRUE) |>
+  select(codigo = codauto, nombre = ccaa.shortname.es)
+unlink(tmp)
+
+# nombre corto de cada comunidad a partir de su código
+NOMBRES <- setNames(geometria$nombre, geometria$codigo)
 
 # lectura de una tabla de la EPA: los factores, a texto, y el año del trimestre
 leer_epa <- function(fichero) {
@@ -69,7 +85,7 @@ epa <- ocupados |>
   left_join(poblacion, by = c("ccaa", "sexo", "edad", "anio")) |>
   mutate(ocupados_por_100 = 100 * ocupados / poblacion) |> # por cada 100 personas de 16 y más años del mismo sexo y edad
   mutate(codigo = if_else(ccaa == "Total Nacional", "ES", substr(ccaa, 1, 2)), # código de la geometría ("05")
-         area = if_else(ccaa == "Total Nacional", "España", sub("^[0-9]+ ", "", ccaa))) |> # nombre sin el código
+         area = if_else(codigo == "ES", "España", unname(NOMBRES[codigo]))) |> # nombre corto ("Madrid", no "13 Madrid, Comunidad de")
   select(codigo, area, sexo, edad, sector, anio, ocupados, ocupados_por_100) |>
   pivot_longer(c(ocupados, ocupados_por_100), names_to = "indicador", values_to = "valor") |> # tidy
   filter(!is.na(valor)) |>
@@ -83,17 +99,9 @@ epa
 
 saveRDS(epa, "epa_ocupados_dashboard.rds")
 
-# GEOMETRÍA: los polígonos de las comunidades autónomas, con las columnas
-# codigo (el código INE de la comunidad, "05") y nombre. Se descarga primero a
-# un fichero temporal porque, en algunos sistemas, st_read no puede acceder
-# directamente a URLs https.
-library(sf)
-tmp <- tempfile(fileext = ".geojson")
-curl::curl_download("https://ctim.es/AEDV/data/ccaa.geojson", tmp)
-geometria <- st_read(tmp, quiet = TRUE) |>
-  select(codigo = codauto, nombre = ccaa.shortname.es) |>
+# la geometría, recortada a las comunidades de los datos
+geometria <- geometria |>
   filter(codigo %in% epa$codigo)
-unlink(tmp)
 
 geometria
 
