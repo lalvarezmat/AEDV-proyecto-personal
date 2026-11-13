@@ -635,7 +635,7 @@ Tu dashboard tiene que partir **obligatoriamente** de la plantilla de cuadro de 
 Para aplicar la plantilla a otro dataset solo hay que cambiar lo marcado con ✎, en cuatro sitios:
 
 1. **PASO 1**: el título (cabecera YAML).
-2. **PASO 2**: la lectura de los datos y de la geometría (chunk `global`), ya preparados (ver el recuadro siguiente).
+2. **PASO 2**: la lectura de los datos y de la geometría (chunk `global`), dos `.rds` organizados como se explica en el recuadro siguiente.
 3. **PASO 3**: qué columnas son atributos y cuál es su total, los rótulos (cómo se llaman las áreas y los atributos de tus datos) y las opciones con las que arrancan los controles (chunk `global`).
 4. **PASO 4**: el título y el texto de la página de presentación de los datos.
 
@@ -656,21 +656,21 @@ La plantilla es un punto de partida: tu dashboard tiene que cubrir **todas las v
 <div class="discusion">
 <strong class="bloque-titulo">Cómo tienen que llegar los datos al dashboard</strong>
 
-El dashboard **no lee los datos originales**. Se preparan antes, en un script aparte que se ejecuta una sola vez (filtrar, unir tablas, pasar de trimestres a años, recortar la geometría…), y el resultado se guarda con `saveRDS()` en **dos ficheros `.rds`**: los datos, organizados como espera la plantilla, y la geometría del mapa. Esos `.rds` van **en la misma carpeta que el dashboard**, se suben al servidor junto a él, y el PASO 2 solo los lee **en local**:
+El dashboard **no lee los datos originales**, sino **dos ficheros `.rds`**: los datos, organizados como se explica a continuación, y la geometría del mapa. Esos `.rds` van **en la misma carpeta que el dashboard**, se suben al servidor junto a él, y el PASO 2 solo los lee **en local**:
 
 ```{verbatim}
 DATOS     <- readRDS("mis_datos.rds")
 GEOMETRIA <- readRDS("mi_geometria.rds")
 ```
 
-(Los dos ejemplos leen sus `.rds` desde `ctim.es` para poder abrirlos sin descargar nada más; tu dashboard, no.) Tienes el script que preparó los datos de cada ejemplo, para tomarlo como modelo: [preparar_datos_gasto_publico.R](https://ctim.es/AEDV/preparar_datos_gasto_publico.R) y [preparar_datos_epa_ocupados.R](https://ctim.es/AEDV/preparar_datos_epa_ocupados.R).
+(Los dos ejemplos leen sus `.rds` desde `ctim.es` para poder abrirlos sin descargar nada más; tu dashboard, no.)
 
 **Los datos son una tabla *tidy***, con una fila por área, combinación de los atributos, año e indicador, y estas columnas:
 
 * `codigo`: el código del área, el mismo que en la geometría (el código NUTS de cada región, el ISO de cada país…). Un área sin polígono, como el total de España o de la UE-27, sale en todas las páginas salvo en el mapa.
 * `area`: el nombre del área.
 * **Una columna por atributo**, con el nombre que quieras. Un atributo es una **variable categórica que no es un indicador**: el sector, el sexo, el grupo de edad… Sus categorías son los valores de su columna, y si tiene una categoría que es la suma de las demás (el total), va en la misma columna, como una categoría más.
-* `anio`: el año.
+* `anio`: el año (la plantilla trabaja con datos anuales).
 * `indicador`: el nombre del indicador. **Todos los indicadores van en esta misma columna**, no uno por columna.
 * `valor`: el valor numérico del indicador.
 
@@ -685,7 +685,7 @@ El **sexo, el grupo de edad** (y cualquier otra variable categórica, como el se
 | 05 | Canarias | Ambos sexos | De 25 a 54 años | Total | 2024 | ocupados | 741.5 |
 | 05 | Canarias | Ambos sexos | Total | Total | 2024 | ocupados | 1005.6 |
 
-**Otras variables categóricas, como el nivel NUTS, tampoco son indicadores.** Los códigos NUTS de las regiones van en la columna `codigo`. Si tus datos mezclan varios niveles NUTS (países, comunidades, provincias), elige uno al preparar el `.rds`: en una misma tabla no puede haber filas repetidas para la misma área, combinación de atributos, año e indicador. Cualquier otra columna que no sea de las de arriba se descarta.
+**Otras variables categóricas, como el nivel NUTS, tampoco son indicadores.** Los códigos NUTS de las regiones van en la columna `codigo`, y la tabla tiene **un solo nivel NUTS** (países, comunidades o provincias, no mezclados): no puede haber filas repetidas para la misma área, combinación de atributos, año e indicador. Cualquier otra columna que no sea de las de arriba se descarta.
 
 **La geometría** es un objeto `sf` (librería `sf`) con dos columnas, `codigo` (el mismo que en los datos) y `nombre`, recortado a las áreas de tus datos.
 
@@ -694,9 +694,9 @@ El **sexo, el grupo de edad** (y cualquier otra variable categórica, como el se
 <div class="discusion">
 <strong class="bloque-titulo">Cómo adaptar la plantilla a tus datos (también con ayuda de la IA)</strong>
 
-1. **Elige el ejemplo más parecido a tus datos**: el del gasto público si tienen un solo atributo, el de la EPA si tienen varios. Descarga su `.Rmd` y su script de preparación (`preparar_datos_*.R`), y guárdalos en la carpeta de tu dashboard.
-2. **Escribe tu script de preparación**, a partir del del ejemplo. Lee tus datos originales y guarda en la carpeta del dashboard los dos `.rds` del recuadro anterior: los datos (`mis_datos.rds`, tidy) y la geometría (`mi_geometria.rds`). Si tus datos son trimestrales o mensuales, pásalos a años (por ejemplo, con la media): la plantilla trabaja por años.
-3. **Comprueba los `.rds`** antes de seguir. Debe haber un solo valor por área, combinación de atributos, año e indicador, y conviene saber qué áreas no tienen polígono:
+1. **Elige el ejemplo más parecido a tus datos**: el del gasto público si tienen un solo atributo, el de la EPA si tienen varios. Descarga su `.Rmd` y guárdalo en la carpeta de tu dashboard.
+2. **Ten tus datos en los dos `.rds`** del recuadro anterior, organizados como allí se explica (`mis_datos.rds`, tidy, y `mi_geometria.rds`), en la misma carpeta.
+3. **Comprueba que los `.rds` están bien organizados**. Debe haber un solo valor por área, combinación de atributos, año e indicador, y conviene saber qué áreas no tienen polígono:
 
     ```{verbatim}
     datos |> count(area, sexo, edad, anio, indicador) |> filter(n > 1) # tiene que salir vacío
@@ -707,30 +707,23 @@ El **sexo, el grupo de edad** (y cualquier otra variable categórica, como el se
 5. **Pruébalo en tu ordenador** con *Run Document*. Si los datos no están organizados como espera la plantilla, el dashboard se para al arrancar y dice qué falla. Mira la muestra de la tabla de entrada al final de la primera página y recorre todas las páginas y controles.
 6. **Despliégalo** en el servidor Shiny del DIS (Paso 4): sube el `.Rmd` y los dos `.rds`.
 
-**Si usas un asistente de IA**, dale el `.Rmd` y el script de preparación del ejemplo, y descríbele bien tus datos. Por ejemplo:
+**Si usas un asistente de IA**, dale el `.Rmd` del ejemplo y descríbele bien tus datos. Por ejemplo:
 
 ```{verbatim}
-Te adjunto la plantilla de cuadro de mandos Dashboard_epa_ocupados.Rmd y el
-script con el que se prepararon sus datos, preparar_datos_epa_ocupados.R.
-Quiero aplicarla a mis datos: <fuente y fichero de los datos originales; qué
-son las áreas y qué geometría tienen; qué atributos (variables categóricas
-como el sexo o el grupo de edad) y cuál es el total de cada uno; qué
-indicadores; qué años>.
+Te adjunto la plantilla de cuadro de mandos Dashboard_epa_ocupados.Rmd. Tengo
+mis datos en dos ficheros organizados como pide la plantilla (PASO 2):
+- mis_datos.rds: una tabla tidy con las columnas codigo, area, <mis atributos>,
+  anio, indicador y valor;
+- mi_geometria.rds: un objeto sf con las columnas codigo y nombre.
+Mis datos son <qué son las áreas; qué atributos hay y cuál es el total de cada
+uno; qué indicadores; qué años>.
 
-1. Escribe un script preparar_datos.R, siguiendo el del ejemplo, que lea mis
-   datos originales y guarde en la carpeta del cuadro de mandos:
-   - mis_datos.rds: una tabla tidy con las columnas codigo, area, una columna
-     por atributo (con su total como una categoría más), anio, indicador y valor;
-   - mi_geometria.rds: un objeto sf con las columnas codigo y nombre,
-     recortado a mis áreas.
-   Explica cada paso.
-2. En el .Rmd cambia SOLO lo marcado con ✎ (PASOS 1 a 4), leyendo los dos .rds
-   en local con readRDS("mis_datos.rds") y readRDS("mi_geometria.rds"). No
-   cambies nada más.
-3. Usa solo las librerías y el estilo de código del script de ejemplo.
+Adapta la plantilla a mis datos cambiando SOLO lo marcado con ✎ (PASOS 1 a 4),
+y lee los dos .rds en local con readRDS("mis_datos.rds") y
+readRDS("mi_geometria.rds"). No cambies nada más y explícame cada cambio.
 ```
 
-Recuerda los límites del uso de la IA (*Errores frecuentes a evitar*): tienes que **entender y poder explicar** el script de preparación y los cambios del dashboard, y **comprobar tú** el resultado con los pasos 3 y 5.
+Recuerda los límites del uso de la IA (*Errores frecuentes a evitar*): tienes que **entender y poder explicar** los cambios del dashboard, y **comprobar tú** el resultado con los pasos 3 y 5.
 
 </div>
 

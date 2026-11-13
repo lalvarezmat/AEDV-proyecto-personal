@@ -3226,8 +3226,8 @@ marcado con ✎, en cuatro sitios:</p>
 <ol style="list-style-type: decimal">
 <li><strong>PASO 1</strong>: el título (cabecera YAML).</li>
 <li><strong>PASO 2</strong>: la lectura de los datos y de la geometría
-(chunk <code>global</code>), ya preparados (ver el recuadro
-siguiente).</li>
+(chunk <code>global</code>), dos <code>.rds</code> organizados como se
+explica en el recuadro siguiente.</li>
 <li><strong>PASO 3</strong>: qué columnas son atributos y cuál es su
 total, los rótulos (cómo se llaman las áreas y los atributos de tus
 datos) y las opciones con las que arrancan los controles (chunk
@@ -3267,12 +3267,9 @@ datos).</p>
 <div class="discusion">
 <p><strong class="bloque-titulo">Cómo tienen que llegar los datos al
 dashboard</strong></p>
-<p>El dashboard <strong>no lee los datos originales</strong>. Se
-preparan antes, en un script aparte que se ejecuta una sola vez
-(filtrar, unir tablas, pasar de trimestres a años, recortar la
-geometría…), y el resultado se guarda con <code>saveRDS()</code> en
+<p>El dashboard <strong>no lee los datos originales</strong>, sino
 <strong>dos ficheros <code>.rds</code></strong>: los datos, organizados
-como espera la plantilla, y la geometría del mapa. Esos
+como se explica a continuación, y la geometría del mapa. Esos
 <code>.rds</code> van <strong>en la misma carpeta que el
 dashboard</strong>, se suben al servidor junto a él, y el PASO 2 solo
 los lee <strong>en local</strong>:</p>
@@ -3280,9 +3277,7 @@ los lee <strong>en local</strong>:</p>
 GEOMETRIA &lt;- readRDS(&quot;mi_geometria.rds&quot;)</code></pre>
 <p>(Los dos ejemplos leen sus <code>.rds</code> desde
 <code>ctim.es</code> para poder abrirlos sin descargar nada más; tu
-dashboard, no.) Tienes el script que preparó los datos de cada ejemplo,
-para tomarlo como modelo: <a href="https://ctim.es/AEDV/preparar_datos_gasto_publico.R">preparar_datos_gasto_publico.R</a>
-y <a href="https://ctim.es/AEDV/preparar_datos_epa_ocupados.R">preparar_datos_epa_ocupados.R</a>.</p>
+dashboard, no.)</p>
 <p><strong>Los datos son una tabla <em>tidy</em></strong>, con una fila
 por área, combinación de los atributos, año e indicador, y estas
 columnas:</p>
@@ -3298,7 +3293,8 @@ indicador</strong>: el sector, el sexo, el grupo de edad… Sus categorías
 son los valores de su columna, y si tiene una categoría que es la suma
 de las demás (el total), va en la misma columna, como una categoría
 más.</li>
-<li><code>anio</code>: el año.</li>
+<li><code>anio</code>: el año (la plantilla trabaja con datos
+anuales).</li>
 <li><code>indicador</code>: el nombre del indicador. <strong>Todos los
 indicadores van en esta misma columna</strong>, no uno por columna.</li>
 <li><code>valor</code>: el valor numérico del indicador.</li>
@@ -3398,11 +3394,11 @@ ocupados de la EPA (en miles), con tres atributos:</p>
 </table>
 <p><strong>Otras variables categóricas, como el nivel NUTS, tampoco son
 indicadores.</strong> Los códigos NUTS de las regiones van en la columna
-<code>codigo</code>. Si tus datos mezclan varios niveles NUTS (países,
-comunidades, provincias), elige uno al preparar el <code>.rds</code>: en
-una misma tabla no puede haber filas repetidas para la misma área,
-combinación de atributos, año e indicador. Cualquier otra columna que no
-sea de las de arriba se descarta.</p>
+<code>codigo</code>, y la tabla tiene <strong>un solo nivel
+NUTS</strong> (países, comunidades o provincias, no mezclados): no puede
+haber filas repetidas para la misma área, combinación de atributos, año
+e indicador. Cualquier otra columna que no sea de las de arriba se
+descarta.</p>
 <p><strong>La geometría</strong> es un objeto <code>sf</code> (librería
 <code>sf</code>) con dos columnas, <code>codigo</code> (el mismo que en
 los datos) y <code>nombre</code>, recortado a las áreas de tus
@@ -3414,19 +3410,16 @@ datos.</p>
 <ol style="list-style-type: decimal">
 <li><p><strong>Elige el ejemplo más parecido a tus datos</strong>: el
 del gasto público si tienen un solo atributo, el de la EPA si tienen
-varios. Descarga su <code>.Rmd</code> y su script de preparación
-(<code>preparar_datos_*.R</code>), y guárdalos en la carpeta de tu
+varios. Descarga su <code>.Rmd</code> y guárdalo en la carpeta de tu
 dashboard.</p></li>
-<li><p><strong>Escribe tu script de preparación</strong>, a partir del
-del ejemplo. Lee tus datos originales y guarda en la carpeta del
-dashboard los dos <code>.rds</code> del recuadro anterior: los datos
-(<code>mis_datos.rds</code>, tidy) y la geometría
-(<code>mi_geometria.rds</code>). Si tus datos son trimestrales o
-mensuales, pásalos a años (por ejemplo, con la media): la plantilla
-trabaja por años.</p></li>
-<li><p><strong>Comprueba los <code>.rds</code></strong> antes de seguir.
-Debe haber un solo valor por área, combinación de atributos, año e
-indicador, y conviene saber qué áreas no tienen polígono:</p>
+<li><p><strong>Ten tus datos en los dos <code>.rds</code></strong> del
+recuadro anterior, organizados como allí se explica
+(<code>mis_datos.rds</code>, tidy, y <code>mi_geometria.rds</code>), en
+la misma carpeta.</p></li>
+<li><p><strong>Comprueba que los <code>.rds</code> están bien
+organizados</strong>. Debe haber un solo valor por área, combinación de
+atributos, año e indicador, y conviene saber qué áreas no tienen
+polígono:</p>
 <pre class="default"><code>datos |&gt; count(area, sexo, edad, anio, indicador) |&gt; filter(n &gt; 1) # tiene que salir vacío
 setdiff(datos$codigo, geometria$codigo) # áreas sin polígono (no salen en el mapa)</code></pre></li>
 <li><p><strong>Adapta el <code>.Rmd</code> cambiando SOLO lo marcado con
@@ -3443,30 +3436,23 @@ todas las páginas y controles.</p></li>
 4): sube el <code>.Rmd</code> y los dos <code>.rds</code>.</p></li>
 </ol>
 <p><strong>Si usas un asistente de IA</strong>, dale el
-<code>.Rmd</code> y el script de preparación del ejemplo, y descríbele
-bien tus datos. Por ejemplo:</p>
-<pre class="default"><code>Te adjunto la plantilla de cuadro de mandos Dashboard_epa_ocupados.Rmd y el
-script con el que se prepararon sus datos, preparar_datos_epa_ocupados.R.
-Quiero aplicarla a mis datos: &lt;fuente y fichero de los datos originales; qué
-son las áreas y qué geometría tienen; qué atributos (variables categóricas
-como el sexo o el grupo de edad) y cuál es el total de cada uno; qué
-indicadores; qué años&gt;.
+<code>.Rmd</code> del ejemplo y descríbele bien tus datos. Por
+ejemplo:</p>
+<pre class="default"><code>Te adjunto la plantilla de cuadro de mandos Dashboard_epa_ocupados.Rmd. Tengo
+mis datos en dos ficheros organizados como pide la plantilla (PASO 2):
+- mis_datos.rds: una tabla tidy con las columnas codigo, area, &lt;mis atributos&gt;,
+  anio, indicador y valor;
+- mi_geometria.rds: un objeto sf con las columnas codigo y nombre.
+Mis datos son &lt;qué son las áreas; qué atributos hay y cuál es el total de cada
+uno; qué indicadores; qué años&gt;.
 
-1. Escribe un script preparar_datos.R, siguiendo el del ejemplo, que lea mis
-   datos originales y guarde en la carpeta del cuadro de mandos:
-   - mis_datos.rds: una tabla tidy con las columnas codigo, area, una columna
-     por atributo (con su total como una categoría más), anio, indicador y valor;
-   - mi_geometria.rds: un objeto sf con las columnas codigo y nombre,
-     recortado a mis áreas.
-   Explica cada paso.
-2. En el .Rmd cambia SOLO lo marcado con ✎ (PASOS 1 a 4), leyendo los dos .rds
-   en local con readRDS(&quot;mis_datos.rds&quot;) y readRDS(&quot;mi_geometria.rds&quot;). No
-   cambies nada más.
-3. Usa solo las librerías y el estilo de código del script de ejemplo.</code></pre>
+Adapta la plantilla a mis datos cambiando SOLO lo marcado con ✎ (PASOS 1 a 4),
+y lee los dos .rds en local con readRDS(&quot;mis_datos.rds&quot;) y
+readRDS(&quot;mi_geometria.rds&quot;). No cambies nada más y explícame cada cambio.</code></pre>
 <p>Recuerda los límites del uso de la IA (<em>Errores frecuentes a
-evitar</em>): tienes que <strong>entender y poder explicar</strong> el
-script de preparación y los cambios del dashboard, y <strong>comprobar
-tú</strong> el resultado con los pasos 3 y 5.</p>
+evitar</em>): tienes que <strong>entender y poder explicar</strong> los
+cambios del dashboard, y <strong>comprobar tú</strong> el resultado con
+los pasos 3 y 5.</p>
 </div>
 <div class="nota">
 <p><strong class="bloque-titulo">La carga del dashboard puede ser lenta:

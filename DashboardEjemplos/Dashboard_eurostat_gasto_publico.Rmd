@@ -29,14 +29,13 @@ runtime: shiny
   columna indicador), las áreas, las categorías de los atributos, los años, el
   incremento anual de cada indicador y las opciones de todos los controles.
 
-  CON UN ASISTENTE DE IA. Pídele que prepare tus datos en un script aparte, como
-  preparar_datos_gasto_publico.R o preparar_datos_epa_ocupados.R, que guarde
-  dos .rds organizados como se describe en el PASO 2 (los datos y la
-  geometría), y que en este fichero cambie SOLO lo marcado con ✎ (PASOS 1 a
-  4). Lo demás no se toca. Comprueba después con la muestra de la tabla de
-  entrada, al final de la primera página, que los datos están bien organizados.
+  CON UN ASISTENTE DE IA. Dale tus dos .rds (los datos y la geometría),
+  organizados como se describe en el PASO 2, y pídele que en este fichero
+  cambie SOLO lo marcado con ✎ (PASOS 1 a 4). Lo demás no se toca. Comprueba
+  después con la muestra de la tabla de entrada, al final de la primera
+  página, que los datos están bien organizados.
 
-  LOS DATOS son un .rds YA PREPARADO con una tabla tidy: una fila por área
+  LOS DATOS son un .rds con una tabla tidy: una fila por área
   (país, región...), combinación de los atributos, año e indicador, con UNA
   COLUMNA POR ATRIBUTO (el sector; o el sexo y el grupo de edad...), una con
   el nombre del indicador y otra con su valor (ver el PASO 2).
@@ -44,8 +43,7 @@ runtime: shiny
   HAY DOS EJEMPLOS DE ESTA PLANTILLA, que solo se diferencian en lo marcado
   con ✎: Dashboard_eurostat_gasto_publico.Rmd, con un atributo (el sector del
   gasto público de Eurostat), y Dashboard_epa_ocupados.Rmd, con tres (el sexo,
-  el grupo de edad y el sector económico de los ocupados de la EPA). Sus datos se prepararon con
-  preparar_datos_gasto_publico.R y preparar_datos_epa_ocupados.R.
+  el grupo de edad y el sector económico de los ocupados de la EPA).
 
   EN ESTE CUADRO DE MANDOS: el gasto de las administraciones públicas por
   sectores (funciones COFOG) de 30 países europeos y la UE-27, de Eurostat.
@@ -125,14 +123,11 @@ source("https://ctim.es/AEDV/utilidades.R")
 
 # ✎ PASO 2: LOS DATOS Y LA GEOMETRÍA. Se leen UNA SOLA VEZ al arrancar.
 #
-#   LOS DATOS NO SON LOS ORIGINALES. Se preparan antes, fuera del cuadro de
-#   mandos (filtrar, cambiar de formato, unir tablas, pasar de trimestres a
-#   años, recortar la geometría...), y se guardan con saveRDS() en dos .rds:
-#   los datos, con la organización que se describe aquí, y la geometría. El
-#   cuadro de mandos solo los lee con readRDS(). Los de este ejemplo se
-#   prepararon con el script preparar_datos_gasto_publico.R y se leen de
-#   ctim.es. En TU PROYECTO, los .rds van en la MISMA CARPETA que el cuadro de
-#   mandos, se suben al servidor junto a él y se leen en local:
+#   EL CUADRO DE MANDOS NO LEE LOS DATOS ORIGINALES, sino dos .rds: los datos,
+#   con la organización que se describe aquí, y la geometría. Los de este
+#   ejemplo se leen de ctim.es. En TU PROYECTO, los .rds van en la MISMA
+#   CARPETA que el cuadro de mandos, se suben al servidor junto a él y se leen
+#   en local:
 #     DATOS     <- readRDS("mis_datos.rds")
 #     GEOMETRIA <- readRDS("mi_geometria.rds")
 #
@@ -156,8 +151,8 @@ source("https://ctim.es/AEDV/utilidades.R")
 #     Tiene que haber un único valor por área, combinación de atributos, año e
 #     indicador. Los NA se descartan solos. Las demás columnas que haya se
 #     descartan: una variable categórica que no se declare como atributo (el
-#     nivel NUTS, por ejemplo) no debe hacer que se repitan filas; si los datos
-#     mezclan niveles NUTS, se elige uno al preparar el .rds. Los códigos de las
+#     nivel NUTS, por ejemplo) no debe hacer que se repitan filas: la tabla
+#     tiene un solo nivel NUTS (países, comunidades...). Los códigos de las
 #     áreas (el NUTS de cada región) van en la columna codigo. Los nombres area,
 #     codigo, anio, atributo, indicador, unidad, valor, value, year y fecha están
 #     reservados: no se pueden usar como nombre de un atributo ni de un
@@ -196,7 +191,7 @@ source("https://ctim.es/AEDV/utilidades.R")
 #     para las etiquetas del mapa, recortados a las áreas de los datos.
 
 # gasto de las administraciones públicas por sectores (Eurostat) y polígonos
-# de los países, ya preparados con preparar_datos_gasto_publico.R
+# de los países, organizados como pide la plantilla
 DATOS     <- readRDS(url("https://ctim.es/AEDV/data/eurostat_GASTO_PUBLICO_dashboard.rds")) # ✎
 GEOMETRIA <- readRDS(url("https://ctim.es/AEDV/data/geo_gasto_publico.rds")) # ✎
 

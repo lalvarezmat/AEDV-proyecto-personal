@@ -74,7 +74,7 @@
   <li><a href="estilos.css">estilos.css</a> — <span class="desc">estilos de la memoria; se necesita junto al Rmd, no se modifica</span></li>
   <li><a href="utilidades.R">utilidades.R</a> — <span class="desc">funciones de la asignatura, entre ellas <code>aedv_incluir_dataset()</code>, que incorpora los datasets a la memoria; se necesita junto al Rmd, no se modifica</span> <span class="fecha">(actualizada el <span id="fecha-utilidades">31/10/2026, 11:16</span>)</span></li>
   <li><a href="DashboardInstruccionesServidorShiny.html">Instrucciones del servidor Shiny</a> — <span class="desc">cómo subir y desplegar el cuadro de mandos en el servidor Shiny del DIS, con WinSCP (o Cyberduck/FileZilla en macOS) o con <code>scp</code> y <code>ssh</code> desde la consola</span></li>
-  <li><a href="#cuadros-de-mandos">Cuadros de mandos de referencia</a> — <span class="desc">los dos ejemplos de la plantilla del dashboard (el gasto público, con un atributo, y la EPA, con tres) y los scripts que preparan sus datos: tu cuadro de mandos se construye adaptando uno de ellos a tus datos. Se descargan desde la sección del final de esta página</span></li>
+  <li><a href="#cuadros-de-mandos">Cuadros de mandos de referencia</a> — <span class="desc">los dos ejemplos de la plantilla del dashboard (el gasto público, con un atributo, y la EPA, con tres): tu cuadro de mandos se construye adaptando uno de ellos a tus datos. Se descargan desde la sección del final de esta página</span></li>
 </ul>
 
 <h2>Selección de datasets</h2>
@@ -241,7 +241,6 @@ Se abren con RStudio (<em>Run Document</em>); leen los datos y <code>utilidades.
 <ul>
   <li><a href="DashboardEjemplos/Dashboard_eurostat_gasto_publico.Rmd">Dashboard_eurostat_gasto_publico.Rmd</a> — <span class="desc"><strong>plantilla de referencia para el dashboard del proyecto</strong>, con un atributo: el gasto público por sectores de Eurostat; para usarla con tus datos solo se cambia lo marcado con ✎</span></li>
   <li><a href="DashboardEjemplos/Dashboard_epa_ocupados.Rmd">Dashboard_epa_ocupados.Rmd</a> — <span class="desc"><strong>la misma plantilla con tres atributos</strong> (sexo, grupo de edad y sector económico): los ocupados de la EPA por comunidad autónoma</span></li>
-  <li><a href="DashboardEjemplos/preparar_datos_gasto_publico.R">preparar_datos_gasto_publico.R</a> y <a href="DashboardEjemplos/preparar_datos_epa_ocupados.R">preparar_datos_epa_ocupados.R</a> — <span class="desc">scripts que preparan los <code>.rds</code> de entrada de los dos ejemplos (tabla tidy y geometría): el modelo de la preparación de tus datos (el segundo lee <a href="DashboardEjemplos/EPA_65304.rds">EPA_65304.rds</a> y <a href="DashboardEjemplos/EPA_65285.rds">EPA_65285.rds</a>)</span></li>
 </ul>
 
 <footer>
