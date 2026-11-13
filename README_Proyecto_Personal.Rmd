@@ -627,20 +627,25 @@ El dashboard es el entregable técnico más exigente. Debe estar desplegado y ac
 <div class="discusion">
 <strong class="bloque-titulo">El cuadro de mandos de referencia es obligatorio</strong>
 
-Tu dashboard tiene que partir **obligatoriamente** del cuadro de mandos de referencia de la asignatura, [Dashboard_eurostat_gasto_publico.Rmd](https://ctim.es/AEDV/Dashboard_eurostat_gasto_publico.Rmd), **adaptado a tus datos**. Está organizado como una **plantilla**: para aplicarlo a otro dataset solo hay que cambiar lo marcado con ✎, en cuatro sitios:
+Tu dashboard tiene que partir **obligatoriamente** de la plantilla de cuadro de mandos de la asignatura, **adaptada a tus datos**. Hay dos ejemplos de la misma plantilla, que solo se diferencian en lo marcado con ✎; parte del que más se parezca a tus datos:
+
+* [Dashboard_eurostat_gasto_publico.Rmd](https://ctim.es/AEDV/Dashboard_eurostat_gasto_publico.Rmd): el gasto público por sectores de Eurostat, con **un atributo** (el sector).
+* [Dashboard_epa_ocupados.Rmd](https://ctim.es/AEDV/Dashboard_epa_ocupados.Rmd): los ocupados de la EPA por comunidad autónoma, con **dos atributos** (el sexo y el grupo de edad).
+
+Para aplicar la plantilla a otro dataset solo hay que cambiar lo marcado con ✎, en cuatro sitios:
 
 1. **PASO 1**: el título (cabecera YAML).
-2. **PASO 2**: la lectura de los datos y de la geometría (chunk `global`). Los datos tienen que quedar como una tabla en formato largo con las columnas `codigo` (el código del área en la geometría), `area`, `atributo`, `anio` y una columna numérica por indicador.
-3. **PASO 3**: los rótulos (cómo se llaman las áreas y los atributos de tus datos) y las opciones con las que arrancan los controles (chunk `global`).
+2. **PASO 2**: la lectura de los datos y de la geometría (chunk `global`), ya preparados (ver el recuadro siguiente).
+3. **PASO 3**: qué columnas son atributos y cuál es su total, los rótulos (cómo se llaman las áreas y los atributos de tus datos) y las opciones con las que arrancan los controles (chunk `global`).
 4. **PASO 4**: el título y el texto de la página de presentación de los datos.
 
-Todo lo demás (los indicadores, las áreas, los atributos, los años, el incremento anual y las opciones de todos los controles) se deduce de los datos. El ejemplo es el gasto público por sectores de Eurostat, con una página de presentación de los datos y las cinco páginas obligatorias:
+Todo lo demás (los indicadores, las áreas, las categorías de los atributos, los años, el incremento anual y las opciones de todos los controles) se deduce de los datos. Los dos ejemplos tienen una página de presentación de los datos, que termina con una muestra de la tabla que leen, y las cinco páginas obligatorias:
 
-* **Series**: exploración de las series temporales, con un panel por área o por atributo.
+* **Series**: exploración de las series temporales, con un panel por área o por categoría de un atributo.
 * **Predicción**: predicción con ARIMA o STL + ARIMA y análisis del error del ajuste.
 * **Mapa**: mapa coroplético.
-* **Comparación**: dos atributos frente a frente (dispersión, recta de regresión y tests), con Yeo-Johnson.
-* **PCA**: matriz de correlación, PCA y k-means.
+* **Comparación**: dos combinaciones de atributos frente a frente (dispersión, recta de regresión y tests), con Yeo-Johnson.
+* **PCA**: matriz de correlación, PCA y k-means, con las categorías de un atributo como columnas (con varios atributos, los demás se fijan en una categoría).
 
 En todas las páginas se elige el indicador y la **unidad**: el valor del indicador o su **incremento anual en porcentaje**, que se calcula una sola vez al arrancar. En el mapa, la comparación y el PCA el año puede ser uno concreto, el último disponible de cada área o la media en el periodo.
 
@@ -650,10 +655,48 @@ La plantilla es un punto de partida: tu dashboard tiene que cubrir **todas las v
 
 </div>
 
+<div class="discusion">
+<strong class="bloque-titulo">Cómo tienen que llegar los datos al dashboard</strong>
+
+El dashboard **no lee los datos originales**. Se preparan antes, en un script aparte que se ejecuta una sola vez (filtrar, unir tablas, pasar de trimestres a años, recortar la geometría…), y el resultado se guarda con `saveRDS()` en **dos ficheros `.rds`**: los datos, organizados como espera la plantilla, y la geometría del mapa. Esos `.rds` van **en la misma carpeta que el dashboard**, se suben al servidor junto a él, y el PASO 2 solo los lee **en local**:
+
+```{verbatim}
+DATOS     <- readRDS("mis_datos.rds")
+GEOMETRIA <- readRDS("mi_geometria.rds")
+```
+
+(Los dos ejemplos leen sus `.rds` desde `ctim.es` para poder abrirlos sin descargar nada más; tu dashboard, no.) Tienes el script que preparó los datos de cada ejemplo, para tomarlo como modelo: [preparar_datos_gasto_publico.R](https://ctim.es/AEDV/preparar_datos_gasto_publico.R) y [preparar_datos_epa_ocupados.R](https://ctim.es/AEDV/preparar_datos_epa_ocupados.R).
+
+**Los datos son una tabla *tidy***, con una fila por área, combinación de los atributos, año e indicador, y estas columnas:
+
+* `codigo`: el código del área, el mismo que en la geometría (el código NUTS de cada región, el ISO de cada país…). Un área sin polígono, como el total de España o de la UE-27, sale en todas las páginas salvo en el mapa.
+* `area`: el nombre del área.
+* **Una columna por atributo**, con el nombre que quieras. Un atributo es una **variable categórica que no es un indicador**: el sector, el sexo, el grupo de edad… Sus categorías son los valores de su columna, y si tiene una categoría que es la suma de las demás (el total), va en la misma columna, como una categoría más.
+* `anio`: el año.
+* `indicador`: el nombre del indicador. **Todos los indicadores van en esta misma columna**, no uno por columna.
+* `valor`: el valor numérico del indicador.
+
+El **sexo y el grupo de edad** van cada uno en **su propia columna**, con una fila por cada combinación de sexo y grupo de edad, **incluidas las de los totales** («Ambos sexos» y «Total»). No hay que juntarlos en una sola columna: el dashboard pone un desplegable por atributo y los combina él solo. Por ejemplo, los ocupados de la EPA (en miles):
+
+| codigo | area | sexo | edad | anio | indicador | valor |
+|---|---|---|---|---|---|---|
+| 05 | Canarias | Hombres | De 25 a 34 años | 2024 | ocupados | 103.2 |
+| 05 | Canarias | Mujeres | De 25 a 34 años | 2024 | ocupados | 98.9 |
+| 05 | Canarias | Ambos sexos | De 25 a 34 años | 2024 | ocupados | 202.1 |
+| 05 | Canarias | Hombres | Total | 2024 | ocupados | 536.7 |
+| 05 | Canarias | Mujeres | Total | 2024 | ocupados | 469.0 |
+| 05 | Canarias | Ambos sexos | Total | 2024 | ocupados | 1005.6 |
+
+**Otras variables categóricas, como el nivel NUTS, tampoco son indicadores.** Los códigos NUTS de las regiones van en la columna `codigo`. Si tus datos mezclan varios niveles NUTS (países, comunidades, provincias), elige uno al preparar el `.rds`: en una misma tabla no puede haber filas repetidas para la misma área, combinación de atributos, año e indicador. Cualquier otra columna que no sea de las de arriba se descarta.
+
+**La geometría** es un objeto `sf` (librería `sf`) con dos columnas, `codigo` (el mismo que en los datos) y `nombre`, recortado a las áreas de tus datos.
+
+</div>
+
 <div class="nota">
 <strong class="bloque-titulo">La carga del dashboard puede ser lenta: cómo acelerarla</strong>
 
-Un dashboard con varias páginas puede tardar en abrirse, porque al arrancar se ejecuta todo el documento: se cargan las librerías, se leen los datos y se calculan todas las páginas. Algunas estrategias sencillas para acelerarlo (la plantilla de referencia de arriba aplica casi todas):
+Un dashboard con varias páginas puede tardar en abrirse, porque al arrancar se ejecuta todo el documento: se cargan las librerías, se leen los datos y se calculan todas las páginas. Algunas estrategias sencillas para acelerarlo (la plantilla de referencia de arriba las aplica todas):
 
 1. **Guarda los datos ya preprocesados en un `.rds`.** Si antes de usar los datos los filtras, cambias de formato o unes tablas, haz ese preprocesado una sola vez fuera del dashboard, guarda el resultado con `saveRDS()` y, en el dashboard, carga directamente esa tabla procesada con `readRDS()`.
 2. **No calcules todas las páginas de golpe.** Pon en cada página un botón para calcular, rellenar o actualizar sus resultados (`actionButton()` con `eventReactive()`): así, al abrir el dashboard no se calcula nada, y cada página solo hace sus cuentas cuando el usuario lo pide.

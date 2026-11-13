@@ -1,0 +1,2006 @@
+---
+title: "Ocupados EPA" # ✎ USUARIO (PASO 1): nombre de la pestaña del navegador (en la barra superior no se muestra: ver el {css})
+output:
+  flexdashboard::flex_dashboard:
+    orientation: columns
+runtime: shiny
+---
+
+<!--
+================================================================================
+  PLANTILLA DE CUADRO DE MANDOS DE VARIAS PÁGINAS
+
+  Seis páginas aplicadas a los mismos datos:
+    0. Presentación de los datos   (solo texto)
+    1. Series                      (Dashboard_exploracion_series.Rmd)
+    2. Predicción                  (Dashboard_prediccion_series.Rmd)
+    3. Mapa                        (Dashboard_mapa_coropletico.Rmd)
+    4. Comparación                 (Dashboard_atributos_analisis.Rmd, página 1)
+    5. PCA                         (Dashboard_atributos_analisis.Rmd, página 2)
+
+  ✎ = LO QUE DEFINE EL USUARIO. Para aplicar el cuadro de mandos a otros datos
+  solo hay que tocar lo marcado con ✎, en cuatro sitios:
+    ✎ PASO 1: el título (cabecera YAML, arriba del todo).
+    ✎ PASO 2: la lectura de los datos y de la geometría (chunk "global").
+    ✎ PASO 3: los rótulos y las opciones de arranque (chunk "global").
+    ✎ PASO 4: el título y el texto de la página de presentación de los datos.
+  Todo lo demás se deduce de los datos: los indicadores (las columnas
+  numéricas), las áreas, los atributos, los años, el incremento anual de cada
+  indicador y las opciones de todos los controles.
+
+  LOS DATOS son un .rds YA PREPARADO con una tabla tidy: una fila por área
+  (país, región...), combinación de los atributos, año e indicador, con UNA
+  COLUMNA POR ATRIBUTO (el sector; o el sexo y el grupo de edad...), una con
+  el nombre del indicador y otra con su valor (ver el PASO 2).
+
+  HAY DOS EJEMPLOS DE ESTA PLANTILLA, que solo se diferencian en lo marcado
+  con ✎: Dashboard_eurostat_gasto_publico.Rmd, con un atributo (el sector del
+  gasto público de Eurostat), y Dashboard_epa_ocupados.Rmd, con dos (el sexo y
+  el grupo de edad de los ocupados de la EPA). Sus datos se prepararon con
+  preparar_datos_gasto_publico.R y preparar_datos_epa_ocupados.R.
+
+  EN ESTE CUADRO DE MANDOS: los ocupados (miles de personas, media anual) por
+  comunidad autónoma, sexo y grupo de edad, de la Encuesta de Población Activa
+  del INE (tabla 65302).
+
+  UNIDAD Y MEDIA EN EL PERIODO. En todas las páginas se elige la unidad: el
+  valor del indicador o su incremento anual en porcentaje, que se calcula UNA
+  SOLA VEZ, en el chunk "global" (tabla DATOS_UNIDAD). En el mapa, la
+  comparación y el PCA el año puede ser uno concreto, el «Último año
+  disponible» de cada área o la «Media en el periodo» de todos sus años.
+
+  CARGA RÁPIDA Y MEMORIA. Lo que comparten todas las páginas (librerías,
+  funciones del curso, datos y geometría) se hace UNA SOLA VEZ en el chunk
+  llamado "global": en un servidor Shiny ese chunk se ejecuta una vez por
+  proceso y sus objetos los comparten todos los usuarios, mientras que el resto
+  del documento se vuelve a ejecutar con cada usuario que lo abre. Además:
+    - la geometría se recorta al arrancar a las áreas de los datos (es lo que
+      viaja al navegador en cada mapa);
+    - la página de predicción no separa las series al arrancar: cada serie se
+      extrae cuando se elige;
+    - ninguna página calcula nada al arrancar: todas tienen un botón que lanza
+      el cálculo.
+
+  IDENTIFICADORES DE LAS PÁGINAS. En un flexdashboard todas las páginas
+  comparten las variables de R y los identificadores de los controles. La
+  página Series usa su propio mecanismo (pageId e id_control()), la de
+  Predicción guarda lo suyo en PAGINAS[[PAGINA_ID]] y trabaja dentro de
+  local({ ... }), la del Mapa lleva "mapa" en sus identificadores y en su
+  reactiva, y la de PCA, "_2".
+
+  Requiere el fichero utilidades.R del curso en su versión del 22 de octubre de
+  2026 o posterior.
+================================================================================
+-->
+
+```{r setup, include=FALSE}
+# opciones de los chunks (en un chunk aparte: el chunk global no se repite
+# al abrir el cuadro de mandos otro usuario, y estas opciones sí hacen falta)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE)
+```
+
+```{r global, include=FALSE}
+# ==============================================================================
+# CHUNK "global": LO COMÚN A TODAS LAS PÁGINAS, UNA SOLA VEZ
+# ==============================================================================
+library(flexdashboard) # Estructura del cuadro de mando en páginas y columnas
+library(shiny)         # Reactividad
+library(fpp3)          # tsibble, feasts y fable: series temporales, STL y ARIMA
+library(lmtest)        # Test de Breusch-Pagan (aedv_tests_residuos, aedv_lm_analisis)
+library(leaflet)       # Mapa coroplético
+library(sf)            # Geometría de las áreas
+library(factoextra)    # Biplot y gráfico del k-means
+library(plotly)        # Gráficas dinámicas: ggplotly convierte los ggplot
+library(tidyverse)     # Manipulación de datos y ggplot2 (el último, para que
+                       # dplyr::filter() no quede tapado por plotly)
+
+# asociamos funciones a determinadas librerías para evitar posibles errores
+select    <- dplyr::select
+mutate    <- dplyr::mutate
+filter    <- dplyr::filter
+group_by  <- dplyr::group_by
+summarise <- dplyr::summarise
+selectInput <- shiny::selectInput
+
+# theme por defecto para las gráficas
+theme_set(theme_bw(base_size = 12))
+
+# Funciones auxiliares del curso
+source("https://ctim.es/AEDV/utilidades.R")
+
+# ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
+#   ELEMENTOS QUE DEFINE EL USUARIO (PASOS 2 Y 3)
+#   Es lo único que hay que cambiar en el código; todo lo que viene después se
+#   adapta solo. Faltan el título (PASO 1, arriba del todo) y el texto de la
+#   página de presentación de los datos (PASO 4, justo después de este chunk).
+# ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
+
+# ✎ PASO 2: LOS DATOS Y LA GEOMETRÍA. Se leen UNA SOLA VEZ al arrancar.
+#
+#   LOS DATOS NO SON LOS ORIGINALES. Se preparan antes, fuera del cuadro de
+#   mandos (filtrar, cambiar de formato, unir tablas, pasar de trimestres a
+#   años, recortar la geometría...), y se guardan con saveRDS() en dos .rds:
+#   los datos, con la organización que se describe aquí, y la geometría. El
+#   cuadro de mandos solo los lee con readRDS(). Los de este ejemplo se
+#   prepararon con el script preparar_datos_epa_ocupados.R y se leen de
+#   ctim.es. En TU PROYECTO, los .rds van en la MISMA CARPETA que el cuadro de
+#   mandos, se suben al servidor junto a él y se leen en local:
+#     DATOS     <- readRDS("mis_datos.rds")
+#     GEOMETRIA <- readRDS("mi_geometria.rds")
+#
+#   - DATOS: una tabla TIDY (en formato largo), con una fila por área,
+#     combinación de los atributos, año e indicador, y estas columnas:
+#       - codigo:    el código del área, el mismo que en la geometría (un área
+#                    sin polígono, como la UE-27 o el total de España, sale en
+#                    todas las páginas salvo en el mapa)
+#       - area:      el nombre del área
+#       - UNA COLUMNA POR ATRIBUTO, con el nombre que se quiera (se declaran
+#         en COLUMNAS_ATRIBUTO, en el PASO 3). Un atributo es una variable
+#         categórica que no es un indicador (el sector, el sexo, el grupo de
+#         edad...), y sus categorías son los valores de su columna. Si un
+#         atributo tiene una categoría que es la suma de las demás (el total),
+#         va en la misma columna, como una categoría más (se declara en
+#         TOTALES, en el PASO 3).
+#       - anio:      el año (número entero)
+#       - indicador: el nombre del indicador (TODOS los indicadores en esta
+#                    misma columna, no uno por columna)
+#       - valor:     el valor numérico del indicador
+#     Tiene que haber un único valor por área, combinación de atributos, año e
+#     indicador. Los NA se descartan solos. Las demás columnas que haya se
+#     descartan: una variable categórica que no se declare como atributo (el
+#     nivel NUTS, por ejemplo) no debe hacer que se repitan filas; si los datos
+#     mezclan niveles NUTS, se elige uno al preparar el .rds. Los códigos de las
+#     áreas (el NUTS de cada región) van en la columna codigo. Los nombres area,
+#     codigo, anio, atributo, indicador, unidad, valor, value, year y fecha están
+#     reservados: no se pueden usar como nombre de un atributo ni de un
+#     indicador.
+#
+#     Ejemplo con UN atributo (el de esta plantilla): el sector del gasto.
+#
+#       codigo  area     sector     anio  indicador          valor
+#       ESP     España   Salud      2023  gasto_per_capita  2039.8
+#       ESP     España   Salud      2023  pct_pib              6.6
+#       ESP     España   Defensa    2023  gasto_per_capita   289.7
+#       ESP     España   Defensa    2023  pct_pib              0.9
+#       ESP     España   Total      2023  gasto_per_capita 14068.0   <- el total, una categoría más
+#       ESP     España   Total      2023  pct_pib             45.4
+#       ...
+#
+#     Ejemplo con DOS atributos, el sexo y el grupo de edad (la EPA, ocupados
+#     en miles): cada uno en su columna, y una fila por cada combinación de
+#     sexo y grupo de edad, incluidas las de los totales («Ambos sexos» y
+#     «Total»):
+#
+#       codigo  area       sexo         edad              anio  indicador  valor
+#       05      Canarias   Hombres      De 25 a 34 años   2024  ocupados   103.2
+#       05      Canarias   Mujeres      De 25 a 34 años   2024  ocupados    98.9
+#       05      Canarias   Ambos sexos  De 25 a 34 años   2024  ocupados   202.1
+#       05      Canarias   Hombres      Total             2024  ocupados   536.7
+#       05      Canarias   Mujeres      Total             2024  ocupados   469.0
+#       05      Canarias   Ambos sexos  Total             2024  ocupados  1005.6
+#       ...
+#
+#     NO hay que juntar el sexo y la edad en una sola columna: el cuadro de
+#     mandos pone un desplegable por atributo y los combina él solo.
+#
+#   - GEOMETRIA: los polígonos de las áreas (un objeto sf, de la librería sf),
+#     con una columna `codigo` que casa con la de DATOS y una columna `nombre`
+#     para las etiquetas del mapa, recortados a las áreas de los datos.
+
+# ocupados de la EPA por comunidad, sexo y grupo de edad (media anual) y
+# polígonos de las comunidades, ya preparados con preparar_datos_epa_ocupados.R
+DATOS     <- readRDS(url("https://ctim.es/AEDV/data/epa_ocupados_dashboard.rds")) # ✎
+GEOMETRIA <- readRDS(url("https://ctim.es/AEDV/data/geo_ccaa_epa.rds")) # ✎
+
+# ✎ PASO 3: ATRIBUTOS, RÓTULOS Y OPCIONES DE ARRANQUE
+
+# ✎ Columnas de DATOS que son atributos, con su rótulo: c(columna = "Rótulo").
+# Con dos o más, el cuadro de mandos pone un desplegable para cada uno.
+# Ejemplo con sexo y edad: c(sexo = "Sexo", edad = "Edad")
+COLUMNAS_ATRIBUTO <- c(sexo = "Sexo", edad = "Edad")
+
+# ✎ Categoría de cada atributo que es la suma de las demás (el total): sale en
+# Series, Predicción y Mapa, pero no en Comparación, ni como atributo del PCA.
+# NA (o no ponerlo) en un atributo que no tenga total.
+# Ejemplo con sexo y edad: c(sexo = "Ambos sexos", edad = "Total")
+TOTALES <- c(sexo = "Ambos sexos", edad = "Total")
+
+ETIQUETA_AREA   <- "Comunidad"             # ✎ cómo se llama un área en los rótulos
+ETIQUETA_AREAS  <- "comunidades"           # ✎ en plural, para los avisos
+TODAS_LAS_AREAS <- "Todas las comunidades" # ✎ casilla de la página Series
+POR_AREAS       <- "Por comunidades"     # ✎ página Series: un panel por área
+POR_ATRIBUTOS   <- c(sexo = "Por sexo", edad = "Por edad") # ✎ página Series: un panel por categoría de cada atributo
+                                              #   (ejemplo: c(sexo = "Por sexo", edad = "Por edad"))
+
+# ✎ Áreas destacadas: van las primeras en los desplegables, en rojo en la
+# dispersión y rodeadas con un círculo en el biplot y el k-means.
+RESALTAR <- c("Canarias", "España")
+
+# Opciones con las que arrancan los controles. Las de los atributos llevan una
+# categoría (o varias) por atributo, con el nombre de su columna. Si alguna no
+# existe en DATOS se usa la primera disponible, así que la plantilla no se
+# rompe al cambiar de datos y olvidarse de tocarlas.
+INDICADOR_INICIAL   <- "ocupados"                    # ✎ en todas las páginas
+AREA_INICIAL        <- "Canarias"                              # ✎ serie inicial de la predicción
+AREAS_INICIALES     <- c("Canarias", "España", "Andalucía", "Cataluña", "Madrid, Comunidad de", "Balears, Illes") # ✎ Series, al desmarcar la casilla
+ATRIBUTO_INICIAL    <- c(sexo = "Ambos sexos", edad = "Total")                   # ✎ predicción, mapa y categorías fijas del PCA
+ATRIBUTOS_INICIALES <- list(sexo = c("Hombres", "Mujeres"), edad = "Total") # ✎ Series
+ATRIBUTO_X_INICIAL  <- c(sexo = "Mujeres", edad = "De 25 a 34 años")                   # ✎ Comparación, eje x
+ATRIBUTO_Y_INICIAL  <- c(sexo = "Hombres", edad = "De 25 a 34 años")       # ✎ Comparación, eje y
+COLUMNA_PCA_INICIAL <- "edad"                              # ✎ atributo cuyas categorías son las columnas del PCA
+K_INICIAL           <- 3                                     # ✎ nº de grupos del k-means
+VISTA <- list(lng = -8, lat = 36, zoom = 5)                  # ✎ centro y zoom del mapa (España, con Canarias)
+
+# ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
+#   FIN DE LOS ELEMENTOS QUE DEFINE EL USUARIO
+# ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
+
+# A PARTIR DE AQUÍ NO HAY QUE TOCAR NADA
+
+# la tabla tal como se ha leído (el .rds de entrada), para mostrar una muestra
+# en la página de presentación de los datos
+DATOS_LEIDOS <- DATOS
+
+# COMPROBACIÓN DE LOS DATOS: si falta algo, se avisa al arrancar y no con un
+# panel vacío más tarde
+COLS_ATR <- names(COLUMNAS_ATRIBUTO)
+RESERVADOS <- c("area", "codigo", "anio", "atributo", "indicador", "unidad", "valor", "value", "year", "fecha")
+if (length(COLS_ATR) == 0) stop("COLUMNAS_ATRIBUTO está vacío: hace falta al menos un atributo.")
+if (any(COLS_ATR %in% RESERVADOS)) {
+  stop("Un atributo no puede llamarse ", paste(intersect(COLS_ATR, RESERVADOS), collapse = ", "),
+       ": es un nombre reservado. Renombra la columna en DATOS y en COLUMNAS_ATRIBUTO.")
+}
+faltan <- setdiff(c("codigo", "area", COLS_ATR, "anio", "indicador", "valor"), names(DATOS))
+if (length(faltan) > 0) stop("A DATOS le faltan las columnas ", paste(faltan, collapse = ", "), ".")
+faltan <- setdiff(c("codigo", "nombre"), names(GEOMETRIA))
+if (length(faltan) > 0) stop("A GEOMETRIA le faltan las columnas ", paste(faltan, collapse = ", "), ".")
+DATOS <- DATOS |>
+  ungroup() |>
+  as_tibble() |>
+  select(codigo, area, all_of(COLS_ATR), anio, indicador, valor) |> # el resto de columnas se descarta
+  mutate(across(c(codigo, area, all_of(COLS_ATR), indicador), as.character),
+         anio = as.integer(anio), valor = as.numeric(valor)) |>
+  filter(!is.na(valor))
+if (anyDuplicated(DATOS[c("area", COLS_ATR, "anio", "indicador")]) > 0) {
+  stop("En DATOS hay áreas, combinaciones de atributos, años e indicadores con más de un valor: ",
+       "debe haber uno solo (¿falta declarar algún atributo en COLUMNAS_ATRIBUTO?).")
+}
+
+# indicadores, en el orden de los datos
+INDICADORES <- unique(DATOS$indicador)
+if (any(INDICADORES %in% c(RESERVADOS, COLS_ATR))) {
+  stop("Un indicador no puede llamarse ", paste(intersect(INDICADORES, c(RESERVADOS, COLS_ATR)), collapse = ", "),
+       ": es un nombre reservado o el de un atributo.")
+}
+
+# A PARTIR DE AQUÍ, UNA COLUMNA POR INDICADOR (es como lo usan las páginas), y
+# la columna `atributo`: la combinación de las categorías de todos los
+# atributos ("Mujeres · De 25 a 34 años"); con un solo atributo, su categoría
+DATOS <- DATOS |>
+  pivot_wider(names_from = indicador, values_from = valor) |>
+  mutate(atributo = do.call(paste, c(across(all_of(COLS_ATR)), sep = " · ")))
+
+# categorías de cada atributo, en el orden de los datos, y sin el total (las
+# que entran en Comparación y como columnas del PCA)
+TOTALES <- TOTALES[intersect(names(TOTALES), COLS_ATR)]
+CATEGORIAS <- lapply(setNames(COLS_ATR, COLS_ATR), \(col) unique(DATOS[[col]]))
+CATEGORIAS_ANALISIS <- lapply(setNames(COLS_ATR, COLS_ATR), \(col) setdiff(CATEGORIAS[[col]], TOTALES[col]))
+for (col in COLS_ATR) {
+  if (length(CATEGORIAS_ANALISIS[[col]]) == 0) stop("El atributo ", col, " solo tiene el total.")
+}
+
+# años, del más reciente al más antiguo
+ANIOS <- sort(unique(DATOS$anio), decreasing = TRUE)
+
+# OPCIONES DE ARRANQUE: las que no existen en DATOS pasan a la primera disponible
+categoria_valida <- function(valor, opciones, defecto) {
+  unname(if (length(valor) == 1 && !is.na(valor) && valor %in% opciones) valor else defecto) # sin nombre: lo pone sapply()
+}
+if (!INDICADOR_INICIAL %in% INDICADORES) INDICADOR_INICIAL <- INDICADORES[1]
+if (!COLUMNA_PCA_INICIAL %in% COLS_ATR) COLUMNA_PCA_INICIAL <- COLS_ATR[1]
+ATRIBUTO_INICIAL <- sapply(COLS_ATR, \(col) categoria_valida(
+  ATRIBUTO_INICIAL[col], CATEGORIAS[[col]], if (!is.na(TOTALES[col])) TOTALES[[col]] else CATEGORIAS[[col]][1]))
+ATRIBUTOS_INICIALES <- lapply(setNames(COLS_ATR, COLS_ATR), \(col) {
+  v <- intersect(ATRIBUTOS_INICIALES[[col]], CATEGORIAS[[col]])
+  if (length(v) == 0) ATRIBUTO_INICIAL[[col]] else v
+})
+ATRIBUTO_X_INICIAL <- sapply(COLS_ATR, \(col) categoria_valida(
+  ATRIBUTO_X_INICIAL[col], CATEGORIAS_ANALISIS[[col]], CATEGORIAS_ANALISIS[[col]][1]))
+ATRIBUTO_Y_INICIAL <- sapply(COLS_ATR, \(col) categoria_valida(
+  ATRIBUTO_Y_INICIAL[col], CATEGORIAS_ANALISIS[[col]],
+  CATEGORIAS_ANALISIS[[col]][if (col == COLS_ATR[1]) min(2, length(CATEGORIAS_ANALISIS[[col]])) else 1]))
+POR_ATRIBUTOS <- sapply(COLS_ATR, \(col) if (!is.na(POR_ATRIBUTOS[col])) POR_ATRIBUTOS[[col]] else
+  paste("Por", tolower(COLUMNAS_ATRIBUTO[[col]])))
+
+# combinación de categorías del ATRIBUTO_INICIAL (la columna `atributo`)
+COMBINACION_INICIAL <- paste(ATRIBUTO_INICIAL[COLS_ATR], collapse = " · ")
+
+# ÁREAS, en el orden de los desplegables: las resaltadas delante y el resto de
+# mayor a menor valor del indicador inicial en la combinación inicial de los
+# atributos, en su último año (las que no tienen ese dato, al final)
+RESALTAR <- intersect(RESALTAR, unique(DATOS$area))
+AREAS <- DATOS |>
+  filter(atributo == COMBINACION_INICIAL, !is.na(.data[[INDICADOR_INICIAL]])) |>
+  group_by(area) |>
+  slice_max(anio, n = 1, with_ties = FALSE) |>
+  ungroup() |>
+  arrange(desc(.data[[INDICADOR_INICIAL]])) |>
+  pull(area)
+AREAS <- unique(c(RESALTAR, AREAS, sort(unique(DATOS$area))))
+if (!AREA_INICIAL %in% AREAS) AREA_INICIAL <- AREAS[1]
+AREAS_INICIALES <- intersect(AREAS_INICIALES, AREAS)
+if (length(AREAS_INICIALES) == 0) AREAS_INICIALES <- head(AREAS, 6)
+
+# tabla con la unidad "Valor indicador": los datos tal cual
+DATOS_VALOR <- DATOS |>
+  mutate(unidad = "Valor indicador")
+
+# la misma tabla con la unidad "Incremento anual (%)": variación porcentual de cada
+# indicador respecto al año anterior (NA si falta el año anterior o no es positivo)
+DATOS_INCREMENTO <- DATOS |>
+  arrange(anio) |> # años en orden, para que lag() sea el año anterior
+  group_by(area, atributo) |> # cada área y combinación de atributos por separado
+  mutate(across(all_of(INDICADORES),
+                \(v) if_else(lag(anio) == anio - 1 & lag(v) > 0, 100 * (v - lag(v)) / lag(v), NA))) |> # incremento (%)
+  filter(anio > min(anio)) |> # el primer año de cada área no tiene incremento
+  ungroup() |>
+  mutate(unidad = "Incremento anual (%)")
+
+# las dos tablas juntas: el control de la unidad elige una de las dos
+DATOS_UNIDAD <- bind_rows(DATOS_VALOR, DATOS_INCREMENTO)
+
+# opciones de los controles de año y unidad
+OPCIONES_ANIO   <- c("Último año disponible", "Media en el periodo", ANIOS)
+OPCIONES_UNIDAD <- c("Valor indicador", "Incremento anual (%)")
+
+# geometría recortada a las áreas de los datos: es lo que viaja al navegador en cada mapa
+GEOMETRIA <- GEOMETRIA |>
+  filter(codigo %in% DATOS$codigo)
+
+# Listas donde las páginas Series y Predicción guardan lo suyo (ver IDENTIFICADORES DE LAS PÁGINAS)
+PAGINAS   <- list() # página Predicción
+seleccion <- list() # página Series
+```
+
+```{css}
+/* Tablas de la barra lateral (métricas de la predicción, valores del mapa):
+   letra algo más pequeña y celdas con menos relleno (flexdashboard les pone
+   12 px por lado), para que los números quepan sin desbordar el panel */
+.sidebar table {
+  font-size: 90%;
+}
+.sidebar table th, .sidebar table td {
+  padding-left: 4px !important;
+  padding-right: 4px !important;
+}
+
+/* Sin título en la barra superior (con title vacío flexdashboard pondría el
+   nombre del fichero): la primera página explica los datos */
+.navbar-brand {
+  display: none !important;
+}
+
+/* Página de presentación de los datos: texto legible, las tablas con la
+   primera columna estrecha, y scroll si no cabe */
+.datos-explicacion .chart-stage {
+  overflow-y: auto !important;
+  font-size: 16px;
+  padding: 10px 20px;
+}
+.datos-explicacion table {
+  width: 100%;
+  margin-bottom: 15px;
+}
+.datos-explicacion table td:first-child {
+  width: 20%;
+  font-weight: bold;
+  white-space: nowrap;
+}
+.datos-explicacion h4 {
+  margin-top: 18px;
+  font-weight: bold;
+}
+/* caja con scroll horizontal y vertical para la muestra de la tabla de entrada */
+.datos-explicacion .tabla-scroll-xy {
+  max-height: 420px;
+  overflow: auto;
+  border: 1px solid #ddd;
+  margin-bottom: 15px;
+}
+.datos-explicacion .tabla-scroll-xy table {
+  width: auto;
+  margin-bottom: 0;
+}
+.datos-explicacion .tabla-scroll-xy th, .datos-explicacion .tabla-scroll-xy td {
+  white-space: nowrap;
+  width: auto !important;
+  font-weight: normal;
+}
+.datos-explicacion .tabla-scroll-xy td:first-child {
+  font-weight: normal;
+}
+.datos-explicacion .tabla-scroll-xy th {
+  position: sticky;
+  top: 0;
+  background-color: #f5f5f5;
+  font-weight: bold;
+}
+
+/* Página Comparación: la columna de la derecha se desplaza en vertical si los
+   tres paneles no caben en la ventana. Los paneles dejan de encogerse: las dos
+   gráficas tienen un alto fijo y la tabla del ajuste, el de su contenido (para
+   eso su contenido deja de estar posicionado en absoluto) */
+.columna-scroll {
+  overflow-y: auto !important;
+  padding-bottom: 10px;
+}
+.columna-scroll > .chart-wrapper {
+  flex: 0 0 auto !important;
+}
+.columna-scroll > .chart-wrapper:nth-of-type(1) {
+  height: 420px;
+}
+.columna-scroll > .chart-wrapper:nth-of-type(2) {
+  height: 280px;
+}
+.columna-scroll > .chart-wrapper:nth-of-type(3) {
+  height: auto !important;
+}
+.columna-scroll > .chart-wrapper:nth-of-type(3) .chart-stage {
+  position: static !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+.columna-scroll > .chart-wrapper:nth-of-type(3) .chart-shim {
+  position: static !important;
+}
+
+/* Página Predicción: cada pestaña se desplaza en vertical si su contenido no
+   cabe; la predicción, el error y la tabla de los tests ocupan al menos 950 px */
+.columna-pred .chart-shim {
+  overflow-y: auto !important;
+}
+.columna-pred .chart-shim .flexfill-container {
+  min-height: 950px;
+}
+```
+
+<!--
+################################################################################
+  PÁGINA 0: PRESENTACIÓN DE LOS DATOS. Solo texto, en Markdown.
+
+  ✎ PASO 4: el título de la página (la línea subrayada con ====) y el texto que
+  va debajo de "### {.datos-explicacion}": qué son los datos, qué significa
+  cada atributo y qué mide cada indicador. La explicación de la unidad, al
+  final, vale para cualquier conjunto de datos.
+################################################################################
+-->
+
+Ocupados EPA
+==================================================
+
+Column
+--------------------------------------------------
+
+### {.datos-explicacion}
+
+Ocupados (miles de personas, media anual de los cuatro trimestres) por comunidad autónoma, sexo y grupo de edad, de la Encuesta de Población Activa del INE (tabla 65302), de 2002 a 2025. España es el total nacional.
+
+#### Atributos
+
+- **Sexo**: hombres, mujeres y ambos sexos (el total).
+- **Edad**: seis grupos de edad (de 16 a 19 años, de 20 a 24, de 25 a 34, de 35 a 44, de 45 a 54, de 55 y más) y el total.
+
+#### Indicadores (un valor por comunidad, sexo, grupo de edad y año)
+
+- `ocupados`: ocupados en miles de personas.
+
+#### Unidad
+
+- **Valor indicador**: el dato tal cual.
+- **Incremento anual (%)**: variación porcentual respecto al año anterior, $100 \cdot \frac{x_t - x_{t-1}}{x_{t-1}}$.
+
+#### La tabla de entrada: 100 filas al azar
+
+Así está organizado el `.rds` que lee el cuadro de mandos (una tabla tidy): una fila por área, combinación de los atributos, año e indicador, una columna por atributo, otra con el nombre del indicador y otra con su valor.
+
+```{r}
+# 100 filas al azar de la tabla tal como se ha leído, ordenadas para que se lea mejor
+set.seed(1)
+DATOS_LEIDOS |>
+  slice_sample(n = min(100, nrow(DATOS_LEIDOS))) |>
+  arrange(across(everything())) |>
+  knitr::kable(format = "html", digits = 2, table.attr = 'class="table table-condensed"') |>
+  htmltools::HTML() |>
+  htmltools::div(class = "tabla-scroll-xy")
+```
+
+<!--
+################################################################################
+  PÁGINA 1: EXPLORACIÓN DE SERIES (plantilla Dashboard_exploracion_series.Rmd)
+################################################################################
+-->
+
+Series
+==================================================
+
+```{r}
+# CONFIGURACIÓN DE LA PÁGINA, DEDUCIDA DEL CHUNK GLOBAL (no hay que tocarla)
+
+# LOS DATOS EN FORMATO TIDY: una fila por área, atributo, indicador, unidad y
+# año, con una sola columna de valores (el incremento anual ya está calculado)
+data <- DATOS_UNIDAD |>
+  pivot_longer(all_of(INDICADORES), names_to = "indicador", values_to = "value") |>
+  filter(!is.na(value)) |> # indicadores que no existen en algún atributo (pct_gasto en el Total)
+  select(area, all_of(COLS_ATR), indicador, unidad, year = anio, value)
+
+# NOMBRE DE LAS COLUMNAS DE LA FECHA Y DEL VALOR NUMÉRICO
+date  <- "year"
+value <- "value"
+
+# IDENTIFICADOR DE LA PÁGINA: VA DELANTE DEL NOMBRE DE TODOS SUS CONTROLES
+pageId <- "expl"
+
+# checkboxInput DEL ATRIBUTO PRINCIPAL: TODAS LAS ÁREAS O UNA SELECCIÓN
+input.main.checkboxInput.pageId <- list(
+  list(label = TODAS_LAS_AREAS, value = TRUE)
+)
+
+# ATRIBUTO PRINCIPAL (LAS ÁREAS): SEPARA LAS GRÁFICAS DEL facet_wrap
+input.main.config.pageId <- list(
+  list(col.name = "area", label = ETIQUETA_AREA, choices = AREAS,
+       selected = AREAS_INICIALES, multiple = TRUE)
+)
+
+# ATRIBUTOS COMBINABLES, UNO POR ATRIBUTO DE LOS DATOS: CADA OPCIÓN ELEGIDA ES
+# UNA LÍNEA DE COLOR EN CADA GRÁFICA, Y SI SE ELIGEN VARIAS OPCIONES DE DOS
+# ATRIBUTOS SE COMBINAN (DOS SEXOS Y TRES GRUPOS DE EDAD: SEIS LÍNEAS)
+input.multiple.config.pageId <- lapply(COLS_ATR, function(col)
+  list(col.name = col, label = COLUMNAS_ATRIBUTO[[col]], choices = CATEGORIAS[[col]],
+       selected = ATRIBUTOS_INICIALES[[col]], multiple = TRUE))
+
+# ATRIBUTOS CON UN ÚNICO VALOR SELECCIONABLE (EN LA MISMA CAJA)
+input.single.config.pageId <- list(
+  list(col.name = "indicador", label = "Indicador", choices = INDICADORES,
+       selected = INDICADOR_INICIAL, multiple = FALSE),
+  list(col.name = "unidad", label = "Unidad", choices = OPCIONES_UNIDAD,
+       selected = "Valor indicador", multiple = FALSE)
+)
+
+# RÓTULO DE CADA COLUMNA (PARA LA LEYENDA DE LOS COLORES)
+etiquetas.columnas <- unlist(lapply(c(input.main.config.pageId, input.multiple.config.pageId,
+                                      input.single.config.pageId),
+                                    function(x) setNames(x$label, x$col.name)))
+```
+
+Column {.sidebar data-width=220}
+--------------------------------------------------
+
+```{r}
+# IDENTIFICADORES DE LOS CONTROLES: EL DE LA PÁGINA DELANTE
+id_control <- function(nombre) paste0(pageId, ".", nombre)
+
+# selectInput DE ATRIBUTOS COMBINABLES Y FIJOS
+crear_selectInput_pageId <- function(config) {
+  lapply(config, function(x) {
+    selectInput(
+      inputId  = id_control(x$col.name),
+      label    = x$label,
+      choices  = x$choices,
+      selected = x$selected,
+      multiple = x$multiple
+    )
+  })
+}
+
+# checkboxInput DEL ATRIBUTO PRINCIPAL
+crear_checkboxInput_pageId <- function(config) {
+  lapply(config, function(x) {
+    checkboxInput(
+      inputId = id_control("checkboxInput"),
+      label   = x$label,
+      value   = x$value
+    )
+  })
+}
+
+# selectInput DEL ATRIBUTO PRINCIPAL: SOLO SI NO SE ELIGEN TODOS
+crear_selectInput_pageId_main <- function(config) {
+  val <- input[[id_control("checkboxInput")]]
+  if (isFALSE(val)) {
+    lapply(config, function(x) {
+      selectInput(
+        inputId  = id_control(x$col.name),
+        label    = x$label,
+        choices  = x$choices,
+        selected = x$selected,
+        multiple = x$multiple
+      )
+    })
+  } else {
+    return(NULL)
+  }
+}
+```
+
+```{r}
+# BLOQUE 1. GESTIÓN DEL ATRIBUTO PRINCIPAL
+output$main.checkboxInput_pageId_ui <- renderUI({crear_checkboxInput_pageId(input.main.checkboxInput.pageId)})
+output$main_pageId_ui <- renderUI({crear_selectInput_pageId_main(input.main.config.pageId)})
+htmltools::div(
+  style = "
+    background-color: rgb(208, 216, 225);
+    padding: 0px 3px 0px 3px;  /* ↑ → ↓ ← */
+    margin-bottom: 5px;
+    border: 2px solid rgb(0,0,0)",
+  uiOutput("main.checkboxInput_pageId_ui"),
+  uiOutput("main_pageId_ui")
+)
+```
+
+```{r}
+# BLOQUE 2. ATRIBUTOS COMBINABLES CON SELECCIÓN MÚLTIPLE
+if (length(input.multiple.config.pageId) > 0) {
+  output$multiple_pageId_ui <- renderUI({crear_selectInput_pageId(input.multiple.config.pageId)})
+  htmltools::div(
+    style = "
+      background-color: rgb(208, 216, 225);
+      padding: 0px 3px 0px 3px;  /* ↑ → ↓ ← */
+      margin-bottom: 5px;
+      border: 2px solid rgb(0,0,0)",
+    uiOutput("multiple_pageId_ui")
+  )
+}
+```
+
+```{r}
+# BLOQUE 3. ATRIBUTOS CON UN SOLO VALOR SELECCIONABLE
+if (length(input.single.config.pageId) > 0) {
+  output$single_pageId_ui <- renderUI({crear_selectInput_pageId(input.single.config.pageId)})
+  htmltools::div(
+    style = "
+      background-color: rgb(208, 216, 225);
+      padding: 0px 3px 0px 3px;  /* ↑ → ↓ ← */
+      margin-bottom: 5px;
+      border: 2px solid rgb(0,0,0)",
+    uiOutput("single_pageId_ui")
+  )
+}
+```
+
+```{r}
+# BLOQUE 4. FORMATEO DEL GRÁFICO
+output$formateo_grafico_pageId_ui <- renderUI({
+htmltools::div(
+  style = "
+    background-color: rgb(208, 216, 225);
+    padding: 0px 3px 0px 3px;  /* ↑ → ↓ ← */
+    margin-bottom: 5px;
+    border: 2px solid rgb(0,0,0)",
+  "FORMATEO GRÁFICOS:",
+  # UN PANEL POR ÁREA (EL ATRIBUTO PRINCIPAL) O UNO POR CATEGORÍA DE UNO DE LOS
+  # ATRIBUTOS; EN ESTE CASO EL ÁREA PASA A DAR EL COLOR DE LAS LÍNEAS
+  selectInput(id_control("distribucion"), "Distribución paneles:",
+              choices = unname(c(POR_AREAS, POR_ATRIBUTOS)), selected = POR_AREAS),
+  div(
+    style = "display: flex; align-items: center; gap: 5px;",
+    tags$label("Nº columnas:", style = "margin: 0"),
+    numericInput(id_control("ncol"), label = NULL, value = 4, min = 1, max = 6,
+                 step = 1, width = "80px")
+  ),
+  div(
+    style = "display: flex; align-items: center; gap: 40px;",
+    tags$label("Nº filas:", style = "margin: 0"),
+    numericInput(id_control("nrow"), label = NULL, value = 6, min = 1, max = 8,
+                 step = 1, width = "80px")
+  ),
+  # OPCIÓN PARA DEJAR LIBRE O FIJA LA ESCALA DEL EJE Y
+  checkboxInput(id_control("scale_free_y"), "ESCALA EJE Y LIBRE", value = TRUE),
+  # PERMITE VISUALIZAR EN DIFERENTES PÁGINAS
+  numericInput(id_control("page"), label = "PÁGINA DATOS MOSTRADA",
+               value = 1, min = 1, max = 100, step = 1)
+)
+})
+
+uiOutput("formateo_grafico_pageId_ui")
+```
+
+```{r}
+# BOTÓN QUE DISPARA EL DIBUJADO: HASTA PULSARLO NO SE DIBUJA NADA
+shiny::actionButton(id_control("dibujar"), "Dibujar gráfica")
+```
+
+Column
+--------------------------------------------------
+
+```{r}
+# RESET DE LA PÁGINA DE DATOS AL CAMBIAR LA SELECCIÓN DEL ATRIBUTO PRINCIPAL
+# O EL Nº DE FILAS O COLUMNAS
+observeEvent(input[[id_control("checkboxInput")]], {
+  updateNumericInput(session, id_control("page"), value = 1)
+  # TODAS LAS ÁREAS: UN PANEL POR ÁREA (CON UN PANEL POR ATRIBUTO HABRÍA UN
+  # COLOR POR ÁREA, DEMASIADOS PARA DISTINGUIRLOS)
+  if (isTRUE(input[[id_control("checkboxInput")]]) &&
+      isTRUE(input[[id_control("distribucion")]] %in% POR_ATRIBUTOS)) {
+    updateSelectInput(session, id_control("distribucion"), selected = POR_AREAS)
+  }
+})
+observeEvent(input[[id_control("ncol")]], {
+  updateNumericInput(session, id_control("page"), value = 1)
+})
+observeEvent(input[[id_control("nrow")]], {
+  updateNumericInput(session, id_control("page"), value = 1)
+})
+
+# UN PANEL POR ATRIBUTO: CADA ÁREA ES UNA LÍNEA DE COLOR, ASÍ QUE SE DESMARCA
+# LA CASILLA DE TODAS LAS ÁREAS (DEMASIADOS COLORES) PARA ELEGIRLAS A MANO
+observeEvent(input[[id_control("distribucion")]], {
+  updateNumericInput(session, id_control("page"), value = 1)
+  if (input[[id_control("distribucion")]] %in% POR_ATRIBUTOS &&
+      isTRUE(input[[id_control("checkboxInput")]])) {
+    updateCheckboxInput(session, id_control("checkboxInput"), value = FALSE)
+  }
+})
+```
+
+```{r}
+# REACTIVA QUE EMPAQUETA TODOS LOS INPUTS DE ESTA PÁGINA Y SOLO SE RECALCULA
+# AL PULSAR EL BOTÓN "dibujar". SE LEE MÁS ABAJO COMO seleccion[[pageId]]()
+seleccion[[pageId]] <- shiny::eventReactive(input[[id_control("dibujar")]], {
+  # LAS CASILLAS SE COMPRUEBAN CON !is.null(): DESMARCADAS VALEN FALSE, Y PARA
+  # req() UN FALSE ES "TODAVÍA NO DISPONIBLE"
+  req(!is.null(input[[id_control("checkboxInput")]]),
+      !is.null(input[[id_control("scale_free_y")]]),
+      input[[id_control("ncol")]],
+      input[[id_control("nrow")]],
+      input[[id_control("page")]],
+      input[[id_control("distribucion")]])
+
+  list(
+    distribucion  = input[[id_control("distribucion")]],
+    checkboxInput = input[[id_control("checkboxInput")]],
+    scale_free_y  = input[[id_control("scale_free_y")]],
+    ncol          = input[[id_control("ncol")]],
+    nrow          = input[[id_control("nrow")]],
+    page          = input[[id_control("page")]],
+    main          = input[[id_control(input.main.config.pageId[[1]]$col.name)]],
+    multiple      = lapply(input.multiple.config.pageId, function(x)
+                       input[[id_control(x$col.name)]]),
+    single        = lapply(input.single.config.pageId, function(x)
+                       input[[id_control(x$col.name)]])
+  )
+})
+```
+
+###
+
+```{r}
+renderPlotly({
+
+  # SELECCIÓN EMPAQUETADA AL PULSAR EL BOTÓN
+  datos <- seleccion[[pageId]]()
+
+  tb <- data
+
+  # FILTRAMOS POR LOS ATRIBUTOS COMBINABLES DE SELECCIÓN MÚLTIPLE
+  for (k in seq_along(input.multiple.config.pageId)) {
+    tb <- tb |> filter(!!sym(input.multiple.config.pageId[[k]]$col.name) %in%
+                         datos$multiple[[k]])
+  }
+
+  # FILTRAMOS POR LOS ATRIBUTOS QUE SOLO ADMITEN UNA SELECCIÓN
+  for (k in seq_along(input.single.config.pageId)) {
+    tb <- tb |> filter(!!sym(input.single.config.pageId[[k]]$col.name) ==
+                         datos$single[[k]])
+  }
+
+  # FILTRAMOS POR EL ATRIBUTO PRINCIPAL (SI NO SE ELIGEN TODOS)
+  main.col <- input.main.config.pageId[[1]]$col.name
+  if (isFALSE(datos$checkboxInput)) {
+    tb <- tb |> filter(!!sym(main.col) %in% datos$main)
+  }
+
+  # Nº DE GRÁFICAS POR PÁGINA
+  NPlotsPerPage <- datos$ncol * datos$nrow
+  PageInit <- (datos$page - 1) * NPlotsPerPage + 1
+  PageEnd  <- datos$page * NPlotsPerPage
+
+  # ATRIBUTOS DE LOS PANELES Y DEL COLOR. UN PANEL POR ÁREA (EL ATRIBUTO
+  # PRINCIPAL) Y EL COLOR PARA LOS ATRIBUTOS COMBINABLES, O UN PANEL POR
+  # CATEGORÍA DEL ATRIBUTO ELEGIDO Y EL ÁREA PASA AL COLOR, JUNTO CON LOS DEMÁS
+  # ATRIBUTOS COMBINABLES. EN LOS DOS CASOS, LAS OPCIONES ELEGIDAS DE
+  # CADA UNO, EN EL ORDEN DE SUS DESPLEGABLES
+  areas <- if (isFALSE(datos$checkboxInput)) datos$main else input.main.config.pageId[[1]]$choices
+  color.cols <- lapply(input.multiple.config.pageId, function(x) x$col.name)
+  color.sel  <- datos$multiple
+  if (datos$distribucion %in% POR_ATRIBUTOS) {
+    k <- match(datos$distribucion, POR_ATRIBUTOS) # atributo de los paneles (en el orden de COLS_ATR)
+    panel.col      <- input.multiple.config.pageId[[k]]$col.name
+    panel.choices  <- input.multiple.config.pageId[[k]]$choices
+    opciones       <- intersect(panel.choices, datos$multiple[[k]])
+    color.cols     <- c(list(main.col), color.cols[-k])
+    color.sel      <- c(list(areas), color.sel[-k])
+  } else {
+    panel.col      <- main.col
+    panel.choices  <- input.main.config.pageId[[1]]$choices
+    opciones       <- areas
+  }
+
+  # FILTRAMOS EL ATRIBUTO DE LOS PANELES SEGÚN LA PÁGINA MOSTRADA Y LO PASAMOS A
+  # factor PARA CONSERVAR EL ORDEN EN LAS GRÁFICAS
+  tb <- tb |>
+    filter(!!sym(panel.col) %in% opciones[PageInit:PageEnd]) |>
+    mutate(!!sym(panel.col) := factor(!!sym(panel.col), levels = unique(panel.choices)))
+
+  req(nrow(tb) > 0)
+
+  # ATRIBUTO COMBINADO: LOS ATRIBUTOS DEL COLOR CON MÁS DE UNA OPCIÓN ELEGIDA
+  atributo.combinado.name <- ""
+  tb <- tb |> mutate(atributo.combinado = "")
+  for (k in seq_along(color.cols)) {
+    if (length(color.sel[[k]]) > 1) {
+      atributo.combinado.name <- paste0(atributo.combinado.name, "/", etiquetas.columnas[[color.cols[[k]]]]) # rótulo de la columna
+      tb <- tb |> mutate(atributo.combinado = paste0(atributo.combinado, "/", !!sym(color.cols[[k]])))
+    }
+  }
+  if (atributo.combinado.name != "") {
+    atributo.combinado.name <- substr(atributo.combinado.name, 2, nchar(atributo.combinado.name))
+    tb <- tb |> mutate(atributo.combinado = substr(atributo.combinado, 2, nchar(atributo.combinado)))
+  }
+
+  scale_y <- ifelse(datos$scale_free_y == TRUE, "free_y", "fixed")
+
+  if (atributo.combinado.name == "") {
+    p <- tb |> ggplot(aes(!!sym(date), !!sym(value)))
+  } else {
+    p <- tb |> ggplot(aes(!!sym(date), !!sym(value), colour = atributo.combinado))
+  }
+
+  p <- p + geom_line()
+
+  # facet_wrap: Nº DE COLUMNAS FIJO SOLO SI LA PÁGINA ESTÁ COMPLETA
+  if (length(unique(tb[[panel.col]])) < NPlotsPerPage) {
+    p <- p + facet_wrap(vars(!!sym(panel.col)), scales = scale_y)
+  } else {
+    p <- p + facet_wrap(vars(!!sym(panel.col)), scales = scale_y, ncol = datos$ncol)
+  }
+
+  p <- p + labs(x = "", y = "", colour = atributo.combinado.name)
+
+  ggplotly(p)
+})
+```
+
+<!--
+################################################################################
+  PÁGINA 2: PREDICCIÓN (plantilla Dashboard_prediccion_series.Rmd)
+  Cambios respecto a la plantilla:
+    - DATOS admite VARIAS columnas key (aquí el área, cada atributo, el
+      indicador y la unidad), cada una
+      con su desplegable: la serie es la combinación de los valores elegidos,
+      sin construir una columna que los junte. Si la combinación no tiene
+      datos, el cuadro de mandos lo dice.
+    - Para cargar más rápido (con más de mil series, separarlas todas al
+      arrancar tardaría segundos), cada serie se extrae cuando se elige
+      (serie_de()), y sus opciones se calculan entonces.
+################################################################################
+-->
+
+Predicción
+==================================================
+
+```{r, include=FALSE}
+# CONFIGURACIÓN DE LA PÁGINA, DEDUCIDA DEL CHUNK GLOBAL (no hay que tocarla)
+
+# IDENTIFICADOR DE LA PÁGINA
+PAGINA_ID <- "pred"
+
+# LOS DATOS: un tsibble LARGO con el año como índice, una columna key por
+# desplegable (área, cada atributo, indicador y unidad) y UNA de valores. La serie
+# es la combinación de un valor de cada key. Las combinaciones sin datos (un
+# indicador que no existe en un atributo) no forman serie.
+DATOS_PRED <- DATOS_UNIDAD |>
+  pivot_longer(all_of(INDICADORES), names_to = "indicador", values_to = "valor") |>
+  filter(!is.na(valor)) |> # sin dato, o incremento sin año anterior positivo
+  select(fecha = anio, area, all_of(COLS_ATR), indicador, unidad, valor) |>
+  as_tsibble(index = fecha, key = c(area, all_of(COLS_ATR), indicador, unidad))
+
+# RÓTULOS Y OPCIONES DE ARRANQUE
+ETIQUETAS_ATRIBUTOS <- c(area = paste0(ETIQUETA_AREA, ":"), setNames(paste0(COLUMNAS_ATRIBUTO, ":"), COLS_ATR),
+                         indicador = "Indicador:", unidad = "Unidad:") # rótulo de cada key
+ATRIBUTO_UNIDAD     <- c("indicador", "unidad") # keys cuyos valores rotulan el eje vertical
+SERIE_INICIAL       <- c(area = AREA_INICIAL, ATRIBUTO_INICIAL, # una categoría por atributo
+                         indicador = INDICADOR_INICIAL, unidad = "Valor indicador")
+METODO_INICIAL      <- "ARIMA" # "ARIMA" o "STL + ARIMA"
+
+# AISLAMIENTO DE LA PÁGINA: lo que necesita se guarda AHORA en
+# PAGINAS[[PAGINA_ID]], y el resto de la página lo lee solo de ahí
+PAGINAS[[PAGINA_ID]] <- list(
+  datos               = DATOS_PRED,
+  etiquetas_atributos = ETIQUETAS_ATRIBUTOS,
+  atributo_unidad     = ATRIBUTO_UNIDAD,
+  serie_inicial       = SERIE_INICIAL,
+  metodo_inicial      = METODO_INICIAL
+)
+```
+
+```{r, include=FALSE}
+# ==============================================================================
+# FUNCIONES DE LA PLANTILLA (no dependen de la página)
+# ==============================================================================
+
+# OPCIONES DE LOS CONTROLES, DEDUCIDAS DE CADA SERIE: del número de
+# observaciones y del periodo estacional (1 en una serie anual)
+opciones_de <- function(ts) {
+  n       <- nrow(ts)
+  periodo <- tsibble::guess_frequency(ts[[tsibble::index_var(ts)]])
+
+  # Horizonte: unos pocos ciclos, y nunca más de la quinta parte de la serie
+  h_max <- max(2, min(max(3 * periodo, 10), n %/% 5))
+  h_def <- max(min(2 * periodo, h_max), min(5, h_max))
+
+  # Periodos observados con los que se ajusta el modelo (siempre los ÚLTIMOS)
+  paso      <- if (periodo > 1) periodo else 5
+  minimo    <- min(n, max(10, 3 * periodo))
+  tramo_def <- min(n, max(6 * periodo, 30))
+  tramos    <- sort(unique(c(seq(minimo, n, by = paso), tramo_def, n)))
+
+  list(periodo = periodo,
+       h = 2:h_max, h_def = h_def,
+       tramos = tramos, tramo_def = tramo_def)
+}
+
+# Las ventanas de STL han de ser impares
+impar <- function(x) {
+  x <- floor(x)
+  ifelse(x %% 2 == 0, x + 1, x)
+}
+
+# Ventanas de la tendencia para un tramo de n observaciones, sin pasar de la
+# mitad del tramo
+ventanas_tendencia <- function(n, periodo) {
+  vt <- impar(c(0.6, 1, 1.5, 2.5, 3.5, 5) * max(periodo, 5))
+  vt <- sort(unique(vt[vt > 3 & vt < n / 2]))
+  if (length(vt) == 0) vt <- 5
+  as.character(vt)
+}
+
+# Ventana de la tendencia con la que se arranca: la del medio de las ofrecidas
+ventana_tendencia_def <- function(vt) vt[ceiling(length(vt) / 2)]
+
+# Ventanas de la estacionalidad, en ciclos (solo si la serie tiene periodo > 1)
+VENTANAS_ESTACIONALIDAD    <- c("periodic", "7", "11", "13", "21")
+VENTANA_ESTACIONALIDAD_DEF <- "13"
+
+# "periodic" se pasa a STL tal cual, como texto, y el resto como número
+ventana_estacional_stl <- function(ve) if (ve == "periodic") "periodic" else as.numeric(ve)
+
+# EL ERROR DEL AJUSTE: observado − prediccion en el tramo ajustado. `descartar`
+# quita las primeras observaciones, las que el modelo no ha podido predecir
+error_de <- function(resultado, descartar = 0) {
+  idx <- tsibble::index_var(resultado)
+  val <- setdiff(names(resultado), c(idx, "prediccion", "lower", "upper"))[1]
+
+  resultado |>
+    as_tibble() |>
+    filter(!is.na(.data[[val]]), !is.na(prediccion)) |>
+    transmute(fecha = .data[[idx]], error = .data[[val]] - prediccion) |>
+    # (no slice(-seq_len(descartar)): con descartar = 0 dejaría la tabla vacía)
+    filter(row_number() > descartar)
+}
+
+# OBSERVACIONES QUE EL ARIMA NO PUEDE PREDECIR: las d + D·m primeras del tramo,
+# que se gastan en la diferenciación. Se leen de la descripción del modelo
+sin_ajuste_arima <- function(resultado) {
+  desc <- aedv_modelo(resultado)$descripcion
+  if (is.null(desc) || is.na(desc)) return(0)
+
+  d   <- str_match(desc, "^ARIMA\\(\\d+,(\\d+),\\d+\\)")[, 2]
+  est <- str_match(desc, "\\)\\(\\d+,(\\d+),\\d+\\)\\[(\\d+)\\]")[, 2:3]
+  if (is.na(d)) return(0)
+  as.numeric(d) + if (is.na(est[1])) 0 else as.numeric(est[1]) * as.numeric(est[2])
+}
+
+# ==============================================================================
+# PREPARACIÓN DE LA PÁGINA
+# ==============================================================================
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+  ts <- pg$datos
+
+  # COMPROBACIÓN DE LOS DATOS
+  aviso <- paste0("Página '", PAGINA_ID, "': ")
+  if (!tsibble::is_tsibble(ts)) {
+    stop(aviso, "DATOS_PRED no es un tsibble: conviértelo con as_tsibble().")
+  }
+  if (length(tsibble::key_vars(ts)) == 0) {
+    stop(aviso, "DATOS no tiene columnas key: hace falta al menos una, ",
+         "la que separa las series.")
+  }
+  if (length(tsibble::measured_vars(ts)) != 1) {
+    stop(aviso, "DATOS tiene ", length(tsibble::measured_vars(ts)),
+         " columnas de valores. Debe tener exactamente una.")
+  }
+
+  col_keys  <- tsibble::key_vars(ts)
+  col_fecha <- tsibble::index_var(ts)
+  col_valor <- tsibble::measured_vars(ts)[1]
+
+  # LONGITUD DE CADA SERIE (cada combinación de las keys), todas de una vez
+  tabla    <- as_tibble(ts) |> mutate(across(all_of(col_keys), as.character))
+  longitud <- tabla |> count(across(all_of(col_keys)))
+  # SERIES DEMASIADO CORTAS (menos de 12 observaciones) para ajustar un modelo:
+  # se quitan, y si se elige una, el cuadro de mandos lo explica
+  longitud <- longitud |> filter(n >= 12)
+  if (nrow(longitud) == 0) {
+    stop(aviso, "ninguna serie tiene al menos 12 observaciones: son demasiado pocas ",
+         "para ajustar un modelo.")
+  }
+
+  # OPCIONES DE CADA DESPLEGABLE: los valores de cada key, en el orden de los datos
+  valores <- lapply(col_keys, function(k) unique(tabla[[k]]))
+  names(valores) <- col_keys
+
+  # Rótulo de cada desplegable: el de ETIQUETAS_ATRIBUTOS o, si falta, el nombre de la columna
+  etiquetas <- setNames(as.list(col_keys), col_keys)
+  for (k in intersect(names(pg$etiquetas_atributos), col_keys)) {
+    etiquetas[[k]] <- pg$etiquetas_atributos[[k]]
+  }
+
+  # ¿EXISTE LA SERIE? Una selección es un vector con nombre: un valor por key
+  existe <- function(sel) {
+    if (!all(col_keys %in% names(sel))) return(FALSE)
+    fila <- longitud
+    for (k in col_keys) fila <- fila |> filter(.data[[k]] == sel[[k]])
+    nrow(fila) > 0
+  }
+
+  # SERIES BAJO DEMANDA. En vez de separar todas las series al arrancar (con
+  # cientos de series, más de un segundo en cada carga), se guarda la tabla y
+  # cada serie se extrae cuando se elige: un tsibble de UNA sola serie, sin
+  # key, que es lo que esperan las funciones de predicción del curso
+  serie_de <- function(sel) {
+    tb <- tabla
+    for (k in col_keys) tb <- tb |> filter(.data[[k]] == sel[[k]])
+    tb |>
+      select(all_of(c(col_fecha, col_valor))) |>
+      as_tsibble(index = all_of(col_fecha))
+  }
+
+  # Serie de arranque: la de SERIE_INICIAL o, si no existe, la primera
+  if (!existe(pg$serie_inicial)) pg$serie_inicial <- unlist(longitud[1, col_keys])
+
+  unidad <- pg$atributo_unidad
+  pg$col_keys    <- col_keys
+  pg$col_fecha   <- col_fecha
+  pg$valores     <- valores
+  pg$etiquetas   <- etiquetas
+  pg$existe      <- existe
+  pg$serie_de    <- serie_de
+  pg$opciones_de <- function(sel) opciones_de(serie_de(sel))
+  pg$nombre_de   <- function(sel) paste(unlist(sel[col_keys]), collapse = " · ")
+  pg$unidad_de   <- function(sel) if (is.null(unidad)) col_valor else paste(unlist(sel[unidad]), collapse = " · ")
+  pg$datos       <- NULL # ya está en la tabla de serie_de(): no se guarda dos veces
+
+  # IDENTIFICADORES DE LOS CONTROLES Y SALIDAS: el de la página delante
+  p <- PAGINA_ID
+  pg$id <- function(nombre) paste0(p, "_", nombre)
+
+  PAGINAS[[PAGINA_ID]] <<- pg
+})
+```
+
+Menú {.sidebar data-width=200}
+--------------------------------------------------
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+  id <- pg$id
+
+  # LA SERIE ELEGIDA: el valor de cada desplegable de atributo, como vector con
+  # nombre (NULL mientras falte alguno)
+  id_atributo <- function(k) id(paste0("atr_", k))
+  seleccion_de <- function() {
+    sel <- lapply(pg$col_keys, function(k) input[[id_atributo(k)]])
+    if (any(vapply(sel, is.null, logical(1)))) return(NULL)
+    setNames(unlist(sel), pg$col_keys)
+  }
+
+  # Al cambiar de serie, el horizonte y los periodos observados se adaptan a
+  # ella (si la combinación elegida no tiene datos, se dejan como están)
+  observeEvent(lapply(pg$col_keys, function(k) input[[id_atributo(k)]]), {
+    sel <- seleccion_de()
+    req(sel, pg$existe(sel))
+    o <- pg$opciones_de(sel)
+    h <- as.numeric(input[[id("h")]])
+
+    updateSelectInput(session, id("h"), choices = o$h, selected = min(h, max(o$h)))
+    updateSelectInput(session, id("tramo"), choices = o$tramos, selected = o$tramo_def)
+  })
+
+  # Ventanas de STL: solo con STL + ARIMA, y dependen del tramo
+  output[[id("controles_stl")]] <- renderUI({
+    sel <- seleccion_de()
+    req(sel, pg$existe(sel), input[[id("tramo")]], input[[id("metodo")]])
+    if (input[[id("metodo")]] != "STL + ARIMA") return(NULL)
+
+    o  <- pg$opciones_de(sel)
+    vt <- ventanas_tendencia(as.numeric(input[[id("tramo")]]), o$periodo)
+    tagList(
+      selectInput(id("ventana_tendencia"), "STL: suavizado tendencia (observaciones):",
+                  choices = vt, selected = ventana_tendencia_def(vt)),
+      if (o$periodo > 1) {
+        selectInput(id("ventana_estacionalidad"), "STL: suavizado estacionalidad (ciclos):",
+                    choices = VENTANAS_ESTACIONALIDAD, selected = VENTANA_ESTACIONALIDAD_DEF)
+      }
+    )
+  })
+
+  # UN SOLO CÁLCULO PARA TODOS LOS PANELES DE LA PÁGINA. Es un eventReactive():
+  # solo se recalcula al pulsar «Calcular», y al arrancar no calcula nada
+  pg$calculo <- eventReactive(input[[id("calcular")]], {
+    sel <- seleccion_de()
+    req(sel, input[[id("h")]], input[[id("tramo")]], input[[id("metodo")]])
+
+    nombre <- pg$nombre_de(sel)
+    metodo <- input[[id("metodo")]]
+
+    # COMBINACIÓN SIN DATOS: se explica en vez de dejar los paneles en blanco
+    if (!pg$existe(sel)) {
+      return(list(
+        serie       = nombre,
+        metodo      = metodo,
+        diagnostico = paste0("No hay datos suficientes de la combinación elegida (", nombre,
+                             "): hacen falta al menos 12 observaciones. Elige otra.")
+      ))
+    }
+
+    ts     <- pg$serie_de(sel)
+    o      <- opciones_de(ts)
+    h      <- as.numeric(input[[id("h")]])
+    # (si se pulsa antes de que se actualice el desplegable, el tramo puede
+    # pasar de la longitud de la serie)
+    tramo  <- min(as.numeric(input[[id("tramo")]]), nrow(ts))
+
+    # TRAMO CON HUECOS: ninguno de los dos métodos funciona, y ninguno lo dice
+    # claramente, así que se comprueba aquí y se explica el motivo
+    faltan <- tsibble::scan_gaps(tail(ts, tramo))
+    if (nrow(faltan) > 0) {
+      return(list(
+        serie       = nombre,
+        metodo      = metodo,
+        diagnostico = paste0(
+          "No se puede ajustar el modelo: en los últimos ", tramo, " periodos ",
+          "observados faltan ", nrow(faltan), " por medio (",
+          paste(format(faltan[[pg$col_fecha]]), collapse = ", "),
+          "). Basta con reducir los periodos observados para que el tramo ",
+          "empiece después del último hueco.")
+      ))
+    }
+
+    if (metodo == "ARIMA") {
+      resultado <- aedv_prediccion_arima(ts, h = h, periodos_atras = tramo)
+      metricas  <- aedv_arima_accuracy(resultado) # RMSE, MAE y MASE del ajuste
+      tendencia <- NULL
+      # Ventanas con las que se descompone en la pestaña de STL
+      vt <- ventana_tendencia_def(ventanas_tendencia(tramo, o$periodo))
+      ve <- VENTANA_ESTACIONALIDAD_DEF
+    } else {
+      # Si se pulsa antes de que existan los controles de STL, req() detiene el
+      # cálculo y basta con volver a pulsar
+      vt <- input[[id("ventana_tendencia")]]
+      req(vt)
+      if (o$periodo > 1) {
+        ve <- input[[id("ventana_estacionalidad")]]
+        req(ve)
+      } else {
+        ve <- VENTANA_ESTACIONALIDAD_DEF # no interviene: STL no estima estacionalidad
+      }
+
+      resultado <- aedv_prediccion_stl_arima(
+        ts, h = h, periodos_atras = tramo,
+        ventana_tendencia      = as.numeric(vt),
+        ventana_estacionalidad = ventana_estacional_stl(ve))
+
+      metricas  <- NULL # aedv_arima_accuracy() solo admite ARIMA
+      tendencia <- aedv_tendencia(resultado) # atributo: leerlo antes de recortar
+    }
+
+    error <- error_de(resultado,
+                      descartar = if (metodo == "ARIMA") sin_ajuste_arima(resultado) else 0)
+
+    list(
+      serie       = nombre,
+      unidad      = pg$unidad_de(sel), # rótulo del eje vertical
+      metodo      = metodo,
+      periodo     = o$periodo,
+      tramo       = tramo,
+      ventanas    = list(tendencia = vt, estacionalidad = ve),
+      diagnostico = NULL,
+      datos       = ts, # la serie, para la descomposición STL
+      resultado   = resultado,
+      tendencia   = tendencia,
+      metricas    = metricas,
+      error       = error,
+      tests       = aedv_tests_residuos(error$error, error$fecha)
+    )
+  })
+  PAGINAS[[PAGINA_ID]] <<- pg
+
+  # LOS CONTROLES
+  o_ini <- pg$opciones_de(pg$serie_inicial)
+  tagList(
+    # Un desplegable por atributo: la serie es la combinación de los elegidos
+    lapply(pg$col_keys, function(k) {
+      selectInput(id_atributo(k), pg$etiquetas[[k]],
+                  choices = pg$valores[[k]], selected = pg$serie_inicial[[k]])
+    }),
+
+    selectInput(id("h"), "Horizonte de predicción (periodos):",
+                choices = o_ini$h, selected = o_ini$h_def),
+
+    selectInput(id("tramo"), "Periodos observados para ajustar el modelo:",
+                choices = o_ini$tramos, selected = o_ini$tramo_def),
+
+    radioButtons(id("metodo"), "Método de predicción:",
+                 choices = c("ARIMA", "STL + ARIMA"), selected = pg$metodo_inicial),
+
+    uiOutput(id("controles_stl")),
+
+    # Lanza el cálculo: hasta pulsarlo no se calcula nada
+    actionButton(id("calcular"), "Calcular")
+  )
+})
+```
+
+```{r}
+# MÉTRICAS DEL AJUSTE, solo con ARIMA
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderUI({
+    resultado <- pg$calculo()
+    req(resultado, is.null(resultado$diagnostico), resultado$metodo == "ARIMA")
+
+    tags$strong("Métricas de ajuste ARIMA")
+  })
+})
+```
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderTable({
+    resultado <- pg$calculo()
+    req(resultado, is.null(resultado$diagnostico), resultado$metodo == "ARIMA")
+
+    resultado$metricas
+  }, digits = 2)
+})
+```
+
+Column {.tabset .columna-pred}
+--------------------------------------------------
+
+<!--
+  LA COLUMNA DE LA DERECHA VA EN DOS PESTAÑAS. En la primera, uno debajo de
+  otro como en la página "Comparación de atributos" del cuadro de mandos del
+  Tema 8: la predicción, el error del ajuste y los tests de ruido blanco sobre
+  ese error. En la segunda, la descomposición STL. Todas beben del mismo
+  cálculo, así que cambiar de pestaña no vuelve a ajustar el modelo.
+
+  SOLO EL ARIMA TIENE ERROR DEL AJUSTE. Con STL + ARIMA lo que se dibuja y se
+  contrasta es el remainder (resto) de la descomposición STL, y así lo dicen los
+  títulos de la gráfica y de la tabla, para no confundirlo con un error de ajuste.
+
+  IMPORTANTE: en los paneles de las gráficas no se escribe texto encima. El
+  widget ocupa la altura del panel, así que cualquier línea de texto por delante
+  lo empuja hacia abajo y flexdashboard le recorta el borde inferior, que es
+  precisamente donde están las etiquetas del eje horizontal. El código de
+  colores va en la leyenda de la gráfica.
+
+  Cuando el tramo tiene huecos, validate(need(...)) sustituye cada panel por el
+  motivo, en su propio hueco. Es la diferencia entre un cuadro de mandos que se
+  queda en blanco y uno que dice qué ha pasado.
+-->
+
+### Predicción y tests de ruido blanco
+
+```{r}
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+  id <- pg$id
+
+  # LA PREDICCIÓN
+  output[[id("grafico_prediccion")]] <- renderPlotly({
+    resultado <- pg$calculo()
+    req(resultado)
+    validate(need(is.null(resultado$diagnostico), resultado$diagnostico))
+
+    # Se dibuja el tramo con el que se ha ajustado el modelo —las filas que tienen
+    # ajuste— y la predicción. El resto de la serie se queda fuera: si es larga,
+    # la predicción quedaría reducida a una astilla en el borde derecho.
+    tramo  <- resultado$resultado |> filter(!is.na(prediccion))
+    titulo <- paste0(resultado$serie, " · ", resultado$metodo)
+
+    if (resultado$metodo == "ARIMA") {
+      return(aedv_dibujar_arima_dinamico(tramo, titulo = titulo,
+                                         y_lab = resultado$unidad))
+    }
+
+    # Con STL + ARIMA se superpone la TENDENCIA de la descomposición: es lo que
+    # cambia al mover las ventanas del suavizado. Se pasa como argumento, y no
+    # con un add_lines() posterior, porque la función construye el eje
+    # horizontal con una representación propia de las fechas y una traza añadida
+    # por fuera no comparte ese eje y descuadra la gráfica.
+    # El tramo PREDICHO de la tendencia solo se dibuja si la serie tiene
+    # estacionalidad. Sin ella, la predicción del método ES la tendencia
+    # extrapolada, y la línea naranja quedaría exactamente debajo de la azul.
+    tendencia <- resultado$tendencia
+    if (resultado$periodo == 1) {
+      tendencia <- tendencia |> filter(!predicha)
+    }
+
+    aedv_dibujar_stl_arima_dinamico(tramo, titulo = titulo, y_lab = resultado$unidad,
+                                    tendencia = tendencia)
+  })
+
+  # EL ERROR DEL AJUSTE (ARIMA) O EL REMAINDER DE LA DESCOMPOSICIÓN STL
+  # (STL + ARIMA), en el MISMO tramo que la gráfica de la predicción, para leer
+  # las dos juntas. Lo que se espera es una línea que oscila alrededor del cero
+  # sin forma ni tendencia y con una amplitud constante: un patrón que se repite,
+  # un tramo en el que crece o un pico aislado son justo lo que detectan los
+  # tests de la tabla de debajo.
+  output[[id("grafico_error")]] <- renderPlotly({
+    resultado <- pg$calculo()
+    req(resultado)
+    validate(need(is.null(resultado$diagnostico), "Sin ajuste: el tramo tiene huecos."))
+
+    if (resultado$metodo == "ARIMA") {
+      titulo <- paste0("Error del ajuste ARIMA (", resultado$serie, ")")
+      y_lab  <- "error"
+    } else {
+      titulo <- paste0("Remainder descomposición STL (", resultado$serie, ")")
+      y_lab  <- "remainder"
+    }
+
+    p <- resultado$error |>
+      ggplot(aes(x = fecha, y = error)) +
+        geom_hline(yintercept = 0, linetype = "dashed", colour = "steelblue") +
+        geom_line(colour = "grey45") +
+        labs(x = NULL, y = y_lab, title = titulo) +
+        theme(plot.title = element_text(size = 12)) # título más pequeño, para que no desborde
+
+    ggplotly(p)
+  })
+
+  # LOS CUATRO TESTS DE RUIDO BLANCO sobre el error (o el remainder) del tramo
+  # ajustado, con el p-valor en verde si el test se supera y en rojo si no.
+  # aedv_tabla_tests() devuelve una tabla HTML (gt si está instalada; si no,
+  # htmltools), que se muestra con renderUI.
+  output[[id("tabla_tests")]] <- renderUI({
+    resultado <- pg$calculo()
+    req(resultado)
+    validate(need(is.null(resultado$diagnostico), "Sin ajuste: el tramo tiene huecos."))
+
+    if (resultado$metodo == "ARIMA") {
+      titulo <- paste0("Tests de ruido blanco del error del ajuste ARIMA (", resultado$serie, ")")
+    } else {
+      titulo <- paste0("Tests de ruido blanco del remainder descomposición STL (", resultado$serie, ")")
+    }
+
+    aedv_tabla_tests(resultado$tests, titulo = titulo)
+  })
+
+  # Tres salidas en la misma pestaña, una debajo de otra: la predicción y el
+  # error se reparten el alto que deja libre la tabla de los tests (la
+  # predicción, el doble que el error), y la tabla ocupa su altura natural
+  # (flex = NA). fillCol() es lo que reparte el alto de la pestaña.
+  fillCol(flex = c(2, 1, NA),
+          plotlyOutput(id("grafico_prediccion"), height = "100%"),
+          plotlyOutput(id("grafico_error"), height = "100%"),
+          uiOutput(id("tabla_tests")))
+})
+```
+
+### Descomposición STL
+
+```{r}
+# DESCOMPOSICIÓN STL DEL TRAMO DE AJUSTE, con la misma función interna que usa
+# aedv_prediccion_stl_arima(). En una serie anual no hay estacionalidad: salen
+# la serie, la tendencia y el resto
+local({
+  pg <- PAGINAS[[PAGINA_ID]]
+
+  renderPlotly({
+    resultado <- pg$calculo()
+    req(resultado)
+    validate(need(is.null(resultado$diagnostico), resultado$diagnostico))
+
+    vt <- resultado$ventanas$tendencia
+    ve <- resultado$ventanas$estacionalidad
+
+    comp <- .aedv_componentes_stl(tail(resultado$datos, resultado$tramo),
+                                  ventana_tendencia      = as.numeric(vt),
+                                  ventana_estacionalidad = ventana_estacional_stl(ve)) |>
+      as_tibble()
+
+    col_fecha  <- pg$col_fecha
+    col_valor  <- setdiff(names(comp), c(".model", col_fecha, "trend", "remainder",
+                                         "season_adjust", grep("^season", names(comp), value = TRUE)))[1]
+    col_season <- setdiff(grep("^season", names(comp), value = TRUE), "season_adjust")
+    componentes <- tibble(
+      fecha          = comp[[col_fecha]],
+      observado      = comp[[col_valor]],
+      tendencia      = comp$trend,
+      estacionalidad = if (length(col_season) == 1) comp[[col_season]],
+      resto          = comp$remainder
+    ) |>
+      pivot_longer(-fecha, names_to = "componente", values_to = "valor") |>
+      mutate(componente = factor(componente, levels = unique(componente)))
+
+    titulo <- paste0(resultado$serie, " · STL con ventana de tendencia ", vt,
+                     if (resultado$periodo > 1) paste0(" y de estacionalidad ", ve))
+
+    p <- componentes |>
+      ggplot(aes(x = fecha, y = valor)) +
+        geom_line(colour = "grey30") +
+        facet_grid(componente ~ ., scales = "free_y") +
+        labs(x = NULL, y = NULL, title = titulo)
+
+    ggplotly(p)
+  })
+})
+```
+
+<!--
+################################################################################
+  PÁGINA 3: MAPA COROPLÉTICO (plantilla Dashboard_mapa_coropletico.Rmd)
+  Identificadores y reactiva con "mapa" para no chocar con las páginas 4 y 5.
+################################################################################
+-->
+
+Mapa
+==================================================
+
+Column {.sidebar data-width=220}
+--------------------------------------------------
+
+```{r}
+# indicador que se representa
+selectInput("mapa_indicador", "Indicador:", choices = INDICADORES, selected = INDICADOR_INICIAL)
+
+# una categoría de cada atributo
+tagList(lapply(COLS_ATR, function(col)
+  selectInput(paste0("mapa_atr_", col), paste0(COLUMNAS_ATRIBUTO[[col]], ":"),
+              choices = CATEGORIAS[[col]], selected = ATRIBUTO_INICIAL[[col]])))
+
+# año, el último disponible de cada área (opción por defecto) o la media en el periodo
+selectInput("mapa_anio", "Año:", choices = OPCIONES_ANIO, selected = "Último año disponible")
+
+# valor del indicador o su incremento (%) respecto al año anterior
+radioButtons("mapa_unidad", "Unidad:", choices = OPCIONES_UNIDAD, selected = "Valor indicador")
+
+# lanza el cálculo: hasta pulsarlo no se calcula nada, ni al arrancar ni al cambiar los controles
+actionButton("mapa_calcular", "Calcular")
+```
+
+```{r}
+# datos comunes a la tabla y al mapa: solo se recalcula al pulsar «Calcular».
+# Devuelve una lista con la tabla y los controles elegidos (para los rótulos)
+procesado_mapa <- eventReactive(input$mapa_calcular, {
+  # combinación de las categorías elegidas de los atributos ("Mujeres · Total")
+  combinacion <- paste(sapply(COLS_ATR, \(col) input[[paste0("mapa_atr_", col)]]), collapse = " · ")
+
+  # una fila por área y año con el valor del indicador
+  tabla <- DATOS_UNIDAD |>
+    filter(unidad == input$mapa_unidad, # valor del indicador o incremento anual (%)
+           atributo == combinacion) |> # categorías elegidas de los atributos
+    select(codigo, nombre = area, anio, valor = input$mapa_indicador) |> # indicador elegido
+    drop_na() # años sin dato
+
+  # año elegido, el último con dato de cada área o la media de todos sus años
+  if (input$mapa_anio == "Último año disponible") {
+    tabla <- tabla |>
+      group_by(codigo, nombre) |>
+      slice_max(anio, n = 1) |>
+      ungroup()
+  } else if (input$mapa_anio == "Media en el periodo") {
+    tabla <- tabla |>
+      group_by(codigo, nombre) |>
+      summarise(anio = paste0(min(anio), "-", max(anio)), # periodo de la media
+                valor = mean(valor, na.rm = TRUE),
+                .groups = "drop")
+  } else {
+    tabla <- tabla |>
+      filter(anio == input$mapa_anio)
+  }
+
+  # con menos de 3 áreas no hay nada que colorear
+  validate(need(nrow(tabla) >= 3, paste0(
+    "Con esta combinación solo hay ", nrow(tabla), " ", ETIQUETA_AREAS, " con dato y hacen ",
+    "falta al menos 3 para el mapa. Elige otro año, otras categorías de los atributos ",
+    "o la otra unidad.")))
+
+  # los controles viajan dentro del resultado: así los rótulos no cambian hasta
+  # volver a pulsar el botón
+  list(tabla = tabla |> arrange(desc(valor)), # de mayor a menor
+       indicador = input$mapa_indicador, atributo = combinacion,
+       anio = input$mapa_anio, unidad = input$mapa_unidad)
+})
+```
+
+**Valores, de mayor a menor**
+
+```{r}
+renderTable({
+  resultado <- procesado_mapa()
+
+  resultado$tabla |>
+    transmute(!!ETIQUETA_AREA := nombre,
+              Año = anio,
+              valor = format(round(valor, 2), big.mark = ".", decimal.mark = ",", nsmall = 2))
+})
+```
+
+Column
+--------------------------------------------------
+
+###
+
+```{r}
+# mapa coroplético: se unen los datos a la geometría, así cada valor queda con
+# su polígono (un área sin polígono, como la UE-27, sale en la tabla pero no en el mapa)
+renderLeaflet({
+  resultado <- procesado_mapa()
+
+  mapa <- GEOMETRIA |>
+    left_join(resultado$tabla |> select(codigo, anio, valor), by = "codigo")
+
+  # cuadro emergente de cada área: nombre, atributo, año(s) y valor
+  etiquetas <- paste0(
+    "<strong>", mapa$nombre, "</strong><br>",
+    resultado$atributo, " (", mapa$anio, ")<br>",
+    resultado$indicador, ": ",
+    format(round(mapa$valor, 2), big.mark = ".", decimal.mark = ",")
+  ) |>
+    lapply(htmltools::HTML)
+
+  # centro y zoom del mapa: los de VISTA (PASO 3)
+  aedv_mapa_coropletico(mapa, mapa$valor, etiquetas,
+                        paste0(resultado$indicador, "<br>", resultado$unidad), # título de la leyenda
+                        lng = VISTA$lng, lat = VISTA$lat, zoom = VISTA$zoom)
+})
+```
+
+<!--
+################################################################################
+  PÁGINA 4: COMPARACIÓN DE ATRIBUTOS (Dashboard_atributos_analisis.Rmd, página 1)
+################################################################################
+-->
+
+Comparación
+================================================================================
+
+Column {.sidebar data-width=220}
+--------------------------------------------------------------------------------
+
+```{r}
+# indicador que se compara
+selectInput("indicador", "Indicador:", choices = INDICADORES, selected = INDICADOR_INICIAL)
+
+# año, el último disponible de cada área (opción por defecto) o la media en el periodo
+selectInput("anio", "Año:", choices = OPCIONES_ANIO, selected = "Último año disponible")
+
+# valor del indicador o su incremento (%) respecto al año anterior
+radioButtons("unidad", "Unidad:", choices = OPCIONES_UNIDAD, selected = "Valor indicador")
+
+# eje x: una categoría de cada atributo (sin los totales)
+tagList(lapply(COLS_ATR, function(col)
+  selectInput(paste0("atr_x_", col), paste(COLUMNAS_ATRIBUTO[[col]], "eje x:"),
+              choices = CATEGORIAS_ANALISIS[[col]], selected = ATRIBUTO_X_INICIAL[[col]])))
+
+# eje y: una categoría de cada atributo (sin los totales)
+tagList(lapply(COLS_ATR, function(col)
+  selectInput(paste0("atr_y_", col), paste(COLUMNAS_ATRIBUTO[[col]], "eje y:"),
+              choices = CATEGORIAS_ANALISIS[[col]], selected = ATRIBUTO_Y_INICIAL[[col]])))
+```
+
+**Yeo-Johnson**
+
+```{r}
+# normalizar x e y por separado, cada una con el lambda que la acerca más a una normal
+checkboxInput("normalizar", "Normalizar cada variable por separado", value = FALSE)
+
+# transformar y con el lambda que hace máximo el R2 de la recta
+checkboxInput("ajuste_yj", "Ajuste lineal (transforma y)", value = FALSE)
+
+# lanza el cálculo: hasta pulsarlo no se calcula nada, ni al arrancar ni al cambiar los controles
+actionButton("calcular", "Calcular")
+```
+
+```{r}
+# datos comunes a las cuatro salidas: solo se recalcula al pulsar «Calcular».
+# Devuelve una lista con la tabla, los controles elegidos (para los títulos) y
+# los lambda usados (NA si no se usan)
+procesado_page_1 <- eventReactive(input$calcular, {
+  # inicializamos a NA los lambda de Yeo-Johnson (se quedan así si no se usan)
+  lambda_norm_x <- NA
+  lambda_norm_y <- NA
+  lambda_ajuste <- NA
+
+  # combinación de categorías de cada eje ("Mujeres · De 25 a 34 años")
+  atributo_x <- paste(sapply(COLS_ATR, \(col) input[[paste0("atr_x_", col)]]), collapse = " · ")
+  atributo_y <- paste(sapply(COLS_ATR, \(col) input[[paste0("atr_y_", col)]]), collapse = " · ")
+  validate(need(atributo_x != atributo_y, "Elige categorías distintas para el eje x y el eje y."))
+
+  # una fila por área y año y el valor de cada combinación en una columna
+  tabla <- DATOS_UNIDAD |>
+    filter(unidad == input$unidad, # valor del indicador o incremento anual (%)
+           atributo %in% c(atributo_x, atributo_y)) |> # combinaciones elegidas
+    select(area, anio, atributo, valor = input$indicador) |> # indicador elegido
+    pivot_wider(names_from = atributo, values_from = valor) |> # una columna por combinación
+    select(area, anio, x = all_of(atributo_x), y = all_of(atributo_y)) |> # columnas x e y
+    drop_na() # años sin dato en alguno de los dos atributos
+
+  # año elegido, el último con dato de cada área o la media de todos sus años
+  if (input$anio == "Último año disponible") {
+    tabla <- tabla |>
+      group_by(area) |>
+      slice_max(anio, n = 1) |>
+      ungroup()
+  } else if (input$anio == "Media en el periodo") {
+    tabla <- tabla |>
+      group_by(area) |>
+      summarise(anio = paste0(min(anio), "-", max(anio)), # periodo de la media (para el cuadro emergente)
+                x = mean(x, na.rm = TRUE),
+                y = mean(y, na.rm = TRUE))
+  } else {
+    tabla <- tabla |>
+      filter(anio == input$anio)
+  }
+
+  # con menos de 3 áreas no hay recta ni tests que calcular
+  validate(need(nrow(tabla) >= 3, paste0(
+    "Con esta combinación hay ", nrow(tabla), " áreas con dato en los dos atributos: ",
+    "son demasiado pocas. Elige otro año o la otra unidad.")))
+
+  # 1. normalización: x e y por separado, cada una con SU lambda de normalidad
+  if (input$normalizar) {
+    lambda_norm_x <- aedv_yeojohnson_lambda(tabla$x)
+    lambda_norm_y <- aedv_yeojohnson_lambda(tabla$y)
+    tabla <- tabla |>
+      mutate(x = aedv_yeo_johnson(x, lambda_norm_x),
+             y = aedv_yeo_johnson(y, lambda_norm_y))
+  }
+
+  # 2. ajuste lineal: y con el lambda que hace máximo el R2 de la recta
+  if (input$ajuste_yj) {
+    lambda_ajuste <- aedv_lambda_optimo(tabla$x, tabla$y)
+    tabla <- tabla |>
+      mutate(y = aedv_yeo_johnson(y, lambda_ajuste))
+  }
+
+  # los controles viajan dentro del resultado: así los títulos no cambian hasta
+  # volver a pulsar el botón
+  list(tabla = tabla,
+       indicador = input$indicador, anio = input$anio, unidad = input$unidad,
+       atributo_x = atributo_x, atributo_y = atributo_y,
+       lambda_norm_x = lambda_norm_x, lambda_norm_y = lambda_norm_y,
+       lambda_ajuste = lambda_ajuste)
+})
+```
+
+**Resumen resultados**
+
+```{r}
+renderTable({
+  resultado <- procesado_page_1() # la tabla y los lambda
+  tabla <- resultado$tabla
+
+  # valores como texto: si no, renderTable() daría a todos los mismos decimales
+  resumen <- tibble(medida = c("nº áreas", "correlación"),
+                    valor = c(as.character(nrow(tabla)), as.character(round(cor(tabla$x, tabla$y), 4))))
+
+  if (!is.na(resultado$lambda_norm_x)) {
+    resumen <- resumen |>
+      add_row(medida = "lambda x", valor = as.character(round(resultado$lambda_norm_x, 4))) |>
+      add_row(medida = "lambda y", valor = as.character(round(resultado$lambda_norm_y, 4)))
+  }
+
+  if (!is.na(resultado$lambda_ajuste)) {
+    resumen <- resumen |> add_row(medida = "lambda ajuste y", valor = as.character(round(resultado$lambda_ajuste, 4)))
+  }
+
+  resumen
+})
+```
+
+Column {.columna-scroll}
+--------------------------------------------------------------------------------
+
+### Diagrama de dispersión y recta de regresión {data-height=400}
+
+```{r}
+renderPlotly({
+  resultado <- procesado_page_1()
+  tabla <- resultado$tabla
+
+  # un punto por área y la recta de regresión
+  p <- tabla |>
+    ggplot(aes(x, y)) +
+    geom_point(aes(text = paste0(area, " (", anio, ")<br>", # área, año(s) y valor de cada eje en el cuadro emergente
+                                 resultado$atributo_x, ": ", round(x, 2), "<br>",
+                                 resultado$atributo_y, ": ", round(y, 2)),
+                   colour = (area %in% RESALTAR)), # las áreas resaltadas en rojo
+               size = 2) + # el texto y el color solo en los puntos: en el aes() general, geom_smooth haría una recta por área
+    scale_colour_manual(values = c("FALSE" = "black", "TRUE" = "red")) + # negro, y rojo para las resaltadas
+    geom_smooth(method = lm, se = FALSE, color = "steelblue") + # recta de regresión
+    labs(title = paste0(resultado$indicador, " (", resultado$anio, ", ", resultado$unidad, "): ",
+                        resultado$atributo_y, " frente a ", resultado$atributo_x),
+         x = resultado$atributo_x, y = resultado$atributo_y) +
+    theme(legend.position = "none", # sin leyenda
+          plot.title = element_text(size = 11)) # título más pequeño, para que no desborde
+
+  ggplotly(p, tooltip = "text") # solo el texto construido arriba
+})
+```
+
+### Error de la recta de regresión {data-height=250}
+
+```{r}
+renderPlotly({
+  resultado <- procesado_page_1()
+  tabla <- resultado$tabla
+
+  # error de la recta (a x + b - y) frente a x, con el área en el cuadro emergente
+  aedv_lm_error_grafico(tabla$x, tabla$y, nombres = tabla$area,
+                        titulo = NULL, # sin título: ya está en el encabezado del panel
+                        x_lab = resultado$atributo_x, dinamico = TRUE)
+})
+```
+
+### Análisis del ajuste por la recta de regresión {data-height=250}
+
+```{r}
+renderUI({
+  tabla <- procesado_page_1()$tabla
+
+  aedv_lm_analisis(tabla$x, tabla$y) |> # recta, R2, sigma y tests de los residuos
+    aedv_tabla_lm(titulo = "") # sin título: ya está en el encabezado del panel
+})
+```
+
+<!--
+################################################################################
+  PÁGINA 5: ANÁLISIS DE ATRIBUTOS (Dashboard_atributos_analisis.Rmd, página 2).
+  Las columnas del PCA son las categorías de un atributo, sin su total (TOTALES,
+  PASO 3). Con varios atributos, se elige cuál y los demás se fijan en una
+  categoría (por ejemplo, los grupos de edad de las mujeres).
+################################################################################
+-->
+
+PCA
+================================================================================
+
+Column {.sidebar data-width=220}
+--------------------------------------------------------------------------------
+
+```{r}
+# indicador con el que se llena la tabla de atributos (identificador distinto al de la página 1)
+selectInput("indicador_2", "Indicador:", choices = INDICADORES, selected = INDICADOR_INICIAL)
+
+# año, el último disponible de cada área (opción por defecto) o la media en el periodo
+selectInput("anio_2", "Año:", choices = OPCIONES_ANIO, selected = "Último año disponible")
+
+# valor del indicador o su incremento (%) respecto al año anterior
+radioButtons("unidad_2", "Unidad:", choices = OPCIONES_UNIDAD, selected = "Valor indicador")
+
+# con varios atributos: el que da las columnas del PCA y, debajo, una categoría
+# fija de cada uno de los demás (cambian al cambiar el atributo del PCA)
+if (length(COLS_ATR) > 1) {
+  output$pca_fijos <- renderUI({
+    req(input$pca_columna)
+    tagList(lapply(setdiff(COLS_ATR, input$pca_columna), function(col)
+      selectInput(paste0("pca_fijo_", col), paste0(COLUMNAS_ATRIBUTO[[col]], ":"),
+                  choices = CATEGORIAS[[col]], selected = ATRIBUTO_INICIAL[[col]])))
+  })
+  tagList(
+    selectInput("pca_columna", "Atributo del PCA:", choices = setNames(COLS_ATR, COLUMNAS_ATRIBUTO),
+                selected = COLUMNA_PCA_INICIAL),
+    uiOutput("pca_fijos")
+  )
+}
+
+# número de grupos del k-means
+selectInput("k", "Nº de grupos del k-means:", choices = 2:8, selected = K_INICIAL)
+
+# normalizar cada atributo con Yeo-Johnson (cada uno con su lambda) antes de tipificar
+checkboxInput("yeo_johnson_2", "Normalizar con Yeo-Johnson antes de tipificar", value = TRUE)
+
+# lanza el cálculo: hasta pulsarlo no se calcula nada, ni al arrancar ni al cambiar los controles
+actionButton("calcular_2", "Calcular")
+```
+
+```{r}
+# todo el análisis, en un solo cálculo que comparten las 8 pestañas: solo se
+# recalcula al pulsar «Calcular». Devuelve una lista con cada paso y una
+# descripción de los controles elegidos (para los títulos)
+procesado_page_2 <- eventReactive(input$calcular_2, {
+  k <- as.numeric(input$k)
+
+  # atributo cuyas categorías son las columnas del PCA, y categoría fija de
+  # cada uno de los demás atributos
+  col_pca <- if (length(COLS_ATR) > 1) input$pca_columna else COLS_ATR[1]
+  fijos <- sapply(setdiff(COLS_ATR, col_pca), \(col) input[[paste0("pca_fijo_", col)]])
+  req(col_pca, all(lengths(fijos) == 1)) # por si se pulsa antes de que existan los controles
+
+  # tabla de atributos: una fila por área y año y una columna por categoría
+  tabla <- DATOS_UNIDAD |>
+    filter(unidad == input$unidad_2, # valor del indicador o incremento anual (%)
+           .data[[col_pca]] %in% CATEGORIAS_ANALISIS[[col_pca]]) # sin el total
+  for (col in names(fijos)) {
+    tabla <- tabla |> filter(.data[[col]] == fijos[[col]]) # categoría fija de los demás atributos
+  }
+  tabla <- tabla |>
+    select(area, anio, columna = all_of(col_pca), valor = input$indicador_2) |> # indicador elegido
+    pivot_wider(names_from = columna, values_from = valor) |> # una fila por área y año, una categoría por columna
+    drop_na() # años sin todas las categorías
+
+  # año elegido, el último con todos los atributos de cada área o la media de todos sus años
+  if (input$anio_2 == "Último año disponible") {
+    tabla <- tabla |>
+      group_by(area) |>
+      slice_max(anio, n = 1) |>
+      ungroup()
+  } else if (input$anio_2 == "Media en el periodo") {
+    tabla <- tabla |>
+      group_by(area) |>
+      summarise(anio = paste0(min(anio), "-", max(anio)), # periodo de la media (no se usa: se quita debajo)
+                across(any_of(CATEGORIAS_ANALISIS[[col_pca]]), \(v) mean(v, na.rm = TRUE))) # media de cada categoría
+  } else {
+    tabla <- tabla |>
+      filter(anio == input$anio_2)
+  }
+
+  atributos <- tabla |>
+    select(-anio) |> # el año ya no hace falta
+    column_to_rownames(var = "area") # el área como nombre de fila
+
+  # el PCA necesita al menos dos columnas
+  validate(need(ncol(atributos) >= 2, "El PCA necesita al menos dos categorías con datos. Elige otra combinación."))
+
+  # en algunos años hay pocas áreas con todos los atributos
+  validate(need(nrow(atributos) > k, paste0(
+    "Con esta combinación hay ", nrow(atributos), " áreas con todos los atributos: ",
+    "son demasiado pocas para ", k, " grupos. Elige otro año, la otra unidad o menos grupos.")))
+
+  # un atributo que vale lo mismo en todas las áreas no se puede tipificar
+  constantes <- names(atributos)[sapply(atributos, sd) == 0]
+  validate(need(length(constantes) == 0, paste0(
+    "El indicador vale lo mismo en todas las áreas para ", paste(constantes, collapse = ", "),
+    ": no se puede tipificar. Elige otra combinación.")))
+
+  # tabla de atributos normalizada con Yeo-Johnson (si se marca la casilla)
+  normalizada <- atributos
+  if (input$yeo_johnson_2) {
+    normalizada <- atributos |>
+      mutate(across(everything(), \(v) aedv_yeo_johnson(v, aedv_yeojohnson_lambda(v)))) # cada atributo con SU lambda
+  }
+
+  # PCA de la tabla normalizada, con el signo de cada componente fijado
+  pca <- prcomp(normalizada, scale = TRUE) # tipifica y calcula el PCA
+  signo <- apply(pca$rotation, 2, \(u) sign(u[which.max(abs(u))])) # signo del loading de mayor valor absoluto
+  pca$rotation <- sweep(pca$rotation, 2, signo, `*`) # ese loading pasa a ser positivo...
+  pca$x <- sweep(pca$x, 2, signo, `*`) # ...y cambiamos igual el signo de las componentes de cada área
+
+  list(atributos = atributos,
+       normalizada = normalizada,
+       pca = pca,
+       k = k,
+       descripcion = paste0(input$indicador_2, " (", paste(c(input$anio_2, input$unidad_2, unlist(fijos)), collapse = ", "), ")"))
+})
+```
+
+Column {.tabset}
+--------------------------------------------------------------------------------
+
+### Originales
+
+```{r}
+# tabla con el área como nombre de fila (el panel pone el scroll)
+renderTable({
+  procesado_page_2()$atributos |>
+    round(2) # dos decimales
+}, rownames = TRUE)
+```
+
+### Tipificados
+
+```{r}
+# tabla con el área como nombre de fila (el panel pone el scroll)
+renderTable({
+  procesado_page_2()$normalizada |>
+    scale() |> # así entra en el PCA
+    round(2) # dos decimales
+}, rownames = TRUE)
+```
+
+### Correlación
+
+```{r}
+renderPlotly({
+  resultado <- procesado_page_2()
+  resultado$normalizada |>
+    cor() |>
+    aedv_matriz_correlacion(show_values = TRUE,
+                            title = paste0("Matriz de correlación: ", resultado$descripcion))
+})
+```
+
+### PC's
+
+```{r}
+# tabla con el área como nombre de fila (el panel pone el scroll)
+renderTable({
+  procesado_page_2()$pca$x |> # componentes principales de cada área
+    round(2) # dos decimales
+}, rownames = TRUE)
+```
+
+### Loadings
+
+```{r}
+# contribución de cada atributo a PC1 y a PC2, una gráfica debajo de la otra
+output$loadings_pc1 <- renderPlotly({
+  aedv_pca_loadings_grafico(procesado_page_2()$pca, 1) |> ggplotly()
+})
+
+output$loadings_pc2 <- renderPlotly({
+  aedv_pca_loadings_grafico(procesado_page_2()$pca, 2) |> ggplotly()
+})
+
+fillCol(plotlyOutput("loadings_pc1", height = "100%"),
+        plotlyOutput("loadings_pc2", height = "100%"))
+```
+
+### Varianza
+
+```{r}
+renderPlotly({
+  resultado <- procesado_page_2()
+  aedv_pca_varianza_grafico(resultado$pca,
+                            titulo = paste0("Varianza explicada: ", resultado$descripcion)) |>
+    ggplotly()
+})
+```
+
+### Biplot
+
+```{r}
+renderPlotly({
+  resultado <- procesado_page_2()
+  aedv_pca_biplot(resultado$pca,
+                  titulo = paste0("Biplot PCA: ", resultado$descripcion),
+                  resaltar = intersect(RESALTAR, rownames(resultado$pca$x)), # solo las áreas que están en la tabla
+                  dinamico = TRUE) # versión interactiva
+})
+```
+
+### k-means
+
+```{r}
+renderPlotly({
+  resultado <- procesado_page_2()
+
+  # k-means sobre las componentes que acumulan el 85 % de la varianza
+  clusters <- aedv_kmeans(resultado$pca, k = resultado$k)
+
+  aedv_kmeans_grafico(clusters,
+                      titulo = paste0("k-means (k = ", resultado$k, "): ", resultado$descripcion),
+                      resaltar = intersect(RESALTAR, rownames(resultado$pca$x)), # solo las áreas que están en la tabla
+                      dinamico = TRUE) # versión interactiva
+})
+```
