@@ -676,16 +676,47 @@ GEOMETRIA <- leer_geojson("mi_geometria.geojson") |>
 * `indicador`: el nombre del indicador. **Todos los indicadores van en esta misma columna**, no uno por columna.
 * `valor`: el valor numérico del indicador.
 
-El **sexo, el grupo de edad** (y cualquier otra variable categórica, como el sector económico) van cada uno en **su propia columna**, con una fila por cada combinación de sus categorías, **incluidas las de los totales** («Ambos sexos», «Total»…). No hay que juntarlos en una sola columna: el dashboard pone un desplegable por atributo y los combina él solo. Por ejemplo, los ocupados de la EPA (en miles), con tres atributos:
+El **sexo, el grupo de edad** (y cualquier otra variable categórica, como el sector económico) van cada uno en **su propia columna**, con una fila por cada combinación de sus categorías, **incluidas las de los totales** («Ambos sexos», «Total»…). No hay que juntarlos en una sola columna: el dashboard pone un desplegable por atributo y los combina él solo. Una combinación sin dato no lleva fila (no hace falta una fila con `NA`).
 
-| codigo | area | sexo | edad | sector | anio | indicador | valor |
-|---|---|---|---|---|---|---|---|
-| 05 | Canarias | Hombres | De 25 a 54 años | Servicios | 2024 | ocupados | 306.4 |
-| 05 | Canarias | Mujeres | De 25 a 54 años | Servicios | 2024 | ocupados | 334.1 |
-| 05 | Canarias | Ambos sexos | De 25 a 54 años | Servicios | 2024 | ocupados | 640.4 |
-| 05 | Canarias | Ambos sexos | Total | Servicios | 2024 | ocupados | 862.6 |
-| 05 | Canarias | Ambos sexos | De 25 a 54 años | Total | 2024 | ocupados | 741.5 |
-| 05 | Canarias | Ambos sexos | Total | Total | 2024 | ocupados | 1005.6 |
+**Ejemplo con un atributo: el gasto público** (`Dashboard_eurostat_gasto_publico.Rmd`). El único atributo es el **sector** (con el «Total» como una categoría más), y los **cuatro indicadores** van en la columna `indicador`: `gasto` (millones de euros), `gasto_per_capita` (euros por habitante), `pct_pib` (% del PIB) y `pct_gasto` (% del gasto público total, que no existe en el Total y por eso no tiene fila). Algunas filas:
+
+<div class="tabla-scroll">
+
+| codigo | area | sector | anio | indicador | valor |
+|---|---|---|---|---|---|
+| ESP | España | Salud | 2023 | gasto | 98630 |
+| ESP | España | Salud | 2023 | gasto_per_capita | 2039.8 |
+| ESP | España | Salud | 2023 | pct_pib | 6.6 |
+| ESP | España | Salud | 2023 | pct_gasto | 14.5 |
+| ESP | España | Total | 2023 | gasto | 680225 |
+| ESP | España | Total | 2023 | gasto_per_capita | 14068.0 |
+| ESP | España | Total | 2023 | pct_pib | 45.4 |
+| EU27_2020 | UE-27 | Salud | 2023 | pct_pib | 7.2 |
+
+</div>
+
+`ESP` es el código ISO de tres letras, el mismo de la geometría de los países; la UE-27 no tiene polígono y sale en todas las páginas salvo en el mapa.
+
+**Ejemplo con tres atributos y dos niveles territoriales: los ocupados de la EPA** (`Dashboard_epa_ocupados.Rmd`). Los atributos son el **sexo**, el **grupo de edad** y el **sector**, cada uno en su columna y con su total; los indicadores, `ocupados` (miles de personas, media anual) y `ocupados_por_100` (ocupados por cada 100 personas de 16 y más años del mismo sexo y edad); y la columna `nivel` separa las comunidades de las provincias. Algunas filas:
+
+<div class="tabla-scroll">
+
+| codigo | area | nivel | sexo | edad | sector | anio | indicador | valor |
+|---|---|---|---|---|---|---|---|---|
+| 05 | Canarias | Comunidad | Hombres | De 25 a 54 años | Servicios | 2024 | ocupados | 306.4 |
+| 05 | Canarias | Comunidad | Mujeres | De 25 a 54 años | Servicios | 2024 | ocupados | 334.1 |
+| 05 | Canarias | Comunidad | Ambos sexos | De 25 a 54 años | Servicios | 2024 | ocupados | 640.4 |
+| 05 | Canarias | Comunidad | Ambos sexos | Total | Servicios | 2024 | ocupados | 862.6 |
+| 05 | Canarias | Comunidad | Ambos sexos | De 25 a 54 años | Total | 2024 | ocupados | 741.5 |
+| 05 | Canarias | Comunidad | Ambos sexos | Total | Total | 2024 | ocupados | 1005.6 |
+| 05 | Canarias | Comunidad | Ambos sexos | Total | Total | 2024 | ocupados_por_100 | 51.4 |
+| 35 | Las Palmas | Provincia | Ambos sexos | Total | Servicios | 2024 | ocupados | 450.3 |
+| 35 | Las Palmas | Provincia | Ambos sexos | Total | Total | 2024 | ocupados | 527.8 |
+| 38 | Santa Cruz de Tenerife | Provincia | Ambos sexos | Total | Total | 2024 | ocupados | 477.9 |
+
+</div>
+
+Los hombres y las mujeres suman «Ambos sexos» (306.4 + 334.1 = 640.4), y las dos provincias, Canarias (527.8 + 477.9 = 1005.6 en el total). Los códigos son los del INE: `05` es Canarias como comunidad, y `35` y `38`, sus provincias.
 
 **Varios niveles territoriales.** Una tabla puede mezclar áreas de distintos niveles (comunidades autónomas, islas, municipios; países y regiones…). Entonces la columna `nivel` dice el de cada fila («Comunidad», «Isla», «Municipio»…), y no es un atributo ni un indicador: el dashboard pone un desplegable «Nivel territorial» y cada página trabaja con las áreas de un nivel. Un mismo nombre puede repetirse en dos niveles (Madrid comunidad y Madrid provincia), y en cada nivel no puede haber filas repetidas para la misma área, combinación de atributos, año e indicador. Un nivel no tiene por qué tener todas las combinaciones de atributos: el ejemplo de la EPA tiene los grupos de edad por comunidad, pero no por provincia. Los códigos de las áreas (NUTS, INE…) van en la columna `codigo`. Cualquier otra columna que no sea de las de arriba se descarta.
 

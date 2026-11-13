@@ -3310,23 +3310,127 @@ categórica, como el sector económico) van cada uno en <strong>su propia
 columna</strong>, con una fila por cada combinación de sus categorías,
 <strong>incluidas las de los totales</strong> («Ambos sexos», «Total»…).
 No hay que juntarlos en una sola columna: el dashboard pone un
-desplegable por atributo y los combina él solo. Por ejemplo, los
-ocupados de la EPA (en miles), con tres atributos:</p>
+desplegable por atributo y los combina él solo. Una combinación sin dato
+no lleva fila (no hace falta una fila con <code>NA</code>).</p>
+<p><strong>Ejemplo con un atributo: el gasto público</strong>
+(<code>Dashboard_eurostat_gasto_publico.Rmd</code>). El único atributo
+es el <strong>sector</strong> (con el «Total» como una categoría más), y
+los <strong>cuatro indicadores</strong> van en la columna
+<code>indicador</code>: <code>gasto</code> (millones de euros),
+<code>gasto_per_capita</code> (euros por habitante),
+<code>pct_pib</code> (% del PIB) y <code>pct_gasto</code> (% del gasto
+público total, que no existe en el Total y por eso no tiene fila).
+Algunas filas:</p>
+<div class="tabla-scroll">
 <table>
+<thead>
+<tr class="header">
+<th>codigo</th>
+<th>area</th>
+<th>sector</th>
+<th>anio</th>
+<th>indicador</th>
+<th>valor</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>ESP</td>
+<td>España</td>
+<td>Salud</td>
+<td>2023</td>
+<td>gasto</td>
+<td>98630</td>
+</tr>
+<tr class="even">
+<td>ESP</td>
+<td>España</td>
+<td>Salud</td>
+<td>2023</td>
+<td>gasto_per_capita</td>
+<td>2039.8</td>
+</tr>
+<tr class="odd">
+<td>ESP</td>
+<td>España</td>
+<td>Salud</td>
+<td>2023</td>
+<td>pct_pib</td>
+<td>6.6</td>
+</tr>
+<tr class="even">
+<td>ESP</td>
+<td>España</td>
+<td>Salud</td>
+<td>2023</td>
+<td>pct_gasto</td>
+<td>14.5</td>
+</tr>
+<tr class="odd">
+<td>ESP</td>
+<td>España</td>
+<td>Total</td>
+<td>2023</td>
+<td>gasto</td>
+<td>680225</td>
+</tr>
+<tr class="even">
+<td>ESP</td>
+<td>España</td>
+<td>Total</td>
+<td>2023</td>
+<td>gasto_per_capita</td>
+<td>14068.0</td>
+</tr>
+<tr class="odd">
+<td>ESP</td>
+<td>España</td>
+<td>Total</td>
+<td>2023</td>
+<td>pct_pib</td>
+<td>45.4</td>
+</tr>
+<tr class="even">
+<td>EU27_2020</td>
+<td>UE-27</td>
+<td>Salud</td>
+<td>2023</td>
+<td>pct_pib</td>
+<td>7.2</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code>ESP</code> es el código ISO de tres letras, el mismo de la
+geometría de los países; la UE-27 no tiene polígono y sale en todas las
+páginas salvo en el mapa.</p>
+<p><strong>Ejemplo con tres atributos y dos niveles territoriales: los
+ocupados de la EPA</strong> (<code>Dashboard_epa_ocupados.Rmd</code>).
+Los atributos son el <strong>sexo</strong>, el <strong>grupo de
+edad</strong> y el <strong>sector</strong>, cada uno en su columna y con
+su total; los indicadores, <code>ocupados</code> (miles de personas,
+media anual) y <code>ocupados_por_100</code> (ocupados por cada 100
+personas de 16 y más años del mismo sexo y edad); y la columna
+<code>nivel</code> separa las comunidades de las provincias. Algunas
+filas:</p>
+<div class="tabla-scroll">
+<table style="width:100%;">
 <colgroup>
-<col width="12%" />
-<col width="12%" />
-<col width="12%" />
-<col width="12%" />
-<col width="12%" />
-<col width="12%" />
-<col width="12%" />
-<col width="12%" />
+<col width="11%" />
+<col width="11%" />
+<col width="11%" />
+<col width="11%" />
+<col width="11%" />
+<col width="11%" />
+<col width="11%" />
+<col width="11%" />
+<col width="11%" />
 </colgroup>
 <thead>
 <tr class="header">
 <th>codigo</th>
 <th>area</th>
+<th>nivel</th>
 <th>sexo</th>
 <th>edad</th>
 <th>sector</th>
@@ -3339,6 +3443,7 @@ ocupados de la EPA (en miles), con tres atributos:</p>
 <tr class="odd">
 <td>05</td>
 <td>Canarias</td>
+<td>Comunidad</td>
 <td>Hombres</td>
 <td>De 25 a 54 años</td>
 <td>Servicios</td>
@@ -3349,6 +3454,7 @@ ocupados de la EPA (en miles), con tres atributos:</p>
 <tr class="even">
 <td>05</td>
 <td>Canarias</td>
+<td>Comunidad</td>
 <td>Mujeres</td>
 <td>De 25 a 54 años</td>
 <td>Servicios</td>
@@ -3359,6 +3465,7 @@ ocupados de la EPA (en miles), con tres atributos:</p>
 <tr class="odd">
 <td>05</td>
 <td>Canarias</td>
+<td>Comunidad</td>
 <td>Ambos sexos</td>
 <td>De 25 a 54 años</td>
 <td>Servicios</td>
@@ -3369,6 +3476,7 @@ ocupados de la EPA (en miles), con tres atributos:</p>
 <tr class="even">
 <td>05</td>
 <td>Canarias</td>
+<td>Comunidad</td>
 <td>Ambos sexos</td>
 <td>Total</td>
 <td>Servicios</td>
@@ -3379,6 +3487,7 @@ ocupados de la EPA (en miles), con tres atributos:</p>
 <tr class="odd">
 <td>05</td>
 <td>Canarias</td>
+<td>Comunidad</td>
 <td>Ambos sexos</td>
 <td>De 25 a 54 años</td>
 <td>Total</td>
@@ -3389,6 +3498,7 @@ ocupados de la EPA (en miles), con tres atributos:</p>
 <tr class="even">
 <td>05</td>
 <td>Canarias</td>
+<td>Comunidad</td>
 <td>Ambos sexos</td>
 <td>Total</td>
 <td>Total</td>
@@ -3396,8 +3506,57 @@ ocupados de la EPA (en miles), con tres atributos:</p>
 <td>ocupados</td>
 <td>1005.6</td>
 </tr>
+<tr class="odd">
+<td>05</td>
+<td>Canarias</td>
+<td>Comunidad</td>
+<td>Ambos sexos</td>
+<td>Total</td>
+<td>Total</td>
+<td>2024</td>
+<td>ocupados_por_100</td>
+<td>51.4</td>
+</tr>
+<tr class="even">
+<td>35</td>
+<td>Las Palmas</td>
+<td>Provincia</td>
+<td>Ambos sexos</td>
+<td>Total</td>
+<td>Servicios</td>
+<td>2024</td>
+<td>ocupados</td>
+<td>450.3</td>
+</tr>
+<tr class="odd">
+<td>35</td>
+<td>Las Palmas</td>
+<td>Provincia</td>
+<td>Ambos sexos</td>
+<td>Total</td>
+<td>Total</td>
+<td>2024</td>
+<td>ocupados</td>
+<td>527.8</td>
+</tr>
+<tr class="even">
+<td>38</td>
+<td>Santa Cruz de Tenerife</td>
+<td>Provincia</td>
+<td>Ambos sexos</td>
+<td>Total</td>
+<td>Total</td>
+<td>2024</td>
+<td>ocupados</td>
+<td>477.9</td>
+</tr>
 </tbody>
 </table>
+</div>
+<p>Los hombres y las mujeres suman «Ambos sexos» (306.4 + 334.1 =
+640.4), y las dos provincias, Canarias (527.8 + 477.9 = 1005.6 en el
+total). Los códigos son los del INE: <code>05</code> es Canarias como
+comunidad, y <code>35</code> y <code>38</code>, sus provincias.</p>
 <p><strong>Varios niveles territoriales.</strong> Una tabla puede
 mezclar áreas de distintos niveles (comunidades autónomas, islas,
 municipios; países y regiones…). Entonces la columna <code>nivel</code>
