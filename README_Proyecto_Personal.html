@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-11-13" />
+<meta name="date" content="2026-11-14" />
 
 <title>Proyecto Personal AEDV — Guía de trabajo</title>
 
@@ -1617,7 +1617,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Proyecto Personal AEDV — Guía de
 trabajo</h1>
-<h4 class="date">2026-11-13</h4>
+<h4 class="date">2026-11-14</h4>
 
 </div>
 
@@ -3217,8 +3217,8 @@ el gasto público por sectores de Eurostat, con <strong>un
 atributo</strong> (el sector).</li>
 <li><a href="https://ctim.es/AEDV/Dashboard_epa_ocupados.Rmd">Dashboard_epa_ocupados.Rmd</a>:
 los ocupados de la EPA, con <strong>tres atributos</strong> (el sexo, el
-grupo de edad y el sector económico), dos indicadores (los ocupados y
-los ocupados por cada 100 personas en edad de trabajar) y <strong>dos
+grupo de edad y el sector económico), dos medidas (los ocupados y los
+ocupados por cada 100 personas en edad de trabajar) y <strong>dos
 niveles territoriales</strong>, las comunidades autónomas y las
 provincias, cada uno con su mapa.</li>
 </ul>
@@ -3237,14 +3237,16 @@ datos) y las opciones con las que arrancan los controles (chunk
 <li><strong>PASO 4</strong>: el título y el texto de la página de
 presentación de los datos.</li>
 </ol>
-<p>Todo lo demás (los indicadores, las áreas, las categorías de los
+<p>Todo lo demás (las medidas, las áreas, las categorías de los
 atributos, los periodos, el incremento respecto al año anterior y las
 opciones de todos los controles) se deduce de los datos. Los dos
-ejemplos tienen una página de presentación de los datos, que termina con
-una muestra de la tabla que leen, y las cinco páginas obligatorias:</p>
+ejemplos tienen una página obligatoria de descripción de los datos, que
+termina con una muestra de la tabla que leen, y las cinco páginas de
+gráficos obligatorias:</p>
 <ul>
-<li><strong>Series</strong>: exploración de las series temporales, con
-un panel por área o por categoría de un atributo.</li>
+<li><strong>Series</strong>: exploración profunda de las series
+temporales que debe permitir visualizar y comparar (visualmente) la
+evolución de todas series temporales disponibles.</li>
 <li><strong>Predicción</strong>: predicción con ARIMA o STL + ARIMA y
 análisis del error del ajuste.</li>
 <li><strong>Mapa</strong>: mapa coroplético.</li>
@@ -3256,49 +3258,46 @@ múltiple «Atributos del PCA» se eligen varios, las combinaciones de sus
 categorías (sexo y sector: «Mujeres · Servicios»…); los atributos no
 elegidos se fijan en una categoría.</li>
 </ul>
-<p>En todas las páginas se elige el indicador y la
-<strong>unidad</strong>: el valor del indicador o su <strong>incremento
-en porcentaje respecto al año anterior</strong> (con datos trimestrales
-o mensuales, respecto al mismo trimestre o mes del año anterior: el
-incremento interanual), que se calcula una sola vez al arrancar. En el
-mapa, la comparación y el PCA el periodo (año, trimestre o mes) puede
-ser uno concreto, el último disponible de cada área o la media en el
-periodo.</p>
-<p>La plantilla es un punto de partida: tu dashboard tiene que cubrir
-<strong>todas las variables de tu dataset</strong>, con el mismo
-criterio (un desplegable por atributo y todas las opciones de los
-datos).</p>
+<p>En todas las páginas se elige la medida y la <strong>unidad</strong>:
+el valor de la medida o su <strong>incremento en porcentaje respecto al
+año anterior</strong> (con datos trimestrales o mensuales, respecto al
+mismo trimestre o mes del año anterior: el incremento interanual), que
+se calcula una sola vez al arrancar. En el mapa, la comparación y el PCA
+el periodo (año, trimestre o mes) puede ser uno concreto, el último
+disponible de cada área o la media en el periodo.</p>
+<p>La plantilla es un punto de partida: tu dashboard puede incluir
+páginas adicionales pero hay que tener siempre presente el tiempo de
+carga del dashboard cuando se añaden cosas nuevas.</p>
 </div>
 <div class="discusion">
 <p><strong class="bloque-titulo">Cómo tienen que llegar los datos al
 dashboard</strong></p>
-<p>El dashboard <strong>no lee los datos originales</strong>, sino un
-fichero <strong><code>.rds</code></strong> con los datos organizados
-como se explica a continuación, y la geometría del mapa, de ficheros
-<strong><code>geojson</code></strong>. Todos van <strong>en la misma
-carpeta que el dashboard</strong>, se suben al servidor junto a él, y el
-PASO 2 solo los lee <strong>en local</strong>. De la geometría se eligen
-dos columnas, la del código del área y la de su nombre:</p>
+<p>En general, el dashboard <strong>no lee los datos
+originales</strong>, sino un fichero <strong><code>.rds</code></strong>
+con los datos organizados como se explica a continuación, y la geometría
+del mapa, de ficheros <strong><code>geojson</code></strong>. Todos van
+<strong>en la misma carpeta que el dashboard</strong>, se suben al
+servidor junto a él, y el PASO 2 solo los lee <strong>en local</strong>.
+De la geometría se eligen dos columnas, la del código del área y la de
+su nombre:</p>
 <pre class="default"><code>DATOS     &lt;- readRDS(&quot;mis_datos.rds&quot;)
 GEOMETRIA &lt;- leer_geojson(&quot;mi_geometria.geojson&quot;) |&gt;
   select(codigo = &lt;columna con el código del área&gt;, nombre = &lt;columna con su nombre&gt;)</code></pre>
 <p>(Los dos ejemplos leen sus ficheros desde <code>ctim.es</code> para
 poder abrirlos sin descargar nada más; tu dashboard, no.)</p>
 <p><strong>Los datos son una tabla <em>tidy</em></strong>, con una fila
-por área, combinación de los atributos, periodo e indicador, y estas
+por área, combinación de los atributos, periodo y medida, y estas
 columnas:</p>
 <ul>
 <li><code>codigo</code>: el código del área, el mismo que en la
-geometría (el código NUTS de cada región, el ISO de cada país…). Un área
-sin polígono, como el total de España o de la UE-27, sale en todas las
-páginas salvo en el mapa.</li>
-<li><code>area</code>: el nombre del área.</li>
+geometría (el código NUTS de cada región, el ISO de cada país…).</li>
+<li><code>area</code>: el nombre del área geográfica.</li>
 <li><code>nivel</code> (opcional): el nivel territorial del área, si tus
 datos <strong>mezclan áreas de varios niveles</strong> (comunidades,
 islas, municipios…). Ver más abajo.</li>
 <li><strong>Una columna por atributo</strong>, con el nombre que
-quieras. Un atributo es una <strong>variable categórica que no es un
-indicador</strong>: el sector, el sexo, el grupo de edad… Sus categorías
+quieras. Un atributo es una <strong>variable categórica que no es una
+medida</strong>: el sector, el sexo, el grupo de edad… Sus categorías
 son los valores de su columna, y si tiene una categoría que es la suma
 de las demás (el total), va en la misma columna, como una categoría
 más.</li>
@@ -3310,9 +3309,9 @@ estacionalidad si el dato es trimestral o mensual) se adaptan solos. El
 trimestre y el mes pueden ir como <code>yearquarter()</code> y
 <code>yearmonth()</code> de <code>tsibble</code>, o como texto con el
 formato del INE («2024T3», «2024M07»).</li>
-<li><code>indicador</code>: el nombre del indicador. <strong>Todos los
-indicadores van en esta misma columna</strong>, no uno por columna.</li>
-<li><code>valor</code>: el valor numérico del indicador.</li>
+<li><code>medida</code>: el nombre de la medida. <strong>Todas las
+medidas van en esta misma columna</strong>, no una por columna.</li>
+<li><code>valor</code>: el valor numérico de la medida.</li>
 </ul>
 <p>El <strong>sexo, el grupo de edad</strong> (y cualquier otra variable
 categórica, como el sector económico) van cada uno en <strong>su propia
@@ -3324,8 +3323,8 @@ no lleva fila (no hace falta una fila con <code>NA</code>).</p>
 <p><strong>Ejemplo con un atributo y datos anuales: el gasto
 público</strong> (<code>Dashboard_eurostat_gasto_publico.Rmd</code>). El
 único atributo es el <strong>sector</strong> (con el «Total» como una
-categoría más), y los <strong>cuatro indicadores</strong> van en la
-columna <code>indicador</code>: <code>gasto</code> (millones de euros),
+categoría más), y las <strong>cuatro medidas</strong> van en la columna
+<code>medida</code>: <code>gasto</code> (millones de euros),
 <code>gasto_per_capita</code> (euros por habitante),
 <code>pct_pib</code> (% del PIB) y <code>pct_gasto</code> (% del gasto
 público total, que no existe en el Total y por eso no tiene fila).
@@ -3338,7 +3337,7 @@ Algunas filas:</p>
 <th>area</th>
 <th>sector</th>
 <th>periodo</th>
-<th>indicador</th>
+<th>medida</th>
 <th>valor</th>
 </tr>
 </thead>
@@ -3417,8 +3416,8 @@ páginas salvo en el mapa.</p>
 territoriales: los ocupados de la EPA</strong>
 (<code>Dashboard_epa_ocupados.Rmd</code>). Los atributos son el
 <strong>sexo</strong>, el <strong>grupo de edad</strong> y el
-<strong>sector</strong>, cada uno en su columna y con su total; los
-indicadores, <code>ocupados</code> (miles de personas, un dato por
+<strong>sector</strong>, cada uno en su columna y con su total; las
+medidas, <code>ocupados</code> (miles de personas, un dato por
 trimestre) y <code>ocupados_por_100</code> (ocupados por cada 100
 personas de 16 y más años del mismo sexo y edad); y la columna
 <code>nivel</code> separa las comunidades de las provincias. Algunas
@@ -3445,7 +3444,7 @@ filas:</p>
 <th>edad</th>
 <th>sector</th>
 <th>periodo</th>
-<th>indicador</th>
+<th>medida</th>
 <th>valor</th>
 </tr>
 </thead>
@@ -3573,12 +3572,12 @@ lo imprime R), la frecuencia con la que publica la EPA.</p>
 mezclar áreas de distintos niveles (comunidades autónomas, islas,
 municipios; países y regiones…). Entonces la columna <code>nivel</code>
 dice el de cada fila («Comunidad», «Isla», «Municipio»…), y no es un
-atributo ni un indicador: el dashboard pone un desplegable «Nivel
+atributo ni una medida: el dashboard pone un desplegable «Nivel
 territorial» y cada página trabaja con las áreas de un nivel. Un mismo
 nombre puede repetirse en dos niveles (Madrid comunidad y Madrid
 provincia), y en cada nivel no puede haber filas repetidas para la misma
-área, combinación de atributos, periodo e indicador. Un nivel no tiene
-por qué tener todas las combinaciones de atributos: el ejemplo de la EPA
+área, combinación de atributos, periodo y medida. Un nivel no tiene por
+qué tener todas las combinaciones de atributos: el ejemplo de la EPA
 tiene los grupos de edad por comunidad, pero no por provincia. Los
 códigos de las áreas (NUTS, INE…) van en la columna <code>codigo</code>.
 Cualquier otra columna que no sea de las de arriba se descarta.</p>
@@ -3607,9 +3606,9 @@ recuadro anterior, organizado como allí se explica
 <code>geojson</code>, en la misma carpeta.</p></li>
 <li><p><strong>Comprueba que el <code>.rds</code> está bien
 organizado</strong>. Debe haber un solo valor por nivel, área,
-combinación de atributos, periodo e indicador, y conviene saber qué
-áreas no tienen polígono:</p>
-<pre class="default"><code>datos |&gt; count(nivel, area, sexo, edad, sector, periodo, indicador) |&gt; filter(n &gt; 1) # tiene que salir vacío
+combinación de atributos, periodo y medida, y conviene saber qué áreas
+no tienen polígono:</p>
+<pre class="default"><code>datos |&gt; count(nivel, area, sexo, edad, sector, periodo, medida) |&gt; filter(n &gt; 1) # tiene que salir vacío
 setdiff(datos$codigo, geometria$codigo) # áreas sin polígono (no salen en el mapa)</code></pre></li>
 <li><p><strong>Adapta el <code>.Rmd</code> cambiando SOLO lo marcado con
 ✎</strong>: el título (PASO 1); la lectura de tu <code>.rds</code> y de
@@ -3632,11 +3631,11 @@ ejemplo:</p>
 <pre class="default"><code>Te adjunto la plantilla de cuadro de mandos Dashboard_epa_ocupados.Rmd. Tengo
 mis datos organizados como pide la plantilla (PASO 2):
 - mis_datos.rds: una tabla tidy con las columnas codigo, area, &lt;nivel, si
-  mezcla varios niveles territoriales&gt;, &lt;mis atributos&gt;, periodo, indicador y valor;
+  mezcla varios niveles territoriales&gt;, &lt;mis atributos&gt;, periodo, medida y valor;
 - la geometría en &lt;mi_geometria.geojson, o un geojson por nivel&gt;, con el código
   del área en la columna &lt;...&gt; y su nombre en la columna &lt;...&gt;.
 Mis datos son &lt;qué son las áreas y sus niveles; qué atributos hay y cuál es el
-total de cada uno; qué indicadores; si los datos son anuales, trimestrales o mensuales, y de qué periodo&gt;.
+total de cada uno; qué medidas; si los datos son anuales, trimestrales o mensuales, y de qué periodo&gt;.
 
 Adapta la plantilla a mis datos cambiando SOLO lo marcado con ✎ (PASOS 1 a 4),
 y lee los ficheros en local con readRDS() y leer_geojson(). No cambies nada

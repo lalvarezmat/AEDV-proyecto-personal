@@ -25,8 +25,8 @@ runtime: shiny
     ✎ PASO 3: qué columnas son atributos y su total, los rótulos y las
               opciones de arranque (chunk "global").
     ✎ PASO 4: el título y el texto de la página de presentación de los datos.
-  Todo lo demás se deduce de los datos: los indicadores (los valores de la
-  columna indicador), las áreas, las categorías de los atributos, los periodos
+  Todo lo demás se deduce de los datos: las medidas (los valores de la
+  columna medida), las áreas, las categorías de los atributos, los periodos
   (años, trimestres o meses: la frecuencia de los datos), el incremento
   respecto al año anterior y las opciones de todos los controles.
 
@@ -37,9 +37,9 @@ runtime: shiny
   página, que los datos están bien organizados.
 
   LOS DATOS son un .rds con una tabla tidy: una fila por área
-  (país, región...), combinación de los atributos, periodo e indicador, con UNA
+  (país, región...), combinación de los atributos, periodo y medida, con UNA
   COLUMNA POR ATRIBUTO (el sector; o el sexo y el grupo de edad...), una con
-  el nombre del indicador y otra con su valor (ver el PASO 2). Puede mezclar
+  el nombre de la medida y otra con su valor (ver el PASO 2). Puede mezclar
   áreas de varios niveles territoriales (comunidades, islas, municipios...):
   una columna nivel dice el de cada fila, y cada página trabaja con un nivel.
 
@@ -58,7 +58,7 @@ runtime: shiny
   trimestral o mensual) se adaptan solos.
 
   UNIDAD Y MEDIA EN EL PERIODO. En todas las páginas se elige la unidad: el
-  valor del indicador o su incremento en porcentaje respecto al año anterior
+  valor de la medida o su incremento en porcentaje respecto al año anterior
   (con datos trimestrales o mensuales, respecto al mismo trimestre o mes del
   año anterior: el incremento interanual), que se calcula UNA SOLA VEZ, en el
   chunk "global" (tabla DATOS_UNIDAD). En el mapa, la comparación y el PCA el
@@ -156,7 +156,7 @@ leer_geojson <- function(fichero) {
 #       select(codigo = <columna con el código del área>, nombre = <columna con su nombre>)
 #
 #   - DATOS: una tabla TIDY (en formato largo), con una fila por área,
-#     combinación de los atributos, periodo e indicador, y estas columnas:
+#     combinación de los atributos, periodo y medida, y estas columnas:
 #       - codigo:    el código del área, el mismo que en la geometría (un área
 #                    sin polígono, como la UE-27 o el total de España, sale en
 #                    todas las páginas salvo en el mapa)
@@ -168,7 +168,7 @@ leer_geojson <- function(fichero) {
 #                    Sin esta columna, todas las áreas son del mismo nivel.
 #       - UNA COLUMNA POR ATRIBUTO, con el nombre que se quiera (se declaran
 #         en COLUMNAS_ATRIBUTO, en el PASO 3). Un atributo es una variable
-#         categórica que no es un indicador (el sector, el sexo, el grupo de
+#         categórica que no es una medida (el sector, el sexo, el grupo de
 #         edad...), y sus categorías son los valores de su columna. Si un
 #         atributo tiene una categoría que es la suma de las demás (el total),
 #         va en la misma columna, como una categoría más (se declara en
@@ -178,21 +178,21 @@ leer_geojson <- function(fichero) {
 #                    entero, 2024), el trimestre (yearquarter(), o texto como
 #                    "2024T3", el formato del INE) o el mes (yearmonth(), o
 #                    texto como "2024M07" o "2024-07")
-#       - indicador: el nombre del indicador (TODOS los indicadores en esta
-#                    misma columna, no uno por columna)
-#       - valor:     el valor numérico del indicador
+#       - medida:    el nombre de la medida (TODAS las medidas en esta
+#                    misma columna, no una por columna)
+#       - valor:     el valor numérico de la medida
 #     Tiene que haber un único valor por nivel, área, combinación de atributos,
-#     periodo e indicador. Los NA se descartan solos. Las demás columnas que haya
+#     periodo y medida. Los NA se descartan solos. Las demás columnas que haya
 #     se descartan: una variable categórica que no se declare como atributo no
 #     debe hacer que se repitan filas. Los códigos de las áreas (NUTS, INE...)
 #     van en la columna codigo, y basta con que no se repitan dentro de cada
 #     nivel. Los nombres area, codigo, nivel, periodo, anio, atributo,
-#     indicador, unidad, valor, value, year, fecha y posicion están reservados:
-#     no se pueden usar como nombre de un atributo ni de un indicador.
+#     medida, unidad, valor, value, year, fecha y posicion están reservados:
+#     no se pueden usar como nombre de un atributo ni de una medida.
 #
 #     Ejemplo con UN atributo, el sector del gasto público (datos anuales):
 #
-#       codigo  area     sector     periodo  indicador          valor
+#       codigo  area     sector     periodo  medida             valor
 #       ESP     España   Salud         2023  gasto_per_capita  2039.8
 #       ESP     España   Salud         2023  pct_pib              6.6
 #       ESP     España   Defensa       2023  gasto_per_capita   289.7
@@ -206,7 +206,7 @@ leer_geojson <- function(fichero) {
 #     columna, y una fila por cada combinación de sus categorías, incluidas las
 #     de los totales («Ambos sexos», «Total» y «Total»):
 #
-#       codigo  area      sexo         edad              sector     periodo  indicador  valor
+#       codigo  area      sexo         edad              sector     periodo  medida     valor
 #       05      Canarias  Hombres      De 25 a 54 años   Servicios  2026 Q3  ocupados   320.1
 #       05      Canarias  Mujeres      De 25 a 54 años   Servicios  2026 Q3  ocupados   351.5
 #       05      Canarias  Ambos sexos  De 25 a 54 años   Servicios  2026 Q3  ocupados   671.6
@@ -261,7 +261,7 @@ RESALTAR <- c("España", "UE-27")
 # categoría (o varias) por atributo, con el nombre de su columna. Si alguna no
 # existe en DATOS se usa la primera disponible, así que la plantilla no se
 # rompe al cambiar de datos y olvidarse de tocarlas.
-INDICADOR_INICIAL   <- "gasto_per_capita"                    # ✎ en todas las páginas
+MEDIDA_INICIAL      <- "gasto_per_capita"                    # ✎ en todas las páginas
 AREA_INICIAL        <- "España"                              # ✎ serie inicial de la predicción
 AREAS_INICIALES     <- c("España", "UE-27", "France", "Portugal", "Germany", "Italy") # ✎ Series, al desmarcar la casilla
 ATRIBUTO_INICIAL    <- c(sector = "Total")                   # ✎ predicción, mapa y categorías fijas del PCA
@@ -286,7 +286,7 @@ DATOS_LEIDOS <- DATOS
 # COMPROBACIÓN DE LOS DATOS: si falta algo, se avisa al arrancar y no con un
 # panel vacío más tarde
 COLS_ATR <- names(COLUMNAS_ATRIBUTO)
-RESERVADOS <- c("area", "codigo", "nivel", "periodo", "anio", "atributo", "indicador", "unidad", "valor", "value",
+RESERVADOS <- c("area", "codigo", "nivel", "periodo", "anio", "atributo", "medida", "unidad", "valor", "value",
                 "year", "fecha", "posicion")
 if (length(COLS_ATR) == 0) stop("COLUMNAS_ATRIBUTO está vacío: hace falta al menos un atributo.")
 if (any(COLS_ATR %in% RESERVADOS)) {
@@ -295,7 +295,7 @@ if (any(COLS_ATR %in% RESERVADOS)) {
 }
 # una columna anio (el año) también vale como periodo
 if (!"periodo" %in% names(DATOS) && "anio" %in% names(DATOS)) names(DATOS)[names(DATOS) == "anio"] <- "periodo"
-faltan <- setdiff(c("codigo", "area", COLS_ATR, "periodo", "indicador", "valor"), names(DATOS))
+faltan <- setdiff(c("codigo", "area", COLS_ATR, "periodo", "medida", "valor"), names(DATOS))
 if (length(faltan) > 0) stop("A DATOS le faltan las columnas ", paste(faltan, collapse = ", "), ".")
 DATOS <- DATOS |>
   ungroup() |>
@@ -317,12 +317,12 @@ leer_periodo <- function(x) {
 }
 
 DATOS <- DATOS |>
-  select(codigo, area, nivel, all_of(COLS_ATR), periodo, indicador, valor) |> # el resto de columnas se descarta
-  mutate(across(c(codigo, area, nivel, all_of(COLS_ATR), indicador), as.character),
+  select(codigo, area, nivel, all_of(COLS_ATR), periodo, medida, valor) |> # el resto de columnas se descarta
+  mutate(across(c(codigo, area, nivel, all_of(COLS_ATR), medida), as.character),
          periodo = leer_periodo(periodo), valor = as.numeric(valor)) |>
   filter(!is.na(valor))
-if (anyDuplicated(DATOS[c("nivel", "area", COLS_ATR, "periodo", "indicador")]) > 0) {
-  stop("En DATOS hay niveles, áreas, combinaciones de atributos, periodos e indicadores con más de un valor: ",
+if (anyDuplicated(DATOS[c("nivel", "area", COLS_ATR, "periodo", "medida")]) > 0) {
+  stop("En DATOS hay niveles, áreas, combinaciones de atributos, periodos y medidas con más de un valor: ",
        "debe haber uno solo (¿falta declarar algún atributo en COLUMNAS_ATRIBUTO, o la columna nivel?).")
 }
 
@@ -352,18 +352,18 @@ posicion_periodo <- function(p) {
 NIVELES <- unique(DATOS$nivel)
 if (length(NIVEL_INICIAL) != 1 || !NIVEL_INICIAL %in% NIVELES) NIVEL_INICIAL <- NIVELES[1]
 
-# indicadores, en el orden de los datos
-INDICADORES <- unique(DATOS$indicador)
-if (any(INDICADORES %in% c(RESERVADOS, COLS_ATR))) {
-  stop("Un indicador no puede llamarse ", paste(intersect(INDICADORES, c(RESERVADOS, COLS_ATR)), collapse = ", "),
+# medidas, en el orden de los datos
+MEDIDAS <- unique(DATOS$medida)
+if (any(MEDIDAS %in% c(RESERVADOS, COLS_ATR))) {
+  stop("Una medida no puede llamarse ", paste(intersect(MEDIDAS, c(RESERVADOS, COLS_ATR)), collapse = ", "),
        ": es un nombre reservado o el de un atributo.")
 }
 
-# A PARTIR DE AQUÍ, UNA COLUMNA POR INDICADOR (es como lo usan las páginas), y
+# A PARTIR DE AQUÍ, UNA COLUMNA POR MEDIDA (es como lo usan las páginas), y
 # la columna `atributo`: la combinación de las categorías de todos los
 # atributos ("Mujeres · De 25 a 34 años"); con un solo atributo, su categoría
 DATOS <- DATOS |>
-  pivot_wider(names_from = indicador, values_from = valor) |>
+  pivot_wider(names_from = medida, values_from = valor) |>
   mutate(atributo = do.call(paste, c(across(all_of(COLS_ATR)), sep = " · ")))
 
 # categorías de cada atributo, en el orden de los datos, y sin el total (las
@@ -382,7 +382,7 @@ PERIODOS <- sort(unique(DATOS$periodo), decreasing = TRUE)
 categoria_valida <- function(valor, opciones, defecto) {
   unname(if (length(valor) == 1 && !is.na(valor) && valor %in% opciones) valor else defecto) # sin nombre: lo pone sapply()
 }
-if (!INDICADOR_INICIAL %in% INDICADORES) INDICADOR_INICIAL <- INDICADORES[1]
+if (!MEDIDA_INICIAL %in% MEDIDAS) MEDIDA_INICIAL <- MEDIDAS[1]
 COLUMNAS_PCA_INICIALES <- intersect(COLUMNAS_PCA_INICIALES, COLS_ATR)
 if (length(COLUMNAS_PCA_INICIALES) == 0) COLUMNAS_PCA_INICIALES <- COLS_ATR[1]
 ATRIBUTO_INICIAL <- sapply(COLS_ATR, \(col) categoria_valida(
@@ -403,33 +403,33 @@ POR_ATRIBUTOS <- sapply(COLS_ATR, \(col) if (!is.na(POR_ATRIBUTOS[col])) POR_ATR
 COMBINACION_INICIAL <- paste(ATRIBUTO_INICIAL[COLS_ATR], collapse = " · ")
 
 # ÁREAS, en el orden de los desplegables: las resaltadas delante y el resto de
-# mayor a menor valor del indicador inicial en la combinación inicial de los
+# mayor a menor valor de la medida inicial en la combinación inicial de los
 # atributos, en su último periodo (las que no tienen ese dato, al final)
 RESALTAR <- intersect(RESALTAR, unique(DATOS$area))
 AREAS <- DATOS |>
-  filter(atributo == COMBINACION_INICIAL, !is.na(.data[[INDICADOR_INICIAL]])) |>
+  filter(atributo == COMBINACION_INICIAL, !is.na(.data[[MEDIDA_INICIAL]])) |>
   group_by(nivel, area) |>
   slice_max(periodo, n = 1, with_ties = FALSE) |>
   ungroup() |>
-  arrange(desc(.data[[INDICADOR_INICIAL]])) |>
+  arrange(desc(.data[[MEDIDA_INICIAL]])) |>
   pull(area)
 AREAS <- unique(c(RESALTAR, AREAS, sort(unique(DATOS$area))))
 if (!AREA_INICIAL %in% AREAS) AREA_INICIAL <- AREAS[1]
 AREAS_INICIALES <- intersect(AREAS_INICIALES, AREAS)
 if (length(AREAS_INICIALES) == 0) AREAS_INICIALES <- head(AREAS, 6)
 
-# tabla con la unidad "Valor indicador": los datos tal cual
+# tabla con la unidad "Valor de la medida": los datos tal cual
 DATOS_VALOR <- DATOS |>
-  mutate(unidad = "Valor indicador")
+  mutate(unidad = "Valor de la medida")
 
 # la misma tabla con la unidad del incremento: variación porcentual de cada
-# indicador respecto al mismo periodo del año anterior (el año anterior, o el
+# medida respecto al mismo periodo del año anterior (el año anterior, o el
 # mismo trimestre o mes del año anterior; NA si falta ese dato o no es positivo)
 UNIDAD_INCREMENTO <- if (PERIODOS_POR_ANIO == 1) "Incremento anual (%)" else "Incremento interanual (%)"
 DATOS_INCREMENTO <- DATOS |>
   mutate(posicion = posicion_periodo(periodo)) |> # para encontrar el periodo del año anterior
   group_by(nivel, area, atributo) |> # cada área y combinación de atributos por separado
-  mutate(across(all_of(INDICADORES), \(v) {
+  mutate(across(all_of(MEDIDAS), \(v) {
     anterior <- v[match(posicion - PERIODOS_POR_ANIO, posicion)] # el valor un año antes
     if_else(anterior > 0, 100 * (v - anterior) / anterior, NA) # incremento (%)
   })) |>
@@ -444,11 +444,11 @@ DATOS_UNIDAD <- bind_rows(DATOS_VALOR, DATOS_INCREMENTO)
 # opciones de los controles de periodo y unidad
 ULTIMO_PERIODO   <- paste("Último", NOMBRE_PERIODO, "disponible") # «Último año disponible», «Último trimestre disponible»...
 OPCIONES_PERIODO <- c(ULTIMO_PERIODO, "Media en el periodo", etiqueta_periodo(PERIODOS))
-OPCIONES_UNIDAD  <- c("Valor indicador", UNIDAD_INCREMENTO)
+OPCIONES_UNIDAD  <- c("Valor de la medida", UNIDAD_INCREMENTO)
 
 # TÍTULOS DE LOS GRÁFICOS. Con varios atributos se alargan mucho, así que no
 # llevan lo que se sobreentiende (las categorías total de los atributos y la
-# unidad «Valor indicador») y, si aun así pasan de 70 caracteres, se parten en
+# unidad «Valor de la medida») y, si aun así pasan de 70 caracteres, se parten en
 # líneas: lo principal, en una o dos, y los detalles entre paréntesis (periodo,
 # unidad, método...) al final, en la última línea si caben o en una más.
 # El salto de línea es "<br>" en plotly y "\n" en ggplot.
@@ -456,8 +456,8 @@ sin_totales <- function(categorias) unname(categorias[!categorias %in% TOTALES])
 periodo_en_titulo <- function(x) { # "último trimestre", "media del periodo" o el periodo elegido
   if (x == ULTIMO_PERIODO) paste("último", NOMBRE_PERIODO) else if (x == "Media en el periodo") "media del periodo" else x
 }
-unidad_en_titulo <- function(u) { # "" con el valor del indicador; "incremento interanual en %"
-  if (u == "Valor indicador") "" else sub(" (%)", " en %", tolower(u), fixed = TRUE)
+unidad_en_titulo <- function(u) { # "" con el valor de la medida; "incremento interanual en %"
+  if (u == "Valor de la medida") "" else sub(" (%)", " en %", tolower(u), fixed = TRUE)
 }
 # un texto largo en dos líneas de hasta max caracteres: por «: », por « frente a »
 # o por un « · », el más cercano a la mitad (si ninguno lo consigue, el « · » central)
@@ -495,9 +495,9 @@ margen_titulo <- function(titulo, base = 44) base + 22 * sum(gregexpr("<br>|\n",
 
 # explicación del incremento para la página de presentación de los datos
 TEXTO_INCREMENTO <- if (PERIODOS_POR_ANIO == 1) {
-  "variación porcentual del indicador respecto al año anterior, $100 \\cdot \\frac{x_t - x_{t-1}}{x_{t-1}}$"
+  "variación porcentual de la medida respecto al año anterior, $100 \\cdot \\frac{x_t - x_{t-1}}{x_{t-1}}$"
 } else {
-  paste0("variación porcentual del indicador respecto al mismo ", NOMBRE_PERIODO, " del año anterior, $100 \\cdot \\frac{x_t - x_{t-",
+  paste0("variación porcentual de la medida respecto al mismo ", NOMBRE_PERIODO, " del año anterior, $100 \\cdot \\frac{x_t - x_{t-",
          PERIODOS_POR_ANIO, "}}{x_{t-", PERIODOS_POR_ANIO, "}}$")
 }
 
@@ -634,7 +634,7 @@ seleccion <- list() # página Series
 
   ✎ PASO 4: el título de la página (la línea subrayada con ====) y el texto que
   va debajo de "### {.datos-explicacion}": qué son los datos, qué significa
-  cada atributo y qué mide cada indicador. La explicación de la unidad, al
+  cada atributo y qué mide cada medida. La explicación de la unidad, al
   final, vale para cualquier conjunto de datos.
 ################################################################################
 -->
@@ -667,7 +667,7 @@ Gasto de las administraciones públicas de 30 países europeos y la UE-27, por a
 | Educación | Todos los niveles de enseñanza, comedor y transporte escolar. |
 | Protección social | Pensiones de jubilación y viudedad, enfermedad e incapacidad, desempleo, familia e hijos, vivienda social y exclusión social. |
 
-#### Indicadores 
+#### Medidas 
 
 - `gasto`: gasto en millones de euros.
 - `gasto_per_capita`: gasto por habitante, en euros.
@@ -676,7 +676,7 @@ Gasto de las administraciones públicas de 30 países europeos y la UE-27, por a
 
 #### Unidad
 
-- **Valor indicador**: el dato tal cual.
+- **Valor de la medida**: el dato tal cual.
 - **`r UNIDAD_INCREMENTO`**: `r TEXTO_INCREMENTO` (no viene en el dataset, se calcula al leer la tabla).
 
 #### La tabla de entrada: 100 filas al azar
@@ -706,13 +706,13 @@ Series
 ```{r}
 # CONFIGURACIÓN DE LA PÁGINA, DEDUCIDA DEL CHUNK GLOBAL (no hay que tocarla)
 
-# LOS DATOS EN FORMATO TIDY: una fila por área, atributo, indicador, unidad y
+# LOS DATOS EN FORMATO TIDY: una fila por área, atributo, medida, unidad y
 # periodo, con una sola columna de valores (el incremento ya está calculado)
 data <- DATOS_UNIDAD |>
-  pivot_longer(all_of(INDICADORES), names_to = "indicador", values_to = "value") |>
-  filter(!is.na(value)) |> # indicadores que no existen en algún atributo (pct_gasto en el Total)
+  pivot_longer(all_of(MEDIDAS), names_to = "medida", values_to = "value") |>
+  filter(!is.na(value)) |> # medidas que no existen en algún atributo (pct_gasto en el Total)
   mutate(year = if (is.numeric(periodo)) periodo else as.Date(periodo)) |> # eje x: el año, o el primer día del trimestre o del mes
-  select(area, nivel, all_of(COLS_ATR), indicador, unidad, year, value)
+  select(area, nivel, all_of(COLS_ATR), medida, unidad, year, value)
 
 # NOMBRE DE LAS COLUMNAS DE LA FECHA Y DEL VALOR NUMÉRICO
 date  <- "year"
@@ -741,10 +741,10 @@ input.multiple.config.pageId <- lapply(COLS_ATR, function(col)
 
 # ATRIBUTOS CON UN ÚNICO VALOR SELECCIONABLE (EN LA MISMA CAJA)
 input.single.config.pageId <- list(
-  list(col.name = "indicador", label = "Indicador", choices = INDICADORES,
-       selected = INDICADOR_INICIAL, multiple = FALSE),
+  list(col.name = "medida", label = "Medida", choices = MEDIDAS,
+       selected = MEDIDA_INICIAL, multiple = FALSE),
   list(col.name = "unidad", label = "Unidad", choices = OPCIONES_UNIDAD,
-       selected = "Valor indicador", multiple = FALSE)
+       selected = "Valor de la medida", multiple = FALSE)
 )
 
 # CON VARIOS NIVELES TERRITORIALES, EL NIVEL ES OTRO ATRIBUTO DE VALOR ÚNICO
@@ -1067,7 +1067,7 @@ renderPlotly({
   PÁGINA 2: PREDICCIÓN (plantilla Dashboard_prediccion_series.Rmd)
   Cambios respecto a la plantilla:
     - DATOS admite VARIAS columnas key (aquí el área, cada atributo, el
-      indicador y la unidad), cada una
+      medida y la unidad), cada una
       con su desplegable: la serie es la combinación de los valores elegidos,
       sin construir una columna que los junte. Si la combinación no tiene
       datos, el cuadro de mandos lo dice.
@@ -1088,28 +1088,28 @@ PAGINA_ID <- "pred"
 
 # LOS DATOS: un tsibble LARGO con el periodo como índice (el año, el
 # trimestre o el mes: con trimestres o meses, la serie es estacional), una columna key por
-# desplegable (área, cada atributo, indicador y unidad) y UNA de valores. La serie
+# desplegable (área, cada atributo, medida y unidad) y UNA de valores. La serie
 # es la combinación de un valor de cada key. Las combinaciones sin datos (un
-# indicador que no existe en un atributo) no forman serie.
-CLAVES <- c(if (length(NIVELES) > 1) "nivel", "area", COLS_ATR, "indicador", "unidad") # con varios niveles, también el nivel
+# medida que no existe en un atributo) no forman serie.
+CLAVES <- c(if (length(NIVELES) > 1) "nivel", "area", COLS_ATR, "medida", "unidad") # con varios niveles, también el nivel
 DATOS_PRED <- DATOS_UNIDAD |>
-  pivot_longer(all_of(INDICADORES), names_to = "indicador", values_to = "valor") |>
+  pivot_longer(all_of(MEDIDAS), names_to = "medida", values_to = "valor") |>
   filter(!is.na(valor)) |> # sin dato, o incremento sin año anterior positivo
   select(fecha = periodo, all_of(CLAVES), valor) |>
   as_tsibble(index = fecha, key = all_of(CLAVES))
 
 # RÓTULOS Y OPCIONES DE ARRANQUE
 ETIQUETAS_ATRIBUTOS <- c(nivel = "Nivel territorial:", area = paste0(ETIQUETA_AREA, ":"), setNames(paste0(COLUMNAS_ATRIBUTO, ":"), COLS_ATR),
-                         indicador = "Indicador:", unidad = "Unidad:") # rótulo de cada key
-ATRIBUTO_UNIDAD     <- c("indicador", "unidad") # keys cuyos valores rotulan el eje vertical
+                         medida = "Medida:", unidad = "Unidad:") # rótulo de cada key
+ATRIBUTO_UNIDAD     <- c("medida", "unidad") # keys cuyos valores rotulan el eje vertical
 SERIE_INICIAL       <- c(nivel = NIVEL_INICIAL, area = AREA_INICIAL, ATRIBUTO_INICIAL, # una categoría por atributo
-                         indicador = INDICADOR_INICIAL, unidad = "Valor indicador")
+                         medida = MEDIDA_INICIAL, unidad = "Valor de la medida")
 METODO_INICIAL      <- "ARIMA" # "ARIMA" o "STL + ARIMA"
 
 # NOMBRE DE LA SERIE EN LOS TÍTULOS: sin el nivel territorial, las categorías
-# total de los atributos ni la unidad «Valor indicador», que se sobreentienden
+# total de los atributos ni la unidad «Valor de la medida», que se sobreentienden
 NOMBRE_SERIE <- function(sel) {
-  partes <- c(sel[["area"]], sin_totales(unlist(sel[COLS_ATR])), sel[["indicador"]], unidad_en_titulo(sel[["unidad"]]))
+  partes <- c(sel[["area"]], sin_totales(unlist(sel[COLS_ATR])), sel[["medida"]], unidad_en_titulo(sel[["unidad"]]))
   paste(partes[nzchar(partes)], collapse = " · ")
 }
 
@@ -1680,8 +1680,8 @@ if (length(NIVELES_MAPA) > 1) {
   selectInput("mapa_nivel", "Nivel territorial:", choices = NIVELES_MAPA, selected = NIVEL_INICIAL_MAPA)
 }
 
-# indicador que se representa
-selectInput("mapa_indicador", "Indicador:", choices = INDICADORES, selected = INDICADOR_INICIAL)
+# medida que se representa
+selectInput("mapa_medida", "Medida:", choices = MEDIDAS, selected = MEDIDA_INICIAL)
 
 # una categoría de cada atributo
 tagList(lapply(COLS_ATR, function(col)
@@ -1691,8 +1691,8 @@ tagList(lapply(COLS_ATR, function(col)
 # periodo (año, trimestre o mes): el último disponible de cada área (opción por defecto), la media en el periodo o uno concreto
 selectInput("mapa_periodo", paste0(ETIQUETA_PERIODO, ":"), choices = OPCIONES_PERIODO, selected = ULTIMO_PERIODO)
 
-# valor del indicador o su incremento (%) respecto al año anterior
-radioButtons("mapa_unidad", "Unidad:", choices = OPCIONES_UNIDAD, selected = "Valor indicador")
+# valor de la medida o su incremento (%) respecto al año anterior
+radioButtons("mapa_unidad", "Unidad:", choices = OPCIONES_UNIDAD, selected = "Valor de la medida")
 
 # lanza el cálculo: hasta pulsarlo no se calcula nada, ni al arrancar ni al cambiar los controles
 actionButton("mapa_calcular", "Calcular")
@@ -1708,12 +1708,12 @@ procesado_mapa <- eventReactive(input$mapa_calcular, {
   # combinación de las categorías elegidas de los atributos ("Mujeres · Total")
   combinacion <- paste(sapply(COLS_ATR, \(col) input[[paste0("mapa_atr_", col)]]), collapse = " · ")
 
-  # una fila por área y periodo con el valor del indicador
+  # una fila por área y periodo con el valor de la medida
   tabla <- DATOS_UNIDAD |>
     filter(nivel == nivel_elegido, # áreas del nivel elegido
-           unidad == input$mapa_unidad, # valor del indicador o su incremento (%)
+           unidad == input$mapa_unidad, # valor de la medida o su incremento (%)
            atributo == combinacion) |> # categorías elegidas de los atributos
-    select(codigo, nombre = area, periodo, valor = input$mapa_indicador) |> # indicador elegido
+    select(codigo, nombre = area, periodo, valor = input$mapa_medida) |> # medida elegida
     drop_na() # periodos sin dato
 
   # periodo elegido, el último con dato de cada área o la media de todos sus
@@ -1745,7 +1745,7 @@ procesado_mapa <- eventReactive(input$mapa_calcular, {
   # los controles viajan dentro del resultado: así los rótulos no cambian hasta
   # volver a pulsar el botón
   list(tabla = tabla |> arrange(desc(valor)), # de mayor a menor
-       nivel = nivel_elegido, indicador = input$mapa_indicador, atributo = combinacion,
+       nivel = nivel_elegido, medida = input$mapa_medida, atributo = combinacion,
        periodo = input$mapa_periodo, unidad = input$mapa_unidad)
 })
 ```
@@ -1781,14 +1781,14 @@ renderLeaflet({
   etiquetas <- paste0(
     "<strong>", mapa$nombre, "</strong><br>",
     resultado$atributo, " (", mapa$periodo, ")<br>",
-    resultado$indicador, ": ",
+    resultado$medida, ": ",
     format(round(mapa$valor, 2), big.mark = ".", decimal.mark = ",")
   ) |>
     lapply(htmltools::HTML)
 
   # centro y zoom del mapa: los de VISTA (PASO 3)
   aedv_mapa_coropletico(mapa, mapa$valor, etiquetas,
-                        paste0(resultado$indicador, "<br>", resultado$unidad), # título de la leyenda
+                        paste0(resultado$medida, "<br>", resultado$unidad), # título de la leyenda
                         lng = VISTA$lng, lat = VISTA$lat, zoom = VISTA$zoom)
 })
 ```
@@ -1811,14 +1811,14 @@ if (length(NIVELES) > 1) {
   selectInput("nivel", "Nivel territorial:", choices = NIVELES, selected = NIVEL_INICIAL)
 }
 
-# indicador que se compara
-selectInput("indicador", "Indicador:", choices = INDICADORES, selected = INDICADOR_INICIAL)
+# medida que se compara
+selectInput("medida", "Medida:", choices = MEDIDAS, selected = MEDIDA_INICIAL)
 
 # periodo (año, trimestre o mes): el último disponible de cada área (opción por defecto), la media en el periodo o uno concreto
 selectInput("periodo", paste0(ETIQUETA_PERIODO, ":"), choices = OPCIONES_PERIODO, selected = ULTIMO_PERIODO)
 
-# valor del indicador o su incremento (%) respecto al año anterior
-radioButtons("unidad", "Unidad:", choices = OPCIONES_UNIDAD, selected = "Valor indicador")
+# valor de la medida o su incremento (%) respecto al año anterior
+radioButtons("unidad", "Unidad:", choices = OPCIONES_UNIDAD, selected = "Valor de la medida")
 
 # eje x: una categoría de cada atributo (sin los totales)
 tagList(lapply(COLS_ATR, function(col)
@@ -1864,7 +1864,7 @@ procesado_page_1 <- eventReactive(input$calcular, {
   cat_x <- sapply(COLS_ATR, \(col) input[[paste0("atr_x_", col)]])
   cat_y <- sapply(COLS_ATR, \(col) input[[paste0("atr_y_", col)]])
   comun <- cat_x == cat_y
-  titulo <- paste0(paste(c(input$indicador, cat_x[comun]), collapse = " · "), ": ",
+  titulo <- paste0(paste(c(input$medida, cat_x[comun]), collapse = " · "), ": ",
                    paste(cat_y[!comun], collapse = " · "), " frente a ", paste(cat_x[!comun], collapse = " · "))
 
   # nivel territorial: el elegido, o el único
@@ -1873,9 +1873,9 @@ procesado_page_1 <- eventReactive(input$calcular, {
   # una fila por área y periodo y el valor de cada combinación en una columna
   tabla <- DATOS_UNIDAD |>
     filter(nivel == nivel_elegido, # áreas del nivel elegido
-           unidad == input$unidad, # valor del indicador o su incremento (%)
+           unidad == input$unidad, # valor de la medida o su incremento (%)
            atributo %in% c(atributo_x, atributo_y)) |> # combinaciones elegidas
-    select(area, periodo, atributo, valor = input$indicador) |> # indicador elegido
+    select(area, periodo, atributo, valor = input$medida) |> # medida elegida
     pivot_wider(names_from = atributo, values_from = valor) # una columna por combinación
 
   # una combinación puede no tener datos en este nivel territorial
@@ -1932,7 +1932,7 @@ procesado_page_1 <- eventReactive(input$calcular, {
   # los controles viajan dentro del resultado: así los títulos no cambian hasta
   # volver a pulsar el botón
   list(tabla = tabla,
-       indicador = input$indicador, periodo = input$periodo, unidad = input$unidad, titulo = titulo,
+       medida = input$medida, periodo = input$periodo, unidad = input$unidad, titulo = titulo,
        atributo_x = atributo_x, atributo_y = atributo_y,
        lambda_norm_x = lambda_norm_x, lambda_norm_y = lambda_norm_y,
        lambda_ajuste = lambda_ajuste)
@@ -1947,17 +1947,17 @@ renderTable({
   tabla <- resultado$tabla
 
   # valores como texto: si no, renderTable() daría a todos los mismos decimales
-  resumen <- tibble(medida = c("nº áreas", "correlación"),
+  resumen <- tibble(concepto = c("nº áreas", "correlación"),
                     valor = c(as.character(nrow(tabla)), as.character(round(cor(tabla$x, tabla$y), 4))))
 
   if (!is.na(resultado$lambda_norm_x)) {
     resumen <- resumen |>
-      add_row(medida = "lambda x", valor = as.character(round(resultado$lambda_norm_x, 4))) |>
-      add_row(medida = "lambda y", valor = as.character(round(resultado$lambda_norm_y, 4)))
+      add_row(concepto = "lambda x", valor = as.character(round(resultado$lambda_norm_x, 4))) |>
+      add_row(concepto = "lambda y", valor = as.character(round(resultado$lambda_norm_y, 4)))
   }
 
   if (!is.na(resultado$lambda_ajuste)) {
-    resumen <- resumen |> add_row(medida = "lambda ajuste y", valor = as.character(round(resultado$lambda_ajuste, 4)))
+    resumen <- resumen |> add_row(concepto = "lambda ajuste y", valor = as.character(round(resultado$lambda_ajuste, 4)))
   }
 
   resumen
@@ -2047,14 +2047,14 @@ if (length(NIVELES) > 1) {
   selectInput("nivel_2", "Nivel territorial:", choices = NIVELES, selected = NIVEL_INICIAL)
 }
 
-# indicador con el que se llena la tabla de atributos (identificador distinto al de la página 1)
-selectInput("indicador_2", "Indicador:", choices = INDICADORES, selected = INDICADOR_INICIAL)
+# medida con la que se llena la tabla de atributos (identificador distinto al de la página 1)
+selectInput("medida_2", "Medida:", choices = MEDIDAS, selected = MEDIDA_INICIAL)
 
 # periodo (año, trimestre o mes): el último disponible de cada área (opción por defecto), la media en el periodo o uno concreto
 selectInput("periodo_2", paste0(ETIQUETA_PERIODO, ":"), choices = OPCIONES_PERIODO, selected = ULTIMO_PERIODO)
 
-# valor del indicador o su incremento (%) respecto al año anterior
-radioButtons("unidad_2", "Unidad:", choices = OPCIONES_UNIDAD, selected = "Valor indicador")
+# valor de la medida o su incremento (%) respecto al año anterior
+radioButtons("unidad_2", "Unidad:", choices = OPCIONES_UNIDAD, selected = "Valor de la medida")
 
 # con varios atributos: los que dan las columnas del PCA (selección múltiple:
 # si se eligen varios, las columnas son las combinaciones de sus categorías) y,
@@ -2101,7 +2101,7 @@ procesado_page_2 <- eventReactive(input$calcular_2, {
   nivel_elegido <- if (length(NIVELES) > 1) input$nivel_2 else NIVELES[1] # nivel territorial
   tabla <- DATOS_UNIDAD |>
     filter(nivel == nivel_elegido, # áreas del nivel elegido
-           unidad == input$unidad_2) # valor del indicador o su incremento (%)
+           unidad == input$unidad_2) # valor de la medida o su incremento (%)
   for (col in cols_pca) {
     tabla <- tabla |> filter(.data[[col]] %in% CATEGORIAS_ANALISIS[[col]]) # sin los totales
   }
@@ -2110,7 +2110,7 @@ procesado_page_2 <- eventReactive(input$calcular_2, {
   }
   tabla <- tabla |>
     mutate(columna = do.call(paste, c(across(all_of(cols_pca)), sep = " · "))) |> # "Mujeres · De 25 a 34 años"
-    select(area, periodo, columna, valor = input$indicador_2) |> # indicador elegido
+    select(area, periodo, columna, valor = input$medida_2) |> # medida elegida
     pivot_wider(names_from = columna, values_from = valor) |> # una fila por área y periodo, una columna por combinación
     drop_na() # periodos sin todas las columnas
   columnas <- setdiff(names(tabla), c("area", "periodo")) # las columnas del PCA
@@ -2145,7 +2145,7 @@ procesado_page_2 <- eventReactive(input$calcular_2, {
   # un atributo que vale lo mismo en todas las áreas no se puede tipificar
   constantes <- names(atributos)[sapply(atributos, sd) == 0]
   validate(need(length(constantes) == 0, paste0(
-    "El indicador vale lo mismo en todas las áreas para ", paste(constantes, collapse = ", "),
+    "La medida vale lo mismo en todas las áreas para ", paste(constantes, collapse = ", "),
     ": no se puede tipificar. Elige otra combinación.")))
 
   # tabla de atributos normalizada con Yeo-Johnson (si se marca la casilla)
@@ -2165,7 +2165,7 @@ procesado_page_2 <- eventReactive(input$calcular_2, {
        normalizada = normalizada,
        pca = pca,
        k = k,
-       descripcion = paste(c(input$indicador_2, sin_totales(unlist(fijos))), collapse = " · "), # para los títulos
+       descripcion = paste(c(input$medida_2, sin_totales(unlist(fijos))), collapse = " · "), # para los títulos
        detalles = c(periodo_en_titulo(input$periodo_2), unidad_en_titulo(input$unidad_2)))
 })
 ```
