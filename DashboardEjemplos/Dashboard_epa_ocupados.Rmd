@@ -424,9 +424,9 @@ if (!AREA_INICIAL %in% AREAS) AREA_INICIAL <- AREAS[1]
 AREAS_INICIALES <- intersect(AREAS_INICIALES, AREAS)
 if (length(AREAS_INICIALES) == 0) AREAS_INICIALES <- head(AREAS, 6)
 
-# tabla con la unidad "Valor de la medida": los datos tal cual
+# tabla con la unidad "Valor observado": los datos tal cual
 DATOS_VALOR <- DATOS |>
-  mutate(unidad = "Valor de la medida")
+  mutate(unidad = "Valor observado")
 
 # la misma tabla con la unidad del incremento: variación porcentual de cada
 # medida respecto al mismo periodo del año anterior (el año anterior, o el
@@ -450,11 +450,11 @@ DATOS_UNIDAD <- bind_rows(DATOS_VALOR, DATOS_INCREMENTO)
 # opciones de los controles de periodo y unidad
 ULTIMO_PERIODO   <- paste("Último", NOMBRE_PERIODO, "disponible") # «Último año disponible», «Último trimestre disponible»...
 OPCIONES_PERIODO <- c(ULTIMO_PERIODO, "Media en el periodo", etiqueta_periodo(PERIODOS))
-OPCIONES_UNIDAD  <- c("Valor de la medida", UNIDAD_INCREMENTO)
+OPCIONES_UNIDAD  <- c("Valor observado", UNIDAD_INCREMENTO)
 
 # TÍTULOS DE LOS GRÁFICOS. Con varios atributos se alargan mucho, así que no
 # llevan lo que se sobreentiende (las categorías total de los atributos y la
-# unidad «Valor de la medida») y, si aun así pasan de 70 caracteres, se parten en
+# unidad «Valor observado») y, si aun así pasan de 70 caracteres, se parten en
 # líneas: lo principal, en una o dos, y los detalles entre paréntesis (periodo,
 # unidad, método...) al final, en la última línea si caben o en una más.
 # El salto de línea es "<br>" en plotly y "\n" en ggplot.
@@ -463,7 +463,7 @@ periodo_en_titulo <- function(x) { # "último trimestre", "media del periodo" o 
   if (x == ULTIMO_PERIODO) paste("último", NOMBRE_PERIODO) else if (x == "Media en el periodo") "media del periodo" else x
 }
 unidad_en_titulo <- function(u) { # "" con el valor de la medida; "incremento interanual en %"
-  if (u == "Valor de la medida") "" else sub(" (%)", " en %", tolower(u), fixed = TRUE)
+  if (u == "Valor observado") "" else sub(" (%)", " en %", tolower(u), fixed = TRUE)
 }
 # un texto largo en dos líneas de hasta max caracteres: por «: », por « frente a »
 # o por un « · », el más cercano a la mitad (si ninguno lo consigue, el « · » central)
@@ -501,9 +501,9 @@ margen_titulo <- function(titulo, base = 44) base + 22 * sum(gregexpr("<br>|\n",
 
 # explicación del incremento para la página de presentación de los datos
 TEXTO_INCREMENTO <- if (PERIODOS_POR_ANIO == 1) {
-  "variación porcentual de la medida respecto al año anterior, $100 \\cdot \\frac{x_t - x_{t-1}}{x_{t-1}}$"
+  "variación porcentual del valor observado respecto al año anterior, $100 \\cdot \\frac{x_t - x_{t-1}}{x_{t-1}}$"
 } else {
-  paste0("variación porcentual de la medida respecto al mismo ", NOMBRE_PERIODO, " del año anterior, $100 \\cdot \\frac{x_t - x_{t-",
+  paste0("variación porcentual del valor observado respecto al mismo ", NOMBRE_PERIODO, " del año anterior, $100 \\cdot \\frac{x_t - x_{t-",
          PERIODOS_POR_ANIO, "}}{x_{t-", PERIODOS_POR_ANIO, "}}$")
 }
 
@@ -687,12 +687,10 @@ El sector es la actividad del establecimiento donde trabaja la persona, no su oc
 
 #### Unidad
 
-- **Valor de la medida**: el dato tal cual.
+- **Valor observado**: el dato tal cual.
 - **`r UNIDAD_INCREMENTO`**: `r TEXTO_INCREMENTO` (no viene en el dataset, se calcula al leer la tabla).
 
 #### La tabla de entrada: 100 filas al azar
-
-Así está organizado el `.rds` que lee el cuadro de mandos (una tabla tidy): 
 
 ```{r}
 # 100 filas al azar de la tabla tal como se ha leído, ordenadas para que se lea mejor
@@ -755,7 +753,7 @@ input.single.config.pageId <- list(
   list(col.name = "medida", label = "Medida", choices = MEDIDAS,
        selected = MEDIDA_INICIAL, multiple = FALSE),
   list(col.name = "unidad", label = "Unidad", choices = OPCIONES_UNIDAD,
-       selected = "Valor de la medida", multiple = FALSE)
+       selected = "Valor observado", multiple = FALSE)
 )
 
 # CON VARIOS NIVELES TERRITORIALES, EL NIVEL ES OTRO ATRIBUTO DE VALOR ÚNICO
@@ -1114,11 +1112,11 @@ ETIQUETAS_ATRIBUTOS <- c(nivel = "Nivel territorial:", area = paste0(ETIQUETA_AR
                          medida = "Medida:", unidad = "Unidad:") # rótulo de cada key
 ATRIBUTO_UNIDAD     <- c("medida", "unidad") # keys cuyos valores rotulan el eje vertical
 SERIE_INICIAL       <- c(nivel = NIVEL_INICIAL, area = AREA_INICIAL, ATRIBUTO_INICIAL, # una categoría por atributo
-                         medida = MEDIDA_INICIAL, unidad = "Valor de la medida")
+                         medida = MEDIDA_INICIAL, unidad = "Valor observado")
 METODO_INICIAL      <- "ARIMA" # "ARIMA" o "STL + ARIMA"
 
 # NOMBRE DE LA SERIE EN LOS TÍTULOS: sin el nivel territorial, las categorías
-# total de los atributos ni la unidad «Valor de la medida», que se sobreentienden
+# total de los atributos ni la unidad «Valor observado», que se sobreentienden
 NOMBRE_SERIE <- function(sel) {
   partes <- c(sel[["area"]], sin_totales(unlist(sel[COLS_ATR])), sel[["medida"]], unidad_en_titulo(sel[["unidad"]]))
   paste(partes[nzchar(partes)], collapse = " · ")
@@ -1456,8 +1454,8 @@ local({
     selectInput(id("tramo"), "Periodos observados para ajustar el modelo:",
                 choices = o_ini$tramos, selected = o_ini$tramo_def),
 
-    radioButtons(id("metodo"), "Método de predicción:",
-                 choices = c("ARIMA", "STL + ARIMA"), selected = pg$metodo_inicial),
+    selectInput(id("metodo"), "Método de predicción:",
+                choices = c("ARIMA", "STL + ARIMA"), selected = pg$metodo_inicial),
 
     uiOutput(id("controles_stl")),
 
@@ -1703,7 +1701,7 @@ tagList(lapply(COLS_ATR, function(col)
 selectInput("mapa_periodo", paste0(ETIQUETA_PERIODO, ":"), choices = OPCIONES_PERIODO, selected = ULTIMO_PERIODO)
 
 # valor de la medida o su incremento (%) respecto al año anterior
-radioButtons("mapa_unidad", "Unidad:", choices = OPCIONES_UNIDAD, selected = "Valor de la medida")
+selectInput("mapa_unidad", "Unidad:", choices = OPCIONES_UNIDAD, selected = "Valor observado")
 
 # lanza el cálculo: hasta pulsarlo no se calcula nada, ni al arrancar ni al cambiar los controles
 actionButton("mapa_calcular", "Calcular")
@@ -1829,7 +1827,7 @@ selectInput("medida", "Medida:", choices = MEDIDAS, selected = MEDIDA_INICIAL)
 selectInput("periodo", paste0(ETIQUETA_PERIODO, ":"), choices = OPCIONES_PERIODO, selected = ULTIMO_PERIODO)
 
 # valor de la medida o su incremento (%) respecto al año anterior
-radioButtons("unidad", "Unidad:", choices = OPCIONES_UNIDAD, selected = "Valor de la medida")
+selectInput("unidad", "Unidad:", choices = OPCIONES_UNIDAD, selected = "Valor observado")
 
 # eje x: una categoría de cada atributo (sin los totales)
 tagList(lapply(COLS_ATR, function(col)
@@ -2065,7 +2063,7 @@ selectInput("medida_2", "Medida:", choices = MEDIDAS, selected = MEDIDA_INICIAL)
 selectInput("periodo_2", paste0(ETIQUETA_PERIODO, ":"), choices = OPCIONES_PERIODO, selected = ULTIMO_PERIODO)
 
 # valor de la medida o su incremento (%) respecto al año anterior
-radioButtons("unidad_2", "Unidad:", choices = OPCIONES_UNIDAD, selected = "Valor de la medida")
+selectInput("unidad_2", "Unidad:", choices = OPCIONES_UNIDAD, selected = "Valor observado")
 
 # con varios atributos: los que dan las columnas del PCA (selección múltiple:
 # si se eligen varios, las columnas son las combinaciones de sus categorías) y,
