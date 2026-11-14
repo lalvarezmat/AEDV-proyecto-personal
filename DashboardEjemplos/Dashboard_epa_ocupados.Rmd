@@ -501,9 +501,9 @@ margen_titulo <- function(titulo, base = 44) base + 22 * sum(gregexpr("<br>|\n",
 
 # explicación del incremento para la página de presentación de los datos
 TEXTO_INCREMENTO <- if (PERIODOS_POR_ANIO == 1) {
-  "variación porcentual respecto al año anterior, $100 \\cdot \\frac{x_t - x_{t-1}}{x_{t-1}}$"
+  "variación porcentual del indicador respecto al año anterior, $100 \\cdot \\frac{x_t - x_{t-1}}{x_{t-1}}$"
 } else {
-  paste0("variación porcentual respecto al mismo ", NOMBRE_PERIODO, " del año anterior, $100 \\cdot \\frac{x_t - x_{t-",
+  paste0("variación porcentual del indicador respecto al mismo ", NOMBRE_PERIODO, " del año anterior, $100 \\cdot \\frac{x_t - x_{t-",
          PERIODOS_POR_ANIO, "}}{x_{t-", PERIODOS_POR_ANIO, "}}$")
 }
 
@@ -653,12 +653,14 @@ Column
 
 ### {.datos-explicacion}
 
+#### Mi título de proyecto personal
+
 Ocupados por sexo, grupo de edad y sector económico, de la Encuesta de Población Activa del INE: un dato por trimestre, desde el primero de 2008 hasta el tercero de 2026 (por provincia y sexo, desde 2002). El INE no publica el dato cuando la muestra es demasiado pequeña, así que algunas combinaciones no tienen dato.
 
 #### Niveles territoriales
 
-- **Comunidad**: las 17 comunidades autónomas, Ceuta, Melilla y España (el total nacional), con los tres atributos cruzados (tablas 65304 y 65285).
-- **Provincia**: las 52 provincias, con el sector para ambos sexos y el sexo para todos los sectores, y solo el total de edad (tablas 65354 y 65345): el INE no publica más detalle por provincia.
+- **Comunidad**: las 17 comunidades autónomas, Ceuta, Melilla y España (el total nacional).
+- **Provincia**: las 52 provincias, con  el sexo para todos los sectores, y solo el total de edad.
 
 #### Atributos
 
@@ -672,13 +674,13 @@ El sector es la actividad del establecimiento donde trabaja la persona, no su oc
 
 | Sector | Qué actividades incluye |
 |-----|--------------------|
-| Agricultura | Agricultura, ganadería, caza, silvicultura y explotación forestal, y pesca y acuicultura (sección A). |
-| Industria | Industrias extractivas (minas y canteras), industria manufacturera (alimentación y bebidas, química, metalurgia, maquinaria, vehículos...), suministro de energía eléctrica y gas, y suministro de agua, saneamiento y gestión de residuos (secciones B a E). |
-| Construcción | Construcción de edificios, obra civil (carreteras, redes de agua y de energía) y actividades especializadas: demolición, instalaciones eléctricas y de fontanería, y acabados (sección F). |
-| Servicios | Comercio y reparación de vehículos, transporte y almacenamiento, hostelería, información y comunicaciones, finanzas y seguros, actividades inmobiliarias, actividades profesionales, científicas y técnicas, actividades administrativas, administración pública y defensa, educación, sanidad y servicios sociales, actividades artísticas y recreativas, otros servicios y empleo doméstico en los hogares (secciones G a U). |
+| Agricultura | Agricultura, ganadería, caza, silvicultura y explotación forestal, y pesca y acuicultura. |
+| Industria | Industrias extractivas (minas y canteras), industria manufacturera (alimentación y bebidas, química, metalurgia, maquinaria, vehículos...), suministro de energía eléctrica y gas, y suministro de agua, saneamiento y gestión de residuos. |
+| Construcción | Construcción de edificios, obra civil (carreteras, redes de agua y de energía) y actividades especializadas: demolición, instalaciones eléctricas y de fontanería, y acabados. |
+| Servicios | Comercio y reparación de vehículos, transporte y almacenamiento, hostelería, información y comunicaciones, finanzas y seguros, actividades inmobiliarias, actividades profesionales, científicas y técnicas, actividades administrativas, administración pública y defensa, educación, sanidad y servicios sociales, actividades artísticas y recreativas, otros servicios y empleo doméstico en los hogares. |
 | Total | La suma de los cuatro sectores. |
 
-#### Indicadores (un valor por territorio, sexo, grupo de edad, sector y trimestre)
+#### Indicadores
 
 - `ocupados`: ocupados en miles de personas.
 - `ocupados_por_100`: ocupados en el sector por cada 100 personas en edad de trabajar (16 y más años) del mismo sexo y grupo de edad. Con el sector Total, es la tasa de empleo.
@@ -686,11 +688,11 @@ El sector es la actividad del establecimiento donde trabaja la persona, no su oc
 #### Unidad
 
 - **Valor indicador**: el dato tal cual.
-- **`r UNIDAD_INCREMENTO`**: `r TEXTO_INCREMENTO`.
+- **`r UNIDAD_INCREMENTO`**: `r TEXTO_INCREMENTO` (no viene en el dataset, se calcula al leer la tabla).
 
 #### La tabla de entrada: 100 filas al azar
 
-Así está organizado el `.rds` que lee el cuadro de mandos (una tabla tidy): una fila por área, combinación de los atributos, periodo e indicador, una columna por atributo, otra con el nombre del indicador y otra con su valor.
+Así está organizado el `.rds` que lee el cuadro de mandos (una tabla tidy): 
 
 ```{r}
 # 100 filas al azar de la tabla tal como se ha leído, ordenadas para que se lea mejor

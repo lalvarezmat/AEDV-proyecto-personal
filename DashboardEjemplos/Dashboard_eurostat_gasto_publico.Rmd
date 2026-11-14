@@ -495,9 +495,9 @@ margen_titulo <- function(titulo, base = 44) base + 22 * sum(gregexpr("<br>|\n",
 
 # explicación del incremento para la página de presentación de los datos
 TEXTO_INCREMENTO <- if (PERIODOS_POR_ANIO == 1) {
-  "variación porcentual respecto al año anterior, $100 \\cdot \\frac{x_t - x_{t-1}}{x_{t-1}}$"
+  "variación porcentual del indicador respecto al año anterior, $100 \\cdot \\frac{x_t - x_{t-1}}{x_{t-1}}$"
 } else {
-  paste0("variación porcentual respecto al mismo ", NOMBRE_PERIODO, " del año anterior, $100 \\cdot \\frac{x_t - x_{t-",
+  paste0("variación porcentual del indicador respecto al mismo ", NOMBRE_PERIODO, " del año anterior, $100 \\cdot \\frac{x_t - x_{t-",
          PERIODOS_POR_ANIO, "}}{x_{t-", PERIODOS_POR_ANIO, "}}$")
 }
 
@@ -644,8 +644,11 @@ Gasto público
 
 Column
 --------------------------------------------------
+ 
 
 ### {.datos-explicacion}
+
+#### Mi título de proyecto personal
 
 Gasto de las administraciones públicas de 30 países europeos y la UE-27, por año (desde 1995) y por sector (función del gasto según la clasificación **COFOG**), con el Total como suma de los diez sectores.
 
@@ -664,7 +667,7 @@ Gasto de las administraciones públicas de 30 países europeos y la UE-27, por a
 | Educación | Todos los niveles de enseñanza, comedor y transporte escolar. |
 | Protección social | Pensiones de jubilación y viudedad, enfermedad e incapacidad, desempleo, familia e hijos, vivienda social y exclusión social. |
 
-#### Indicadores (un valor por país, sector y año)
+#### Indicadores 
 
 - `gasto`: gasto en millones de euros.
 - `gasto_per_capita`: gasto por habitante, en euros.
@@ -674,11 +677,11 @@ Gasto de las administraciones públicas de 30 países europeos y la UE-27, por a
 #### Unidad
 
 - **Valor indicador**: el dato tal cual.
-- **`r UNIDAD_INCREMENTO`**: `r TEXTO_INCREMENTO`.
+- **`r UNIDAD_INCREMENTO`**: `r TEXTO_INCREMENTO` (no viene en el dataset, se calcula al leer la tabla).
 
 #### La tabla de entrada: 100 filas al azar
 
-Así está organizado el `.rds` que lee el cuadro de mandos (una tabla tidy): una fila por área, combinación de los atributos, periodo e indicador, una columna por atributo, otra con el nombre del indicador y otra con su valor.
+Así está organizado el `.rds` que lee el cuadro de mandos (una tabla tidy): 
 
 ```{r}
 # 100 filas al azar de la tabla tal como se ha leído, ordenadas para que se lea mejor
