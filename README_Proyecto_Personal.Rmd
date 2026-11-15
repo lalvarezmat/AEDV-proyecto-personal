@@ -647,7 +647,7 @@ Todo lo demás (las medidas, las áreas, las categorías de los atributos, los p
 * **Comparación**: dos combinaciones de atributos frente a frente (dispersión, recta de regresión y tests), con Yeo-Johnson.
 * **PCA**: matriz de correlación, PCA y k-means. Las columnas son las categorías de un atributo o, si en el desplegable múltiple «Atributos del PCA» se eligen varios, las combinaciones de sus categorías (sexo y sector: «Mujeres · Servicios»…); los atributos no elegidos se fijan en una categoría.
 
-En todas las páginas se elige la medida y la **unidad**: el valor de la medida o su **incremento en porcentaje respecto al año anterior** (con datos trimestrales o mensuales, respecto al mismo trimestre o mes del año anterior: el incremento interanual), que se calcula una sola vez al arrancar. En el mapa, la comparación y el PCA el periodo (año, trimestre o mes) puede ser uno concreto, el último disponible de cada área o la media en el periodo.
+En todas las páginas se elige la medida y el **dato presentado**: el valor de la medida o su **incremento en porcentaje respecto al año anterior** (con datos trimestrales o mensuales, respecto al mismo trimestre o mes del año anterior: el incremento interanual), que se calcula una sola vez al arrancar. En el mapa, la comparación y el PCA el periodo (año, trimestre o mes) puede ser uno concreto, el último disponible de cada área o la media en el periodo; con datos trimestrales o mensuales, además, la **última media anual** (la media del último año completo de cada área), que es la que sale al arrancar.
 
 La plantilla es un punto de partida: tu dashboard puede incluir páginas adicionales pero hay que tener siempre presente el tiempo de carga del dashboard cuando se añaden cosas nuevas. 
 
