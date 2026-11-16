@@ -1847,6 +1847,11 @@ desplegables que no existen o tablas filtradas con un valor vacío.</p>
 <code>epa</code>:</p>
 <pre><code>/home/a2499/aedv/gasto/Dashboard_eurostat_gasto_publico.Rmd
 /home/a2499/aedv/epa/Dashboard_epa_ocupados.Rmd</code></pre>
+<p><strong>En cuanto uses subcarpetas, en <code>aedv</code> no puede
+quedar ningún <code>.Rmd</code> suelto</strong> (tampoco el tuyo): todos
+van en su subcarpeta. Si queda alguno, el servidor toma
+<code>aedv</code> entera como un único cuadro de mandos y los de las
+subcarpetas se quedan con la página en blanco, sin arrancar.</p>
 <p>En el navegador, la subcarpeta va en la dirección:
 <code>http://10.22.143.222:3838/sample-apps/a2499/epa/Dashboard_epa_ocupados.Rmd</code>.
 En WinSCP, Cyberduck o FileZilla las subcarpetas se crean con el botón
@@ -2083,11 +2088,17 @@ tipo <em>must be of size … not size 0</em>)</td>
 subcarpeta (Paso 2)</td>
 </tr>
 <tr class="even">
+<td>El cuadro de mandos de una subcarpeta se queda con la página en
+blanco y no arranca</td>
+<td>Hay algún <code>.Rmd</code> suelto en <code>aedv</code>: muévelo a
+su propia subcarpeta (Paso 2)</td>
+</tr>
+<tr class="odd">
 <td><em>no se pudo encontrar la función</em> / <em>could not find
 function</em></td>
 <td>Indica la librería: <code>libreria::funcion()</code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Has subido una versión nueva y se sigue viendo la anterior</td>
 <td>Recarga la página (F5) y comprueba que has subido el fichero a la
 carpeta de tu cuenta y con el mismo nombre</td>

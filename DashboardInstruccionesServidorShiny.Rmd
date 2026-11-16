@@ -124,6 +124,8 @@ Por ejemplo, con las subcarpetas `gasto` y `epa`:
 /home/a2499/aedv/epa/Dashboard_epa_ocupados.Rmd
 ```
 
+**En cuanto uses subcarpetas, en `aedv` no puede quedar ningún `.Rmd` suelto** (tampoco el tuyo): todos van en su subcarpeta. Si queda alguno, el servidor toma `aedv` entera como un único cuadro de mandos y los de las subcarpetas se quedan con la página en blanco, sin arrancar.
+
 En el navegador, la subcarpeta va en la dirección: `http://10.22.143.222:3838/sample-apps/a2499/epa/Dashboard_epa_ocupados.Rmd`. En WinSCP, Cyberduck o FileZilla las subcarpetas se crean con el botón derecho (*Nuevo → Directorio* o *Nueva carpeta*); desde la consola, con `ssh a2499@10.22.143.222` y `mkdir /home/a2499/aedv/epa`.
 </div>
 
@@ -265,5 +267,6 @@ passwd
 | *Permission denied* al conectar | Usuario o contraseña incorrectos (el usuario, en minúsculas) |
 | Funciona en tu ordenador y en el servidor da error | Falta subir algún fichero de datos, se lee con una ruta, o no coinciden las mayúsculas de su nombre: mira el *log* (Paso 4) |
 | Funciona solo, pero falla si en la misma carpeta hay otro cuadro de mandos (desplegables que faltan, errores en `filter()` del tipo *must be of size … not size 0*) | Los dos comparten la sesión de R: pon cada uno en su propia subcarpeta (Paso 2) |
+| El cuadro de mandos de una subcarpeta se queda con la página en blanco y no arranca | Hay algún `.Rmd` suelto en `aedv`: muévelo a su propia subcarpeta (Paso 2) |
 | *no se pudo encontrar la función* / *could not find function* | Indica la librería: `libreria::funcion()` |
 | Has subido una versión nueva y se sigue viendo la anterior | Recarga la página (F5) y comprueba que has subido el fichero a la carpeta de tu cuenta y con el mismo nombre |
