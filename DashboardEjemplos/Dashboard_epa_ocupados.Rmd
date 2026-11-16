@@ -675,12 +675,14 @@ Column
 
 #### Mi título de proyecto personal
 
-Ocupados por sexo, grupo de edad y sector económico, de la Encuesta de Población Activa del INE: un dato por trimestre, desde el primero de 2008 hasta el tercero de 2026 (por provincia y sexo, desde 2002). El INE no publica el dato cuando la muestra es demasiado pequeña, así que algunas combinaciones no tienen dato.
+#### Descripción de los datos
+
+- Ocupados por sexo, grupo de edad y sector económico (INE) (datos trimestrales)
 
 #### Niveles territoriales
 
-- **Comunidad**: las 17 comunidades autónomas, Ceuta, Melilla y España (el total nacional).
-- **Provincia**: las 52 provincias, con  el sexo para todos los sectores, y solo el total de edad.
+- **Comunidad**: las 17 comunidades autónomas, Ceuta, Melilla y España (el total nacional). Periodo: 2008Q1-2026Q3
+- **Provincia**: las 52 provincias, con el sexo para todos los sectores, y solo el total de edad. Periodo: 2002Q1-2026Q3
 
 #### Atributos
 
@@ -690,7 +692,7 @@ Ocupados por sexo, grupo de edad y sector económico, de la Encuesta de Poblaci�
 
 #### Sectores económicos (CNAE-2009)
 
-El sector es la actividad del establecimiento donde trabaja la persona, no su ocupación: quien lleva la contabilidad de una fábrica cuenta en Industria, y quien repara las máquinas de un hotel, en Servicios. Los cuatro sectores agrupan las secciones de la Clasificación Nacional de Actividades Económicas (CNAE-2009).
+Los cuatro sectores agrupan las secciones de la Clasificación Nacional de Actividades Económicas (CNAE-2009).
 
 | Sector | Qué actividades incluye |
 |-----|--------------------|

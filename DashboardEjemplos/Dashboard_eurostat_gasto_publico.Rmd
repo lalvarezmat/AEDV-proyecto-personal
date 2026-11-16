@@ -670,7 +670,9 @@ Column
 
 #### Mi título de proyecto personal
 
-Gasto de las administraciones públicas de 30 países europeos y la UE-27, por año (desde 1995) y por sector (función del gasto según la clasificación **COFOG**), con el Total como suma de los diez sectores.
+#### Descripción de los datos
+
+- Gasto de las administraciones públicas de 30 países europeos y la UE-27, por año y por sector (según la clasificación **COFOG**), con el Total como suma de los diez sectores. Periodo: 1995-2025 (datos anuales)
 
 #### Sectores del gasto público (COFOG)
 
