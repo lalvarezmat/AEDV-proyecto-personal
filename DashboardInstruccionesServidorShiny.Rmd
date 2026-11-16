@@ -115,7 +115,7 @@ Sube a la carpeta de tu cuenta el `.Rmd` del cuadro de mandos **y todos los fich
 <div class="nota">
 <strong class="bloque-titulo">Un cuadro de mandos por carpeta</strong>
 
-Si vas a tener **más de un cuadro de mandos** en el servidor (por ejemplo, el tuyo y uno de los de referencia), pon **cada uno en su propia subcarpeta** dentro de `aedv`, con sus ficheros de datos. El servidor ejecuta todos los `.Rmd` de una misma carpeta en una sola sesión de R, y las variables del chunk `global` de uno sustituyen a las del otro (`DATOS`, `GEOMETRIA`…), porque se llaman igual. El resultado son errores que en tu ordenador no aparecen, como desplegables que no existen o tablas filtradas con un valor vacío.
+Si vas a tener **más de un cuadro de mandos** en el servidor (por ejemplo, el tuyo y uno de los de referencia), pon **cada uno en su propia subcarpeta** dentro de `aedv`, **junto con todo lo que lee**: sus ficheros de datos y, si lo carga con `source()`, `utilidades.R`. Las rutas son relativas a la carpeta del `.Rmd`, así que cada subcarpeta necesita su propia copia; si falta alguno, el *log* dice *no se puede abrir la conexión* (*cannot open the connection*). El servidor ejecuta todos los `.Rmd` de una misma carpeta en una sola sesión de R, y las variables del chunk `global` de uno sustituyen a las del otro (`DATOS`, `GEOMETRIA`…), porque se llaman igual. El resultado son errores que en tu ordenador no aparecen, como desplegables que no existen o tablas filtradas con un valor vacío.
 
 Por ejemplo, con las subcarpetas `gasto` y `epa`:
 
@@ -265,7 +265,7 @@ passwd
 | El navegador no llega a cargar la página, o WinSCP / `scp` / `ssh` no conectan | La VPN no está conectada |
 | *Not Found* en el navegador | El nombre de la cuenta o del fichero de la dirección no coincide exactamente (mayúsculas incluidas), o el fichero no está en la carpeta de tu cuenta |
 | *Permission denied* al conectar | Usuario o contraseña incorrectos (el usuario, en minúsculas) |
-| Funciona en tu ordenador y en el servidor da error | Falta subir algún fichero de datos, se lee con una ruta, o no coinciden las mayúsculas de su nombre: mira el *log* (Paso 4) |
+| Funciona en tu ordenador y en el servidor da error (en el *log*, *no se puede abrir la conexión*) | Falta subir algún fichero de datos (o `utilidades.R`) a la carpeta del `.Rmd`, se lee con una ruta, o no coinciden las mayúsculas de su nombre: mira el *log* (Paso 4) |
 | Funciona solo, pero falla si en la misma carpeta hay otro cuadro de mandos (desplegables que faltan, errores en `filter()` del tipo *must be of size … not size 0*) | Los dos comparten la sesión de R: pon cada uno en su propia subcarpeta (Paso 2) |
 | El cuadro de mandos de una subcarpeta se queda con la página en blanco y no arranca | Hay algún `.Rmd` suelto en `aedv`: muévelo a su propia subcarpeta (Paso 2) |
 | *no se pudo encontrar la función* / *could not find function* | Indica la librería: `libreria::funcion()` |

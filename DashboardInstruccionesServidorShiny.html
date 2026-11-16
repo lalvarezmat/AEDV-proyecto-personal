@@ -1837,10 +1837,15 @@ carpeta</strong></p>
 <p>Si vas a tener <strong>más de un cuadro de mandos</strong> en el
 servidor (por ejemplo, el tuyo y uno de los de referencia), pon
 <strong>cada uno en su propia subcarpeta</strong> dentro de
-<code>aedv</code>, con sus ficheros de datos. El servidor ejecuta todos
-los <code>.Rmd</code> de una misma carpeta en una sola sesión de R, y
-las variables del chunk <code>global</code> de uno sustituyen a las del
-otro (<code>DATOS</code>, <code>GEOMETRIA</code>…), porque se llaman
+<code>aedv</code>, <strong>junto con todo lo que lee</strong>: sus
+ficheros de datos y, si lo carga con <code>source()</code>,
+<code>utilidades.R</code>. Las rutas son relativas a la carpeta del
+<code>.Rmd</code>, así que cada subcarpeta necesita su propia copia; si
+falta alguno, el <em>log</em> dice <em>no se puede abrir la
+conexión</em> (<em>cannot open the connection</em>). El servidor ejecuta
+todos los <code>.Rmd</code> de una misma carpeta en una sola sesión de
+R, y las variables del chunk <code>global</code> de uno sustituyen a las
+del otro (<code>DATOS</code>, <code>GEOMETRIA</code>…), porque se llaman
 igual. El resultado son errores que en tu ordenador no aparecen, como
 desplegables que no existen o tablas filtradas con un valor vacío.</p>
 <p>Por ejemplo, con las subcarpetas <code>gasto</code> y
@@ -2075,10 +2080,11 @@ de tu cuenta</td>
 <td>Usuario o contraseña incorrectos (el usuario, en minúsculas)</td>
 </tr>
 <tr class="even">
-<td>Funciona en tu ordenador y en el servidor da error</td>
-<td>Falta subir algún fichero de datos, se lee con una ruta, o no
-coinciden las mayúsculas de su nombre: mira el <em>log</em> (Paso
-4)</td>
+<td>Funciona en tu ordenador y en el servidor da error (en el
+<em>log</em>, <em>no se puede abrir la conexión</em>)</td>
+<td>Falta subir algún fichero de datos (o <code>utilidades.R</code>) a
+la carpeta del <code>.Rmd</code>, se lee con una ruta, o no coinciden
+las mayúsculas de su nombre: mira el <em>log</em> (Paso 4)</td>
 </tr>
 <tr class="odd">
 <td>Funciona solo, pero falla si en la misma carpeta hay otro cuadro de
