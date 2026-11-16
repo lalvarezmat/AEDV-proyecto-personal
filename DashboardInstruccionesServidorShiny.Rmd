@@ -112,6 +112,21 @@ Fíjate en que, si tu cuenta fuese *a2499*, **lo que subes a `/home/a2499/aedv` 
 
 Sube a la carpeta de tu cuenta el `.Rmd` del cuadro de mandos **y todos los ficheros de datos que lee** (con los mismos nombres que usa el código). Aunque no es lo normal, en alguna ocasión el cuadro de mandos puede fallar porque un fichero no tiene permiso de lectura. En ese caso hay que cambiar los permisos: en WinSCP, clic derecho sobre los ficheros → *Propiedades*, y marca todas las casillas de lectura y ejecución (las señaladas con **R** y **X**); desde la consola, con `ssh a2499@10.22.143.222` y después `chmod a+rx /home/a2499/aedv/*`.
 
+<div class="nota">
+<strong class="bloque-titulo">Un cuadro de mandos por carpeta</strong>
+
+Si vas a tener **más de un cuadro de mandos** en el servidor (por ejemplo, el tuyo y uno de los de referencia), pon **cada uno en su propia subcarpeta** dentro de `aedv`, con sus ficheros de datos. El servidor ejecuta todos los `.Rmd` de una misma carpeta en una sola sesión de R, y las variables del chunk `global` de uno sustituyen a las del otro (`DATOS`, `GEOMETRIA`…), porque se llaman igual. El resultado son errores que en tu ordenador no aparecen, como desplegables que no existen o tablas filtradas con un valor vacío.
+
+Por ejemplo, con las subcarpetas `gasto` y `epa`:
+
+```
+/home/a2499/aedv/gasto/Dashboard_eurostat_gasto_publico.Rmd
+/home/a2499/aedv/epa/Dashboard_epa_ocupados.Rmd
+```
+
+En el navegador, la subcarpeta va en la dirección: `http://10.22.143.222:3838/sample-apps/a2499/epa/Dashboard_epa_ocupados.Rmd`. En WinSCP, Cyberduck o FileZilla las subcarpetas se crean con el botón derecho (*Nuevo → Directorio* o *Nueva carpeta*); desde la consola, con `ssh a2499@10.22.143.222` y `mkdir /home/a2499/aedv/epa`.
+</div>
+
 ## Opción A: con WinSCP (Windows) o Cyberduck / FileZilla (macOS)
 
 1. Instala la aplicación: **WinSCP** en Windows (`https://winscp.net`); en macOS, **Cyberduck** (`https://cyberduck.io`) o **FileZilla** (`https://filezilla-project.org`, el cliente, no el servidor).
@@ -249,5 +264,6 @@ passwd
 | *Not Found* en el navegador | El nombre de la cuenta o del fichero de la dirección no coincide exactamente (mayúsculas incluidas), o el fichero no está en la carpeta de tu cuenta |
 | *Permission denied* al conectar | Usuario o contraseña incorrectos (el usuario, en minúsculas) |
 | Funciona en tu ordenador y en el servidor da error | Falta subir algún fichero de datos, se lee con una ruta, o no coinciden las mayúsculas de su nombre: mira el *log* (Paso 4) |
+| Funciona solo, pero falla si en la misma carpeta hay otro cuadro de mandos (desplegables que faltan, errores en `filter()` del tipo *must be of size … not size 0*) | Los dos comparten la sesión de R: pon cada uno en su propia subcarpeta (Paso 2) |
 | *no se pudo encontrar la función* / *could not find function* | Indica la librería: `libreria::funcion()` |
 | Has subido una versión nueva y se sigue viendo la anterior | Recarga la página (F5) y comprueba que has subido el fichero a la carpeta de tu cuenta y con el mismo nombre |

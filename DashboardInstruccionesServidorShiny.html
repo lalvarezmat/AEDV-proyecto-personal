@@ -1831,6 +1831,29 @@ las casillas de lectura y ejecución (las señaladas con
 <strong>R</strong> y <strong>X</strong>); desde la consola, con
 <code>ssh a2499@10.22.143.222</code> y después
 <code>chmod a+rx /home/a2499/aedv/*</code>.</p>
+<div class="nota">
+<p><strong class="bloque-titulo">Un cuadro de mandos por
+carpeta</strong></p>
+<p>Si vas a tener <strong>más de un cuadro de mandos</strong> en el
+servidor (por ejemplo, el tuyo y uno de los de referencia), pon
+<strong>cada uno en su propia subcarpeta</strong> dentro de
+<code>aedv</code>, con sus ficheros de datos. El servidor ejecuta todos
+los <code>.Rmd</code> de una misma carpeta en una sola sesión de R, y
+las variables del chunk <code>global</code> de uno sustituyen a las del
+otro (<code>DATOS</code>, <code>GEOMETRIA</code>…), porque se llaman
+igual. El resultado son errores que en tu ordenador no aparecen, como
+desplegables que no existen o tablas filtradas con un valor vacío.</p>
+<p>Por ejemplo, con las subcarpetas <code>gasto</code> y
+<code>epa</code>:</p>
+<pre><code>/home/a2499/aedv/gasto/Dashboard_eurostat_gasto_publico.Rmd
+/home/a2499/aedv/epa/Dashboard_epa_ocupados.Rmd</code></pre>
+<p>En el navegador, la subcarpeta va en la dirección:
+<code>http://10.22.143.222:3838/sample-apps/a2499/epa/Dashboard_epa_ocupados.Rmd</code>.
+En WinSCP, Cyberduck o FileZilla las subcarpetas se crean con el botón
+derecho (<em>Nuevo → Directorio</em> o <em>Nueva carpeta</em>); desde la
+consola, con <code>ssh a2499@10.22.143.222</code> y
+<code>mkdir /home/a2499/aedv/epa</code>.</p>
+</div>
 <div id="opción-a-con-winscp-windows-o-cyberduck-filezilla-macos" class="section level2" number="4.1">
 <h2><span class="header-section-number">4.1</span> Opción A: con WinSCP
 (Windows) o Cyberduck / FileZilla (macOS)</h2>
@@ -2053,11 +2076,18 @@ coinciden las mayúsculas de su nombre: mira el <em>log</em> (Paso
 4)</td>
 </tr>
 <tr class="odd">
+<td>Funciona solo, pero falla si en la misma carpeta hay otro cuadro de
+mandos (desplegables que faltan, errores en <code>filter()</code> del
+tipo <em>must be of size … not size 0</em>)</td>
+<td>Los dos comparten la sesión de R: pon cada uno en su propia
+subcarpeta (Paso 2)</td>
+</tr>
+<tr class="even">
 <td><em>no se pudo encontrar la función</em> / <em>could not find
 function</em></td>
 <td>Indica la librería: <code>libreria::funcion()</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Has subido una versión nueva y se sigue viendo la anterior</td>
 <td>Recarga la página (F5) y comprueba que has subido el fichero a la
 carpeta de tu cuenta y con el mismo nombre</td>
