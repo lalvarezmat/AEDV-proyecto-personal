@@ -678,18 +678,18 @@ GEOMETRIA <- leer_geojson("mi_geometria.geojson") |>
 
 El **sexo, el grupo de edad** (y cualquier otra variable categórica, como el sector económico) van cada uno en **su propia columna**, con una fila por cada combinación de sus categorías, **incluidas las de los totales** («Ambos sexos», «Total»…). No hay que juntarlos en una sola columna: el dashboard pone un desplegable por atributo y los combina él solo. Una combinación sin dato no lleva fila (no hace falta una fila con `NA`).
 
-**Ejemplo con un atributo y datos anuales: el gasto público** (`Dashboard_eurostat_gasto_publico.Rmd`). El único atributo es el **sector** (con el «Total» como una categoría más), y las **cuatro medidas** van en la columna `medida`: `gasto` (millones de euros), `gasto_per_capita` (euros por habitante), `pct_pib` (% del PIB) y `pct_gasto` (% del gasto público total, que no existe en el Total y por eso no tiene fila). Algunas filas:
+**Ejemplo con un atributo y datos anuales: el gasto público** (`Dashboard_eurostat_gasto_publico.Rmd`). El único atributo es el **sector** (con el «Total» como una categoría más), y las **cuatro medidas** van en la columna `medida`: `valor_absoluto` (gasto en millones de euros), `valor_per_capita` (gasto en euros por habitante), `pct_pib` (% del PIB) y `pct_gasto` (% del gasto público total, que no existe en el Total y por eso no tiene fila). Algunas filas:
 
 <div class="tabla-scroll">
 
 | codigo | area | sector | periodo | medida | valor |
 |---|---|---|---|---|---|
-| ESP | España | Salud | 2023 | gasto | 98630 |
-| ESP | España | Salud | 2023 | gasto_per_capita | 2039.8 |
+| ESP | España | Salud | 2023 | valor_absoluto | 98630 |
+| ESP | España | Salud | 2023 | valor_per_capita | 2039.8 |
 | ESP | España | Salud | 2023 | pct_pib | 6.6 |
 | ESP | España | Salud | 2023 | pct_gasto | 14.5 |
-| ESP | España | Total | 2023 | gasto | 680225 |
-| ESP | España | Total | 2023 | gasto_per_capita | 14068.0 |
+| ESP | España | Total | 2023 | valor_absoluto | 680225 |
+| ESP | España | Total | 2023 | valor_per_capita | 14068.0 |
 | ESP | España | Total | 2023 | pct_pib | 45.4 |
 | EU27_2020 | UE-27 | Salud | 2023 | pct_pib | 7.2 |
 

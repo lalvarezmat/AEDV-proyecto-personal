@@ -198,11 +198,11 @@ leer_geojson <- function(fichero) {
 #     Ejemplo con UN atributo, el sector del gasto público (datos anuales):
 #
 #       codigo  area     sector     periodo  medida             valor
-#       ESP     España   Salud         2023  gasto_per_capita  2039.8
+#       ESP     España   Salud         2023  valor_per_capita  2039.8
 #       ESP     España   Salud         2023  pct_pib              6.6
-#       ESP     España   Defensa       2023  gasto_per_capita   289.7
+#       ESP     España   Defensa       2023  valor_per_capita   289.7
 #       ESP     España   Defensa       2023  pct_pib              0.9
-#       ESP     España   Total         2023  gasto_per_capita 14068.0   <- el total, una categoría más
+#       ESP     España   Total         2023  valor_per_capita 14068.0   <- el total, una categoría más
 #       ESP     España   Total         2023  pct_pib             45.4
 #       ...
 #
