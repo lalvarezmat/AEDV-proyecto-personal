@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-11-15" />
+<meta name="date" content="2026-11-17" />
 
 <title>Proyecto Personal AEDV — Guía de trabajo</title>
 
@@ -1617,7 +1617,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Proyecto Personal AEDV — Guía de
 trabajo</h1>
-<h4 class="date">2026-11-15</h4>
+<h4 class="date">2026-11-17</h4>
 
 </div>
 
@@ -3217,10 +3217,11 @@ el gasto público por sectores de Eurostat, con <strong>un
 atributo</strong> (el sector).</li>
 <li><a href="https://ctim.es/AEDV/Dashboard_epa_ocupados.Rmd">Dashboard_epa_ocupados.Rmd</a>:
 los ocupados de la EPA, con <strong>tres atributos</strong> (el sexo, el
-grupo de edad y el sector económico), dos medidas (los ocupados y los
-ocupados por cada 100 personas en edad de trabajar) y <strong>dos
-niveles territoriales</strong>, las comunidades autónomas y las
-provincias, cada uno con su mapa.</li>
+grupo de edad y el indicador: los sectores económicos y el incremento de
+la población), dos medidas (<code>valor_absoluto</code>, los ocupados, y
+<code>tasa</code>, los ocupados por cada 100 personas en edad de
+trabajar) y <strong>dos niveles territoriales</strong>, las comunidades
+autónomas y las provincias, cada uno con su mapa.</li>
 </ul>
 <p>Para aplicar la plantilla a otro dataset solo hay que cambiar lo
 marcado con ✎, en cuatro sitios:</p>
@@ -3255,7 +3256,7 @@ a frente (dispersión, recta de regresión y tests), con Yeo-Johnson.</li>
 <li><strong>PCA</strong>: matriz de correlación, PCA y k-means. Las
 columnas son las categorías de un atributo o, si en el desplegable
 múltiple «Atributos del PCA» se eligen varios, las combinaciones de sus
-categorías (sexo y sector: «Mujeres · Servicios»…); los atributos no
+categorías (sexo e indicador: «Mujeres · Servicios»…); los atributos no
 elegidos se fijan en una categoría.</li>
 </ul>
 <p>En todas las páginas se elige la medida y el <strong>dato
@@ -3419,12 +3420,14 @@ páginas salvo en el mapa.</p>
 territoriales: los ocupados de la EPA</strong>
 (<code>Dashboard_epa_ocupados.Rmd</code>). Los atributos son el
 <strong>sexo</strong>, el <strong>grupo de edad</strong> y el
-<strong>sector</strong>, cada uno en su columna y con su total; las
-medidas, <code>ocupados</code> (miles de personas, un dato por
-trimestre) y <code>ocupados_por_100</code> (ocupados por cada 100
-personas de 16 y más años del mismo sexo y edad); y la columna
-<code>nivel</code> separa las comunidades de las provincias. Algunas
-filas:</p>
+<strong>indicador</strong> (los sectores económicos, su total
+<code>Total_sectores</code> y el incremento de la población), cada uno
+en su columna y con su total; las medidas, <code>valor_absoluto</code>
+(ocupados en miles de personas, un dato por trimestre) y
+<code>tasa</code> (ocupados por cada 100 personas de 16 y más años del
+mismo sexo y edad; en el incremento de la población, el incremento en %,
+que solo tiene esta medida); y la columna <code>nivel</code> separa las
+comunidades de las provincias. Algunas filas:</p>
 <div class="tabla-scroll">
 <table style="width:100%;">
 <colgroup>
@@ -3445,7 +3448,7 @@ filas:</p>
 <th>nivel</th>
 <th>sexo</th>
 <th>edad</th>
-<th>sector</th>
+<th>indicador</th>
 <th>periodo</th>
 <th>medida</th>
 <th>valor</th>
@@ -3460,7 +3463,7 @@ filas:</p>
 <td>De 25 a 54 años</td>
 <td>Servicios</td>
 <td>2026 Q3</td>
-<td>ocupados</td>
+<td>valor_absoluto</td>
 <td>320.1</td>
 </tr>
 <tr class="even">
@@ -3471,7 +3474,7 @@ filas:</p>
 <td>De 25 a 54 años</td>
 <td>Servicios</td>
 <td>2026 Q3</td>
-<td>ocupados</td>
+<td>valor_absoluto</td>
 <td>351.5</td>
 </tr>
 <tr class="odd">
@@ -3482,7 +3485,7 @@ filas:</p>
 <td>De 25 a 54 años</td>
 <td>Servicios</td>
 <td>2026 Q3</td>
-<td>ocupados</td>
+<td>valor_absoluto</td>
 <td>671.6</td>
 </tr>
 <tr class="even">
@@ -3493,7 +3496,7 @@ filas:</p>
 <td>Total</td>
 <td>Servicios</td>
 <td>2026 Q3</td>
-<td>ocupados</td>
+<td>valor_absoluto</td>
 <td>942.5</td>
 </tr>
 <tr class="odd">
@@ -3502,9 +3505,9 @@ filas:</p>
 <td>Comunidad</td>
 <td>Ambos sexos</td>
 <td>De 25 a 54 años</td>
-<td>Total</td>
+<td>Total_sectores</td>
 <td>2026 Q3</td>
-<td>ocupados</td>
+<td>valor_absoluto</td>
 <td>766.7</td>
 </tr>
 <tr class="even">
@@ -3513,9 +3516,9 @@ filas:</p>
 <td>Comunidad</td>
 <td>Ambos sexos</td>
 <td>Total</td>
-<td>Total</td>
+<td>Total_sectores</td>
 <td>2026 Q3</td>
-<td>ocupados</td>
+<td>valor_absoluto</td>
 <td>1073.6</td>
 </tr>
 <tr class="odd">
@@ -3524,21 +3527,21 @@ filas:</p>
 <td>Comunidad</td>
 <td>Ambos sexos</td>
 <td>Total</td>
-<td>Total</td>
+<td>Total_sectores</td>
 <td>2026 Q3</td>
-<td>ocupados_por_100</td>
+<td>tasa</td>
 <td>53.8</td>
 </tr>
 <tr class="even">
-<td>35</td>
-<td>Las Palmas</td>
-<td>Provincia</td>
+<td>05</td>
+<td>Canarias</td>
+<td>Comunidad</td>
 <td>Ambos sexos</td>
 <td>Total</td>
-<td>Servicios</td>
+<td>Incremento población (%)</td>
 <td>2026 Q3</td>
-<td>ocupados</td>
-<td>492.3</td>
+<td>tasa</td>
+<td>42.5</td>
 </tr>
 <tr class="odd">
 <td>35</td>
@@ -3546,20 +3549,31 @@ filas:</p>
 <td>Provincia</td>
 <td>Ambos sexos</td>
 <td>Total</td>
-<td>Total</td>
+<td>Servicios</td>
 <td>2026 Q3</td>
-<td>ocupados</td>
-<td>557.6</td>
+<td>valor_absoluto</td>
+<td>492.3</td>
 </tr>
 <tr class="even">
+<td>35</td>
+<td>Las Palmas</td>
+<td>Provincia</td>
+<td>Ambos sexos</td>
+<td>Total</td>
+<td>Total_sectores</td>
+<td>2026 Q3</td>
+<td>valor_absoluto</td>
+<td>557.6</td>
+</tr>
+<tr class="odd">
 <td>38</td>
 <td>Santa Cruz de Tenerife</td>
 <td>Provincia</td>
 <td>Ambos sexos</td>
 <td>Total</td>
-<td>Total</td>
+<td>Total_sectores</td>
 <td>2026 Q3</td>
-<td>ocupados</td>
+<td>valor_absoluto</td>
 <td>516.0</td>
 </tr>
 </tbody>
@@ -3611,7 +3625,7 @@ recuadro anterior, organizado como allí se explica
 organizado</strong>. Debe haber un solo valor por nivel, área,
 combinación de atributos, periodo y medida, y conviene saber qué áreas
 no tienen polígono:</p>
-<pre class="default"><code>datos |&gt; count(nivel, area, sexo, edad, sector, periodo, medida) |&gt; filter(n &gt; 1) # tiene que salir vacío
+<pre class="default"><code>datos |&gt; count(nivel, area, sexo, edad, indicador, periodo, medida) |&gt; filter(n &gt; 1) # tiene que salir vacío
 setdiff(datos$codigo, geometria$codigo) # áreas sin polígono (no salen en el mapa)</code></pre></li>
 <li><p><strong>Adapta el <code>.Rmd</code> cambiando SOLO lo marcado con
 ✎</strong>: el título (PASO 1); la lectura de tu <code>.rds</code> y de

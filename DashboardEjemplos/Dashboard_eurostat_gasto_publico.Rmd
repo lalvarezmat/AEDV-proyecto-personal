@@ -46,7 +46,7 @@ runtime: shiny
   HAY DOS EJEMPLOS DE ESTA PLANTILLA, que solo se diferencian en lo marcado
   con ✎: Dashboard_eurostat_gasto_publico.Rmd, con un atributo (el sector del
   gasto público de Eurostat), y Dashboard_epa_ocupados.Rmd, con tres (el sexo,
-  el grupo de edad y el sector económico de los ocupados de la EPA).
+  el grupo de edad y el indicador de los ocupados de la EPA).
 
   EN ESTE CUADRO DE MANDOS: el gasto de las administraciones públicas por
   sectores (funciones COFOG) de 30 países europeos y la UE-27, de Eurostat.
@@ -203,18 +203,18 @@ leer_geojson <- function(fichero) {
 #       ESP     España   Total         2023  pct_pib             45.4
 #       ...
 #
-#     Ejemplo con TRES atributos, el sexo, el grupo de edad y el sector
-#     económico (la EPA, ocupados en miles, datos trimestrales): cada uno en su
+#     Ejemplo con TRES atributos, el sexo, el grupo de edad y el indicador
+#     (la EPA, ocupados en miles, datos trimestrales): cada uno en su
 #     columna, y una fila por cada combinación de sus categorías, incluidas las
-#     de los totales («Ambos sexos», «Total» y «Total»):
+#     de los totales («Ambos sexos», «Total» y «Total_sectores»):
 #
-#       codigo  area      sexo         edad              sector     periodo  medida     valor
-#       05      Canarias  Hombres      De 25 a 54 años   Servicios  2026 Q3  ocupados   320.1
-#       05      Canarias  Mujeres      De 25 a 54 años   Servicios  2026 Q3  ocupados   351.5
-#       05      Canarias  Ambos sexos  De 25 a 54 años   Servicios  2026 Q3  ocupados   671.6
-#       05      Canarias  Ambos sexos  Total             Servicios  2026 Q3  ocupados   942.5
-#       05      Canarias  Ambos sexos  De 25 a 54 años   Total      2026 Q3  ocupados   766.7
-#       05      Canarias  Ambos sexos  Total             Total      2026 Q3  ocupados  1073.6
+#       codigo  area      sexo         edad              indicador       periodo  medida          valor
+#       05      Canarias  Hombres      De 25 a 54 años   Servicios       2026 Q3  valor_absoluto  320.1
+#       05      Canarias  Mujeres      De 25 a 54 años   Servicios       2026 Q3  valor_absoluto  351.5
+#       05      Canarias  Ambos sexos  De 25 a 54 años   Servicios       2026 Q3  valor_absoluto  671.6
+#       05      Canarias  Ambos sexos  Total             Servicios       2026 Q3  valor_absoluto  942.5
+#       05      Canarias  Ambos sexos  De 25 a 54 años   Total_sectores  2026 Q3  valor_absoluto  766.7
+#       05      Canarias  Ambos sexos  Total             Total_sectores  2026 Q3  valor_absoluto 1073.6
 #       ...
 #
 #     NO hay que juntar los atributos en una sola columna: el cuadro de mandos
@@ -2137,6 +2137,7 @@ procesado_page_2 <- eventReactive(input$calcular_2, {
   tabla <- tabla |>
     mutate(columna = do.call(paste, c(across(all_of(cols_pca)), sep = " · "))) |> # "Mujeres · De 25 a 34 años"
     select(area, periodo, columna, valor = input$medida_2) |> # medida elegida
+    filter(!is.na(valor)) |> # sin las categorías que no tienen esta medida
     pivot_wider(names_from = columna, values_from = valor) |> # una fila por área y periodo, una columna por combinación
     drop_na() # periodos sin todas las columnas
   columnas <- setdiff(names(tabla), c("area", "periodo")) # las columnas del PCA

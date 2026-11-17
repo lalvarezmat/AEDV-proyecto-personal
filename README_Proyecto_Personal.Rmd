@@ -630,7 +630,7 @@ El dashboard es el entregable técnico más exigente. Debe estar desplegado y ac
 Tu dashboard tiene que partir **obligatoriamente** de la plantilla de cuadro de mandos de la asignatura, **adaptada a tus datos**. Hay dos ejemplos de la misma plantilla, que solo se diferencian en lo marcado con ✎; parte del que más se parezca a tus datos:
 
 * [Dashboard_eurostat_gasto_publico.Rmd](https://ctim.es/AEDV/Dashboard_eurostat_gasto_publico.Rmd): el gasto público por sectores de Eurostat, con **un atributo** (el sector).
-* [Dashboard_epa_ocupados.Rmd](https://ctim.es/AEDV/Dashboard_epa_ocupados.Rmd): los ocupados de la EPA, con **tres atributos** (el sexo, el grupo de edad y el sector económico), dos medidas (los ocupados y los ocupados por cada 100 personas en edad de trabajar) y **dos niveles territoriales**, las comunidades autónomas y las provincias, cada uno con su mapa.
+* [Dashboard_epa_ocupados.Rmd](https://ctim.es/AEDV/Dashboard_epa_ocupados.Rmd): los ocupados de la EPA, con **tres atributos** (el sexo, el grupo de edad y el indicador: los sectores económicos y el incremento de la población), dos medidas (`valor_absoluto`, los ocupados, y `tasa`, los ocupados por cada 100 personas en edad de trabajar) y **dos niveles territoriales**, las comunidades autónomas y las provincias, cada uno con su mapa.
 
 Para aplicar la plantilla a otro dataset solo hay que cambiar lo marcado con ✎, en cuatro sitios:
 
@@ -645,7 +645,7 @@ Todo lo demás (las medidas, las áreas, las categorías de los atributos, los p
 * **Predicción**: predicción con ARIMA o STL + ARIMA y análisis del error del ajuste.
 * **Mapa**: mapa coroplético.
 * **Comparación**: dos combinaciones de atributos frente a frente (dispersión, recta de regresión y tests), con Yeo-Johnson.
-* **PCA**: matriz de correlación, PCA y k-means. Las columnas son las categorías de un atributo o, si en el desplegable múltiple «Atributos del PCA» se eligen varios, las combinaciones de sus categorías (sexo y sector: «Mujeres · Servicios»…); los atributos no elegidos se fijan en una categoría.
+* **PCA**: matriz de correlación, PCA y k-means. Las columnas son las categorías de un atributo o, si en el desplegable múltiple «Atributos del PCA» se eligen varios, las combinaciones de sus categorías (sexo e indicador: «Mujeres · Servicios»…); los atributos no elegidos se fijan en una categoría.
 
 En todas las páginas se elige la medida y el **dato presentado**: el valor de la medida o su **incremento en porcentaje respecto al año anterior** (con datos trimestrales o mensuales, respecto al mismo trimestre o mes del año anterior: el incremento interanual), que se calcula una sola vez al arrancar. En el mapa, la comparación y el PCA el periodo (año, trimestre o mes) puede ser uno concreto, el último disponible de cada área o la media en el periodo; con datos trimestrales o mensuales, además, la **última media anual** (la media del último año completo de cada área), que es la que sale al arrancar.
 
@@ -697,22 +697,23 @@ El **sexo, el grupo de edad** (y cualquier otra variable categórica, como el se
 
 `ESP` es el código ISO de tres letras, el mismo de la geometría de los países; la UE-27 no tiene polígono y sale en todas las páginas salvo en el mapa.
 
-**Ejemplo con tres atributos, datos trimestrales y dos niveles territoriales: los ocupados de la EPA** (`Dashboard_epa_ocupados.Rmd`). Los atributos son el **sexo**, el **grupo de edad** y el **sector**, cada uno en su columna y con su total; las medidas, `ocupados` (miles de personas, un dato por trimestre) y `ocupados_por_100` (ocupados por cada 100 personas de 16 y más años del mismo sexo y edad); y la columna `nivel` separa las comunidades de las provincias. Algunas filas:
+**Ejemplo con tres atributos, datos trimestrales y dos niveles territoriales: los ocupados de la EPA** (`Dashboard_epa_ocupados.Rmd`). Los atributos son el **sexo**, el **grupo de edad** y el **indicador** (los sectores económicos, su total `Total_sectores` y el incremento de la población), cada uno en su columna y con su total; las medidas, `valor_absoluto` (ocupados en miles de personas, un dato por trimestre) y `tasa` (ocupados por cada 100 personas de 16 y más años del mismo sexo y edad; en el incremento de la población, el incremento en %, que solo tiene esta medida); y la columna `nivel` separa las comunidades de las provincias. Algunas filas:
 
 <div class="tabla-scroll">
 
-| codigo | area | nivel | sexo | edad | sector | periodo | medida | valor |
+| codigo | area | nivel | sexo | edad | indicador | periodo | medida | valor |
 |---|---|---|---|---|---|---|---|---|
-| 05 | Canarias | Comunidad | Hombres | De 25 a 54 años | Servicios | 2026 Q3 | ocupados | 320.1 |
-| 05 | Canarias | Comunidad | Mujeres | De 25 a 54 años | Servicios | 2026 Q3 | ocupados | 351.5 |
-| 05 | Canarias | Comunidad | Ambos sexos | De 25 a 54 años | Servicios | 2026 Q3 | ocupados | 671.6 |
-| 05 | Canarias | Comunidad | Ambos sexos | Total | Servicios | 2026 Q3 | ocupados | 942.5 |
-| 05 | Canarias | Comunidad | Ambos sexos | De 25 a 54 años | Total | 2026 Q3 | ocupados | 766.7 |
-| 05 | Canarias | Comunidad | Ambos sexos | Total | Total | 2026 Q3 | ocupados | 1073.6 |
-| 05 | Canarias | Comunidad | Ambos sexos | Total | Total | 2026 Q3 | ocupados_por_100 | 53.8 |
-| 35 | Las Palmas | Provincia | Ambos sexos | Total | Servicios | 2026 Q3 | ocupados | 492.3 |
-| 35 | Las Palmas | Provincia | Ambos sexos | Total | Total | 2026 Q3 | ocupados | 557.6 |
-| 38 | Santa Cruz de Tenerife | Provincia | Ambos sexos | Total | Total | 2026 Q3 | ocupados | 516.0 |
+| 05 | Canarias | Comunidad | Hombres | De 25 a 54 años | Servicios | 2026 Q3 | valor_absoluto | 320.1 |
+| 05 | Canarias | Comunidad | Mujeres | De 25 a 54 años | Servicios | 2026 Q3 | valor_absoluto | 351.5 |
+| 05 | Canarias | Comunidad | Ambos sexos | De 25 a 54 años | Servicios | 2026 Q3 | valor_absoluto | 671.6 |
+| 05 | Canarias | Comunidad | Ambos sexos | Total | Servicios | 2026 Q3 | valor_absoluto | 942.5 |
+| 05 | Canarias | Comunidad | Ambos sexos | De 25 a 54 años | Total_sectores | 2026 Q3 | valor_absoluto | 766.7 |
+| 05 | Canarias | Comunidad | Ambos sexos | Total | Total_sectores | 2026 Q3 | valor_absoluto | 1073.6 |
+| 05 | Canarias | Comunidad | Ambos sexos | Total | Total_sectores | 2026 Q3 | tasa | 53.8 |
+| 05 | Canarias | Comunidad | Ambos sexos | Total | Incremento población (%) | 2026 Q3 | tasa | 42.5 |
+| 35 | Las Palmas | Provincia | Ambos sexos | Total | Servicios | 2026 Q3 | valor_absoluto | 492.3 |
+| 35 | Las Palmas | Provincia | Ambos sexos | Total | Total_sectores | 2026 Q3 | valor_absoluto | 557.6 |
+| 38 | Santa Cruz de Tenerife | Provincia | Ambos sexos | Total | Total_sectores | 2026 Q3 | valor_absoluto | 516.0 |
 
 </div>
 
@@ -740,7 +741,7 @@ Un nivel sin geometría (el total nacional, por ejemplo) sale en todas las pági
 3. **Comprueba que el `.rds` está bien organizado**. Debe haber un solo valor por nivel, área, combinación de atributos, periodo y medida, y conviene saber qué áreas no tienen polígono:
 
     ```{verbatim}
-    datos |> count(nivel, area, sexo, edad, sector, periodo, medida) |> filter(n > 1) # tiene que salir vacío
+    datos |> count(nivel, area, sexo, edad, indicador, periodo, medida) |> filter(n > 1) # tiene que salir vacío
     setdiff(datos$codigo, geometria$codigo) # áreas sin polígono (no salen en el mapa)
     ```
 

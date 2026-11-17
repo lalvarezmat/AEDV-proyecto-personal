@@ -46,11 +46,12 @@ runtime: shiny
   HAY DOS EJEMPLOS DE ESTA PLANTILLA, que solo se diferencian en lo marcado
   con ✎: Dashboard_eurostat_gasto_publico.Rmd, con un atributo (el sector del
   gasto público de Eurostat), y Dashboard_epa_ocupados.Rmd, con tres (el sexo,
-  el grupo de edad y el sector económico de los ocupados de la EPA).
+  el grupo de edad y el indicador de los ocupados de la EPA).
 
   EN ESTE CUADRO DE MANDOS: los ocupados (miles de personas, por trimestre) y los
   ocupados por cada 100 personas de 16 y más años, por sexo, grupo de edad y
-  sector económico, de la Encuesta de Población Activa del INE, en DOS
+  sector económico, y el incremento de la población de 16 y más años, de la
+  Encuesta de Población Activa del INE, en DOS
   NIVELES TERRITORIALES: las comunidades autónomas (con España) y las
   provincias, cada uno con su geometría.
 
@@ -205,18 +206,18 @@ leer_geojson <- function(fichero) {
 #       ESP     España   Total         2023  pct_pib             45.4
 #       ...
 #
-#     Ejemplo con TRES atributos, el sexo, el grupo de edad y el sector
-#     económico (la EPA, ocupados en miles, datos trimestrales): cada uno en su
+#     Ejemplo con TRES atributos, el sexo, el grupo de edad y el indicador
+#     (la EPA, ocupados en miles, datos trimestrales): cada uno en su
 #     columna, y una fila por cada combinación de sus categorías, incluidas las
-#     de los totales («Ambos sexos», «Total» y «Total»):
+#     de los totales («Ambos sexos», «Total» y «Total_sectores»):
 #
-#       codigo  area      sexo         edad              sector     periodo  medida     valor
-#       05      Canarias  Hombres      De 25 a 54 años   Servicios  2026 Q3  ocupados   320.1
-#       05      Canarias  Mujeres      De 25 a 54 años   Servicios  2026 Q3  ocupados   351.5
-#       05      Canarias  Ambos sexos  De 25 a 54 años   Servicios  2026 Q3  ocupados   671.6
-#       05      Canarias  Ambos sexos  Total             Servicios  2026 Q3  ocupados   942.5
-#       05      Canarias  Ambos sexos  De 25 a 54 años   Total      2026 Q3  ocupados   766.7
-#       05      Canarias  Ambos sexos  Total             Total      2026 Q3  ocupados  1073.6
+#       codigo  area      sexo         edad              indicador       periodo  medida          valor
+#       05      Canarias  Hombres      De 25 a 54 años   Servicios       2026 Q3  valor_absoluto  320.1
+#       05      Canarias  Mujeres      De 25 a 54 años   Servicios       2026 Q3  valor_absoluto  351.5
+#       05      Canarias  Ambos sexos  De 25 a 54 años   Servicios       2026 Q3  valor_absoluto  671.6
+#       05      Canarias  Ambos sexos  Total             Servicios       2026 Q3  valor_absoluto  942.5
+#       05      Canarias  Ambos sexos  De 25 a 54 años   Total_sectores  2026 Q3  valor_absoluto  766.7
+#       05      Canarias  Ambos sexos  Total             Total_sectores  2026 Q3  valor_absoluto 1073.6
 #       ...
 #
 #     NO hay que juntar los atributos en una sola columna: el cuadro de mandos
@@ -230,7 +231,7 @@ leer_geojson <- function(fichero) {
 #     list(Comunidad = leer_geojson(...) |> select(...), Isla = ...). Un nivel sin geometría (el
 #     total nacional, por ejemplo) sale en todas las páginas salvo en el mapa.
 
-# ocupados de la EPA por sexo, grupo de edad y sector (por trimestre), en dos
+# ocupados de la EPA por sexo, grupo de edad e indicador (por trimestre), en dos
 # niveles (columna nivel: "Comunidad" y "Provincia"), organizados como pide la
 # plantilla, y la geometría de cada nivel (código INE de la comunidad o de la
 # provincia, el mismo de los datos, y nombre corto)
@@ -246,19 +247,19 @@ GEOMETRIA <- list( # ✎
 # ✎ Columnas de DATOS que son atributos, con su rótulo: c(columna = "Rótulo").
 # Con dos o más, el cuadro de mandos pone un desplegable para cada uno.
 # Ejemplo con sexo y edad: c(sexo = "Sexo", edad = "Edad")
-COLUMNAS_ATRIBUTO <- c(sexo = "Sexo", edad = "Edad", sector = "Sector")
+COLUMNAS_ATRIBUTO <- c(sexo = "Sexo", edad = "Edad", indicador = "Indicador")
 
 # ✎ Categoría de cada atributo que es la suma de las demás (el total): sale en
 # Series, Predicción y Mapa, pero no en Comparación, ni como atributo del PCA.
 # NA (o no ponerlo) en un atributo que no tenga total.
 # Ejemplo con sexo y edad: c(sexo = "Ambos sexos", edad = "Total")
-TOTALES <- c(sexo = "Ambos sexos", edad = "Total", sector = "Total")
+TOTALES <- c(sexo = "Ambos sexos", edad = "Total", indicador = "Total_sectores")
 
 ETIQUETA_AREA   <- "Territorio"             # ✎ cómo se llama un área en los rótulos
 ETIQUETA_AREAS  <- "territorios"           # ✎ en plural, para los avisos
 TODAS_LAS_AREAS <- "Todos los territorios" # ✎ casilla de la página Series
 POR_AREAS       <- "Por territorios"     # ✎ página Series: un panel por área
-POR_ATRIBUTOS   <- c(sexo = "Por sexo", edad = "Por edad", sector = "Por sectores") # ✎ página Series: un panel por categoría de cada atributo
+POR_ATRIBUTOS   <- c(sexo = "Por sexo", edad = "Por edad", indicador = "Por indicadores") # ✎ página Series: un panel por categoría de cada atributo
                                               #   (ejemplo: c(sexo = "Por sexo", edad = "Por edad"))
 
 # ✎ Áreas destacadas: van las primeras en los desplegables, en rojo en la
@@ -269,14 +270,14 @@ RESALTAR <- c("Canarias", "España", "Las Palmas", "Santa Cruz de Tenerife")
 # categoría (o varias) por atributo, con el nombre de su columna. Si alguna no
 # existe en DATOS se usa la primera disponible, así que la plantilla no se
 # rompe al cambiar de datos y olvidarse de tocarlas.
-MEDIDA_INICIAL      <- "ocupados_por_100"                    # ✎ en todas las páginas
+MEDIDA_INICIAL      <- "tasa"                                # ✎ en todas las páginas
 AREA_INICIAL        <- "Canarias"                              # ✎ serie inicial de la predicción
 AREAS_INICIALES     <- c("Canarias", "España", "Andalucía", "Cataluña", "Madrid", "Baleares") # ✎ Series, al desmarcar la casilla
-ATRIBUTO_INICIAL    <- c(sexo = "Ambos sexos", edad = "Total", sector = "Total")                   # ✎ predicción, mapa y categorías fijas del PCA
-ATRIBUTOS_INICIALES <- list(sexo = c("Hombres", "Mujeres"), edad = "Total", sector = "Total") # ✎ Series
-ATRIBUTO_X_INICIAL  <- c(sexo = "Mujeres", edad = "De 25 a 54 años", sector = "Servicios")                   # ✎ Comparación, eje x
-ATRIBUTO_Y_INICIAL  <- c(sexo = "Hombres", edad = "De 25 a 54 años", sector = "Servicios")       # ✎ Comparación, eje y
-COLUMNAS_PCA_INICIALES <- "sector"                           # ✎ atributo(s) del PCA: sus categorías (o sus combinaciones) son las columnas
+ATRIBUTO_INICIAL    <- c(sexo = "Ambos sexos", edad = "Total", indicador = "Total_sectores")          # ✎ predicción, mapa y categorías fijas del PCA
+ATRIBUTOS_INICIALES <- list(sexo = c("Hombres", "Mujeres"), edad = "Total", indicador = "Total_sectores") # ✎ Series
+ATRIBUTO_X_INICIAL  <- c(sexo = "Mujeres", edad = "De 25 a 54 años", indicador = "Servicios")                   # ✎ Comparación, eje x
+ATRIBUTO_Y_INICIAL  <- c(sexo = "Hombres", edad = "De 25 a 54 años", indicador = "Servicios")       # ✎ Comparación, eje y
+COLUMNAS_PCA_INICIALES <- "indicador"                        # ✎ atributo(s) del PCA: sus categorías (o sus combinaciones) son las columnas
 K_INICIAL           <- 3                                     # ✎ nº de grupos del k-means
 NIVEL_INICIAL       <- "Comunidad"                         # ✎ nivel territorial con el que arrancan las páginas (si hay columna nivel)
 VISTA <- list(lng = -8, lat = 36, zoom = 5)                  # ✎ centro y zoom del mapa (España, con Canarias)
@@ -677,18 +678,18 @@ Column
 
 #### Descripción de los datos
 
-- Ocupados por sexo, grupo de edad y sector económico (INE) (datos trimestrales)
+- Ocupados por sexo, grupo de edad y sector económico, y población de 16 y más años por sexo y grupo de edad (INE) (datos trimestrales)
 
 #### Niveles territoriales
 
-- **Comunidad**: las 17 comunidades autónomas, Ceuta, Melilla y España (el total nacional). Periodo: 2008Q1-2026Q3
-- **Provincia**: las 52 provincias, con el sexo para todos los sectores, y solo el total de edad. Periodo: 2002Q1-2026Q3
+- **Comunidad**: las 17 comunidades autónomas, Ceuta, Melilla y España (el total nacional). Periodo: 2008Q1-2026Q3 (el incremento de la población, 2002Q1-2026Q3)
+- **Provincia**: las 52 provincias, con el sexo para el Total y el incremento de la población, y solo el total de edad. Periodo: 2002Q1-2026Q3
 
 #### Atributos
 
 - **Sexo**: hombres, mujeres y ambos sexos (el total).
 - **Edad**: cuatro grupos de edad (de 16 a 19 años, de 20 a 24, de 25 a 54, de 55 y más) y el total.
-- **Sector**: agricultura, industria, construcción, servicios y el total (ver la tabla siguiente).
+- **Indicador**: los cuatro sectores económicos (agricultura, industria, construcción y servicios; ver la tabla siguiente), su total (**Total_sectores**) y el **Incremento población (%)**: el crecimiento, en porcentaje, de la población de 16 y más años del mismo sexo y grupo de edad respecto a la primera fecha con dato de población (2002Q1).
 
 #### Sectores económicos (CNAE-2009)
 
@@ -700,12 +701,14 @@ Los cuatro sectores agrupan las secciones de la Clasificación Nacional de Activ
 | Industria | Industrias extractivas (minas y canteras), industria manufacturera (alimentación y bebidas, química, metalurgia, maquinaria, vehículos...), suministro de energía eléctrica y gas, y suministro de agua, saneamiento y gestión de residuos. |
 | Construcción | Construcción de edificios, obra civil (carreteras, redes de agua y de energía) y actividades especializadas: demolición, instalaciones eléctricas y de fontanería, y acabados. |
 | Servicios | Comercio y reparación de vehículos, transporte y almacenamiento, hostelería, información y comunicaciones, finanzas y seguros, actividades inmobiliarias, actividades profesionales, científicas y técnicas, actividades administrativas, administración pública y defensa, educación, sanidad y servicios sociales, actividades artísticas y recreativas, otros servicios y empleo doméstico en los hogares. |
-| Total | La suma de los cuatro sectores. |
+| Total_sectores | La suma de los cuatro sectores. |
 
 #### Medidas
 
-- `ocupados`: ocupados en miles de personas.
-- `ocupados_por_100`: ocupados en el sector por cada 100 personas en edad de trabajar (16 y más años) del mismo sexo y grupo de edad. Con el sector Total, es la tasa de empleo.
+- `valor_absoluto`: ocupados en miles de personas.
+- `tasa`: ocupados por cada 100 personas en edad de trabajar (16 y más años) del mismo sexo y grupo de edad. Con el indicador Total_sectores, es la tasa de empleo.
+
+El indicador **Incremento población (%)** solo tiene la medida `tasa`.
 
 #### Dato presentado
 
@@ -2148,6 +2151,7 @@ procesado_page_2 <- eventReactive(input$calcular_2, {
   tabla <- tabla |>
     mutate(columna = do.call(paste, c(across(all_of(cols_pca)), sep = " · "))) |> # "Mujeres · De 25 a 34 años"
     select(area, periodo, columna, valor = input$medida_2) |> # medida elegida
+    filter(!is.na(valor)) |> # sin las categorías que no tienen esta medida
     pivot_wider(names_from = columna, values_from = valor) |> # una fila por área y periodo, una columna por combinación
     drop_na() # periodos sin todas las columnas
   columnas <- setdiff(names(tabla), c("area", "periodo")) # las columnas del PCA
