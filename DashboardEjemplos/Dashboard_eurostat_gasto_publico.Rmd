@@ -273,7 +273,7 @@ ATRIBUTO_Y_INICIAL  <- c(sector = "Protección social")       # ✎ Comparación
 COLUMNAS_PCA_INICIALES <- "sector"                           # ✎ atributo(s) del PCA: sus categorías (o sus combinaciones) son las columnas
 K_INICIAL           <- 3                                     # ✎ nº de grupos del k-means
 NIVEL_INICIAL       <- NA                                  # ✎ nivel territorial con el que arrancan las páginas (si hay columna nivel)
-VISTA <- list(lng = 12, lat = 55, zoom = 4)                  # ✎ centro y zoom del mapa (Europa)
+VISTA <- list(lng = 12, lat = 55, zoom = 4)                  # ✎ centro y zoom del mapa (Europa); con varios niveles, una por nivel: list(Comunidad = list(lng = ..., lat = ..., zoom = ...), ...), y el nivel que no tenga se encuadra solo
 
 # ✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎✎
 #   FIN DE LOS ELEMENTOS QUE DEFINE EL USUARIO
@@ -450,6 +450,40 @@ OPCIONES_PERIODO <- c(if (PERIODOS_POR_ANIO > 1) ULTIMA_MEDIA_ANUAL, # con trime
                       ULTIMO_PERIODO, "Media en el periodo", etiqueta_periodo(PERIODOS))
 PERIODO_INICIAL  <- OPCIONES_PERIODO[1] # «Última media anual» o «Último año disponible»
 
+# OPCIONES DE CADA NIVEL TERRITORIAL: al cambiar de nivel, cada desplegable
+# ofrece solo lo que tiene datos en él (las áreas, las medidas, las categorías
+# de los atributos y los periodos) y conserva lo elegido si sigue existiendo
+DATOS_POR_NIVEL <- split(DATOS, DATOS$nivel)
+opciones_nivel <- function(niv, columna, opciones) {
+  d <- DATOS_POR_NIVEL[[niv]]
+  if (is.null(d)) return(opciones)
+  presentes <- if (columna == "medida") {
+    MEDIDAS[vapply(MEDIDAS, \(m) any(!is.na(d[[m]])), logical(1))] # medidas con algún dato
+  } else if (columna == "periodo") {
+    c(setdiff(OPCIONES_PERIODO, etiqueta_periodo(PERIODOS)), etiqueta_periodo(unique(d$periodo))) # «Último...», «Media...» y los periodos del nivel
+  } else if (columna %in% names(d)) {
+    unique(d[[columna]]) # áreas o categorías de un atributo
+  } else {
+    return(opciones) # el dato presentado o el método no dependen del nivel
+  }
+  opciones[opciones %in% presentes] # en el orden de las opciones
+}
+
+# opción elegida entre las del nivel: la actual si sigue existiendo; si no, la
+# de arranque; si tampoco, la primera
+elegir_opcion <- function(opciones, actual, iniciales = NULL, multiple = FALSE) {
+  s <- intersect(actual, opciones)
+  if (length(s) == 0) s <- intersect(iniciales, opciones)
+  if (length(s) == 0) s <- head(opciones, 1)
+  if (multiple) s else head(s, 1)
+}
+
+# cambia las opciones de un desplegable a las del nivel elegido
+actualizar_nivel <- function(session, id, niv, columna, opciones, actual, iniciales = NULL, multiple = FALSE) {
+  op <- opciones_nivel(niv, columna, opciones)
+  updateSelectInput(session, id, choices = op, selected = elegir_opcion(op, actual, iniciales, multiple))
+}
+
 # «Última media anual»: para cada grupo (área), la media de los periodos de su
 # último año completo (los 4 trimestres o los 12 meses con dato); la columna
 # periodo pasa a ser su rótulo ("media de 2025")
@@ -538,6 +572,14 @@ for (n in names(GEOMETRIAS)) {
 NIVELES_MAPA <- names(GEOMETRIAS)
 if (length(NIVELES_MAPA) == 0) stop("Ningún nivel de DATOS tiene geometría: revisa los nombres de la lista GEOMETRIA.")
 NIVEL_INICIAL_MAPA <- if (NIVEL_INICIAL %in% NIVELES_MAPA) NIVEL_INICIAL else NIVELES_MAPA[1]
+
+# VISTA DEL MAPA DE CADA NIVEL: VISTA es una sola, list(lng, lat, zoom), para
+# todos los niveles, o una lista con una por nivel: list(Isla = list(...), ...).
+# Un nivel sin vista propia se encuadra en sus polígonos (NULL)
+vista_de <- function(niv) {
+  if (all(c("lng", "lat", "zoom") %in% names(VISTA))) return(VISTA)
+  VISTA[[niv]]
+}
 
 # Listas donde las páginas Series y Predicción guardan lo suyo (ver IDENTIFICADORES DE LAS PÁGINAS)
 PAGINAS   <- list() # página Predicción
@@ -791,11 +833,14 @@ id_control <- function(nombre) paste0(pageId, ".", nombre)
 # selectInput DE ATRIBUTOS COMBINABLES Y FIJOS
 crear_selectInput_pageId <- function(config) {
   lapply(config, function(x) {
+    # AL ARRANCAR, SOLO LO QUE TIENE DATOS EN EL NIVEL INICIAL
+    choices  <- if (x$col.name == "nivel") x$choices else opciones_nivel(NIVEL_INICIAL, x$col.name, x$choices)
+    selected <- if (x$col.name == "nivel") x$selected else elegir_opcion(choices, x$selected, NULL, x$multiple)
     selectInput(
       inputId  = id_control(x$col.name),
       label    = x$label,
-      choices  = x$choices,
-      selected = x$selected,
+      choices  = choices,
+      selected = selected,
       multiple = x$multiple
     )
   })
@@ -816,12 +861,16 @@ crear_checkboxInput_pageId <- function(config) {
 crear_selectInput_pageId_main <- function(config) {
   val <- input[[id_control("checkboxInput")]]
   if (isFALSE(val)) {
+    # SOLO LAS ÁREAS DEL NIVEL ELEGIDO: SE REHACE AL CAMBIAR DE NIVEL
+    niv <- input[[id_control("nivel")]]
+    if (is.null(niv)) niv <- NIVEL_INICIAL
     lapply(config, function(x) {
+      choices <- opciones_nivel(niv, x$col.name, x$choices)
       selectInput(
         inputId  = id_control(x$col.name),
         label    = x$label,
-        choices  = x$choices,
-        selected = x$selected,
+        choices  = choices,
+        selected = elegir_opcion(choices, isolate(input[[id_control(x$col.name)]]), x$selected, x$multiple),
         multiple = x$multiple
       )
     })
@@ -949,6 +998,18 @@ observeEvent(input[[id_control("distribucion")]], {
     updateCheckboxInput(session, id_control("checkboxInput"), value = FALSE)
   }
 })
+
+# AL CAMBIAR EL NIVEL TERRITORIAL, LOS ATRIBUTOS Y LA MEDIDA SOLO OFRECEN LO QUE
+# TIENE DATOS EN ÉL (LAS ÁREAS SE REHACEN SOLAS, EN EL BLOQUE 1)
+if (length(NIVELES) > 1) {
+  observeEvent(input[[id_control("nivel")]], {
+    for (x in c(input.multiple.config.pageId, input.single.config.pageId)) {
+      if (x$col.name == "nivel") next
+      actualizar_nivel(session, id_control(x$col.name), input[[id_control("nivel")]], x$col.name, x$choices,
+                       input[[id_control(x$col.name)]], x$selected, x$multiple)
+    }
+  }, ignoreInit = TRUE)
+}
 ```
 
 ```{r}
@@ -1341,6 +1402,17 @@ local({
     updateSelectInput(session, id("tramo"), choices = o$tramos, selected = o$tramo_def)
   })
 
+  # Al cambiar el nivel territorial (y al arrancar), los demás desplegables
+  # solo ofrecen lo que tiene datos en él
+  if ("nivel" %in% pg$col_keys) {
+    observeEvent(input[[id_atributo("nivel")]], {
+      for (k in setdiff(pg$col_keys, "nivel")) {
+        actualizar_nivel(session, id_atributo(k), input[[id_atributo("nivel")]], k, pg$valores[[k]],
+                         input[[id_atributo(k)]], pg$serie_inicial[[k]])
+      }
+    })
+  }
+
   # Ventanas de STL: solo con STL + ARIMA, y dependen del tramo
   output[[id("controles_stl")]] <- renderUI({
     sel <- seleccion_de()
@@ -1716,6 +1788,20 @@ selectInput("mapa_dato_presentado", "Dato presentado:", choices = OPCIONES_DATO_
 
 # lanza el cálculo: hasta pulsarlo no se calcula nada, ni al arrancar ni al cambiar los controles
 actionButton("mapa_calcular", "Calcular")
+
+# al cambiar el nivel territorial (y al arrancar), la medida, las categorías y
+# los periodos solo ofrecen lo que tiene datos en él
+if (length(NIVELES_MAPA) > 1) {
+  observeEvent(input$mapa_nivel, {
+    niv <- input$mapa_nivel
+    actualizar_nivel(session, "mapa_medida", niv, "medida", MEDIDAS, input$mapa_medida, MEDIDA_INICIAL)
+    for (col in COLS_ATR) {
+      actualizar_nivel(session, paste0("mapa_atr_", col), niv, col, CATEGORIAS[[col]],
+                       input[[paste0("mapa_atr_", col)]], ATRIBUTO_INICIAL[[col]])
+    }
+    actualizar_nivel(session, "mapa_periodo", niv, "periodo", OPCIONES_PERIODO, input$mapa_periodo, PERIODO_INICIAL)
+  })
+}
 ```
 
 ```{r}
@@ -1809,10 +1895,18 @@ renderLeaflet({
   ) |>
     lapply(htmltools::HTML)
 
-  # centro y zoom del mapa: los de VISTA (PASO 3)
-  aedv_mapa_coropletico(mapa, mapa$valor, etiquetas,
-                        NULL, # leyenda sin título
-                        lng = VISTA$lng, lat = VISTA$lat, zoom = VISTA$zoom)
+  # centro y zoom del mapa: los de VISTA (PASO 3) para el nivel elegido; si no
+  # tiene, el mapa se encuadra en los polígonos del nivel
+  vista <- vista_de(resultado$nivel)
+  if (!is.null(vista)) {
+    aedv_mapa_coropletico(mapa, mapa$valor, etiquetas,
+                          NULL, # leyenda sin título
+                          lng = vista$lng, lat = vista$lat, zoom = vista$zoom)
+  } else {
+    caja <- unname(sf::st_bbox(mapa))
+    aedv_mapa_coropletico(mapa, mapa$valor, etiquetas, NULL) |>
+      leaflet::fitBounds(caja[1], caja[2], caja[3], caja[4])
+  }
 })
 ```
 
@@ -1865,6 +1959,25 @@ checkboxInput("ajuste_yj", "Ajuste lineal (transforma y)", value = FALSE)
 
 # lanza el cálculo: hasta pulsarlo no se calcula nada, ni al arrancar ni al cambiar los controles
 actionButton("calcular", "Calcular")
+
+# al cambiar el nivel territorial (y al arrancar), la medida, los periodos y las
+# categorías de los ejes solo ofrecen lo que tiene datos en él
+if (length(NIVELES) > 1) {
+  observeEvent(input$nivel, {
+    niv <- input$nivel
+    actualizar_nivel(session, "medida", niv, "medida", MEDIDAS, input$medida, MEDIDA_INICIAL)
+    actualizar_nivel(session, "periodo", niv, "periodo", OPCIONES_PERIODO, input$periodo, PERIODO_INICIAL)
+    for (col in COLS_ATR) {
+      op <- opciones_nivel(niv, col, CATEGORIAS_ANALISIS[[col]])
+      if (length(op) == 0) op <- opciones_nivel(niv, col, CATEGORIAS[[col]]) # en este nivel solo está el total (la edad en las provincias)
+      x <- elegir_opcion(op, input[[paste0("atr_x_", col)]], ATRIBUTO_X_INICIAL[[col]])
+      y <- elegir_opcion(op, input[[paste0("atr_y_", col)]], ATRIBUTO_Y_INICIAL[[col]])
+      if (col == COLS_ATR[1] && identical(x, y) && length(op) > 1) y <- setdiff(op, x)[1] # ejes distintos
+      updateSelectInput(session, paste0("atr_x_", col), choices = op, selected = x)
+      updateSelectInput(session, paste0("atr_y_", col), choices = op, selected = y)
+    }
+  })
+}
 ```
 
 ```{r}
@@ -2088,9 +2201,13 @@ selectInput("dato_presentado_2", "Dato presentado:", choices = OPCIONES_DATO_PRE
 # atributos del PCA)
 if (length(COLS_ATR) > 1) {
   output$pca_fijos <- renderUI({
-    tagList(lapply(setdiff(COLS_ATR, input$pca_columnas), function(col)
-      selectInput(paste0("pca_fijo_", col), paste0(COLUMNAS_ATRIBUTO[[col]], ":"),
-                  choices = CATEGORIAS[[col]], selected = ATRIBUTO_INICIAL[[col]])))
+    niv <- if (length(NIVELES) > 1) input$nivel_2 else NIVELES[1] # se rehace al cambiar de nivel
+    if (is.null(niv)) niv <- NIVEL_INICIAL
+    tagList(lapply(setdiff(COLS_ATR, input$pca_columnas), function(col) {
+      op <- opciones_nivel(niv, col, CATEGORIAS[[col]]) # solo las categorías del nivel
+      selectInput(paste0("pca_fijo_", col), paste0(COLUMNAS_ATRIBUTO[[col]], ":"), choices = op,
+                  selected = elegir_opcion(op, isolate(input[[paste0("pca_fijo_", col)]]), ATRIBUTO_INICIAL[[col]]))
+    }))
   })
   tagList(
     selectInput("pca_columnas", "Atributos del PCA (se combinan):", choices = setNames(COLS_ATR, COLUMNAS_ATRIBUTO),
@@ -2107,6 +2224,16 @@ checkboxInput("yeo_johnson_2", "Normalizar con Yeo-Johnson antes de tipificar", 
 
 # lanza el cálculo: hasta pulsarlo no se calcula nada, ni al arrancar ni al cambiar los controles
 actionButton("calcular_2", "Calcular")
+
+# al cambiar el nivel territorial (y al arrancar), la medida y los periodos solo
+# ofrecen lo que tiene datos en él (las categorías fijas, más arriba)
+if (length(NIVELES) > 1) {
+  observeEvent(input$nivel_2, {
+    niv <- input$nivel_2
+    actualizar_nivel(session, "medida_2", niv, "medida", MEDIDAS, input$medida_2, MEDIDA_INICIAL)
+    actualizar_nivel(session, "periodo_2", niv, "periodo", OPCIONES_PERIODO, input$periodo_2, PERIODO_INICIAL)
+  })
+}
 ```
 
 ```{r}
