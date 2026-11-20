@@ -124,10 +124,24 @@ datasets.operaciones|>
 
 
 ```{r}
+# FUNCIÓN PARA CONVERTIR LA FECHA DE ÚLTIMA MODIFICACIÓN DEL INE EN Date
+# ACEPTA "2026-09-08..." Y EL FORMATO ACTUAL "Tue Sep 08 09:00:00 CEST 2026"
+fecha_ine <- function(x) {
+  x <- as.character(x)
+  iso <- grepl("^[0-9]{4}-[0-9]{2}-[0-9]{2}", x)             # formato AAAA-MM-DD
+  partes <- strsplit(x, " +")                                 # formato textual por palabras
+  mes <- sapply(partes, function(p) match(p[2], month.abb))  # mes en inglés (month.abb)
+  dia <- sapply(partes, function(p) suppressWarnings(as.integer(p[3])))         # día del mes
+  anyo <- sapply(partes, function(p) suppressWarnings(as.integer(p[length(p)]))) # año al final
+  fecha <- as.Date(paste(anyo, mes, dia, sep = "-"), format = "%Y-%m-%d")
+  fecha[iso] <- as.Date(substr(x[iso], 1, 10), format = "%Y-%m-%d") # fechas ya en AAAA-MM-DD
+  fecha
+}
+
 # PROCESAMOS  datasets.operaciones PARA OBTENER LOS DATASETS DEL INE
 INE.datasets <- datasets.operaciones |>
   mutate(Anyo_Periodo_ini=as.numeric(Anyo_Periodo_ini)) |>
-  mutate(Ultima_Modificacion=as.Date(substr(Ultima_Modificacion,1,10))) |>
+  mutate(Ultima_Modificacion=fecha_ine(Ultima_Modificacion)) |>
   select(
     Id,
     Codigo,
