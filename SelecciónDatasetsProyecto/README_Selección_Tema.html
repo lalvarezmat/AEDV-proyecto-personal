@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-10-22" />
+<meta name="date" content="2026-11-20" />
 
 <title>Selección de datasets para el proyecto de AEDV</title>
 
@@ -1617,7 +1617,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Selección de datasets para el proyecto de
 AEDV</h1>
-<h4 class="date">2026-10-22</h4>
+<h4 class="date">2026-11-20</h4>
 
 </div>
 
@@ -1656,6 +1656,14 @@ misma cadena de cuatro pasos, con los mismos dos documentos y los mismos
 tipos de fichero. Cambia el organismo y el nombre de los ficheros, no el
 procedimiento; si entiendes el flujo en una fuente, lo entiendes en las
 cuatro.</p>
+<p>El <strong>ISTAC</strong> publica sus datos por dos vías y por eso
+tiene <strong>dos catálogos</strong>, cada uno con su pareja de
+documentos: los <strong>indicadores</strong>
+(<code>ISTAC_datasets.xlsx</code>, unas 400 series ya elaboradas de una
+sola medida) y los <strong>recursos estadísticos</strong>
+(<code>ISTAC_recursos.xlsx</code>, las tablas que publica cada operación
+estadística, que pueden tener varias dimensiones como las del INE).
+Conviene mirar en los dos.</p>
 <p>La idea de fondo es ir <strong>de los miles de datasets que publica
 un organismo a unos pocos que acabarán en tu memoria</strong>,
 estrechando el embudo en cada paso:</p>
@@ -1765,21 +1773,26 @@ repetirlo entero.</p>
 </thead>
 <tbody>
 <tr class="odd">
-<td>ISTAC</td>
+<td>ISTAC (indicadores)</td>
 <td>400</td>
 <td>~15 minutos</td>
 </tr>
 <tr class="even">
+<td>ISTAC (recursos estadísticos)</td>
+<td>3.565</td>
+<td>~2 h 50 min</td>
+</tr>
+<tr class="odd">
 <td>EUROSTAT</td>
 <td>3.050</td>
 <td>~2 horas (estimada)</td>
 </tr>
-<tr class="odd">
-<td>INE</td>
-<td>5.507</td>
-<td>~2 h 40 min</td>
-</tr>
 <tr class="even">
+<td>INE</td>
+<td>7.142</td>
+<td>~4 h 30 min</td>
+</tr>
+<tr class="odd">
 <td>Banco Mundial</td>
 <td>16.643</td>
 <td><strong>~13 horas</strong></td>
@@ -1835,33 +1848,39 @@ original.</p>
 <td>España: municipios, provincias, CCAA</td>
 </tr>
 <tr class="even">
-<td>ISTAC</td>
+<td>ISTAC (indicadores)</td>
 <td><code>ISTAC/ISTAC_datasets.xlsx</code></td>
 <td>Canarias: municipios, islas, CCAA</td>
 </tr>
 <tr class="odd">
+<td>ISTAC (recursos estadísticos)</td>
+<td><code>ISTAC/ISTAC_recursos.xlsx</code></td>
+<td>Canarias: municipios, islas; algunos comparan con España, sus CCAA o
+sus provincias</td>
+</tr>
+<tr class="even">
 <td>EUROSTAT</td>
 <td><code>EUROSTAT/Eurostat.datasets.xlsx</code></td>
 <td>Europa: países y regiones NUTS 0, 1, 2 y 3</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Banco Mundial</td>
 <td><code>WORLD_BANK/wb.datasets.xlsx</code></td>
 <td>Mundial: ≥100 países, ≥10 años</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>EDGAR</td>
 <td><em>(dataset único, solo sirve para un alumno)</em></td>
 <td>Mundial: emisiones GHG 1970–2025, por sector y grupo de gases</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>CLIMA (AdapteCCa)</td>
 <td><em>(proyecto propio, sin catálogo Excel; 14 variables
 climáticas)</em></td>
 <td>España (provincias) y Canarias (municipios): clima mensual
 1951/1990–2022 + proyecciones CMIP6</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>INFORME PISA</td>
 <td><em>(dataset único, solo sirve para un alumno)</em></td>
 <td>Mundial (105 países, PISA 2000–2025) y España (19 CCAA, 2009–2025):
@@ -1951,29 +1970,30 @@ combinaciones de atributos) diferentes que cumplan el criterio anterior
 sobre el tamaño de las series temporales asociadas. Las variaciones que
 se derivan de un mismo atributo no cuentan como atributos diferentes, es
 decir si manejamos el dato de población, el dato de la variación anual
-de la población no cuenta como atributo diferente. Los datasets del INE
-y de EUROSTAT contienen, con frecuencia, más de 4 atributos y por tanto
-un solo dataset puede ser suficiente para hacer el proyecto. Los
-datasets del World Bank y del ISTAC solo contienen un atributo y por
-tanto hay que manejar varios datasets.</p></li>
+de la población no cuenta como atributo diferente. Los datasets del INE,
+de EUROSTAT y los recursos estadísticos del ISTAC contienen, con
+frecuencia, más de 4 atributos y por tanto un solo dataset puede ser
+suficiente para hacer el proyecto. Los datasets del World Bank y los
+indicadores del ISTAC solo contienen un atributo y por tanto hay que
+manejar varios datasets.</p></li>
 </ul>
 </div>
 </div>
 <div id="paso-2-buscar-en-el-catálogo-los-datasets-de-tu-tema" class="section level2" number="1.4">
 <h2><span class="header-section-number">1.4</span> Paso 2 — Buscar en el
 catálogo los datasets de tu tema</h2>
-<p>Un catálogo tiene entre 400 y 2.468 filas, así que no se lee de
+<p>Un catálogo tiene entre 400 y 2.852 filas, así que no se lee de
 arriba abajo: <strong>se busca dentro de él</strong>. Hay dos maneras y
 lo razonable es combinarlas.</p>
 <p><strong>Con una IA, que es lo más rápido.</strong> Súbele el
 <code>.xlsx</code> de la fuente (<code>ISTAC_datasets.xlsx</code>,
-<code>wb.datasets.xlsx</code>, <code>Eurostat.datasets.xlsx</code> o
-<code>INE.datasets.xlsx</code>) a ChatGPT, Claude o similar y pídele los
-identificadores relacionados con tu tema: <em>«de este catálogo, dame
-los datasets sobre vivienda y alquiler, con su identificador y su
-nombre»</em>. Después pídele que <strong>descarte los que no vayan a
-cumplir los requisitos</strong>, apoyándose en las columnas que los
-anticipan:</p>
+<code>ISTAC_recursos.xlsx</code>, <code>wb.datasets.xlsx</code>,
+<code>Eurostat.datasets.xlsx</code> o <code>INE.datasets.xlsx</code>) a
+ChatGPT, Claude o similar y pídele los identificadores relacionados con
+tu tema: <em>«de este catálogo, dame los datasets sobre vivienda y
+alquiler, con su identificador y su nombre»</em>. Después pídele que
+<strong>descarte los que no vayan a cumplir los requisitos</strong>,
+apoyándose en las columnas que los anticipan:</p>
 <table>
 <colgroup>
 <col width="50%" />
@@ -1987,21 +2007,26 @@ anticipan:</p>
 </thead>
 <tbody>
 <tr class="odd">
-<td><strong>ISTAC</strong></td>
+<td><strong>ISTAC (indicadores)</strong></td>
 <td><code>area</code> (nivel geográfico: <code>MUNI</code>,
 <code>ISLA</code>, <code>CCAA</code>…) y <code>freq</code>
 (frecuencia)</td>
 </tr>
 <tr class="even">
+<td><strong>ISTAC (recursos estadísticos)</strong></td>
+<td><code>area</code>, <code>freq</code>, <code>n.periodos</code> (nº de
+periodos) y <code>DIM</code> (dimensiones con su nº de valores)</td>
+</tr>
+<tr class="odd">
 <td><strong>Banco Mundial</strong></td>
 <td><code>Ncountries</code> y <code>dateEnd</code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>INE</strong></td>
 <td><code>Codigo</code> (desglose geográfico) y
 <code>Periodicidad</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>EUROSTAT</strong></td>
 <td><code>topic</code> (familia temática),
 <code>NUTS0</code>–<code>NUTS3</code> (cobertura por nivel),
@@ -2012,15 +2037,16 @@ anticipan:</p>
 </table>
 <p><strong>A mano en Excel</strong>, filtrando por la columna temática
 de cada fuente: <code>OPER.Nombre</code> en el INE, <code>subject</code>
-en el ISTAC, <code>Topic</code> en el Banco Mundial y el prefijo del
-<code>code</code> en EUROSTAT. La sección <a href="#catalogos">Descripción de los catálogos de datasets</a> de este
+en los dos catálogos del ISTAC (en el de recursos estadísticos es la
+operación estadística), <code>Topic</code> en el Banco Mundial y el
+prefijo del <code>code</code> en EUROSTAT. La sección <a href="#catalogos">Descripción de los catálogos de datasets</a> de este
 mismo documento trae, fuente por fuente, el reparto por temas con el
 número de datasets de cada uno, la descripción de todas las columnas y
 las trampas concretas al filtrar.</p>
 <p>Los identificadores que salgan de aquí son la entrada del paso 3: se
-copian en <code>IDS</code> (ISTAC y Banco Mundial), en
-<code>Dataset.Id</code> (INE) o en <code>dataset.name</code>
-(EUROSTAT).</p>
+copian en <code>IDS</code> (indicadores del ISTAC y Banco Mundial), en
+<code>Dataset.Id</code> (INE y recursos estadísticos del ISTAC) o en
+<code>dataset.name</code> (EUROSTAT).</p>
 <div class="nota">
 <p><strong class="bloque-titulo">La IA acota la búsqueda, pero no elige
 por ti</strong></p>
@@ -2065,13 +2091,19 @@ analizar:</p>
 <p><strong>INE</strong> — cambia el valor de <code>Dataset.Id</code> por
 el identificador del dataset:</p>
 <pre class="r"><code>Dataset.Id &lt;- 76136   # ← pon aquí el Id de tu dataset</code></pre>
+<p><strong>ISTAC, recursos estadísticos</strong> — en
+<code>ISTAC/ISTAC_recursos_DatasetSelection.Rmd</code>, cambia el valor
+de <code>Dataset.Id</code> por el identificador del dataset (columna
+<code>id</code> de <code>ISTAC_recursos.xlsx</code>, entre
+comillas):</p>
+<pre class="r"><code>Dataset.Id &lt;- &quot;C00065A_000061&quot;   # ← pon aquí el id de tu dataset</code></pre>
 <p><strong>EUROSTAT</strong> — cambia el valor de
 <code>dataset.name</code> por el código del dataset (columna
 <code>code</code> del catálogo):</p>
 <pre class="r"><code>dataset.name &lt;- &quot;demo_r_pjanaggr3&quot;   # ← pon aquí el code de tu dataset</code></pre>
-<p><strong>ISTAC y Banco Mundial</strong> — cambia el vector
-<code>IDS</code> con los identificadores de los datasets de tu catálogo.
-El formato del identificador depende de la fuente:</p>
+<p><strong>ISTAC (indicadores) y Banco Mundial</strong> — cambia el
+vector <code>IDS</code> con los identificadores de los datasets de tu
+catálogo. El formato del identificador depende de la fuente:</p>
 <pre class="r"><code># ISTAC — identificadores en mayúsculas (columna `id` del catálogo):
 IDS &lt;- c(&quot;MATRICULA_VEHICULOS&quot;, &quot;PARQUE_VEHICULOS&quot;)
 
@@ -2108,10 +2140,11 @@ volver al Excel grande</td>
 </tbody>
 </table>
 <p>El <code>&lt;nombre&gt;</code> es el <strong>código del
-dataset</strong> en INE (<code>76136.rds</code>) y EUROSTAT
-(<code>demo_r_pjanaggr3.rds</code>). En las fuentes que combinan varios
-indicadores es el valor de la variable <code>filename</code>, que está
-en el mismo chunk que <code>IDS</code> y por omisión vale
+dataset</strong> en INE (<code>76136.rds</code>), EUROSTAT
+(<code>demo_r_pjanaggr3.rds</code>) y los recursos estadísticos del
+ISTAC (<code>C00065A_000061.rds</code>). En las fuentes que combinan
+varios indicadores es el valor de la variable <code>filename</code>, que
+está en el mismo chunk que <code>IDS</code> y por omisión vale
 <code>ISTAC_Selected</code> o <code>WB_Selected</code>.</p>
 <blockquote>
 <p><strong>Si validas dos selecciones distintas de ISTAC o de Banco
@@ -2209,9 +2242,9 @@ de que no lo encuentra.</p>
 <div id="catalogos" class="section level1" number="2">
 <h1><span class="header-section-number">2</span> Descripción de los
 catálogos de datasets</h1>
-<div id="ine-ineine.datasets.xlsx-1.678-datasets" class="section level2" number="2.1">
+<div id="ine-ineine.datasets.xlsx-2.852-datasets" class="section level2" number="2.1">
 <h2><span class="header-section-number">2.1</span> INE —
-<code>INE/INE.datasets.xlsx</code> (1.678 datasets)</h2>
+<code>INE/INE.datasets.xlsx</code> (2.852 datasets)</h2>
 <p>Este archivo contiene los datasets del Instituto Nacional de
 Estadística accesibles a través de la librería <code>ineapir</code>,
 filtrados para incluir únicamente los que tienen datos a nivel de
@@ -2306,9 +2339,10 @@ y 19 comunidades.</td>
 <h3><span class="header-section-number">2.1.2</span> Organización por
 temas</h3>
 <p>El INE no trae una columna de tema, pero sí la operación estadística
-de la que procede cada dataset (<code>OPER.Nombre</code>, 65 valores
+de la que procede cada dataset (<code>OPER.Nombre</code>, 76 valores
 distintos). Agrupándolas, el catálogo se reparte así (los recuentos
-suman los 1.678 datasets):</p>
+suman las 2.852 filas; son 2.720 tablas distintas, porque algunas
+aparecen bajo varias operaciones):</p>
 <table>
 <colgroup>
 <col width="15%" />
@@ -2325,23 +2359,38 @@ suman los 1.678 datasets):</p>
 </thead>
 <tbody>
 <tr class="odd">
+<td><strong>Censo de Población</strong></td>
+<td align="center">920</td>
+<td>Censo de Población (anual desde 2021, casi todo por municipio).
+<strong>Con solo 3 a 5 años, todavía no cumple el tamaño de serie de
+AEDV</strong>: sirve como dataset auxiliar, no como principal</td>
+</tr>
+<tr class="even">
 <td><strong>Mercado laboral</strong></td>
-<td align="center">264</td>
+<td align="center">263</td>
 <td>Encuesta de Población Activa (EPA); Flujos de la Población
 Activa</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Demografía y población</strong></td>
-<td align="center">251</td>
+<td align="center">256</td>
 <td>Indicadores Demográficos Básicos; Estadística Continua de
 Población</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Turismo</strong></td>
-<td align="center">203</td>
+<td align="center">211</td>
 <td>Ocupación hotelera, en apartamentos turísticos, campings, turismo
 rural y albergues; turismo de residentes; viviendas turísticas;
-movimientos en fronteras (15 operaciones)</td>
+movimientos en fronteras; turismo medido con teléfonos móviles (15
+operaciones)</td>
+</tr>
+<tr class="odd">
+<td><strong>Nacimientos y defunciones</strong></td>
+<td align="center">172</td>
+<td>MNP Nacimientos, Defunciones, Partos y Muertes Fetales Tardías;
+defunciones semanales (EDeS); defunciones por causa de muerte; tablas de
+mortalidad</td>
 </tr>
 <tr class="even">
 <td><strong>Salarios y costes laborales</strong></td>
@@ -2350,33 +2399,33 @@ movimientos en fronteras (15 operaciones)</td>
 Coste Laboral (trimestral y anual); Índice de Precios del Trabajo</td>
 </tr>
 <tr class="odd">
-<td><strong>Nacimientos y defunciones</strong></td>
-<td align="center">125</td>
-<td>MNP Nacimientos y Defunciones; defunciones semanales (EDeS);
-defunciones por causa de muerte; tablas de mortalidad</td>
-</tr>
-<tr class="even">
 <td><strong>Matrimonios y familia</strong></td>
-<td align="center">102</td>
+<td align="center">106</td>
 <td>MNP Estadística de Matrimonios</td>
 </tr>
+<tr class="even">
+<td><strong>Empresas, industria y comercio</strong></td>
+<td align="center">94</td>
+<td>Sociedades Mercantiles; DIRCE; estadística estructural de empresas;
+coyuntura demográfica de empresas; producción industrial; comercio al
+por menor (13 operaciones)</td>
+</tr>
 <tr class="odd">
+<td><strong>Proyecciones de población y hogares</strong></td>
+<td align="center">89</td>
+<td>Proyecciones de Población; Proyección de Hogares</td>
+</tr>
+<tr class="even">
 <td><strong>Migración</strong></td>
 <td align="center">87</td>
 <td>Migraciones y Cambios de Residencia; Adquisiciones de Nacionalidad
 Española</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Vivienda e hipotecas</strong></td>
-<td align="center">80</td>
+<td align="center">81</td>
 <td>Hipotecas; ejecuciones hipotecarias; precios de vivienda y de
 alquiler; transmisión de derechos de la propiedad</td>
-</tr>
-<tr class="odd">
-<td><strong>Empresas, industria y comercio</strong></td>
-<td align="center">77</td>
-<td>Sociedades Mercantiles; DIRCE; estadística estructural de empresas;
-producción industrial; comercio al por menor (11 operaciones)</td>
 </tr>
 <tr class="even">
 <td><strong>Condiciones de vida y renta</strong></td>
@@ -2385,43 +2434,59 @@ producción industrial; comercio al por menor (11 operaciones)</td>
 (EPF); Atlas de distribución de renta de los hogares</td>
 </tr>
 <tr class="odd">
+<td><strong>Indicadores de calidad de vida</strong></td>
+<td align="center">61</td>
+<td>Indicadores de Calidad de Vida</td>
+</tr>
+<tr class="even">
 <td><strong>Divorcios y separaciones</strong></td>
 <td align="center">57</td>
 <td>Nulidades, Separaciones y Divorcios</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Padrón municipal</strong></td>
 <td align="center">53</td>
 <td>Cifras Oficiales de Población de los Municipios Españoles</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Delincuencia y justicia</strong></td>
 <td align="center">51</td>
 <td>Población Condenada Adulta; Población Condenada Menor de Edad</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Precios (IPC e industriales)</strong></td>
 <td align="center">43</td>
 <td>Índice de Precios de Consumo (IPC); Índices de Precios Industriales;
 precios de materiales y energía</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Violencia de género</strong></td>
 <td align="center">28</td>
 <td>Estadística de Violencia Doméstica y Violencia de Género</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Gasto turístico</strong></td>
 <td align="center">22</td>
 <td>Gasto de los visitantes extranjeros por destino; Encuesta de Gasto
 Turístico</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Indicadores urbanos</strong></td>
 <td align="center">21</td>
 <td>Indicadores Urbanos (Urban Audit)</td>
 </tr>
+<tr class="odd">
+<td><strong>Contabilidad regional</strong></td>
+<td align="center">17</td>
+<td>Contabilidad Regional de España</td>
+</tr>
 <tr class="even">
+<td><strong>TIC en los hogares y medio ambiente</strong></td>
+<td align="center">6</td>
+<td>Equipamiento y Uso de TIC en los Hogares; Panel de Indicadores
+Medioambientales</td>
+</tr>
+<tr class="odd">
 <td><strong>Transporte</strong></td>
 <td align="center">4</td>
 <td>Estadística de Transporte de Personas</td>
@@ -2692,8 +2757,252 @@ economía</strong></td>
 <hr />
 </div>
 </div>
-<div id="banco-mundial-world_bankwb.datasets.xlsx-2.468-datasets" class="section level2" number="2.3">
-<h2><span class="header-section-number">2.3</span> Banco Mundial —
+<div id="istac-istacistac_recursos.xlsx-1.158-datasets" class="section level2" number="2.3">
+<h2><span class="header-section-number">2.3</span> ISTAC —
+<code>ISTAC/ISTAC_recursos.xlsx</code> (1.158 datasets)</h2>
+<p>Recoge las tablas de la <strong>API de recursos estadísticos</strong>
+del ISTAC: las que publica cada operación estadística (encuestas,
+estadísticas de registros, censos…). Son muchas más que los indicadores
+(casi 5.000), así que el catálogo <strong>solo incluye las que sirven
+para el proyecto</strong>: las que tienen una dimensión territorial y
+una temporal con frecuencia reconocida, su último dato es de
+<strong>2024 o posterior</strong> y tienen al menos <strong>la mitad de
+los periodos</strong> que exige el criterio de tamaño de AEDV (5 años,
+10 semestres, 20 trimestres, 30 meses, 100 semanas o 548 días). El
+criterio completo lo comprueba después
+<code>ISTAC_recursos_DatasetSelection.Rmd</code>.</p>
+<p>A diferencia de los indicadores, un dataset de este catálogo puede
+tener <strong>varias dimensiones</strong> además del territorio y la
+fecha (sexo, edad, tipo de medida, país de residencia…), como los del
+INE: cada combinación de sus valores es un atributo, así que un solo
+dataset puede bastar para tener los 4 atributos.</p>
+<div id="descripción-de-columnas-1" class="section level3" number="2.3.1">
+<h3><span class="header-section-number">2.3.1</span> Descripción de
+columnas</h3>
+<table>
+<colgroup>
+<col width="40%" />
+<col width="59%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Columna</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>Nº</code></td>
+<td>Número de fila de referencia en el catálogo.</td>
+</tr>
+<tr class="even">
+<td><code>id</code></td>
+<td>Identificador del dataset en el ISTAC (ej.
+<code>C00065A_000061</code>). <strong>Es el valor que hay que poner en
+<code>Dataset.Id</code></strong> en
+<code>ISTAC_recursos_DatasetSelection.Rmd</code>. Las primeras letras y
+cifras identifican la operación estadística.</td>
+</tr>
+<tr class="odd">
+<td><code>nombre</code></td>
+<td>Título del dataset tal como lo publica el ISTAC. Termina indicando
+el desglose territorial y temporal (ej. <em>«Islas y municipios de
+Canarias por periodos»</em>).</td>
+</tr>
+<tr class="even">
+<td><code>subject</code></td>
+<td>Operación estadística de la que procede (ej.
+<code>Encuesta de Alojamiento Turístico</code>).</td>
+</tr>
+<tr class="odd">
+<td><code>n.reg</code></td>
+<td>Número de regiones distintas con datos (incluye Canarias y, si las
+hay, las islas).</td>
+</tr>
+<tr class="even">
+<td><code>n.obs</code></td>
+<td>Número de observaciones con valor numérico.</td>
+</tr>
+<tr class="odd">
+<td><code>area</code></td>
+<td>Nivel geográfico detectado: <code>MUNI</code>, <code>ISLA</code>,
+<code>CCAA</code>, <code>PROV</code>, <code>CANA</code> (solo Canarias
+en conjunto) u <code>OTRO</code> (por ejemplo, España y Canarias).</td>
+</tr>
+<tr class="even">
+<td><code>freq</code></td>
+<td>Frecuencia temporal: <code>Y</code>, <code>S</code>, <code>Q</code>,
+<code>M</code>, <code>W</code> o <code>D</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>n.periodos</code></td>
+<td>Número de periodos de esa frecuencia.</td>
+</tr>
+<tr class="even">
+<td><code>initDate</code> / <code>lastDate</code></td>
+<td>Primer y último periodo (los meses aparecen como
+<code>2019-M01</code>).</td>
+</tr>
+<tr class="odd">
+<td><code>DIM</code></td>
+<td>Resto de dimensiones con su nº de valores (ej.
+<code>MEDIDAS(6) SEXO(3)</code>).</td>
+</tr>
+<tr class="even">
+<td><code>lastUpdate</code></td>
+<td>Fecha de la última publicación del dataset en el ISTAC.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="organización-por-operaciones-estadísticas" class="section level3" number="2.3.2">
+<h3><span class="header-section-number">2.3.2</span> Organización por
+operaciones estadísticas</h3>
+<p>Son <strong>95 operaciones</strong>; aquí van las 31 con 10 datasets
+o más (el resto, 64 operaciones, suma 196 datasets). Los nombres son
+literalmente los valores de <code>subject</code>.</p>
+<table>
+<colgroup>
+<col width="31%" />
+<col width="68%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Operación (valor de <code>subject</code>)</th>
+<th align="center">Nº datasets</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Encuesta sobre el Gasto Turístico</strong></td>
+<td align="center">306</td>
+</tr>
+<tr class="even">
+<td><strong>Estadística de Afiliación a la Seguridad Social: Cifras en
+Áreas Pequeñas de Canarias</strong></td>
+<td align="center">69</td>
+</tr>
+<tr class="odd">
+<td><strong>Encuesta de Alojamiento Turístico</strong></td>
+<td align="center">47</td>
+</tr>
+<tr class="even">
+<td><strong>Encuesta de Condiciones de Vida</strong></td>
+<td align="center">41</td>
+</tr>
+<tr class="odd">
+<td><strong>Encuesta de Ingresos y Condiciones de Vida de los Hogares
+Canarios</strong></td>
+<td align="center">41</td>
+</tr>
+<tr class="even">
+<td><strong>Estadística de Accidentes de Trabajo</strong></td>
+<td align="center">34</td>
+</tr>
+<tr class="odd">
+<td><strong>Estadística de Movimiento Laboral Registrado</strong></td>
+<td align="center">31</td>
+</tr>
+<tr class="even">
+<td><strong>Estadística de Matrimonios</strong></td>
+<td align="center">26</td>
+</tr>
+<tr class="odd">
+<td><strong>Análisis de la Mortalidad</strong></td>
+<td align="center">25</td>
+</tr>
+<tr class="even">
+<td><strong>Estadística del Plan Concertado de Prestaciones Básicas de
+Servicios Sociales</strong></td>
+<td align="center">23</td>
+</tr>
+<tr class="odd">
+<td><strong>Estadística de Inserción Laboral</strong></td>
+<td align="center">22</td>
+</tr>
+<tr class="even">
+<td><strong>Estadística de Movimientos Turísticos en Fronteras de
+Canarias</strong></td>
+<td align="center">22</td>
+</tr>
+<tr class="odd">
+<td><strong>Estadística de las Enseñanzas no
+Universitarias</strong></td>
+<td align="center">21</td>
+</tr>
+<tr class="even">
+<td><strong>Estadística de Nacimientos</strong></td>
+<td align="center">20</td>
+</tr>
+<tr class="odd">
+<td><strong>Recopilación de Estadísticas sobre Violencia de
+Género</strong></td>
+<td align="center">19</td>
+</tr>
+<tr class="even">
+<td><strong>Sistema para la Autonomía y Atención a la
+Dependencia</strong></td>
+<td align="center">19</td>
+</tr>
+<tr class="odd">
+<td><strong>Censos de Población y Viviendas</strong></td>
+<td align="center">18</td>
+</tr>
+<tr class="even">
+<td><strong>Índice de Precios de Consumo</strong></td>
+<td align="center">18</td>
+</tr>
+<tr class="odd">
+<td><strong>Encuesta de Morbilidad Hospitalaria</strong></td>
+<td align="center">16</td>
+</tr>
+<tr class="even">
+<td><strong>Estadística sobre Efectivos de Ganado en
+Canarias</strong></td>
+<td align="center">16</td>
+</tr>
+<tr class="odd">
+<td><strong>Estadística de Parque de Vehículos</strong></td>
+<td align="center">13</td>
+</tr>
+<tr class="even">
+<td><strong>Estadística sobre Accidentes de Circulación</strong></td>
+<td align="center">13</td>
+</tr>
+<tr class="odd">
+<td><em>Otras 9 operaciones con 10 a 12 datasets</em></td>
+<td align="center">102</td>
+</tr>
+<tr class="even">
+<td><em>Otras 64 operaciones con menos de 10 datasets</em></td>
+<td align="center">196</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Cuidado con el nivel <code>CANA</code>.</strong> 347 datasets
+(109 de ellos de la Encuesta sobre el Gasto Turístico y 37 de la
+Encuesta de Condiciones de Vida) tienen <strong>una sola
+región</strong>, Canarias en conjunto. Entran en el catálogo porque
+tienen territorio y serie temporal, pero <strong>no pueden cumplir el
+criterio de cobertura geográfica</strong>: sirven como datasets
+auxiliares, no como dataset principal. Mira la columna <code>area</code>
+antes de elegir.</p>
+</blockquote>
+<blockquote>
+<p><strong>Versiones que ya no se actualizan.</strong> Cuando el ISTAC
+cambia la base de una estadística publica una tabla nueva y deja la
+anterior congelada: por ejemplo, el IPC en base 2021
+(<code>E30138A_000001</code>) termina en 2025-12 y su continuación es la
+tabla en base 2025 (<code>E30138A_000010</code>). Si encuentras dos
+tablas casi iguales, quédate con la de <code>lastDate</code> más
+reciente.</p>
+</blockquote>
+<hr />
+</div>
+</div>
+<div id="banco-mundial-world_bankwb.datasets.xlsx-2.468-datasets" class="section level2" number="2.4">
+<h2><span class="header-section-number">2.4</span> Banco Mundial —
 <code>WORLD_BANK/wb.datasets.xlsx</code> (2.468 datasets)</h2>
 <p>Contiene indicadores del Banco Mundial filtrados para incluir solo
 los que tienen datos de al menos 100 países, al menos 10 años de datos,
@@ -2702,8 +3011,8 @@ algunos indicadores tienen el último dato en 2022 o 2023; para cumplir
 el requisito de AEDV de datos posteriores a 2024, verifica la columna
 <code>dateEnd</code> antes de elegir. Las series arrancan desde 1960 en
 muchos casos.</p>
-<div id="descripción-de-columnas-1" class="section level3" number="2.3.1">
-<h3><span class="header-section-number">2.3.1</span> Descripción de
+<div id="descripción-de-columnas-2" class="section level3" number="2.4.1">
+<h3><span class="header-section-number">2.4.1</span> Descripción de
 columnas</h3>
 <table>
 <colgroup>
@@ -2776,8 +3085,8 @@ año.</td>
 </tbody>
 </table>
 </div>
-<div id="organización-por-temas-2" class="section level3" number="2.3.2">
-<h3><span class="header-section-number">2.3.2</span> Organización por
+<div id="organización-por-temas-2" class="section level3" number="2.4.2">
+<h3><span class="header-section-number">2.4.2</span> Organización por
 temas</h3>
 <table>
 <colgroup>
@@ -2964,8 +3273,8 @@ el proyecto necesitas datos observados: comprueba el prefijo del
 <hr />
 </div>
 </div>
-<div id="eurostat-eurostateurostat.datasets.xlsx-1.763-datasets" class="section level2" number="2.4">
-<h2><span class="header-section-number">2.4</span> EUROSTAT —
+<div id="eurostat-eurostateurostat.datasets.xlsx-1.763-datasets" class="section level2" number="2.5">
+<h2><span class="header-section-number">2.5</span> EUROSTAT —
 <code>EUROSTAT/Eurostat.datasets.xlsx</code> (1.763 datasets)</h2>
 <p>Contiene los datasets de la oficina estadística de la Unión Europea,
 filtrados para incluir solo los que tienen el último dato en 2024 o
@@ -3018,8 +3327,8 @@ islas</strong>, no por provincias</td>
 <code>ES703</code>–<code>ES709</code>) es lo que hace a EUROSTAT
 especialmente útil desde aquí: en muchos datasets se puede trabajar
 <strong>isla a isla</strong>.</p>
-<div id="descripción-de-columnas-2" class="section level3" number="2.4.1">
-<h3><span class="header-section-number">2.4.1</span> Descripción de
+<div id="descripción-de-columnas-3" class="section level3" number="2.5.1">
+<h3><span class="header-section-number">2.5.1</span> Descripción de
 columnas</h3>
 <table>
 <colgroup>
@@ -3148,8 +3457,8 @@ enlace de la columna <code>ESMS</code>. El propio
 nombres completos al analizar el dataset.</p>
 </div>
 </div>
-<div id="organización-por-temas-3" class="section level3" number="2.4.2">
-<h3><span class="header-section-number">2.4.2</span> Organización por
+<div id="organización-por-temas-3" class="section level3" number="2.5.2">
+<h3><span class="header-section-number">2.5.2</span> Organización por
 temas</h3>
 <p>El <strong>prefijo del <code>code</code></strong> (lo que va antes
 del primer guion bajo) identifica el ámbito temático: <code>ilc_</code>
@@ -3280,8 +3589,8 @@ cultura, juventud</td>
 <hr />
 </div>
 </div>
-<div id="edgar-dataset-único-de-emisiones-de-gases-de-efecto-invernadero-solo-sirve-para-un-estudiante" class="section level2" number="2.5">
-<h2><span class="header-section-number">2.5</span> EDGAR — dataset único
+<div id="edgar-dataset-único-de-emisiones-de-gases-de-efecto-invernadero-solo-sirve-para-un-estudiante" class="section level2" number="2.6">
+<h2><span class="header-section-number">2.6</span> EDGAR — dataset único
 de emisiones de gases de efecto invernadero (solo sirve para un
 estudiante)</h2>
 <p>EDGAR <strong>no tiene catálogo Excel previo</strong>: no hay nada
@@ -3357,8 +3666,8 @@ el documento compilado para más detalles.</p>
 </blockquote>
 <hr />
 </div>
-<div id="clima-variables-climáticas-de-adaptecca-dos-proyectos-posibles-para-dos-ámbitos-geográficos" class="section level2" number="2.6">
-<h2><span class="header-section-number">2.6</span> CLIMA — variables
+<div id="clima-variables-climáticas-de-adaptecca-dos-proyectos-posibles-para-dos-ámbitos-geográficos" class="section level2" number="2.7">
+<h2><span class="header-section-number">2.7</span> CLIMA — variables
 climáticas de AdapteCCa (dos proyectos posibles, para dos ámbitos
 geográficos)</h2>
 <p>Al igual que EDGAR, <strong>CLIMA no tiene pasos 1 y 2</strong> (no
@@ -3495,8 +3804,8 @@ aceptamos como proyecto de AEDV.</p>
 </blockquote>
 <hr />
 </div>
-<div id="informe-pisa-resultados-educativos-pobreza-y-desigualdad-solo-sirve-para-un-estudiante" class="section level2" number="2.7">
-<h2><span class="header-section-number">2.7</span> INFORME PISA —
+<div id="informe-pisa-resultados-educativos-pobreza-y-desigualdad-solo-sirve-para-un-estudiante" class="section level2" number="2.8">
+<h2><span class="header-section-number">2.8</span> INFORME PISA —
 resultados educativos, pobreza y desigualdad (solo sirve para un
 estudiante)</h2>
 <p>Como EDGAR y CLIMA, <strong>INFORME_PISA no tiene catálogo Excel

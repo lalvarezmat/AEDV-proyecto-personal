@@ -1,0 +1,445 @@
+---
+title: "Análisis de un dataset de los recursos estadísticos del ISTAC"
+author: "Luis Alvarez"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: readable
+    number_sections: true
+    self_contained: true
+---
+
+<style>
+h1.title { font-size: 24px; }
+h1 { font-size: 20px; }
+h2 { font-size: 18px; }
+h3 { font-size: 16px; }
+body { font-size: 14px;}
+p { font-size: 14px; margin-bottom: 10px;
+}
+/* Todas las cajas con scroll llevan la misma separación por debajo, para que no
+   queden pegadas al texto que viene después */
+.tabla-scroll, .caja-scroll, .tabla-scroll-xy { margin-bottom: 28px; }
+/* Tablas anchas: envolver el chunk en <div class="tabla-scroll"> ... </div> para verlas completas con scroll horizontal */
+.tabla-scroll { overflow-x: auto; }
+.tabla-scroll table { width: auto; min-width: 100%; }
+.tabla-scroll table td, .tabla-scroll table th { white-space: nowrap; }
+/* Textos y listados largos: altura acotada y scroll vertical */
+.caja-scroll { max-height: 250px; overflow-y: auto; padding: 10px 14px;
+               border: 1px solid #ddd; background-color: #fafafa; }
+/* Tablas anchas Y largas: scroll en los dos ejes, con la cabecera fija arriba */
+.tabla-scroll-xy { overflow: auto; max-height: 190px; border: 1px solid #ddd; }
+.tabla-scroll-xy table { width: auto; min-width: 100%; margin-bottom: 0; }
+.tabla-scroll-xy table td, .tabla-scroll-xy table th { white-space: nowrap; }
+.tabla-scroll-xy thead th { position: sticky; top: 0; z-index: 1;
+                            background-color: #fff; box-shadow: inset 0 -1px 0 #ddd; }
+/* Celdas de cumple/no cumple de la tabla de validación de requisitos */
+.val-ok, .val-no { display: block; text-align: center; font-weight: bold;
+                   color: #fff; padding: 0 6px; border-radius: 3px; }
+.val-ok { background-color: #28a745; }
+.val-no { background-color: #dc3545; }
+/* Salidas de imprime_caja(): cabecera + 5 filas a la vista; el resto con scroll */
+.caja-scroll.caja-5 { max-height: 152px; }
+</style>
+
+```{r,echo=FALSE}
+# OPCIONES POR DEFECTO AL COMPILAR LOS CHUNKS
+knitr::opts_chunk$set(
+  warning = FALSE,
+  message = FALSE,
+  cache = FALSE,
+  echo = FALSE,
+  # las figuras se escriben fuera del proyecto (el html es self_contained y las
+  # incrusta en base64), para que knitr no deje la carpeta auxiliar junto al html
+  fig.path = paste0(tempdir(), "/ISTAC_recursos_DatasetSelection_files/")
+)
+```
+
+```{r, echo=FALSE}
+library(istacr)
+library(openxlsx)
+library(tidyverse)
+source("../../utilidades.R") # funciones de la asignatura (aedv_generar_analisis, al final)
+
+# asociamos funciones a determinadas librerías para evitar posibles errores
+select <- dplyr::select
+mutate <- dplyr::mutate
+filter <- dplyr::filter
+group_by <- dplyr::group_by
+summarise <- dplyr::summarise
+summarize <- dplyr::summarize
+rename <- dplyr::rename
+```
+
+Este documento analiza en detalle un dataset de la **API de recursos estadísticos** del ISTAC, elegido a partir de la tabla que genera **ISTAC_recursos_TableDatasetGeneration.Rmd** ([ISTAC_recursos.xlsx](ISTAC_recursos.xlsx)), y comprueba si cumple los requisitos para ser el dataset principal del proyecto personal de **AEDV**.
+
+A diferencia de los **indicadores** del ISTAC (**ISTAC_DatasetSelection.Rmd**), que tienen siempre las mismas columnas (territorio, fecha y valor) y se combinan varios en una tabla, aquí se analiza **un único dataset** que, además del territorio y la fecha, puede tener otras dimensiones (sexo, edad, tipo de medida...). Cada combinación de valores de esas dimensiones es un atributo que se sigue en el tiempo para cada región.
+
+
+<!--  ================  PARA PROBAR TUS PROPIOS DATASETS EDITA EL CÓDIGO SIGUIENTE  ============ -->
+
+Para analizar otro dataset basta con cambiar su identificador en el chunk de abajo y volver a compilar.
+
+```{r,echo=TRUE}
+# IDENTIFICADOR DEL DATASET QUE VAMOS A ANALIZAR (columna id de ISTAC_recursos.xlsx)
+Dataset.Id <- "C00065A_000061" # viviendas vacacionales por islas y municipios
+```
+
+<!--  ================  FIN EDICIÓN CÓDIGO PARA PROBAR TUS PROPIOS DATASETS ============ -->
+
+# Descarga, limpieza y guardado del dataset
+
+Descargamos la última versión del dataset desde la API de recursos estadísticos del ISTAC.
+
+```{r,echo=FALSE}
+# FUNCIÓN PARA DESCARGAR UN DATASET A PARTIR DE SU IDENTIFICADOR (3 INTENTOS)
+istac.recurso.download <- function(id, max_intentos = 3, tiempo_espera_seg = 5) {
+  for (intento in 1:max_intentos) {
+    resultado <- tryCatch(
+      istacr::get_statisticalresources_datasets_agency_resource_version("ISTAC", id, "~latest"),
+      error = function(e) NULL)
+    if (!is.null(resultado)) return(resultado)
+    if (intento < max_intentos) Sys.sleep(tiempo_espera_seg)
+  }
+  stop("No se ha podido descargar el dataset ", id, " del ISTAC")
+}
+```
+
+```{r,results='hide',echo=TRUE}
+recurso <- istac.recurso.download(Dataset.Id)
+```
+
+La API entrega los datos con **códigos** en todas las dimensiones (`35004` en vez de *Arrecife*, `2019-M01` en vez de enero de 2019) y, aparte, la lista de códigos de cada dimensión con su nombre. Construimos una tabla ordenada (*tidy*) con:
+
+* `GEOGRAPHICAL` y `NAME`: código y nombre de la región (la dimensión territorial).
+* `TIME`: el periodo, con los meses escritos como en los indicadores del ISTAC (`2019-01`).
+* Una columna por cada una de las demás dimensiones, con el **nombre** de cada valor en vez del código.
+* `VALUE`: el valor numérico. Se eliminan las filas sin dato.
+
+```{r,echo=TRUE}
+# DIMENSIÓN TERRITORIAL: LA QUE TIENE CÓDIGOS DE ESPAÑA/CANARIAS (ES..., MUNICIPIOS 35xxx/38xxx)
+es_territorio <- sapply(recurso$codelists,
+                        function(cl) mean(grepl("^ES[0-9A-Z]*$|^3[58][0-9]{3}$", cl$id)) > 0.5)
+geo_dim <- names(recurso$codelists)[es_territorio][1]
+if(is.na(geo_dim) || !"TIME_PERIOD" %in% names(recurso$codelists))
+  stop("El dataset ", Dataset.Id, " no tiene dimensión territorial o temporal")
+
+# RESTO DE DIMENSIONES (SIN EL TERRITORIO NI EL TIEMPO)
+otras_dims <- setdiff(names(recurso$codelists), c(geo_dim, "TIME_PERIOD"))
+
+data <- recurso$dataframe |>
+  as_tibble() |>
+  mutate(VALUE = suppressWarnings(as.numeric(OBSERVACIONES))) |>
+  filter(!is.na(VALUE))
+
+# CAMBIAMOS LOS CÓDIGOS DE CADA DIMENSIÓN POR SU NOMBRE
+for(d in otras_dims){
+  nombres <- setNames(recurso$codelists[[d]]$value, recurso$codelists[[d]]$id)
+  data[[d]] <- unname(coalesce(nombres[data[[d]]], data[[d]]))
+}
+
+# TERRITORIO (CÓDIGO Y NOMBRE), PERIODO CON LOS MESES COMO "2019-01" Y VALOR
+nombres_geo <- setNames(recurso$codelists[[geo_dim]]$value, recurso$codelists[[geo_dim]]$id)
+data <- data |>
+  mutate(
+    GEOGRAPHICAL = .data[[geo_dim]],
+    NAME = unname(coalesce(nombres_geo[GEOGRAPHICAL], GEOGRAPHICAL)),
+    TIME = sub("^([0-9]{4})-M([0-9]{2})$", "\\1-\\2", TIME_PERIOD)
+  ) |>
+  select(GEOGRAPHICAL, NAME, TIME, all_of(otras_dims), VALUE)
+```
+
+Antes de guardar nada en disco, eliminamos las columnas que **no aportan ninguna información**: aquellas cuyo valor es siempre el mismo en todas las filas (se excluyen el territorio, la fecha y el valor, que son las columnas estructurales del dataset).
+
+```{r,echo=TRUE}
+n_valores <- sapply(data[otras_dims], function(x) n_distinct(x, na.rm = TRUE))
+cols_constantes <- names(n_valores)[n_valores <= 1]
+
+if(length(cols_constantes) > 0){
+  cat("Columnas con un solo valor (se eliminan):\n")
+  for(col in cols_constantes)
+    cat(sprintf("  - %-20s = %s\n", col, as.character(unique(data[[col]])[1])))
+  data <- data |> select(-all_of(cols_constantes))
+} else {
+  cat("Ninguna columna tiene un solo valor: no se elimina ninguna.\n")
+}
+data <- arrange(data, GEOGRAPHICAL, TIME)
+```
+
+Guardamos el dataset **lo primero de todo**, nada más limpiarlo, en formato `rds` (el formato nativo de `R`: conserva los tipos de las columnas y ocupa mucho menos que un Excel).
+
+```{r,echo=TRUE}
+filename <- Dataset.Id
+
+saveRDS(data, file = paste0(filename, ".rds"))
+
+cat("Fichero guardado:", paste0(filename, ".rds"),
+    sprintf("(%.1f MB)\n", file.info(paste0(filename, ".rds"))$size / 1024^2))
+```
+
+Guardamos también los metadatos del dataset recogidos en el catálogo de la asignatura (**ISTAC_recursos.xlsx**, generado por **ISTAC_recursos_TableDatasetGeneration.Rmd**): la fila correspondiente a este dataset, con las columnas pasadas a filas (`Campo`/`Valor`) para que quepan en una tabla estrecha.
+
+```{r,echo=TRUE}
+fila_metadatos <- read.xlsx("ISTAC_recursos.xlsx") |>
+  filter(id == Dataset.Id)
+
+if(nrow(fila_metadatos) == 0)
+  stop("El dataset ", Dataset.Id, " no aparece en el catálogo ISTAC_recursos.xlsx. ",
+       "Comprueba el identificador o vuelve a generar el catálogo con ISTAC_recursos_TableDatasetGeneration.Rmd")
+
+# lastUpdate viene del Excel como número de serie de fechas de Excel
+fila_metadatos <- fila_metadatos |>
+  select(-`Nº`) |>
+  mutate(lastUpdate = as.character(as.Date(lastUpdate, origin = "1899-12-30")))
+
+# pasamos las columnas a filas: son más legibles en vertical
+metadatos <- tibble(
+  Campo = colnames(fila_metadatos),
+  Valor = as.character(t(fila_metadatos))
+)
+
+write.xlsx(metadatos, file = paste0(filename, "_metadatos.xlsx"), overwrite = TRUE)
+```
+
+Una vez guardados en disco los metadatos (fichero xlsx) y los datos (fichero RDS), iniciamos el proceso de análisis. A partir de aquí el documento se compila **solo** con los ficheros ya guardados en disco; no se usa ningún objeto de las secciones anteriores. Es a propósito: es la parte que se incorpora a la memoria del proyecto personal (ver la última sección, *Incorporación del dataset a la memoria*), así que tiene que poder ejecutarse sola (lo único que se usa de lo definido anteriormente es el `Dataset.Id`).
+
+<!-------------------------------------------------------------------------------
+LA SECCIÓN SIGUIENTE, "Análisis del dataset", HASTA LA MARCA "FIN DE LA PARTE QUE SE INCORPORA A LA MEMORIA", ES LA QUE SE INCORPORA A LA MEMORIA DEL PROYECTO PERSONAL, EN LA SECCIÓN "COMPRENSIÓN DE LOS DATOS". AL COMPILAR ESTE DOCUMENTO SE GUARDA EN EL FICHERO <identificador>_analisis.Rmd, QUE SE INCLUYE EN LA MEMORIA CON aedv_incluir_dataset() (VER LA ÚLTIMA SECCIÓN).
+LAS MARCAS "INICIO/FIN DE LA VALIDACIÓN AEDV" DELIMITAN LO QUE OMITE aedv_incluir_dataset(validacion = FALSE): NO BORRARLAS.
+--------------------------------------------------------------------------------->
+
+# Análisis del dataset
+
+```{r}
+#Dataset.Id <- "C00065A_000061" # al copiar este código a mano en la memoria, descomentar y poner el identificador
+filename   <- Dataset.Id
+
+# tablas que devuelve aedv_incluir_dataset() al incluir este análisis en la memoria
+tablas_exportadas <- "data"
+```
+
+```{r}
+metadatos <- read.xlsx(paste0(filename, "_metadatos.xlsx"))
+```
+
+**metadatos**
+
+<div class="tabla-scroll">
+
+```{r}
+metadatos |>
+  knitr::kable()
+```
+
+</div>
+
+```{r}
+data <- readRDS(paste0(filename, ".rds"))
+```
+
+**data**
+
+<div class="tabla-scroll">
+
+```{r}
+data |> print(n=5)
+```
+
+</div>
+
+## Información sobre las columnas de la tabla descargada
+
+Se presentan las diferentes dimensiones, cada una con sus valores posibles y el nº de observaciones.
+
+```{r, results='asis'}
+# results='asis' para poder envolver la salida de cada columna en HTML propio
+# (la caja con scroll vertical, con 5 filas a la vista). Sin 'asis' el
+# <div>/<pre> se imprimirían como texto literal en vez de interpretarse.
+imprime_caja <- function(m, texto){
+  cat("\n**", texto, "**\n\n", sep = "")
+  cat('<div class="caja-scroll caja-5">\n\n')
+  cat("```\n")
+  print(m)
+  cat("```\n")
+  cat("\n</div>\n")
+  cat("\n")
+}
+
+for(col in colnames(data)){
+  if(is.numeric(data[[col]])) next
+
+  tb <- data |>
+    group_by(!!sym(col)) |>
+    summarise(N.observ = dplyr::n(), .groups = "drop") |>
+    arrange(desc(N.observ)) |>
+    # los nombres del ISTAC pueden ser largos (municipios, tipos de medida)
+    mutate(!!col := substr(as.character(!!sym(col)), 1, 55))
+
+  texto <- paste0("COLUMNA: ", col, " (", nrow(tb), " opciones)")
+
+  imprime_caja(tb |> as.matrix() |> noquote(), texto)
+}
+```
+
+## Regiones y número de observaciones
+
+<div class="caja-scroll">
+
+```{r}
+# se muestran TODAS las regiones, en una caja con scroll vertical en vez de
+# alargar la página (con municipios son casi 100)
+data |>
+  group_by(GEOGRAPHICAL, NAME) |>
+  summarise(N.Observ = dplyr::n(), .groups = "drop") |>
+  arrange(NAME) |>
+  as.data.frame() |>
+  print(row.names = FALSE)
+```
+
+</div>
+
+<!-- INICIO DE LA VALIDACIÓN AEDV -->
+
+## Validación de requisitos AEDV
+
+```{r}
+# --- DETECCIÓN DE LA FRECUENCIA ----------------------------------------------
+# Se deduce del FORMATO de las fechas: "2020-01-01" (día), "2020-W01" (semana),
+# "2020-01" (mes), "2020-Q1" (trimestre), "2020-S1" (semestre), "2020" (año).
+classify_time <- function(t) {
+  dplyr::case_when(
+    stringr::str_detect(t, "^[0-9]{4}-[0-9]{2}-[0-9]{2}$") ~ "D",
+    stringr::str_detect(t, "^[0-9]{4}-?W[0-9]{1,2}$")      ~ "W",
+    stringr::str_detect(t, "^[0-9]{4}-[0-9]{2}$")          ~ "M",
+    stringr::str_detect(t, "^[0-9]{4}-?[QT][0-9]$")        ~ "Q",
+    stringr::str_detect(t, "^[0-9]{4}-?S[1-2]$")           ~ "S",
+    stringr::str_detect(t, "^[0-9]{4}$")                   ~ "Y",
+    TRUE                                                   ~ "otro"
+  )
+}
+```
+
+```{r}
+# --- ATRIBUTOS Y TAMAÑO DE CADA SERIE ----------------------------------------
+# Los atributos son las dimensiones que no son ni el territorio ni la fecha: cada
+# combinación de sus valores es un atributo que se sigue en el tiempo para cada
+# región.
+attr_dims <- setdiff(colnames(data)[!sapply(data, is.numeric)],
+                     c("GEOGRAPHICAL", "NAME", "TIME"))
+
+# Nº de fechas de cada serie (combinación de atributos x región x frecuencia).
+# La frecuencia entra en la agrupación porque un mismo dataset puede mezclar
+# varias (p. ej. datos mensuales y su total anual).
+series <- data |>
+  mutate(freq_obs = classify_time(TIME)) |>
+  group_by(across(all_of(c(attr_dims, "GEOGRAPHICAL", "freq_obs")))) |>
+  summarise(n_periodos = n_distinct(TIME), date_max = max(TIME), .groups = "drop")
+
+# Resumen por combinación de atributos y frecuencia
+tb <- series |>
+  group_by(across(all_of(c(attr_dims, "freq_obs")))) |>
+  summarise(
+    n_regiones = n_distinct(GEOGRAPHICAL),
+    date_end   = max(date_max),
+    P0   = as.integer(min(n_periodos)),
+    P25  = as.integer(quantile(n_periodos, 0.25)),
+    P50  = as.integer(quantile(n_periodos, 0.50)),
+    P75  = as.integer(quantile(n_periodos, 0.75)),
+    P100 = as.integer(max(n_periodos)),
+    .groups = "drop"
+  ) |>
+  arrange(desc(n_regiones), desc(P25))
+```
+
+```{r}
+# --- APLICACIÓN DE LOS TRES CRITERIOS ----------------------------------------
+umbral_freq <- c(Y = 10L, S = 20L, Q = 40L, M = 60L, W = 200L, D = 1096L, otro = NA_integer_)
+ANYO_MINIMO <- 2024
+
+# Cobertura geográfica: el umbral depende del nivel territorial del dataset
+# (columna area del catálogo), con los mismos valores que los indicadores del ISTAC
+area <- metadatos$Valor[metadatos$Campo == "area"]
+umbral_cob <- unname(c(MUNI = 80L, ISLA = 6L, CCAA = 15L, PROV = 40L, CANA = NA_integer_, OTRO = NA_integer_)[area])
+
+tb_val <- tb |>
+  mutate(
+    umbral   = unname(umbral_freq[freq_obs]),
+    year_end = as.integer(substr(date_end, 1, 4)),
+    ok_cob   = !is.na(umbral_cob) & n_regiones > umbral_cob,
+    ok_fecha = year_end >= ANYO_MINIMO,
+    ok_temp  = !is.na(umbral) & P25 >= umbral,
+    ok_total = ok_cob & ok_fecha & ok_temp,
+    etiqueta = if(length(attr_dims) > 0)
+                 apply(across(all_of(attr_dims)), 1,
+                       function(r) paste(substr(r, 1, 30), collapse = " / "))
+               else
+                 "dataset completo",
+    etiqueta = paste0(etiqueta, " [", freq_obs, "]")
+  )
+
+n_validos <- sum(tb_val$ok_total)
+n_total   <- nrow(tb_val)
+```
+
+**Combinaciones de atributos**: nº de regiones, último periodo y percentiles del tamaño de la serie temporal (nº de periodos por región).
+
+<div class="tabla-scroll-xy">
+
+```{r}
+# kable en vez de DT::datatable: aquí solo hace falta poder recorrer la tabla,
+# no filtrarla ni ordenarla. El contenedor .tabla-scroll-xy le da el scroll en
+# los dos ejes, con la cabecera fija arriba.
+tb_val |>
+  select(all_of(attr_dims), freq_obs, n_regiones, date_end, P0, P25, P50, P75, P100) |>
+  knitr::kable()
+```
+
+</div>
+
+**Validación de requisitos AEDV** — nivel territorial: `r area` (umbral de cobertura: más de `r ifelse(is.na(umbral_cob), "?", umbral_cob)` regiones).
+
+<div class="tabla-scroll-xy">
+
+```{r}
+# Tabla de validación en HTML: se muestran TODAS las filas y se recorren con el
+# scroll del contenedor. Las clases val-ok/val-no dan el color a cada celda.
+marca <- function(x)
+  ifelse(x, '<span class="val-ok">&#10004;</span>', '<span class="val-no">&#10008;</span>')
+
+tb_val |>
+  transmute(
+    Atributos                       = etiqueta,
+    `Cobertura geográfica`          = marca(ok_cob),
+    `Datos actualizados (≥ 2024)`   = marca(ok_fecha),
+    `Tamaño series (P25 ≥ umbral)`  = marca(ok_temp),
+    `CUMPLE LOS 3`                  = marca(ok_total)
+  ) |>
+  # escape = FALSE para que el <span> de cada celda se interprete como HTML y
+  # no se imprima literalmente
+  knitr::kable(escape = FALSE, align = c("l", rep("c", 4)))
+```
+
+</div>
+
+De las **`r n_total`** combinaciones de atributos analizadas, **`r n_validos`** cumplen los tres criterios de validación (cobertura geográfica, datos actualizados y tamaño de las series temporales).
+
+El requisito de disponer de al menos 4 atributos válidos `r if(n_validos >= 4) "**se cumple ✓**" else paste0("**no se cumple ✗** — con la selección actual faltan ", 4 - n_validos, " combinación(es) válida(s) para alcanzar el mínimo de 4")`.
+
+<!-- FIN DE LA VALIDACIÓN AEDV -->
+
+<!-- FIN DE LA PARTE QUE SE INCORPORA A LA MEMORIA -->
+
+# Incorporación del dataset a la memoria
+
+```{r, results='asis'}
+# genera <identificador>_analisis.Rmd con la sección "Análisis del dataset"
+# preparada para la memoria, y escribe las instrucciones para incorporarlo
+aedv_generar_analisis(
+  nombre        = filename,
+  titulo        = paste0(fila_metadatos$nombre[1], " (ISTAC, ", Dataset.Id, ")"),
+  ficheros      = paste0(filename, c(".rds", "_metadatos.xlsx")),
+  tablas        = tablas_exportadas,
+  # el identificador, comentado en el análisis, queda fijado
+  sustituciones = c("^#Dataset.Id <-" = paste0("Dataset.Id <- \"", Dataset.Id, "\" # identificador del dataset"))
+)
+```

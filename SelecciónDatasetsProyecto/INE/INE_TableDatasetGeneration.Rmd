@@ -289,7 +289,11 @@ columna_periodo <- function(data){
 # NOTA: el timeout NO hace que se pierdan datasets. Solo convierte una espera
 # infinita en un error, que los reintentos vuelven a intentar; si aun así falla,
 # el dataset queda marcado con "-"/"*" y se ve en el catálogo.
-options(timeout = 60)
+# El límite es para la descarga COMPLETA, no para la espera de respuesta: con 60 s
+# las tablas más grandes (130-170 MB, como la 36166 de defunciones semanales o la
+# 32468 de nacimientos) no llegaban a bajar nunca y salían como "*" (pasó el
+# 2026-11-20). 600 s cubren esas tablas y siguen evitando las esperas infinitas.
+options(timeout = 600)
 
 LOG <- "INE_TableDatasetGeneration.log"
 cat(format(Sys.time()), "- inicio del recorrido\n", file = LOG)

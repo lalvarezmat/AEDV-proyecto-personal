@@ -1,0 +1,270 @@
+---
+title: "Catálogo de los recursos estadísticos del ISTAC"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: readable
+    number_sections: true
+---
+
+<style>
+h1.title { font-size: 24px; }
+h1 { font-size: 20px; }
+h2 { font-size: 18px; }
+h3 { font-size: 16px; }
+body { font-size: 14px;}
+p { font-size: 14px; margin-bottom: 10px;
+}
+/* Tablas anchas: envolver el chunk en <div class="tabla-scroll"> ... </div> para verlas completas con scroll horizontal */
+.tabla-scroll { overflow-x: auto; }
+.tabla-scroll table { width: auto; min-width: 100%; }
+.tabla-scroll table td, .tabla-scroll table th { white-space: nowrap; }
+</style>
+
+
+```{r,echo=FALSE}
+# OPCIONES POR DEFECTO AL COMPILAR LOS CHUNKS
+knitr::opts_chunk$set(
+  warning = FALSE,
+  message = FALSE,
+  echo=TRUE,
+  cache=FALSE
+)
+```
+
+```{r, echo=FALSE}
+library(istacr)
+library(jsonlite)
+library(openxlsx)
+library(tidyverse)
+
+# asociamos funciones a determinadas librerías para evitar posibles errores
+select <- dplyr::select
+mutate <- dplyr::mutate
+filter <- dplyr::filter
+group_by <- dplyr::group_by
+summarise <- dplyr::summarise
+rename <- dplyr::rename
+```
+
+El ISTAC publica sus datos a través de dos API. El catálogo **ISTAC_datasets.xlsx** (generado por **ISTAC_TableDatasetGeneration.Rmd**) recoge los **indicadores**, unas 400 series ya elaboradas. Este documento recorre la otra, la **API de recursos estadísticos**, que contiene todas las tablas que publica cada operación estadística del ISTAC (unas 5.000), y guarda en **ISTAC_recursos.xlsx** las que sirven para el proyecto de AEDV. Un dataset entra en el catálogo si cumple **todo** lo siguiente:
+
+* Tiene una **dimensión territorial** y una **dimensión temporal** (`TIME_PERIOD`) con una frecuencia reconocida: `Y` anual, `S` semestral, `Q` trimestral, `M` mensual, `W` semanal o `D` diaria.
+
+* Su **último dato es de 2024 o posterior**.
+
+* Tiene al menos la **mitad** de los periodos que exige el criterio de tamaño de las series de AEDV: 5 años, 10 semestres, 20 trimestres, 30 meses, 100 semanas o 548 días. El criterio completo lo comprueba después la validación del dataset.
+
+* Tiene valores numéricos.
+
+Del listado de la API solo se piden los datasets con alguna versión publicada desde el 1 de enero de 2024 (los demás no pueden tener datos de 2024). Después el recorrido se hace en dos pasadas: primero se leen los **metadatos** de cada dataset (rápido, sin descargar los datos), que bastan para descartar los que no cumplen las fechas ni el número de periodos, y después se descargan los **datos** de los que quedan para comprobar el territorio y calcular el resto de la información.
+
+
+# Listado de los datasets de la API de recursos estadísticos
+
+```{r}
+# DIRECCIÓN DE LA API DE RECURSOS ESTADÍSTICOS DEL ISTAC
+API <- "https://datos.canarias.es/api/estadisticas/statistical-resources/v1.0"
+
+# UMBRALES: LA MITAD DEL Nº DE PERIODOS DEL CRITERIO AEDV DE CADA FRECUENCIA
+umbral_periodos <- c(Y = 5, S = 10, Q = 20, M = 30, W = 100, D = 548)
+ANIO_MINIMO <- 2024   # año mínimo del último dato
+
+# --- CONTROL DE CUELGUES ----------------------------------------------------
+# Se acota el tiempo de cada llamada y se deja constancia del avance en un .log
+# (con quiet=TRUE no se ve nada por consola). Los errores de la API se
+# reintentan, pero NO se capturan para saltarse el dataset: si una llamada
+# falla tres veces el documento se detiene y se relanza la compilación.
+options(timeout = 60)
+httr::set_config(httr::timeout(60))
+
+LOG <- "ISTAC_recursos_TableDatasetGeneration.log"
+cat(format(Sys.time()), "- inicio del recorrido\n", file = LOG)
+log_avance <- function(fase, k, n, id, seg, nota = ""){
+  cat(sprintf("%s  %-8s %4d/%4d  %-16s %6.1f s%s%s\n",
+              format(Sys.time()), fase, k, n, as.character(id), seg,
+              if(seg > 30) "   <-- LENTO" else "",
+              if(nzchar(nota)) paste0("  ", nota) else ""),
+      file = LOG, append = TRUE)
+}
+
+# FUNCIÓN PARA REPETIR UNA LLAMADA A LA API HASTA 3 VECES ANTES DE DETENERSE
+con_reintentos <- function(expr, intentos = 3){
+  llamada <- substitute(expr)
+  for(i in 1:intentos){
+    res <- tryCatch(eval(llamada, parent.frame()), error = function(e) e)
+    if(!inherits(res, "error")) return(res)
+    if(i < intentos) Sys.sleep(10)
+  }
+  stop(conditionMessage(res))
+}
+
+# LECTURA DEL LISTADO (LA API DEVUELVE 1000 VERSIONES POR PÁGINA). SOLO SE PIDEN
+# LAS VERSIONES PUBLICADAS DESDE EL 1 DE ENERO DE ANIO_MINIMO: UN DATASET CUYO
+# ÚLTIMO DATO ES DE ESE AÑO O POSTERIOR TIENE QUE HABERSE PUBLICADO DESPUÉS, ASÍ
+# QUE NO SE PIERDE NINGUNO Y SE AHORRA LEER LOS METADATOS DE LOS ANTIGUOS
+consulta <- URLencode(sprintf('VALID_FROM GT "%d-01-01T00:00:00"', ANIO_MINIMO), reserved = TRUE)
+listado <- tibble()
+offset <- 0
+repeat{
+  pagina <- con_reintentos(fromJSON(sprintf("%s/datasets.json?limit=1000&offset=%d&query=%s", API, offset, consulta)))
+  listado <- bind_rows(listado, tibble(id = pagina$dataset$id))
+  offset <- offset + 1000
+  if(offset >= pagina$total) break
+}
+# CADA DATASET APARECE UNA VEZ POR VERSIÓN: NOS QUEDAMOS CON LOS IDENTIFICADORES
+ids <- unique(listado$id)
+cat("Versiones publicadas desde", ANIO_MINIMO, ":", nrow(listado), " datasets distintos:", length(ids), "\n")
+```
+
+
+# Primera pasada: metadatos de cada dataset
+
+```{r}
+# Detecta la frecuencia de una serie a partir del FORMATO de sus fechas (la
+# misma función que ISTAC_TableDatasetGeneration.Rmd). Muchos datasets mezclan
+# el agregado anual ("1999") con el detalle ("1999-Q1"), así que se descartan los
+# valores de 4 caracteres y se devuelve la granularidad más fina que aparezca.
+deteccion_frecuencia <- function(fechas){
+  d <- unique(fechas[!is.na(fechas)])
+  if(!length(d)) return(NA_character_)
+  d <- d[nchar(d) > 4]
+  if(!length(d)) return("Y")                        # solo agregados anuales
+  if(any(grepl("^\\d{4}-\\d{2}-\\d{2}$", d)))     return("D")
+  if(any(grepl("^\\d{4}-W\\d{1,2}$", d)))         return("W")
+  if(any(grepl("^\\d{4}-M?(0[1-9]|1[0-2])$", d))) return("M")
+  if(any(grepl("^\\d{4}-Q[1-4]$", d)))            return("Q")
+  if(any(grepl("^\\d{4}-S[1-2]$", d)))            return("S")
+  return("?")                                       # formato no previsto: se marca, no se adivina
+}
+
+# Fechas de la granularidad detectada (descarta, por ejemplo, los totales
+# anuales de una serie mensual) para contar los periodos y las fechas extremas
+fechas_frecuencia <- function(fechas, f){
+  d <- unique(fechas[!is.na(fechas)])
+  patron <- c(Y = "^\\d{4}$", S = "^\\d{4}-S[1-2]$", Q = "^\\d{4}-Q[1-4]$",
+              M = "^\\d{4}-M?(0[1-9]|1[0-2])$", W = "^\\d{4}-W\\d{1,2}$",
+              D = "^\\d{4}-\\d{2}-\\d{2}$")[f]
+  if(is.na(patron)) return(character())
+  sort(d[grepl(patron, d)])
+}
+
+# TEXTO EN ESPAÑOL DE UN CAMPO INTERNACIONALIZADO DE LA API
+texto_es <- function(x){
+  t <- x$text
+  if(is.null(t)) return(NA_character_)
+  t$value[t$lang == "es"][1]
+}
+
+meta <- tibble()
+for(k in seq_along(ids)){
+  t.inicio <- Sys.time()
+  m <- con_reintentos(fromJSON(sprintf("%s/datasets/ISTAC/%s/~latest.json?fields=-data", API, ids[k])))
+  fechas <- m$metadata$temporalCoverages$item$id
+  f <- deteccion_frecuencia(fechas)
+  periodos <- fechas_frecuencia(fechas, f)
+  meta <- bind_rows(meta, tibble(
+    id = ids[k],
+    nombre = texto_es(m$name),
+    subject = texto_es(m$metadata$statisticalOperation$name),
+    freq = f,
+    n.periodos = length(periodos),
+    initDate = if(length(periodos)) min(periodos) else NA_character_,
+    lastDate = if(length(periodos)) max(periodos) else NA_character_,
+    lastUpdate = as.Date(substr(m$metadata$lastUpdate, 1, 10))
+  ))
+  log_avance("metadato", k, length(ids), ids[k],
+             as.numeric(difftime(Sys.time(), t.inicio, units = "secs")),
+             paste0("freq=", f, " periodos=", length(periodos)))
+}
+
+# CANDIDATOS: FRECUENCIA RECONOCIDA, ÚLTIMO DATO RECIENTE Y PERIODOS SUFICIENTES
+candidatos <- meta |>
+  filter(freq %in% names(umbral_periodos),
+         as.integer(substr(lastDate, 1, 4)) >= ANIO_MINIMO,
+         n.periodos >= umbral_periodos[freq])
+cat("Datasets:", nrow(meta), " candidatos tras los metadatos:", nrow(candidatos), "\n")
+```
+
+
+# Segunda pasada: datos de los candidatos
+
+Se descargan los datos de cada candidato para localizar la dimensión territorial, contar las regiones y las observaciones con valor numérico y recoger el resto de dimensiones del dataset (columna `DIM`).
+
+```{r}
+# MISMA CLASIFICACIÓN DEL NIVEL TERRITORIAL QUE ISTAC_TableDatasetGeneration.Rmd
+deteccion_area_geografica <- function(u){
+  if(any(c("38005","35012","38027") %in% u)) return("MUNI")
+  if(any(c("ES705","ES706","ES708") %in% u)) return("ISLA")
+  if(any(c("ES11","ES51","ES30")   %in% u)) return("CCAA")
+  if(any(c("ES213","ES425","ES701") %in% u)) return("PROV")
+  if(length(u) == 1 && "ES70" %in% u)       return("CANA")
+  return("OTRO")
+}
+
+# DIMENSIÓN TERRITORIAL: LA QUE TIENE CÓDIGOS DE ESPAÑA/CANARIAS (ES..., MUNICIPIOS 35xxx/38xxx)
+dimension_territorial <- function(codelists){
+  es_territorio <- sapply(codelists, function(cl) mean(grepl("^ES[0-9A-Z]*$|^3[58][0-9]{3}$", cl$id)) > 0.5)
+  names(codelists)[es_territorio][1]
+}
+
+info <- tibble()
+for(k in seq_len(nrow(candidatos))){
+  id <- candidatos$id[k]
+  t.inicio <- Sys.time()
+  r <- con_reintentos(get_statisticalresources_datasets_agency_resource_version("ISTAC", id, "~latest"))
+  tb <- r$dataframe |> mutate(valor = suppressWarnings(as.numeric(OBSERVACIONES)))
+  geo <- dimension_territorial(r$codelists)
+  dims <- setdiff(names(r$codelists), c(geo, "TIME_PERIOD"))
+  regiones <- if(is.na(geo)) character() else unique(tb[[geo]])
+  info <- bind_rows(info, tibble(
+    id = id,
+    tiempo = "TIME_PERIOD" %in% names(tb),
+    territorio = !is.na(geo),
+    n.reg = length(regiones),
+    n.obs = sum(!is.na(tb$valor)),
+    area = if(is.na(geo)) NA_character_ else deteccion_area_geografica(regiones),
+    DIM = paste0(dims, "(", sapply(dims, function(d) n_distinct(tb[[d]])), ")", collapse = " ")
+  ))
+  log_avance("datos", k, nrow(candidatos), id,
+             as.numeric(difftime(Sys.time(), t.inicio, units = "secs")),
+             paste0("geo=", geo, " n.obs=", sum(!is.na(tb$valor))))
+}
+
+# CATÁLOGO: CANDIDATOS CON TIEMPO, TERRITORIO Y VALORES NUMÉRICOS
+ISTAC_recursos <- candidatos |>
+  inner_join(info, by = "id") |>
+  filter(tiempo, territorio, n.obs > 0) |>
+  select(id, nombre, subject, n.reg, n.obs, area, freq, n.periodos, initDate, lastDate, DIM, lastUpdate) |>
+  arrange(subject, id)
+cat("Datasets en el catálogo:", nrow(ISTAC_recursos), "\n")
+```
+
+
+# Resumen del catálogo
+
+```{r}
+# Nº DE DATASETS QUE QUEDAN TRAS CADA FILTRO
+tibble(
+  paso = c(paste("Datasets publicados desde", ANIO_MINIMO), "Frecuencia reconocida", "Último dato en 2024 o después",
+           "Periodos suficientes (candidatos)", "Con territorio, tiempo y valores numéricos"),
+  datasets = c(nrow(meta),
+               sum(meta$freq %in% names(umbral_periodos)),
+               sum(meta$freq %in% names(umbral_periodos) & as.integer(substr(meta$lastDate, 1, 4)) >= ANIO_MINIMO, na.rm = TRUE),
+               nrow(candidatos),
+               nrow(ISTAC_recursos))
+) |>
+  knitr::kable()
+
+# REPARTO POR FRECUENCIA Y POR NIVEL TERRITORIAL
+ISTAC_recursos |> count(freq) |> knitr::kable()
+ISTAC_recursos |> count(area) |> knitr::kable()
+```
+
+Escribimos el catálogo en una hoja Excel
+
+```{r}
+ISTAC_recursos |>
+  mutate(`Nº` = row_number(), .before = 1) |>
+  write.xlsx("ISTAC_recursos.xlsx")
+```

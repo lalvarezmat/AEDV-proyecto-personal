@@ -20,6 +20,8 @@ Esta carpeta contiene herramientas para explorar y descargar datasets de siete f
 
 Las cuatro fuentes con API —**INE**, **ISTAC**, **EUROSTAT** y **Banco Mundial**— se abordan **exactamente igual**: la misma cadena de cuatro pasos, con los mismos dos documentos y los mismos tipos de fichero. Cambia el organismo y el nombre de los ficheros, no el procedimiento; si entiendes el flujo en una fuente, lo entiendes en las cuatro.
 
+El **ISTAC** publica sus datos por dos vías y por eso tiene **dos catálogos**, cada uno con su pareja de documentos: los **indicadores** (`ISTAC_datasets.xlsx`, unas 400 series ya elaboradas de una sola medida) y los **recursos estadísticos** (`ISTAC_recursos.xlsx`, las tablas que publica cada operación estadística, que pueden tener varias dimensiones como las del INE). Conviene mirar en los dos.
+
 La idea de fondo es ir **de los miles de datasets que publica un organismo a unos pocos que acabarán en tu memoria**, estrechando el embudo en cada paso:
 
 ```
@@ -56,9 +58,10 @@ Conviene saberlo porque regenerar un catálogo es un proceso **largo**: recorre 
 
 | Fuente | Datasets recorridos | Duración aproximada |
 |---|---|---|
-| ISTAC | 400 | ~15 minutos |
+| ISTAC (indicadores) | 400 | ~15 minutos |
+| ISTAC (recursos estadísticos) | 3.565 | ~2 h 50 min |
 | EUROSTAT | 3.050 | ~2 horas (estimada) |
-| INE | 5.507 | ~2 h 40 min |
+| INE | 7.142 | ~4 h 30 min |
 | Banco Mundial | 16.643 | **~13 horas** |
 
 Los documentos de **EDGAR**, los dos **CLIMA** e **INFORME PISA** no recorren un catálogo de una API para que elijas: construyen un dataset ya fijado (en CLIMA, descargando unos 10 GB de NetCDF de AdapteCCa; en PISA, reconstruyendo de Wikipedia y de Banco Mundial/INE) para generar los `.rds`. Tampoco hay que ejecutarlos, porque esos `.rds` se distribuyen ya hechos en sus carpetas.
@@ -75,7 +78,8 @@ Por eso es importante **no depender del catálogo Excel para tu proyecto**: una 
 | Fuente | Catálogo | Cobertura |
 |--------|----------|-----------|
 | INE | `INE/INE.datasets.xlsx` | España: municipios, provincias, CCAA |
-| ISTAC | `ISTAC/ISTAC_datasets.xlsx` | Canarias: municipios, islas, CCAA |
+| ISTAC (indicadores) | `ISTAC/ISTAC_datasets.xlsx` | Canarias: municipios, islas, CCAA |
+| ISTAC (recursos estadísticos) | `ISTAC/ISTAC_recursos.xlsx` | Canarias: municipios, islas; algunos comparan con España, sus CCAA o sus provincias |
 | EUROSTAT | `EUROSTAT/Eurostat.datasets.xlsx` | Europa: países y regiones NUTS 0, 1, 2 y 3 |
 | Banco Mundial | `WORLD_BANK/wb.datasets.xlsx` | Mundial: ≥100 países, ≥10 años |
 | EDGAR | *(dataset único, solo sirve para un alumno)* | Mundial: emisiones GHG 1970–2025, por sector y grupo de gases |
@@ -110,27 +114,28 @@ Los datasets que usamos en AEDV siempre tienen una variable (columna) con un dat
     - **Banco Mundial**: **España** (`ESP`), ya que sus datos son por países y no bajan a nivel regional.
     - **ISTAC**: no se comprueba aparte, porque **todos** sus datos son ya de Canarias.
 
-* **Mínimo de 4 atributos**: Tenemos que seleccionar un nº de datasets suficientes para manejar al menos 4 atributos (o combinaciones de atributos) diferentes que cumplan el criterio anterior sobre el tamaño de las series temporales asociadas. Las variaciones que se derivan de un mismo atributo no cuentan como atributos diferentes, es decir si manejamos el dato de población, el dato de la variación anual de la población no cuenta como atributo diferente. Los datasets del INE y de EUROSTAT contienen, con frecuencia, más de 4 atributos y por tanto un solo dataset puede ser suficiente para hacer el proyecto. Los datasets del World Bank y del ISTAC solo contienen un atributo y por tanto hay que manejar varios datasets.
+* **Mínimo de 4 atributos**: Tenemos que seleccionar un nº de datasets suficientes para manejar al menos 4 atributos (o combinaciones de atributos) diferentes que cumplan el criterio anterior sobre el tamaño de las series temporales asociadas. Las variaciones que se derivan de un mismo atributo no cuentan como atributos diferentes, es decir si manejamos el dato de población, el dato de la variación anual de la población no cuenta como atributo diferente. Los datasets del INE, de EUROSTAT y los recursos estadísticos del ISTAC contienen, con frecuencia, más de 4 atributos y por tanto un solo dataset puede ser suficiente para hacer el proyecto. Los datasets del World Bank y los indicadores del ISTAC solo contienen un atributo y por tanto hay que manejar varios datasets.
 
 
 </div>
 
 ## Paso 2 — Buscar en el catálogo los datasets de tu tema
 
-Un catálogo tiene entre 400 y 2.468 filas, así que no se lee de arriba abajo: **se busca dentro de él**. Hay dos maneras y lo razonable es combinarlas.
+Un catálogo tiene entre 400 y 2.852 filas, así que no se lee de arriba abajo: **se busca dentro de él**. Hay dos maneras y lo razonable es combinarlas.
 
-**Con una IA, que es lo más rápido.** Súbele el `.xlsx` de la fuente (`ISTAC_datasets.xlsx`, `wb.datasets.xlsx`, `Eurostat.datasets.xlsx` o `INE.datasets.xlsx`) a ChatGPT, Claude o similar y pídele los identificadores relacionados con tu tema: *«de este catálogo, dame los datasets sobre vivienda y alquiler, con su identificador y su nombre»*. Después pídele que **descarte los que no vayan a cumplir los requisitos**, apoyándose en las columnas que los anticipan:
+**Con una IA, que es lo más rápido.** Súbele el `.xlsx` de la fuente (`ISTAC_datasets.xlsx`, `ISTAC_recursos.xlsx`, `wb.datasets.xlsx`, `Eurostat.datasets.xlsx` o `INE.datasets.xlsx`) a ChatGPT, Claude o similar y pídele los identificadores relacionados con tu tema: *«de este catálogo, dame los datasets sobre vivienda y alquiler, con su identificador y su nombre»*. Después pídele que **descarte los que no vayan a cumplir los requisitos**, apoyándose en las columnas que los anticipan:
 
 | Fuente | Columnas que anticipan si el dataset cumplirá los requisitos |
 |---|---|
-| **ISTAC** | `area` (nivel geográfico: `MUNI`, `ISLA`, `CCAA`…) y `freq` (frecuencia) |
+| **ISTAC (indicadores)** | `area` (nivel geográfico: `MUNI`, `ISLA`, `CCAA`…) y `freq` (frecuencia) |
+| **ISTAC (recursos estadísticos)** | `area`, `freq`, `n.periodos` (nº de periodos) y `DIM` (dimensiones con su nº de valores) |
 | **Banco Mundial** | `Ncountries` y `dateEnd` |
 | **INE** | `Codigo` (desglose geográfico) y `Periodicidad` |
 | **EUROSTAT** | `topic` (familia temática), `NUTS0`–`NUTS3` (cobertura por nivel), `N.atrib.combinados` y las columnas `ESPAÑA`/`CANARIAS` |
 
-**A mano en Excel**, filtrando por la columna temática de cada fuente: `OPER.Nombre` en el INE, `subject` en el ISTAC, `Topic` en el Banco Mundial y el prefijo del `code` en EUROSTAT. La sección [Descripción de los catálogos de datasets](#catalogos) de este mismo documento trae, fuente por fuente, el reparto por temas con el número de datasets de cada uno, la descripción de todas las columnas y las trampas concretas al filtrar.
+**A mano en Excel**, filtrando por la columna temática de cada fuente: `OPER.Nombre` en el INE, `subject` en los dos catálogos del ISTAC (en el de recursos estadísticos es la operación estadística), `Topic` en el Banco Mundial y el prefijo del `code` en EUROSTAT. La sección [Descripción de los catálogos de datasets](#catalogos) de este mismo documento trae, fuente por fuente, el reparto por temas con el número de datasets de cada uno, la descripción de todas las columnas y las trampas concretas al filtrar.
 
-Los identificadores que salgan de aquí son la entrada del paso 3: se copian en `IDS` (ISTAC y Banco Mundial), en `Dataset.Id` (INE) o en `dataset.name` (EUROSTAT).
+Los identificadores que salgan de aquí son la entrada del paso 3: se copian en `IDS` (indicadores del ISTAC y Banco Mundial), en `Dataset.Id` (INE y recursos estadísticos del ISTAC) o en `dataset.name` (EUROSTAT).
 
 <div class="nota">
 <strong class="bloque-titulo">La IA acota la búsqueda, pero no elige por ti</strong>
@@ -155,12 +160,17 @@ Abre el archivo `*_DatasetSelection.Rmd` de la fuente correspondiente y localiza
 Dataset.Id <- 76136   # ← pon aquí el Id de tu dataset
 ```
 
+**ISTAC, recursos estadísticos** — en `ISTAC/ISTAC_recursos_DatasetSelection.Rmd`, cambia el valor de `Dataset.Id` por el identificador del dataset (columna `id` de `ISTAC_recursos.xlsx`, entre comillas):
+```r
+Dataset.Id <- "C00065A_000061"   # ← pon aquí el id de tu dataset
+```
+
 **EUROSTAT** — cambia el valor de `dataset.name` por el código del dataset (columna `code` del catálogo):
 ```r
 dataset.name <- "demo_r_pjanaggr3"   # ← pon aquí el code de tu dataset
 ```
 
-**ISTAC y Banco Mundial** — cambia el vector `IDS` con los identificadores de los datasets de tu catálogo. El formato del identificador depende de la fuente:
+**ISTAC (indicadores) y Banco Mundial** — cambia el vector `IDS` con los identificadores de los datasets de tu catálogo. El formato del identificador depende de la fuente:
 ```r
 # ISTAC — identificadores en mayúsculas (columna `id` del catálogo):
 IDS <- c("MATRICULA_VEHICULOS", "PARQUE_VEHICULOS")
@@ -178,7 +188,7 @@ A continuación haz **Knit** (`Ctrl+Shift+K`). Todos los `*_DatasetSelection.Rmd
 | `<nombre>.rds` | Los datos ya limpios, en el formato nativo de R |
 | `<nombre>_metadatos.xlsx` | La ficha del dataset (su fila del catálogo), para tenerla a mano sin volver al Excel grande |
 
-El `<nombre>` es el **código del dataset** en INE (`76136.rds`) y EUROSTAT (`demo_r_pjanaggr3.rds`). En las fuentes que combinan varios indicadores es el valor de la variable `filename`, que está en el mismo chunk que `IDS` y por omisión vale `ISTAC_Selected` o `WB_Selected`.
+El `<nombre>` es el **código del dataset** en INE (`76136.rds`), EUROSTAT (`demo_r_pjanaggr3.rds`) y los recursos estadísticos del ISTAC (`C00065A_000061.rds`). En las fuentes que combinan varios indicadores es el valor de la variable `filename`, que está en el mismo chunk que `IDS` y por omisión vale `ISTAC_Selected` o `WB_Selected`.
 
 > **Si validas dos selecciones distintas de ISTAC o de Banco Mundial** (por ejemplo, un grupo de indicadores principal y otro auxiliar), **cambia `filename` antes de compilar la segunda**, por ejemplo `filename <- "ISTAC_vehiculos"`. Si no lo cambias, la segunda compilación sobrescribe el `.rds`, el `_metadatos.xlsx` y el `_analisis.Rmd` de la primera, y en la memoria no podrías incluir las dos.
 
@@ -220,7 +230,7 @@ El análisis que se incluye en la memoria usa las clases CSS del curso (`tabla-s
 
 # Descripción de los catálogos de datasets {#catalogos}
 
-## INE — `INE/INE.datasets.xlsx` (1.678 datasets)
+## INE — `INE/INE.datasets.xlsx` (2.852 datasets)
 
 Este archivo contiene los datasets del Instituto Nacional de Estadística accesibles a través de la librería `ineapir`, filtrados para incluir únicamente los que tienen datos a nivel de municipio, provincia o comunidad autónoma y han sido actualizados en 2024 o después.
 
@@ -244,20 +254,23 @@ Este archivo contiene los datasets del Instituto Nacional de Estadística accesi
 
 ### Organización por temas
 
-El INE no trae una columna de tema, pero sí la operación estadística de la que procede cada dataset (`OPER.Nombre`, 65 valores distintos). Agrupándolas, el catálogo se reparte así (los recuentos suman los 1.678 datasets):
+El INE no trae una columna de tema, pero sí la operación estadística de la que procede cada dataset (`OPER.Nombre`, 76 valores distintos). Agrupándolas, el catálogo se reparte así (los recuentos suman las 2.852 filas; son 2.720 tablas distintas, porque algunas aparecen bajo varias operaciones):
 
 | Tema | Nº datasets | Operaciones estadísticas que lo componen (`OPER.Nombre`) |
 |------|:-----------:|---------------------|
-| **Mercado laboral** | 264 | Encuesta de Población Activa (EPA); Flujos de la Población Activa |
-| **Demografía y población** | 251 | Indicadores Demográficos Básicos; Estadística Continua de Población |
-| **Turismo** | 203 | Ocupación hotelera, en apartamentos turísticos, campings, turismo rural y albergues; turismo de residentes; viviendas turísticas; movimientos en fronteras (15 operaciones) |
+| **Censo de Población** | 920 | Censo de Población (anual desde 2021, casi todo por municipio). **Con solo 3 a 5 años, todavía no cumple el tamaño de serie de AEDV**: sirve como dataset auxiliar, no como principal |
+| **Mercado laboral** | 263 | Encuesta de Población Activa (EPA); Flujos de la Población Activa |
+| **Demografía y población** | 256 | Indicadores Demográficos Básicos; Estadística Continua de Población |
+| **Turismo** | 211 | Ocupación hotelera, en apartamentos turísticos, campings, turismo rural y albergues; turismo de residentes; viviendas turísticas; movimientos en fronteras; turismo medido con teléfonos móviles (15 operaciones) |
+| **Nacimientos y defunciones** | 172 | MNP Nacimientos, Defunciones, Partos y Muertes Fetales Tardías; defunciones semanales (EDeS); defunciones por causa de muerte; tablas de mortalidad |
 | **Salarios y costes laborales** | 142 | Encuesta de Estructura Salarial (cuatrienal y anual); Encuesta de Coste Laboral (trimestral y anual); Índice de Precios del Trabajo |
-| **Nacimientos y defunciones** | 125 | MNP Nacimientos y Defunciones; defunciones semanales (EDeS); defunciones por causa de muerte; tablas de mortalidad |
-| **Matrimonios y familia** | 102 | MNP Estadística de Matrimonios |
+| **Matrimonios y familia** | 106 | MNP Estadística de Matrimonios |
+| **Empresas, industria y comercio** | 94 | Sociedades Mercantiles; DIRCE; estadística estructural de empresas; coyuntura demográfica de empresas; producción industrial; comercio al por menor (13 operaciones) |
+| **Proyecciones de población y hogares** | 89 | Proyecciones de Población; Proyección de Hogares |
 | **Migración** | 87 | Migraciones y Cambios de Residencia; Adquisiciones de Nacionalidad Española |
-| **Vivienda e hipotecas** | 80 | Hipotecas; ejecuciones hipotecarias; precios de vivienda y de alquiler; transmisión de derechos de la propiedad |
-| **Empresas, industria y comercio** | 77 | Sociedades Mercantiles; DIRCE; estadística estructural de empresas; producción industrial; comercio al por menor (11 operaciones) |
+| **Vivienda e hipotecas** | 81 | Hipotecas; ejecuciones hipotecarias; precios de vivienda y de alquiler; transmisión de derechos de la propiedad |
 | **Condiciones de vida y renta** | 68 | Encuesta de Condiciones de Vida (ECV); Presupuestos Familiares (EPF); Atlas de distribución de renta de los hogares |
+| **Indicadores de calidad de vida** | 61 | Indicadores de Calidad de Vida |
 | **Divorcios y separaciones** | 57 | Nulidades, Separaciones y Divorcios |
 | **Padrón municipal** | 53 | Cifras Oficiales de Población de los Municipios Españoles |
 | **Delincuencia y justicia** | 51 | Población Condenada Adulta; Población Condenada Menor de Edad |
@@ -265,6 +278,8 @@ El INE no trae una columna de tema, pero sí la operación estadística de la qu
 | **Violencia de género** | 28 | Estadística de Violencia Doméstica y Violencia de Género |
 | **Gasto turístico** | 22 | Gasto de los visitantes extranjeros por destino; Encuesta de Gasto Turístico |
 | **Indicadores urbanos** | 21 | Indicadores Urbanos (Urban Audit) |
+| **Contabilidad regional** | 17 | Contabilidad Regional de España |
+| **TIC en los hogares y medio ambiente** | 6 | Equipamiento y Uso de TIC en los Hogares; Panel de Indicadores Medioambientales |
 | **Transporte** | 4 | Estadística de Transporte de Personas |
 
 > **Cuidado al filtrar por `OPER.Nombre`.** La Encuesta Cuatrienal de Estructura Salarial aparece con **dos nombres casi idénticos** —`Encuesta Cuatrienal de Estructura Salarial` y `Encuesta Cuatrienal de Estructural Salarial`—, con 54 datasets cada uno. Es una errata del propio INE, no del catálogo: si filtras por el nombre exacto te dejas fuera la mitad de la operación.
@@ -320,6 +335,66 @@ La columna `subject` trae el tema tal y como lo nombra el ISTAC. Son **61 temas 
 | *Otros 39 temas con menos de 5 datasets* | 111 | `PIB_PM`, `IPC`, `ENERGIA_ELECTRICA_DISPONIBLE`, `GANADO_BOVINO`, `HIPOTECAS_CONSTITUIDAS`, `IPV`… |
 
 > **El mismo asunto aparece bajo varios `subject`.** El ISTAC no tiene una clasificación única: la salud está repartida entre `Sistema de salud y atención sanitaria` (13), `Estado de salud y morbilidad` (3), `Salud` (3) y `Salud y protección ambiental` (3); la agricultura, entre `Agricultura` (7), `Agricultura y ganadería` (5), `Ganadería` (4) y `Agricultura, ganadería y pesca` (3). Busca por palabra clave en la columna `id`, no solo por `subject`.
+
+---
+
+## ISTAC — `ISTAC/ISTAC_recursos.xlsx` (1.158 datasets)
+
+Recoge las tablas de la **API de recursos estadísticos** del ISTAC: las que publica cada operación estadística (encuestas, estadísticas de registros, censos…). Son muchas más que los indicadores (casi 5.000), así que el catálogo **solo incluye las que sirven para el proyecto**: las que tienen una dimensión territorial y una temporal con frecuencia reconocida, su último dato es de **2024 o posterior** y tienen al menos **la mitad de los periodos** que exige el criterio de tamaño de AEDV (5 años, 10 semestres, 20 trimestres, 30 meses, 100 semanas o 548 días). El criterio completo lo comprueba después `ISTAC_recursos_DatasetSelection.Rmd`.
+
+A diferencia de los indicadores, un dataset de este catálogo puede tener **varias dimensiones** además del territorio y la fecha (sexo, edad, tipo de medida, país de residencia…), como los del INE: cada combinación de sus valores es un atributo, así que un solo dataset puede bastar para tener los 4 atributos.
+
+### Descripción de columnas
+
+| Columna | Descripción |
+|---------|-------------|
+| `Nº` | Número de fila de referencia en el catálogo. |
+| `id` | Identificador del dataset en el ISTAC (ej. `C00065A_000061`). **Es el valor que hay que poner en `Dataset.Id`** en `ISTAC_recursos_DatasetSelection.Rmd`. Las primeras letras y cifras identifican la operación estadística. |
+| `nombre` | Título del dataset tal como lo publica el ISTAC. Termina indicando el desglose territorial y temporal (ej. *«Islas y municipios de Canarias por periodos»*). |
+| `subject` | Operación estadística de la que procede (ej. `Encuesta de Alojamiento Turístico`). |
+| `n.reg` | Número de regiones distintas con datos (incluye Canarias y, si las hay, las islas). |
+| `n.obs` | Número de observaciones con valor numérico. |
+| `area` | Nivel geográfico detectado: `MUNI`, `ISLA`, `CCAA`, `PROV`, `CANA` (solo Canarias en conjunto) u `OTRO` (por ejemplo, España y Canarias). |
+| `freq` | Frecuencia temporal: `Y`, `S`, `Q`, `M`, `W` o `D`. |
+| `n.periodos` | Número de periodos de esa frecuencia. |
+| `initDate` / `lastDate` | Primer y último periodo (los meses aparecen como `2019-M01`). |
+| `DIM` | Resto de dimensiones con su nº de valores (ej. `MEDIDAS(6) SEXO(3)`). |
+| `lastUpdate` | Fecha de la última publicación del dataset en el ISTAC. |
+
+### Organización por operaciones estadísticas
+
+Son **95 operaciones**; aquí van las 31 con 10 datasets o más (el resto, 64 operaciones, suma 196 datasets). Los nombres son literalmente los valores de `subject`.
+
+| Operación (valor de `subject`) | Nº datasets |
+|------|:-----------:|
+| **Encuesta sobre el Gasto Turístico** | 306 |
+| **Estadística de Afiliación a la Seguridad Social: Cifras en Áreas Pequeñas de Canarias** | 69 |
+| **Encuesta de Alojamiento Turístico** | 47 |
+| **Encuesta de Condiciones de Vida** | 41 |
+| **Encuesta de Ingresos y Condiciones de Vida de los Hogares Canarios** | 41 |
+| **Estadística de Accidentes de Trabajo** | 34 |
+| **Estadística de Movimiento Laboral Registrado** | 31 |
+| **Estadística de Matrimonios** | 26 |
+| **Análisis de la Mortalidad** | 25 |
+| **Estadística del Plan Concertado de Prestaciones Básicas de Servicios Sociales** | 23 |
+| **Estadística de Inserción Laboral** | 22 |
+| **Estadística de Movimientos Turísticos en Fronteras de Canarias** | 22 |
+| **Estadística de las Enseñanzas no Universitarias** | 21 |
+| **Estadística de Nacimientos** | 20 |
+| **Recopilación de Estadísticas sobre Violencia de Género** | 19 |
+| **Sistema para la Autonomía y Atención a la Dependencia** | 19 |
+| **Censos de Población y Viviendas** | 18 |
+| **Índice de Precios de Consumo** | 18 |
+| **Encuesta de Morbilidad Hospitalaria** | 16 |
+| **Estadística sobre Efectivos de Ganado en Canarias** | 16 |
+| **Estadística de Parque de Vehículos** | 13 |
+| **Estadística sobre Accidentes de Circulación** | 13 |
+| *Otras 9 operaciones con 10 a 12 datasets* | 102 |
+| *Otras 64 operaciones con menos de 10 datasets* | 196 |
+
+> **Cuidado con el nivel `CANA`.** 347 datasets (109 de ellos de la Encuesta sobre el Gasto Turístico y 37 de la Encuesta de Condiciones de Vida) tienen **una sola región**, Canarias en conjunto. Entran en el catálogo porque tienen territorio y serie temporal, pero **no pueden cumplir el criterio de cobertura geográfica**: sirven como datasets auxiliares, no como dataset principal. Mira la columna `area` antes de elegir.
+
+> **Versiones que ya no se actualizan.** Cuando el ISTAC cambia la base de una estadística publica una tabla nueva y deja la anterior congelada: por ejemplo, el IPC en base 2021 (`E30138A_000001`) termina en 2025-12 y su continuación es la tabla en base 2025 (`E30138A_000010`). Si encuentras dos tablas casi iguales, quédate con la de `lastDate` más reciente.
 
 ---
 
