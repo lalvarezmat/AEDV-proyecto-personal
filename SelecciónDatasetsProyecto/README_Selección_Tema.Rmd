@@ -294,7 +294,7 @@ Contiene todos los datasets estadísticos de Canarias accesibles a través de la
 
 | Columna | Descripción |
 |---------|-------------|
-| `Nº` | Número de fila de referencia en el catálogo. |
+| `Nº` | Número de fila de referencia en el catálogo. El catálogo está ordenado por nivel geográfico (`area`) y, dentro de cada nivel, por tema (`subject`). |
 | `id` | Identificador del indicador en el sistema ISTAC. Nombre corto en mayúsculas (ej. `POBLACION`, `ACCIDENTES_TRABAJO_BAJA`). **Es el valor que hay que incluir en el vector `IDS`** en `ISTAC_DatasetSelection.Rmd`. |
 | `subject` | Tema al que pertenece el dataset. Permite filtrar por área de interés. |
 | `n.reg` | Número de regiones distintas con datos. El valor nos da una pista de la cobertura geográfica, por ejemplo, un valor alrededor de 97, sugiere que son municipios de las islas, un valor alrededor de 20, que son CCAA, un valor alrededor de 7 que los datos son por islas, un valor alrededor de 40 pueden ser provincias españolas. |

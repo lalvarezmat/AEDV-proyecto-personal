@@ -218,8 +218,9 @@ ISTAC_datasets <- ISTAC_datasets |>
 <!-- Imprimimos información básica de cada dataset y la guardamos en disco como una hoja Excel. -->
 
 ```{verbatim}
-ISTAC_datasets |> 
+ISTAC_datasets |>
   select(id,subject,n.reg,n.obs,area,freq,initDate,lastDate) |>
+  arrange(area, subject, id) |>
   mutate(`Nº` = row_number(), .before = 1) |>
   knitr::kable()
 ```
@@ -227,8 +228,10 @@ ISTAC_datasets |>
 Escribimos los datasets detectados en una hoja excel
 
 ```{r}
-ISTAC_datasets |> 
+ISTAC_datasets |>
   select(id,subject,n.reg,n.obs,area,freq,initDate,lastDate) |>
+  # ORDENADO POR NIVEL TERRITORIAL Y, DENTRO DE ÉL, POR TEMA
+  arrange(area, subject, id) |>
    mutate(`Nº` = row_number(), .before = 1) |>
    write.xlsx("ISTAC_datasets.xlsx")
 ```
