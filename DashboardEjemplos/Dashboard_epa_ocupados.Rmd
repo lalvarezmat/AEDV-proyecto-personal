@@ -1058,6 +1058,102 @@ seleccion[[pageId]] <- shiny::eventReactive(input[[id_control("dibujar")]], {
 ###
 
 ```{r}
+# ggplotly COLOCA MAL LOS PANELES DEL facet_wrap EN DOS CASOS:
+#  - CALCULA LAS COLUMNAS COMO ceiling(PANELES / FILAS) Y NO LAS DE ggplot: CON 20
+#    PANELES EN 6 COLUMNAS (4 FILAS) LOS PONE EN 5, DOS COLUMNAS DE EJES SE
+#    SOLAPAN Y HAY PANELES QUE SALEN EN BLANCO
+#  - CON scales = "free_y" RESTA DEL ANCHO DE CADA COLUMNA EL DE SUS ETIQUETAS
+#    DEL EJE Y, Y LOS PANELES SALEN DE ANCHOS DISTINTOS
+# ESTA FUNCIÓN VUELVE A COLOCAR CADA PANEL (EJES, FONDO Y CABECERA) EN SU FILA Y
+# COLUMNA, CON TODAS LAS COLUMNAS DEL MISMO ANCHO
+colocar_paneles <- function(fig, ncol) {
+  fig <- plotly_build(fig)
+  ly <- fig$x$layout
+  cabeceras <- which(sapply(ly$annotations, function(a) {
+    is.null(a$annotationType) && identical(a$yanchor, "bottom")
+  }))
+  n <- length(cabeceras)                                 # nº de paneles
+  if (n < 2) return(fig)
+  ncol  <- min(ncol, n)
+  nfil  <- ceiling(n / ncol)
+  ncolp <- ceiling(n / nfil)                             # columnas que supuso ggplotly
+  ejes_x <- grep("^xaxis", names(ly), value = TRUE)
+  ejes_y <- grep("^yaxis", names(ly), value = TRUE)
+  ejes_x <- ejes_x[order(as.integer(sub("^xaxis", "0", ejes_x)))]
+  ejes_y <- ejes_y[order(as.integer(sub("^yaxis", "0", ejes_y)))]
+  # COLUMNAS: EL HUECO MAYOR DE ggplotly ENTRE COLUMNAS (SITIO PARA LAS ETIQUETAS)
+  dom_x <- unique(round(t(sapply(ejes_x, function(e) ly[[e]]$domain)), 6))
+  dom_x <- dom_x[order(dom_x[, 1]), , drop = FALSE]
+  huecos <- dom_x[-1, 1] - dom_x[-nrow(dom_x), 2]
+  hueco <- if (any(huecos > 0)) max(huecos) else 0.02
+  ancho <- (1 - hueco * (ncol - 1)) / ncol
+  x_ini <- (0:(ncol - 1)) * (ancho + hueco)
+  # FILAS: LA ALTURA Y EL HUECO DE LA PRIMERA FILA DE ggplotly (QUE ACIERTA EN LAS FILAS)
+  # (CON ESCALA FIJA ggplotly PUEDE NO CREAR EL EJE DE LA PRIMERA FILA: EL HUECO
+  # SE DEDUCE DEL BORDE INFERIOR DE CUALQUIER FILA QUE NO SEA LA ÚLTIMA)
+  alto_fila <- 1 / nfil
+  bordes <- sapply(ejes_y, function(e) ly[[e]]$domain[1])
+  bordes <- bordes[bordes > 1e-6]
+  margen <- if (length(bordes) == 0) 0 else {
+    b <- bordes[1]
+    b - 1 + ceiling((1 - b) / alto_fila - 1e-9) * alto_fila
+  }
+  y_sup <- function(i) 1 - (i - 1) * alto_fila - if (i == 1) 0 else margen
+  y_inf <- function(i) 1 - i * alto_fila + if (i == nfil) 0 else margen
+  fila_de <- function(k) (k - 1) %/% ncol + 1
+  col_de  <- function(k) (k - 1) %% ncol + 1
+  # PANEL AL QUE PERTENECE UN ELEMENTO SEGÚN DÓNDE LO PUSO ggplotly
+  panel_de <- function(x, y) {
+    cp <- min(max(floor(x * ncolp) + 1, 1), ncolp)
+    fp <- min(max(floor((1 - y + 1e-9) * nfil) + 1, 1), nfil)
+    (fp - 1) * ncolp + cp
+  }
+  ly$shapes <- lapply(ly$shapes, function(s) {
+    if (!identical(s$xref, "paper") || !identical(s$yref, "paper")) return(s)
+    cabecera <- identical(s$ysizemode, "pixel")
+    y_ref <- if (cabecera) s$yanchor else (s$y0 + s$y1) / 2
+    k <- panel_de((s$x0 + s$x1) / 2, y_ref)
+    if (k > n) return(s)
+    fp <- floor((1 - y_ref + 1e-9) * nfil) + 1
+    dy <- y_sup(fila_de(k)) - y_sup(fp)
+    s$x0 <- x_ini[col_de(k)]
+    s$x1 <- x_ini[col_de(k)] + ancho
+    if (cabecera) s$yanchor <- s$yanchor + dy else { s$y0 <- s$y0 + dy; s$y1 <- s$y1 + dy }
+    s
+  })
+  for (j in seq_along(cabeceras)) {
+    a <- ly$annotations[[cabeceras[j]]]
+    a$x <- x_ini[col_de(j)] + ancho / 2
+    a$y <- y_sup(fila_de(j))
+    ly$annotations[[cabeceras[j]]] <- a
+  }
+  # EJES. ESCALA LIBRE: UN EJE Y POR PANEL; ESCALA FIJA: UNO POR FILA
+  libre <- length(ejes_y) == n && n > nfil
+  for (i in seq_along(ejes_y)) {
+    fila <- if (libre) fila_de(i) else i
+    ly[[ejes_y[i]]]$domain <- c(y_inf(fila), y_sup(fila))
+    ly[[ejes_y[i]]]$anchor <- if (libre) paste0("x", sub("^1$", "", col_de(i))) else "x"
+    ly[[ejes_y[i]]]$automargin <- TRUE                  # SITIO PARA LAS ETIQUETAS
+  }
+  for (j in seq_along(ejes_x)) {
+    abajo <- max(which(col_de(seq_len(n)) == j))        # último panel de la columna
+    ly[[ejes_x[j]]]$domain <- c(x_ini[j], x_ini[j] + ancho)
+    ly[[ejes_x[j]]]$anchor <- paste0("y", sub("^1$", "", if (libre) abajo else fila_de(abajo)))
+    # MENOS MARCAS EN EL EJE X SI NO CABEN: UNA DE CADA k, SUPONIENDO UNOS 1000 px
+    # DE ANCHO PARA LA GRÁFICA Y 7 px POR CARÁCTER MÁS 25 px DE SEPARACIÓN
+    marcas <- ly[[ejes_x[j]]]$ticktext
+    if (identical(ly[[ejes_x[j]]]$tickmode, "array") && length(marcas) > 2) {
+      caben <- max(2, floor(ancho * 1000 / (7 * max(nchar(marcas)) + 25)))
+      k <- ceiling(length(marcas) / caben)
+      quedan <- seq(1, length(marcas), by = k)
+      ly[[ejes_x[j]]]$tickvals <- ly[[ejes_x[j]]]$tickvals[quedan]
+      ly[[ejes_x[j]]]$ticktext <- marcas[quedan]
+    }
+  }
+  fig$x$layout <- ly
+  fig
+}
+
 renderPlotly({
 
   # SELECCIÓN EMPAQUETADA AL PULSAR EL BOTÓN
@@ -1144,16 +1240,14 @@ renderPlotly({
 
   p <- p + geom_line()
 
-  # facet_wrap: Nº DE COLUMNAS FIJO SOLO SI LA PÁGINA ESTÁ COMPLETA
-  if (length(unique(tb[[panel.col]])) < NPlotsPerPage) {
-    p <- p + facet_wrap(vars(!!sym(panel.col)), scales = scale_y)
-  } else {
-    p <- p + facet_wrap(vars(!!sym(panel.col)), scales = scale_y, ncol = datos$ncol)
-  }
+  # facet_wrap CON EL Nº DE COLUMNAS ELEGIDO (MENOS SI HAY MENOS PANELES).
+  # SIN ncol, ggplot ELIGE LA REJILLA (5 COLUMNAS CON 17 A 25 PANELES)
+  ncol_paneles <- min(datos$ncol, length(unique(tb[[panel.col]])))
+  p <- p + facet_wrap(vars(!!sym(panel.col)), scales = scale_y, ncol = ncol_paneles)
 
   p <- p + labs(x = "", y = "", colour = atributo.combinado.name)
 
-  ggplotly(p)
+  colocar_paneles(ggplotly(p), ncol_paneles)
 })
 ```
 
