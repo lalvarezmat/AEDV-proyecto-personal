@@ -236,7 +236,8 @@ ISTAC_recursos <- candidatos |>
   inner_join(info, by = "id") |>
   filter(tiempo, territorio, n.obs > 0) |>
   select(id, nombre, subject, n.reg, n.obs, area, freq, n.periodos, initDate, lastDate, DIM, lastUpdate) |>
-  arrange(subject, id)
+  # ORDENADO POR NIVEL TERRITORIAL Y, DENTRO DE ÉL, POR OPERACIÓN ESTADÍSTICA
+  arrange(area, subject, id)
 cat("Datasets en el catálogo:", nrow(ISTAC_recursos), "\n")
 ```
 

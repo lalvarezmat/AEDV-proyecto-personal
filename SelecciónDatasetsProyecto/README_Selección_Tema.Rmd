@@ -348,7 +348,7 @@ A diferencia de los indicadores, un dataset de este catálogo puede tener **vari
 
 | Columna | Descripción |
 |---------|-------------|
-| `Nº` | Número de fila de referencia en el catálogo. |
+| `Nº` | Número de fila de referencia en el catálogo. El catálogo está ordenado por nivel geográfico (`area`) y, dentro de cada nivel, por operación estadística (`subject`). |
 | `id` | Identificador del dataset en el ISTAC (ej. `C00065A_000061`). **Es el valor que hay que poner en `Dataset.Id`** en `ISTAC_recursos_DatasetSelection.Rmd`. Las primeras letras y cifras identifican la operación estadística. |
 | `nombre` | Título del dataset tal como lo publica el ISTAC. Termina indicando el desglose territorial y temporal (ej. *«Islas y municipios de Canarias por periodos»*). |
 | `subject` | Operación estadística de la que procede (ej. `Encuesta de Alojamiento Turístico`). |
