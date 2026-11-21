@@ -142,8 +142,15 @@ istac.data.download <- function(id, max_intentos = 3, tiempo_espera_seg = 1) {
 ```
 
 ```{r,echo=TRUE}
+# CATÁLOGO DE INDICADORES: el filtrado y, para los indicadores que no están en
+# él (el filtro deja fuera indicadores que sí sirven, p. ej. como auxiliares),
+# el completo .raw
 ISTAC_datasets <- read.xlsx("ISTAC_datasets.xlsx") |>
   as_tibble()
+if(file.exists("ISTAC_datasets.raw.xlsx"))
+  ISTAC_datasets <- bind_rows(ISTAC_datasets,
+                              read.xlsx("ISTAC_datasets.raw.xlsx") |> as_tibble()) |>
+    distinct(id, .keep_all = TRUE)
 
 istac.regions <- read_csv("ISTAC_AREAS_GEOGRAFICAS.csv", show_col_types = FALSE) |>
   as_tibble()
@@ -364,7 +371,10 @@ tb <- data |>
 
 ```{r}
 # --- APLICACIÓN DE LOS TRES CRITERIOS ----------------------------------------
-umbral_cob <- c(MUNI = 80L, ISLA = 6L, CCAA = 15L, PROV = 40L, CANA = NA_integer_)
+# (columna area del catálogo; los mismos umbrales que ISTAC_recursos_DatasetSelection.Rmd)
+umbral_cob <- c(MICRO = 45L, MUNI = 80L, COMARCA = 24L, GCOMARCA = 10L, ISLA = 6L,
+                PROV = 40L, CCAA = 15L, ZCAIRE = NA_integer_, PAIS = NA_integer_,
+                CANA = NA_integer_, OTRO = NA_integer_)
 
 tb_val <- tb |>
   mutate(

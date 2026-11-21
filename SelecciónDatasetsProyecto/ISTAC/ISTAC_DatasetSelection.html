@@ -11,7 +11,7 @@
 
 <meta name="author" content="Luis Alvarez" />
 
-<meta name="date" content="2026-10-08" />
+<meta name="date" content="2026-11-21" />
 
 <title>Análisis de datasets seleccionados del ISTAC</title>
 
@@ -365,7 +365,7 @@ display: none;
 <h1 class="title toc-ignore">Análisis de datasets seleccionados del
 ISTAC</h1>
 <h4 class="author">Luis Alvarez</h4>
-<h4 class="date">2026-10-08</h4>
+<h4 class="date">2026-11-21</h4>
 
 </div>
 
@@ -458,8 +458,15 @@ desc_ia &lt;- tibble(
 <div id="descarga-limpieza-y-guardado-de-los-datos" class="section level1" number="1">
 <h1><span class="header-section-number">1</span> Descarga, limpieza y
 guardado de los datos</h1>
-<pre class="r"><code>ISTAC_datasets &lt;- read.xlsx(&quot;ISTAC_datasets.xlsx&quot;) |&gt;
+<pre class="r"><code># CATÁLOGO DE INDICADORES: el filtrado y, para los indicadores que no están en
+# él (el filtro deja fuera indicadores que sí sirven, p. ej. como auxiliares),
+# el completo .raw
+ISTAC_datasets &lt;- read.xlsx(&quot;ISTAC_datasets.xlsx&quot;) |&gt;
   as_tibble()
+if(file.exists(&quot;ISTAC_datasets.raw.xlsx&quot;))
+  ISTAC_datasets &lt;- bind_rows(ISTAC_datasets,
+                              read.xlsx(&quot;ISTAC_datasets.raw.xlsx&quot;) |&gt; as_tibble()) |&gt;
+    distinct(id, .keep_all = TRUE)
 
 istac.regions &lt;- read_csv(&quot;ISTAC_AREAS_GEOGRAFICAS.csv&quot;, show_col_types = FALSE) |&gt;
   as_tibble()</code></pre>
@@ -545,15 +552,17 @@ dataset</h1>
 <table>
 <colgroup>
 <col width="1%" />
+<col width="10%" />
 <col width="11%" />
-<col width="12%" />
+<col width="1%" />
+<col width="7%" />
 <col width="1%" />
 <col width="1%" />
 <col width="1%" />
-<col width="1%" />
+<col width="3%" />
 <col width="2%" />
 <col width="2%" />
-<col width="60%" />
+<col width="54%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -561,9 +570,11 @@ dataset</h1>
 <th align="left">id</th>
 <th align="left">subject</th>
 <th align="right">n.reg</th>
+<th align="left">n.reg.gran</th>
 <th align="right">n.obs</th>
 <th align="left">area</th>
 <th align="left">freq</th>
+<th align="right">n.periodos</th>
 <th align="left">initDate</th>
 <th align="left">lastDate</th>
 <th align="left">description</th>
@@ -571,41 +582,47 @@ dataset</h1>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="right">377</td>
+<td align="right">122</td>
 <td align="left">MATRICULA_VEHICULOS</td>
 <td align="left">Transporte, movilidad y comunicaciones</td>
 <td align="right">97</td>
-<td align="right">1455</td>
+<td align="left">MUNI(89) ISLA(7) CCAA(1)</td>
+<td align="right">11640</td>
 <td align="left">MUNI</td>
 <td align="left">Y</td>
-<td align="left">2024</td>
+<td align="right">24</td>
+<td align="left">2003</td>
 <td align="left">2026</td>
 <td align="left">Número de vehículos ordinarios nuevos matriculados en
 circulación en cada municipio e isla de Canarias en un período. Excluye
 vehículos usados y rematriculaciones.</td>
 </tr>
 <tr class="even">
-<td align="right">378</td>
+<td align="right">123</td>
 <td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
 <td align="left">Transporte, movilidad y comunicaciones</td>
 <td align="right">97</td>
-<td align="right">1455</td>
+<td align="left">MUNI(89) ISLA(7) CCAA(1)</td>
+<td align="right">11640</td>
 <td align="left">MUNI</td>
 <td align="left">Y</td>
-<td align="left">2024</td>
+<td align="right">24</td>
+<td align="left">2003</td>
 <td align="left">2026</td>
 <td align="left">Número de turismos (automóviles para transporte de
 pasajeros) nuevos matriculados en circulación. Desglose del indicador
 MATRICULA_VEHICULOS restringido a vehículos de tipo turismo.</td>
 </tr>
 <tr class="odd">
-<td align="right">379</td>
+<td align="right">124</td>
 <td align="left">PARQUE_VEHICULOS</td>
 <td align="left">Transporte, movilidad y comunicaciones</td>
 <td align="right">96</td>
+<td align="left">MUNI(88) ISLA(7) CCAA(1)</td>
 <td align="right">7680</td>
 <td align="left">MUNI</td>
 <td align="left">Y</td>
+<td align="right">16</td>
 <td align="left">2010</td>
 <td align="left">2025</td>
 <td align="left">Número total de vehículos en circulación en un
@@ -613,13 +630,15 @@ municipio o isla de Canarias en un momento dado. Cifra acumulada de
 todos los vehículos actualmente registrados en uso.</td>
 </tr>
 <tr class="even">
-<td align="right">380</td>
+<td align="right">125</td>
 <td align="left">PARQUE_VEHICULOS_HABITANTE</td>
 <td align="left">Transporte, movilidad y comunicaciones</td>
 <td align="right">96</td>
+<td align="left">MUNI(88) ISLA(7) CCAA(1)</td>
 <td align="right">4608</td>
 <td align="left">MUNI</td>
 <td align="left">Y</td>
+<td align="right">16</td>
 <td align="left">2010</td>
 <td align="left">2025</td>
 <td align="left">Número de vehículos en circulación por cada 1.000
@@ -627,13 +646,15 @@ habitantes. Mide la intensidad de motorización y permite comparar el
 nivel de motorización entre territorios.</td>
 </tr>
 <tr class="odd">
-<td align="right">381</td>
+<td align="right">126</td>
 <td align="left">PARQUE_VEHICULOS_TURISMOS</td>
 <td align="left">Transporte, movilidad y comunicaciones</td>
 <td align="right">96</td>
+<td align="left">MUNI(88) ISLA(7) CCAA(1)</td>
 <td align="right">7680</td>
 <td align="left">MUNI</td>
 <td align="left">Y</td>
+<td align="right">16</td>
 <td align="left">2010</td>
 <td align="left">2025</td>
 <td align="left">Número total de turismos en circulación en un municipio
@@ -641,13 +662,15 @@ o isla de Canarias. Desglose del parque total de vehículos restringido a
 automóviles de pasajeros.</td>
 </tr>
 <tr class="even">
-<td align="right">382</td>
+<td align="right">127</td>
 <td align="left">PARQUE_VEHICULOS_TURISMOS_HABITANTE</td>
 <td align="left">Transporte, movilidad y comunicaciones</td>
 <td align="right">96</td>
+<td align="left">MUNI(88) ISLA(7) CCAA(1)</td>
 <td align="right">4608</td>
 <td align="left">MUNI</td>
 <td align="left">Y</td>
+<td align="right">16</td>
 <td align="left">2010</td>
 <td align="left">2025</td>
 <td align="left">Número de turismos en circulación por cada 1.000
@@ -659,354 +682,364 @@ vehículo y comparar entre territorios.</td>
 </div>
 <p><strong>data</strong></p>
 <div class="tabla-scroll">
-<pre><code>## # A tibble: 6,716 × 5
-##   GEOGRAPHICAL NAME   INDICATOR                           TIME  VALUE
-##   &lt;chr&gt;        &lt;chr&gt;  &lt;chr&gt;                               &lt;chr&gt; &lt;dbl&gt;
-## 1 35001        Agaete PARQUE_VEHICULOS                    2010  3243 
-## 2 35001        Agaete PARQUE_VEHICULOS_HABITANTE          2010   562.
-## 3 35001        Agaete PARQUE_VEHICULOS_TURISMOS           2010  2058 
-## 4 35001        Agaete PARQUE_VEHICULOS_TURISMOS_HABITANTE 2010   356.
-## 5 35001        Agaete PARQUE_VEHICULOS                    2011  3288 
-## # ℹ 6,711 more rows</code></pre>
+<pre><code>## # A tibble: 10,738 × 5
+##   GEOGRAPHICAL NAME   INDICATOR                    TIME  VALUE
+##   &lt;chr&gt;        &lt;chr&gt;  &lt;chr&gt;                        &lt;chr&gt; &lt;dbl&gt;
+## 1 35001        Agaete MATRICULA_VEHICULOS          2003    143
+## 2 35001        Agaete MATRICULA_VEHICULOS_TURISMOS 2003     75
+## 3 35001        Agaete MATRICULA_VEHICULOS          2004    136
+## 4 35001        Agaete MATRICULA_VEHICULOS_TURISMOS 2004     73
+## 5 35001        Agaete MATRICULA_VEHICULOS          2005    198
+## # ℹ 10,733 more rows</code></pre>
 </div>
 <div id="información-sobre-las-columnas-de-la-tabla-descargada" class="section level2" number="2.1">
 <h2><span class="header-section-number">2.1</span> Información sobre las
 columnas de la tabla descargada</h2>
 <p>Se presentan las diferentes dimensiones, cada una con sus valores
 posibles y el nº de observaciones.</p>
-<p><strong>COLUMNA: GEOGRAPHICAL (96 opciones)</strong></p>
+<p><strong>COLUMNA: GEOGRAPHICAL (97 opciones)</strong></p>
 <div class="caja-scroll caja-5">
 <pre><code>      GEOGRAPHICAL N.observ
- [1,] 35001        70      
- [2,] 35002        70      
- [3,] 35003        70      
- [4,] 35004        70      
- [5,] 35005        70      
- [6,] 35006        70      
- [7,] 35008        70      
- [8,] 35009        70      
- [9,] 35010        70      
-[10,] 35011        70      
-[11,] 35012        70      
-[12,] 35013        70      
-[13,] 35014        70      
-[14,] 35015        70      
-[15,] 35016        70      
-[16,] 35017        70      
-[17,] 35018        70      
-[18,] 35019        70      
-[19,] 35020        70      
-[20,] 35021        70      
-[21,] 35022        70      
-[22,] 35023        70      
-[23,] 35024        70      
-[24,] 35025        70      
-[25,] 35026        70      
-[26,] 35027        70      
-[27,] 35028        70      
-[28,] 35029        70      
-[29,] 35030        70      
-[30,] 35031        70      
-[31,] 35032        70      
-[32,] 35033        70      
-[33,] 35034        70      
-[34,] 38001        70      
-[35,] 38002        70      
-[36,] 38004        70      
-[37,] 38005        70      
-[38,] 38006        70      
-[39,] 38007        70      
-[40,] 38008        70      
-[41,] 38009        70      
-[42,] 38010        70      
-[43,] 38011        70      
-[44,] 38012        70      
-[45,] 38013        70      
-[46,] 38014        70      
-[47,] 38015        70      
-[48,] 38017        70      
-[49,] 38018        70      
-[50,] 38019        70      
-[51,] 38020        70      
-[52,] 38021        70      
-[53,] 38022        70      
-[54,] 38023        70      
-[55,] 38024        70      
-[56,] 38025        70      
-[57,] 38026        70      
-[58,] 38027        70      
-[59,] 38028        70      
-[60,] 38029        70      
-[61,] 38030        70      
-[62,] 38031        70      
-[63,] 38032        70      
-[64,] 38033        70      
-[65,] 38034        70      
-[66,] 38035        70      
-[67,] 38036        70      
-[68,] 38037        70      
-[69,] 38038        70      
-[70,] 38039        70      
-[71,] 38040        70      
-[72,] 38041        70      
-[73,] 38042        70      
-[74,] 38043        70      
-[75,] 38044        70      
-[76,] 38045        70      
-[77,] 38046        70      
-[78,] 38047        70      
-[79,] 38048        70      
-[80,] 38049        70      
-[81,] 38050        70      
-[82,] 38051        70      
-[83,] 38052        70      
-[84,] 38053        70      
-[85,] 38901        70      
-[86,] ES70         70      
-[87,] ES703        70      
-[88,] ES704        70      
-[89,] ES705        70      
-[90,] ES706        70      
-[91,] ES707        70      
-[92,] ES708        70      
-[93,] ES709        70      
-[94,] 38003        69      
-[95,] 38016        69      
-[96,] 35007        68      </code></pre>
+ [1,] 35001        112     
+ [2,] 35002        112     
+ [3,] 35003        112     
+ [4,] 35004        112     
+ [5,] 35005        112     
+ [6,] 35006        112     
+ [7,] 35008        112     
+ [8,] 35009        112     
+ [9,] 35010        112     
+[10,] 35011        112     
+[11,] 35012        112     
+[12,] 35013        112     
+[13,] 35014        112     
+[14,] 35015        112     
+[15,] 35016        112     
+[16,] 35017        112     
+[17,] 35018        112     
+[18,] 35019        112     
+[19,] 35020        112     
+[20,] 35021        112     
+[21,] 35022        112     
+[22,] 35023        112     
+[23,] 35024        112     
+[24,] 35025        112     
+[25,] 35026        112     
+[26,] 35027        112     
+[27,] 35028        112     
+[28,] 35029        112     
+[29,] 35030        112     
+[30,] 35031        112     
+[31,] 35032        112     
+[32,] 35033        112     
+[33,] 35034        112     
+[34,] 38001        112     
+[35,] 38002        112     
+[36,] 38004        112     
+[37,] 38005        112     
+[38,] 38006        112     
+[39,] 38007        112     
+[40,] 38008        112     
+[41,] 38009        112     
+[42,] 38010        112     
+[43,] 38011        112     
+[44,] 38012        112     
+[45,] 38014        112     
+[46,] 38015        112     
+[47,] 38017        112     
+[48,] 38018        112     
+[49,] 38019        112     
+[50,] 38020        112     
+[51,] 38021        112     
+[52,] 38022        112     
+[53,] 38023        112     
+[54,] 38024        112     
+[55,] 38025        112     
+[56,] 38026        112     
+[57,] 38027        112     
+[58,] 38028        112     
+[59,] 38029        112     
+[60,] 38030        112     
+[61,] 38031        112     
+[62,] 38032        112     
+[63,] 38033        112     
+[64,] 38034        112     
+[65,] 38035        112     
+[66,] 38036        112     
+[67,] 38037        112     
+[68,] 38038        112     
+[69,] 38039        112     
+[70,] 38040        112     
+[71,] 38041        112     
+[72,] 38042        112     
+[73,] 38043        112     
+[74,] 38044        112     
+[75,] 38045        112     
+[76,] 38046        112     
+[77,] 38047        112     
+[78,] 38048        112     
+[79,] 38049        112     
+[80,] 38050        112     
+[81,] 38051        112     
+[82,] 38052        112     
+[83,] 38053        112     
+[84,] ES70         112     
+[85,] ES703        112     
+[86,] ES704        112     
+[87,] ES705        112     
+[88,] ES706        112     
+[89,] ES707        112     
+[90,] ES708        112     
+[91,] ES709        112     
+[92,] 38003        111     
+[93,] 38016        111     
+[94,] 35007        110     
+[95,] 38013        102     
+[96,] 38901        102     
+[97,] 38013_1912    10     </code></pre>
 </div>
-<p><strong>COLUMNA: NAME (96 opciones)</strong></p>
+<p><strong>COLUMNA: NAME (97 opciones)</strong></p>
 <div class="caja-scroll caja-5">
-<pre><code>      NAME                                N.observ
- [1,] Adeje                               70      
- [2,] Agaete                              70      
- [3,] Agulo                               70      
- [4,] Agüimes                             70      
- [5,] Antigua                             70      
- [6,] Arafo                               70      
- [7,] Arico                               70      
- [8,] Arona                               70      
- [9,] Arrecife                            70      
-[10,] Artenara                            70      
-[11,] Arucas                              70      
-[12,] Barlovento                          70      
-[13,] Breña Alta                          70      
-[14,] Breña Baja                          70      
-[15,] Buenavista del Norte                70      
-[16,] Canarias                            70      
-[17,] Candelaria                          70      
-[18,] El Hierro                           70      
-[19,] El Paso                             70      
-[20,] El Pinar de El Hierro               70      
-[21,] El Rosario                          70      
-[22,] El Sauzal                           70      
-[23,] El Tanque                           70      
-[24,] Fasnia                              70      
-[25,] Firgas                              70      
-[26,] Fuencaliente de la Palma            70      
-[27,] Fuerteventura                       70      
-[28,] Garachico                           70      
-[29,] Gran Canaria                        70      
-[30,] Granadilla de Abona                 70      
-[31,] Guía de Isora                       70      
-[32,] Gáldar                              70      
-[33,] Güímar                              70      
-[34,] Haría                               70      
-[35,] Hermigua                            70      
-[36,] Icod de los Vinos                   70      
-[37,] Ingenio                             70      
-[38,] La Aldea de San Nicolás             70      
-[39,] La Frontera                         70      
-[40,] La Gomera                           70      
-[41,] La Guancha                          70      
-[42,] La Matanza de Acentejo              70      
-[43,] La Oliva                            70      
-[44,] La Orotava                          70      
-[45,] La Palma                            70      
-[46,] La Victoria de Acentejo             70      
-[47,] Lanzarote                           70      
-[48,] Las Palmas de Gran Canaria          70      
-[49,] Los Llanos de Aridane               70      
-[50,] Los Realejos                        70      
-[51,] Los Silos                           70      
-[52,] Mogán                               70      
-[53,] Moya                                70      
-[54,] Puerto de la Cruz                   70      
-[55,] Puerto del Rosario                  70      
-[56,] Puntagorda                          70      
-[57,] Puntallana                          70      
-[58,] Pájara                              70      
-[59,] San Andrés y Sauces                 70      
-[60,] San Bartolomé                       70      
-[61,] San Bartolomé de Tirajana           70      
-[62,] San Cristóbal de La Laguna          70      
-[63,] San Juan de la Rambla               70      
-[64,] San Miguel de Abona                 70      
-[65,] San Sebastián de La Gomera          70      
-[66,] Santa Brígida                       70      
-[67,] Santa Cruz de La Palma              70      
-[68,] Santa Cruz de Tenerife              70      
-[69,] Santa Lucía de Tirajana             70      
-[70,] Santa María de Guía de Gran Canaria 70      
-[71,] Santa Úrsula                        70      
-[72,] Santiago del Teide                  70      
-[73,] Tacoronte                           70      
-[74,] Tazacorte                           70      
-[75,] Tegueste                            70      
-[76,] Teguise                             70      
-[77,] Tejeda                              70      
-[78,] Telde                               70      
-[79,] Tenerife                            70      
-[80,] Teror                               70      
-[81,] Tijarafe                            70      
-[82,] Tinajo                              70      
-[83,] Tuineje                             70      
-[84,] Tías                                70      
-[85,] Valle Gran Rey                      70      
-[86,] Vallehermoso                        70      
-[87,] Valleseco                           70      
-[88,] Valsequillo de Gran Canaria         70      
-[89,] Valverde                            70      
-[90,] Vega de San Mateo                   70      
-[91,] Vilaflor de Chasna                  70      
-[92,] Villa de Mazo                       70      
-[93,] Yaiza                               70      
-[94,] Alajeró                             69      
-[95,] Garafía                             69      
-[96,] Betancuria                          68      </code></pre>
+<pre><code>      NAME                                           N.observ
+ [1,] Adeje                                          112     
+ [2,] Agaete                                         112     
+ [3,] Agulo                                          112     
+ [4,] Agüimes                                        112     
+ [5,] Antigua                                        112     
+ [6,] Arafo                                          112     
+ [7,] Arico                                          112     
+ [8,] Arona                                          112     
+ [9,] Arrecife                                       112     
+[10,] Artenara                                       112     
+[11,] Arucas                                         112     
+[12,] Barlovento                                     112     
+[13,] Breña Alta                                     112     
+[14,] Breña Baja                                     112     
+[15,] Buenavista del Norte                           112     
+[16,] Canarias                                       112     
+[17,] Candelaria                                     112     
+[18,] El Hierro                                      112     
+[19,] El Paso                                        112     
+[20,] El Rosario                                     112     
+[21,] El Sauzal                                      112     
+[22,] El Tanque                                      112     
+[23,] Fasnia                                         112     
+[24,] Firgas                                         112     
+[25,] Fuencaliente de la Palma                       112     
+[26,] Fuerteventura                                  112     
+[27,] Garachico                                      112     
+[28,] Gran Canaria                                   112     
+[29,] Granadilla de Abona                            112     
+[30,] Guía de Isora                                  112     
+[31,] Gáldar                                         112     
+[32,] Güímar                                         112     
+[33,] Haría                                          112     
+[34,] Hermigua                                       112     
+[35,] Icod de los Vinos                              112     
+[36,] Ingenio                                        112     
+[37,] La Aldea de San Nicolás                        112     
+[38,] La Gomera                                      112     
+[39,] La Guancha                                     112     
+[40,] La Matanza de Acentejo                         112     
+[41,] La Oliva                                       112     
+[42,] La Orotava                                     112     
+[43,] La Palma                                       112     
+[44,] La Victoria de Acentejo                        112     
+[45,] Lanzarote                                      112     
+[46,] Las Palmas de Gran Canaria                     112     
+[47,] Los Llanos de Aridane                          112     
+[48,] Los Realejos                                   112     
+[49,] Los Silos                                      112     
+[50,] Mogán                                          112     
+[51,] Moya                                           112     
+[52,] Puerto de la Cruz                              112     
+[53,] Puerto del Rosario                             112     
+[54,] Puntagorda                                     112     
+[55,] Puntallana                                     112     
+[56,] Pájara                                         112     
+[57,] San Andrés y Sauces                            112     
+[58,] San Bartolomé                                  112     
+[59,] San Bartolomé de Tirajana                      112     
+[60,] San Cristóbal de La Laguna                     112     
+[61,] San Juan de la Rambla                          112     
+[62,] San Miguel de Abona                            112     
+[63,] San Sebastián de La Gomera                     112     
+[64,] Santa Brígida                                  112     
+[65,] Santa Cruz de La Palma                         112     
+[66,] Santa Cruz de Tenerife                         112     
+[67,] Santa Lucía de Tirajana                        112     
+[68,] Santa María de Guía de Gran Canaria            112     
+[69,] Santa Úrsula                                   112     
+[70,] Santiago del Teide                             112     
+[71,] Tacoronte                                      112     
+[72,] Tazacorte                                      112     
+[73,] Tegueste                                       112     
+[74,] Teguise                                        112     
+[75,] Tejeda                                         112     
+[76,] Telde                                          112     
+[77,] Tenerife                                       112     
+[78,] Teror                                          112     
+[79,] Tijarafe                                       112     
+[80,] Tinajo                                         112     
+[81,] Tuineje                                        112     
+[82,] Tías                                           112     
+[83,] Valle Gran Rey                                 112     
+[84,] Vallehermoso                                   112     
+[85,] Valleseco                                      112     
+[86,] Valsequillo de Gran Canaria                    112     
+[87,] Valverde                                       112     
+[88,] Vega de San Mateo                              112     
+[89,] Vilaflor de Chasna                             112     
+[90,] Villa de Mazo                                  112     
+[91,] Yaiza                                          112     
+[92,] Alajeró                                        111     
+[93,] Garafía                                        111     
+[94,] Betancuria                                     110     
+[95,] El Pinar de El Hierro                          102     
+[96,] La Frontera                                    102     
+[97,] La Frontera (delimitación histórica, pre-2007)  10     </code></pre>
 </div>
 <p><strong>COLUMNA: INDICATOR (6 opciones)</strong></p>
 <div class="caja-scroll caja-5">
 <pre><code>     INDICATOR                           N.observ
-[1,] PARQUE_VEHICULOS                    1536    
-[2,] PARQUE_VEHICULOS_HABITANTE          1536    
-[3,] PARQUE_VEHICULOS_TURISMOS           1536    
-[4,] PARQUE_VEHICULOS_TURISMOS_HABITANTE 1536    
-[5,] MATRICULA_VEHICULOS                  287    
-[6,] MATRICULA_VEHICULOS_TURISMOS         285    </code></pre>
+[1,] MATRICULA_VEHICULOS                 2298    
+[2,] MATRICULA_VEHICULOS_TURISMOS        2296    
+[3,] PARQUE_VEHICULOS                    1536    
+[4,] PARQUE_VEHICULOS_HABITANTE          1536    
+[5,] PARQUE_VEHICULOS_TURISMOS           1536    
+[6,] PARQUE_VEHICULOS_TURISMOS_HABITANTE 1536    </code></pre>
 </div>
-<p><strong>COLUMNA: TIME (17 opciones)</strong></p>
+<p><strong>COLUMNA: TIME (24 opciones)</strong></p>
 <div class="caja-scroll caja-5">
 <pre><code>      TIME N.observ
- [1,] 2024 576     
- [2,] 2025 576     
- [3,] 2010 384     
- [4,] 2011 384     
- [5,] 2012 384     
- [6,] 2013 384     
- [7,] 2014 384     
- [8,] 2015 384     
- [9,] 2016 384     
-[10,] 2017 384     
-[11,] 2018 384     
-[12,] 2019 384     
-[13,] 2020 384     
-[14,] 2021 384     
-[15,] 2022 384     
-[16,] 2023 384     
-[17,] 2026 188     </code></pre>
+ [1,] 2010 576     
+ [2,] 2011 576     
+ [3,] 2012 576     
+ [4,] 2013 576     
+ [5,] 2014 576     
+ [6,] 2015 576     
+ [7,] 2016 576     
+ [8,] 2017 576     
+ [9,] 2018 576     
+[10,] 2019 576     
+[11,] 2020 576     
+[12,] 2021 576     
+[13,] 2022 576     
+[14,] 2023 576     
+[15,] 2024 576     
+[16,] 2025 576     
+[17,] 2008 192     
+[18,] 2009 192     
+[19,] 2003 190     
+[20,] 2004 190     
+[21,] 2005 190     
+[22,] 2006 190     
+[23,] 2007 190     
+[24,] 2026 188     </code></pre>
 </div>
 </div>
 <div id="regiones-y-número-de-observaciones" class="section level2" number="2.2">
 <h2><span class="header-section-number">2.2</span> Regiones y número de
 observaciones</h2>
 <div class="caja-scroll">
-<pre><code>##  GEOGRAPHICAL                                NAME N.Observ
-##         38001                               Adeje       70
-##         35001                              Agaete       70
-##         38002                               Agulo       70
-##         35002                             Agüimes       70
-##         38003                             Alajeró       69
-##         35003                             Antigua       70
-##         38004                               Arafo       70
-##         38005                               Arico       70
-##         38006                               Arona       70
-##         35004                            Arrecife       70
-##         35005                            Artenara       70
-##         35006                              Arucas       70
-##         38007                          Barlovento       70
-##         35007                          Betancuria       68
-##         38008                          Breña Alta       70
-##         38009                          Breña Baja       70
-##         38010                Buenavista del Norte       70
-##          ES70                            Canarias       70
-##         38011                          Candelaria       70
-##         ES703                           El Hierro       70
-##         38027                             El Paso       70
-##         38901               El Pinar de El Hierro       70
-##         38032                          El Rosario       70
-##         38041                           El Sauzal       70
-##         38044                           El Tanque       70
-##         38012                              Fasnia       70
-##         35008                              Firgas       70
-##         38014            Fuencaliente de la Palma       70
-##         ES704                       Fuerteventura       70
-##         38015                           Garachico       70
-##         38016                             Garafía       69
-##         ES705                        Gran Canaria       70
-##         38017                 Granadilla de Abona       70
-##         38019                       Guía de Isora       70
-##         35009                              Gáldar       70
-##         38020                              Güímar       70
-##         35010                               Haría       70
-##         38021                            Hermigua       70
-##         38022                   Icod de los Vinos       70
-##         35011                             Ingenio       70
-##         35020             La Aldea de San Nicolás       70
-##         38013                         La Frontera       70
-##         ES706                           La Gomera       70
-##         38018                          La Guancha       70
-##         38025              La Matanza de Acentejo       70
-##         35014                            La Oliva       70
-##         38026                          La Orotava       70
-##         ES707                            La Palma       70
-##         38051             La Victoria de Acentejo       70
-##         ES708                           Lanzarote       70
-##         35016          Las Palmas de Gran Canaria       70
-##         38024               Los Llanos de Aridane       70
-##         38031                        Los Realejos       70
-##         38042                           Los Silos       70
-##         35012                               Mogán       70
-##         35013                                Moya       70
-##         38028                   Puerto de la Cruz       70
-##         35017                  Puerto del Rosario       70
-##         38029                          Puntagorda       70
-##         38030                          Puntallana       70
-##         35015                              Pájara       70
-##         38033                 San Andrés y Sauces       70
-##         35018                       San Bartolomé       70
-##         35019           San Bartolomé de Tirajana       70
-##         38023          San Cristóbal de La Laguna       70
-##         38034               San Juan de la Rambla       70
-##         38035                 San Miguel de Abona       70
-##         38036          San Sebastián de La Gomera       70
-##         35021                       Santa Brígida       70
-##         38037              Santa Cruz de La Palma       70
-##         38038              Santa Cruz de Tenerife       70
-##         35022             Santa Lucía de Tirajana       70
-##         35023 Santa María de Guía de Gran Canaria       70
-##         38039                        Santa Úrsula       70
-##         38040                  Santiago del Teide       70
-##         38043                           Tacoronte       70
-##         38045                           Tazacorte       70
-##         38046                            Tegueste       70
-##         35024                             Teguise       70
-##         35025                              Tejeda       70
-##         35026                               Telde       70
-##         ES709                            Tenerife       70
-##         35027                               Teror       70
-##         38047                            Tijarafe       70
-##         35029                              Tinajo       70
-##         35030                             Tuineje       70
-##         35028                                Tías       70
-##         38049                      Valle Gran Rey       70
-##         38050                        Vallehermoso       70
-##         35032                           Valleseco       70
-##         35031         Valsequillo de Gran Canaria       70
-##         38048                            Valverde       70
-##         35033                   Vega de San Mateo       70
-##         38052                  Vilaflor de Chasna       70
-##         38053                       Villa de Mazo       70
-##         35034                               Yaiza       70</code></pre>
+<pre><code>##  GEOGRAPHICAL                                           NAME N.Observ
+##         38001                                          Adeje      112
+##         35001                                         Agaete      112
+##         38002                                          Agulo      112
+##         35002                                        Agüimes      112
+##         38003                                        Alajeró      111
+##         35003                                        Antigua      112
+##         38004                                          Arafo      112
+##         38005                                          Arico      112
+##         38006                                          Arona      112
+##         35004                                       Arrecife      112
+##         35005                                       Artenara      112
+##         35006                                         Arucas      112
+##         38007                                     Barlovento      112
+##         35007                                     Betancuria      110
+##         38008                                     Breña Alta      112
+##         38009                                     Breña Baja      112
+##         38010                           Buenavista del Norte      112
+##          ES70                                       Canarias      112
+##         38011                                     Candelaria      112
+##         ES703                                      El Hierro      112
+##         38027                                        El Paso      112
+##         38901                          El Pinar de El Hierro      102
+##         38032                                     El Rosario      112
+##         38041                                      El Sauzal      112
+##         38044                                      El Tanque      112
+##         38012                                         Fasnia      112
+##         35008                                         Firgas      112
+##         38014                       Fuencaliente de la Palma      112
+##         ES704                                  Fuerteventura      112
+##         38015                                      Garachico      112
+##         38016                                        Garafía      111
+##         ES705                                   Gran Canaria      112
+##         38017                            Granadilla de Abona      112
+##         38019                                  Guía de Isora      112
+##         35009                                         Gáldar      112
+##         38020                                         Güímar      112
+##         35010                                          Haría      112
+##         38021                                       Hermigua      112
+##         38022                              Icod de los Vinos      112
+##         35011                                        Ingenio      112
+##         35020                        La Aldea de San Nicolás      112
+##         38013                                    La Frontera      102
+##    38013_1912 La Frontera (delimitación histórica, pre-2007)       10
+##         ES706                                      La Gomera      112
+##         38018                                     La Guancha      112
+##         38025                         La Matanza de Acentejo      112
+##         35014                                       La Oliva      112
+##         38026                                     La Orotava      112
+##         ES707                                       La Palma      112
+##         38051                        La Victoria de Acentejo      112
+##         ES708                                      Lanzarote      112
+##         35016                     Las Palmas de Gran Canaria      112
+##         38024                          Los Llanos de Aridane      112
+##         38031                                   Los Realejos      112
+##         38042                                      Los Silos      112
+##         35012                                          Mogán      112
+##         35013                                           Moya      112
+##         38028                              Puerto de la Cruz      112
+##         35017                             Puerto del Rosario      112
+##         38029                                     Puntagorda      112
+##         38030                                     Puntallana      112
+##         35015                                         Pájara      112
+##         38033                            San Andrés y Sauces      112
+##         35018                                  San Bartolomé      112
+##         35019                      San Bartolomé de Tirajana      112
+##         38023                     San Cristóbal de La Laguna      112
+##         38034                          San Juan de la Rambla      112
+##         38035                            San Miguel de Abona      112
+##         38036                     San Sebastián de La Gomera      112
+##         35021                                  Santa Brígida      112
+##         38037                         Santa Cruz de La Palma      112
+##         38038                         Santa Cruz de Tenerife      112
+##         35022                        Santa Lucía de Tirajana      112
+##         35023            Santa María de Guía de Gran Canaria      112
+##         38039                                   Santa Úrsula      112
+##         38040                             Santiago del Teide      112
+##         38043                                      Tacoronte      112
+##         38045                                      Tazacorte      112
+##         38046                                       Tegueste      112
+##         35024                                        Teguise      112
+##         35025                                         Tejeda      112
+##         35026                                          Telde      112
+##         ES709                                       Tenerife      112
+##         35027                                          Teror      112
+##         38047                                       Tijarafe      112
+##         35029                                         Tinajo      112
+##         35030                                        Tuineje      112
+##         35028                                           Tías      112
+##         38049                                 Valle Gran Rey      112
+##         38050                                   Vallehermoso      112
+##         35032                                      Valleseco      112
+##         35031                    Valsequillo de Gran Canaria      112
+##         38048                                       Valverde      112
+##         35033                              Vega de San Mateo      112
+##         38052                             Vilaflor de Chasna      112
+##         38053                                  Villa de Mazo      112
+##         35034                                          Yaiza      112</code></pre>
 </div>
 <!-- INICIO DE LA VALIDACIÓN AEDV -->
 </div>
@@ -1053,28 +1086,28 @@ percentiles del tamaño de la serie temporal (periodos por región).</p>
 <td align="left">Transporte, movilidad y comunicaciones</td>
 <td align="left">MUNI</td>
 <td align="left">Y</td>
-<td align="right">96</td>
-<td align="left">2024</td>
+<td align="right">97</td>
+<td align="left">2003</td>
 <td align="left">2026</td>
-<td align="right">2</td>
-<td align="right">3</td>
-<td align="right">3</td>
-<td align="right">3</td>
-<td align="right">3</td>
+<td align="right">5</td>
+<td align="right">24</td>
+<td align="right">24</td>
+<td align="right">24</td>
+<td align="right">24</td>
 </tr>
 <tr class="even">
 <td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
 <td align="left">Transporte, movilidad y comunicaciones</td>
 <td align="left">MUNI</td>
 <td align="left">Y</td>
-<td align="right">96</td>
-<td align="left">2024</td>
+<td align="right">97</td>
+<td align="left">2003</td>
 <td align="left">2026</td>
-<td align="right">2</td>
-<td align="right">3</td>
-<td align="right">3</td>
-<td align="right">3</td>
-<td align="right">3</td>
+<td align="right">5</td>
+<td align="right">24</td>
+<td align="right">24</td>
+<td align="right">24</td>
+<td align="right">24</td>
 </tr>
 <tr class="odd">
 <td align="left">PARQUE_VEHICULOS</td>
@@ -1158,15 +1191,15 @@ percentiles del tamaño de la serie temporal (periodos por región).</p>
 <td align="left">MATRICULA_VEHICULOS [Y]</td>
 <td align="center"><span class="val-ok">✔</span></td>
 <td align="center"><span class="val-ok">✔</span></td>
-<td align="center"><span class="val-no">✘</span></td>
-<td align="center"><span class="val-no">✘</span></td>
+<td align="center"><span class="val-ok">✔</span></td>
+<td align="center"><span class="val-ok">✔</span></td>
 </tr>
 <tr class="even">
 <td align="left">MATRICULA_VEHICULOS_TURISMOS [Y]</td>
 <td align="center"><span class="val-ok">✔</span></td>
 <td align="center"><span class="val-ok">✔</span></td>
-<td align="center"><span class="val-no">✘</span></td>
-<td align="center"><span class="val-no">✘</span></td>
+<td align="center"><span class="val-ok">✔</span></td>
+<td align="center"><span class="val-ok">✔</span></td>
 </tr>
 <tr class="odd">
 <td align="left">PARQUE_VEHICULOS [Y]</td>
@@ -1200,7 +1233,7 @@ percentiles del tamaño de la serie temporal (periodos por región).</p>
 </table>
 </div>
 <p>De los <strong>6</strong> indicadores seleccionados,
-<strong>4</strong> cumplen los tres criterios de validación (cobertura
+<strong>6</strong> cumplen los tres criterios de validación (cobertura
 geográfica, datos actualizados y tamaño de las series temporales).</p>
 <p>El requisito de disponer de al menos 4 atributos válidos <strong>se
 cumple ✓</strong>.</p>

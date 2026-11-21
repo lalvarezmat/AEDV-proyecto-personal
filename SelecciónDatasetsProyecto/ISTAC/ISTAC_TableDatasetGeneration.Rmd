@@ -101,16 +101,55 @@ ISTAC_datasets <- ISTAC_datasets |>
 
 
 
-Añadimos el nº observaciones (filas) de cada dataset, el número de regiones distintas utilizadas, la frecuencia de los datos (`Y` anual, `S` semestral, `Q` trimestral, `M` mensual, `W` semanal, `D` diaria, y `?` si el formato de fecha no se reconoce), el periodo en años que cubre y detectamos si los datasets tienen datos de municipios de las islas.
+Añadimos el nº observaciones (filas) de cada dataset, el número de regiones distintas utilizadas, la frecuencia de los datos (`Y` anual, `S` semestral, `Q` trimestral, `M` mensual, `W` semanal, `D` diaria, y `?` si el formato de fecha no se reconoce), el nº de periodos de esa frecuencia, el periodo que cubre y el nivel territorial.
+
+El **nivel territorial** sale de la ficha de cada indicador (`istacr::get_indicators_code()`): cada territorio trae su **granularidad**, es decir, el tipo de territorio que es (municipio, isla, comunidad autónoma…), de la lista oficial del ISTAC. Con ella se calculan dos columnas, con el mismo criterio que el catálogo de los recursos estadísticos (`ISTAC_recursos.xlsx`):
+
+* `n.reg.gran`: nº de territorios de cada granularidad, de la más fina a la más gruesa; `OTROS` son los códigos sin granularidad o con una que no está en la lista de abajo.
+* `area`: la granularidad **más fina** que tiene al menos dos territorios (o la única que haya). Si solo está Canarias (una comunidad autónoma), `CANA`.
 
 ```{r}
-deteccion_area_geografica <- function(u){
-  if(any(c("38005","35012","38027") %in% u)) return("MUNI")
-  if(any(c("ES705","ES706","ES708") %in% u)) return("ISLA")
-  if(any(c("ES11","ES51","ES30")   %in% u)) return("CCAA")
-  if(any(c("ES213","ES425","ES701") %in% u)) return("PROV")
-  if(length(u) == 1 && "ES70" %in% u)       return("CANA")
-  return("OTRO")
+# GRANULARIDADES DEL ISTAC, DE LA MÁS FINA A LA MÁS GRUESA, CON LA ETIQUETA
+# CORTA DE LA COLUMNA area (LAS MISMAS QUE ISTAC_recursos_TableDatasetGeneration.Rmd;
+# LAS ZONAS DE CALIDAD DEL AIRE SON GRUPOS DE ISLAS)
+NIVELES <- c(MICRO_TOURISTIC_CENTRES = "MICRO", MICRO_TOURISTIC_ENTITIES = "MICRO",
+             MUNICIPALITIES = "MUNI", COUNTIES = "COMARCA", LARGE_COUNTIES = "GCOMARCA",
+             ISLANDS = "ISLA", AIR_QUALITY_ZONES = "ZCAIRE", PROVINCES = "PROV",
+             REGIONS = "CCAA", COUNTRIES = "PAIS")
+
+# ETIQUETA DE CADA TERRITORIO (OTROS: SIN GRANULARIDAD O NO PREVISTA)
+etiqueta_nivel <- function(g){
+  e <- unname(NIVELES[g])
+  e[is.na(e)] <- "OTROS"
+  e
+}
+
+# Nº DE TERRITORIOS POR NIVEL, DEL MÁS FINO AL MÁS GRUESO (OTROS AL FINAL)
+conteo_niveles <- function(g){
+  n <- table(etiqueta_nivel(g))
+  n[order(match(names(n), c(unique(NIVELES), "OTROS")))]
+}
+
+# NIVEL TERRITORIAL: EL MÁS FINO CON AL MENOS DOS TERRITORIOS (O EL ÚNICO QUE HAYA)
+area_territorial <- function(g){
+  n <- conteo_niveles(g)
+  n <- n[names(n) != "OTROS"]
+  if(!length(n)) return("OTRO")
+  k <- which(n >= 2)[1]
+  if(is.na(k)) k <- 1
+  if(names(n)[k] == "CCAA" && n[[k]] == 1) return("CANA")
+  names(n)[k]
+}
+
+# Fechas de la frecuencia detectada (descarta, por ejemplo, los totales anuales
+# de una serie mensual) para contar los periodos
+fechas_frecuencia <- function(fechas, f){
+  d <- unique(fechas[!is.na(fechas)])
+  patron <- c(Y = "^\\d{4}$", S = "^\\d{4}-S[1-2]$", Q = "^\\d{4}-Q[1-4]$",
+              M = "^\\d{4}-M?(0[1-9]|1[0-2])$", W = "^\\d{4}-W\\d{1,2}$",
+              D = "^\\d{4}-\\d{2}-\\d{2}$")[f]
+  if(is.na(patron)) return(character())
+  sort(d[grepl(patron, d)])
 }
 
 # Detecta la frecuencia de una serie a partir del FORMATO de sus fechas.
@@ -169,7 +208,9 @@ cat("ISTAC_datasets tiene", nrow(ISTAC_datasets), "filas\n")
 GEOGRAPHICAL_LISTADO  <- as.character()
 n.obs <- as.numeric()
 n.reg <- as.numeric()
+n.reg.gran <- as.character()
 freq <- as.character()
+n.periodos <- as.numeric()
 initDate <- as.character()
 lastDate <- as.character()
 area <- as.character()
@@ -181,12 +222,19 @@ for(id in ISTAC_datasets$id){
   n.obs <- c(n.obs,nrow(tb))
   AREAid <- unique(tb$GEOGRAPHICAL)
   n.reg <- c(n.reg,length(AREAid))
-  area <- c(area, deteccion_area_geografica(AREAid))
+  # GRANULARIDAD DE CADA TERRITORIO, DE LA FICHA DEL INDICADOR
+  rep_geo <- istacr::get_indicators_code(id)$dimension$GEOGRAPHICAL$representation
+  gran <- unname(setNames(rep_geo$granularityCode, rep_geo$code)[AREAid])
+  gran[is.na(gran)] <- "_O"
+  n.niv <- conteo_niveles(gran)
+  n.reg.gran <- c(n.reg.gran, paste0(names(n.niv), "(", n.niv, ")", collapse = " "))
+  area <- c(area, area_territorial(gran))
   dates <- tb  |> pull(TIME) |> unique() |> sort()
   #initDate <- c(initDate,paste0(substr(dates[1],1,4),"-",substr(dates[length(dates)],1,4)))
   initDate <- c(initDate,min(dates))
   lastDate <- c(lastDate,max(dates))
   freq <- c(freq,deteccion_frecuencia(dates))
+  n.periodos <- c(n.periodos, length(fechas_frecuencia(dates, tail(freq, 1))))
   log_avance(which(ISTAC_datasets$id == id)[1], nrow(ISTAC_datasets), id,
              as.numeric(difftime(Sys.time(), t.inicio, units = "secs")),
              paste0("freq=", tail(freq,1), " n.obs=", tail(n.obs,1)))
@@ -206,8 +254,10 @@ ISTAC_datasets <- ISTAC_datasets |>
   relocate(lastDate,.after=initDate) |>
   mutate(n.obs = n.obs) |> 
   relocate(n.obs,.after=title) |> 
-  mutate(n.reg = n.reg) |> 
-  relocate(n.reg,.after=title) |> 
+  mutate(n.reg = n.reg) |>
+  relocate(n.reg,.after=title) |>
+  mutate(n.reg.gran = n.reg.gran, .after = n.reg) |>
+  mutate(n.periodos = n.periodos, .after = freq) |>
   mutate(area = area) |>
   relocate(area,.after=title)
 ```
@@ -219,21 +269,48 @@ ISTAC_datasets <- ISTAC_datasets |>
 
 ```{verbatim}
 ISTAC_datasets |>
-  select(id,subject,n.reg,n.obs,area,freq,initDate,lastDate) |>
+  select(id,subject,n.reg,n.reg.gran,n.obs,area,freq,n.periodos,initDate,lastDate) |>
   arrange(area, subject, id) |>
   mutate(`Nº` = row_number(), .before = 1) |>
   knitr::kable()
 ```
 
-Escribimos los datasets detectados en una hoja excel
+Se escriben dos catálogos, como en el resto de fuentes:
+
+* **ISTAC_datasets.raw.xlsx**: todos los indicadores.
+* **ISTAC_datasets.xlsx**: solo los que sirven para el proyecto de AEDV: frecuencia reconocida, último dato de 2024 o posterior, los periodos que exige el criterio de tamaño de las series (10 años, 20 semestres, 40 trimestres, 60 meses, 200 semanas o 1096 días) y datos de **15 regiones o más** (contando todos los niveles territoriales del indicador).
 
 ```{r}
-ISTAC_datasets |>
-  select(id,subject,n.reg,n.obs,area,freq,initDate,lastDate) |>
+# UMBRALES DEL CRITERIO AEDV DE TAMAÑO DE LAS SERIES Y DEL CATÁLOGO FILTRADO
+umbral_freq <- c(Y = 10, S = 20, Q = 40, M = 60, W = 200, D = 1096)
+ANIO_MINIMO <- 2024
+MIN_REGIONES <- 15
+
+ISTAC_datasets.raw <- ISTAC_datasets |>
+  select(id,subject,n.reg,n.reg.gran,n.obs,area,freq,n.periodos,initDate,lastDate) |>
   # ORDENADO POR NIVEL TERRITORIAL Y, DENTRO DE ÉL, POR TEMA
-  arrange(area, subject, id) |>
-   mutate(`Nº` = row_number(), .before = 1) |>
-   write.xlsx("ISTAC_datasets.xlsx")
+  arrange(area, subject, id)
+
+ISTAC_datasets.filtrados <- ISTAC_datasets.raw |>
+  filter(freq %in% names(umbral_freq),
+         as.integer(substr(lastDate, 1, 4)) >= ANIO_MINIMO,
+         n.periodos >= umbral_freq[freq],
+         n.reg >= MIN_REGIONES)
+
+ISTAC_datasets.raw |>
+  mutate(`Nº` = row_number(), .before = 1) |>
+  write.xlsx("ISTAC_datasets.raw.xlsx")
+ISTAC_datasets.filtrados |>
+  mutate(`Nº` = row_number(), .before = 1) |>
+  write.xlsx("ISTAC_datasets.xlsx")
+
+cat("ISTAC_datasets.raw.xlsx:", nrow(ISTAC_datasets.raw), "indicadores;",
+    "ISTAC_datasets.xlsx:", nrow(ISTAC_datasets.filtrados), "\n")
+
+# REPARTO POR NIVEL TERRITORIAL DE LOS DOS CATÁLOGOS
+full_join(count(ISTAC_datasets.raw, area, name = "completo"),
+          count(ISTAC_datasets.filtrados, area, name = "filtrado"), by = "area") |>
+  knitr::kable()
 ```
 
 

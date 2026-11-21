@@ -58,7 +58,7 @@ Conviene saberlo porque regenerar un catálogo es un proceso **largo**: recorre 
 
 | Fuente | Datasets recorridos | Duración aproximada |
 |---|---|---|
-| ISTAC (indicadores) | 400 | ~15 minutos |
+| ISTAC (indicadores) | 402 | ~1 hora |
 | ISTAC (recursos estadísticos) | 3.565 | ~2 h 30 min |
 | EUROSTAT | 3.121 | ~25 minutos |
 | INE | 7.142 | ~4 h 30 min |
@@ -78,7 +78,7 @@ Por eso es importante **no depender del catálogo Excel para tu proyecto**: una 
 | Fuente | Catálogo | Cobertura |
 |--------|----------|-----------|
 | INE | `INE/INE.datasets.xlsx` | España: municipios, provincias, CCAA |
-| ISTAC (indicadores) | `ISTAC/ISTAC_datasets.xlsx` | Canarias: municipios, islas, CCAA |
+| ISTAC (indicadores) | `ISTAC/ISTAC_datasets.xlsx` | Canarias: municipios; algunos comparan con España, sus CCAA o sus provincias |
 | ISTAC (recursos estadísticos) | `ISTAC/ISTAC_recursos.xlsx` | Canarias: municipios, islas; algunos comparan con España, sus CCAA o sus provincias |
 | EUROSTAT | `EUROSTAT/Eurostat.datasets.xlsx` | Europa: países y regiones NUTS 0, 1, 2 y 3 |
 | Banco Mundial | `WORLD_BANK/wb.datasets.xlsx` | Mundial: ≥100 países, ≥10 años |
@@ -127,7 +127,7 @@ Un catálogo tiene entre 400 y 2.852 filas, así que no se lee de arriba abajo: 
 
 | Fuente | Columnas que anticipan si el dataset cumplirá los requisitos |
 |---|---|
-| **ISTAC (indicadores)** | `area` (nivel geográfico: `MUNI`, `ISLA`, `CCAA`…) y `freq` (frecuencia) |
+| **ISTAC (indicadores)** | `area` (nivel territorial; `n.reg.gran` da el nº de territorios de cada nivel), `freq` (frecuencia) y `n.periodos` (nº de periodos) |
 | **ISTAC (recursos estadísticos)** | `area` (nivel territorial; `n.reg.gran` da el nº de territorios de cada nivel), `freq`, `n.periodos` (nº de periodos) y `DIM` (dimensiones con su nº de valores) |
 | **Banco Mundial** | `Ncountries` y `dateEnd` |
 | **INE** | `Codigo` (desglose geográfico) y `Periodicidad` |
@@ -286,55 +286,48 @@ El INE no trae una columna de tema, pero sí la operación estadística de la qu
 
 ---
 
-## ISTAC — `ISTAC/ISTAC_datasets.xlsx` (400 datasets)
+## ISTAC — `ISTAC/ISTAC_datasets.xlsx` (138 datasets)
 
-Contiene todos los datasets estadísticos de Canarias accesibles a través de la librería `istacr`. Es el catálogo completo sin filtrar, por lo que incluye datasets de todo tipo de frecuencias y coberturas geográficas.
+Recoge los **indicadores** del ISTAC accesibles a través de la librería `istacr`: series ya elaboradas de una sola medida (territorio × fecha × valor). Hay **dos catálogos**, como en los recursos estadísticos:
+
+* **`ISTAC_datasets.xlsx`**, el que hay que usar: **solo los indicadores que sirven para el proyecto**. Tienen una frecuencia reconocida, su último dato es de **2024 o posterior**, tienen los periodos que exige el criterio de tamaño de AEDV (10 años, 20 semestres, 40 trimestres, 60 meses, 200 semanas o 1096 días) y datos de **15 regiones o más**. Casi todos son municipales; el resto, por comunidades autónomas o por provincias.
+* **`ISTAC_datasets.raw.xlsx`**: los 402 indicadores, cumplan o no, con las mismas columnas. Sirve para buscar un indicador auxiliar (por ejemplo, uno de Canarias en conjunto o por islas). `ISTAC_DatasetSelection.Rmd` acepta también sus identificadores.
 
 ### Descripción de columnas
 
 | Columna | Descripción |
 |---------|-------------|
 | `Nº` | Número de fila de referencia en el catálogo. El catálogo está ordenado por nivel geográfico (`area`) y, dentro de cada nivel, por tema (`subject`). |
-| `id` | Identificador del indicador en el sistema ISTAC. Nombre corto en mayúsculas (ej. `POBLACION`, `ACCIDENTES_TRABAJO_BAJA`). **Es el valor que hay que incluir en el vector `IDS`** en `ISTAC_DatasetSelection.Rmd`. |
-| `subject` | Tema al que pertenece el dataset. Permite filtrar por área de interés. |
-| `n.reg` | Número de regiones distintas con datos. El valor nos da una pista de la cobertura geográfica, por ejemplo, un valor alrededor de 97, sugiere que son municipios de las islas, un valor alrededor de 20, que son CCAA, un valor alrededor de 7 que los datos son por islas, un valor alrededor de 40 pueden ser provincias españolas. |
-| `n.obs` | Número total de observaciones (filas) del dataset. |
-| `area` | Tipo de área geográfica detectada automáticamente: `MUNI` (municipios), `ISLA` (islas), `CCAA` (comunidades autónomas), `PROV` (provincias), `CANA` (Canarias como conjunto) u `OTRO`. |
+| `id` | Identificador del indicador en el sistema ISTAC. Nombre corto en mayúsculas (ej. `POBLACION`, `PARO_REGISTRADO`). **Es el valor que hay que incluir en el vector `IDS`** en `ISTAC_DatasetSelection.Rmd`. |
+| `subject` | Tema al que pertenece el indicador. Permite filtrar por área de interés. |
+| `n.reg` | Número de territorios distintos con datos, de todos los niveles (por ejemplo, los municipios, las islas y Canarias). |
+| `n.reg.gran` | Cuántos de esos territorios hay de cada nivel, del más fino al más grueso: `MUNI(88) ISLA(7) CCAA(1)` son 88 municipios, las 7 islas y Canarias. |
+| `n.obs` | Número total de observaciones (filas) del indicador. |
+| `area` | Nivel territorial del indicador: el **más fino** de `n.reg.gran` que tiene al menos dos territorios. Si solo está Canarias, `CANA`. Los niveles son los mismos que en los recursos estadísticos (ver [Niveles territoriales](#istac-niveles)). |
 | `freq` | Frecuencia temporal: `Y` (anual), `S` (semestral), `Q` (trimestral), `M` (mensual), `W` (semanal), `D` (diaria). |
+| `n.periodos` | Número de periodos de esa frecuencia. |
 | `initDate` | Año o fecha de inicio de la serie temporal. |
 | `lastDate` | Año o fecha del último dato disponible. |
 
 ### Organización por temas
 
-La columna `subject` trae el tema tal y como lo nombra el ISTAC. Son **61 temas distintos**, así que aquí van los 22 con 5 datasets o más; el resto está repartido en temas de 1 a 4 datasets. **Los nombres de esta tabla son literalmente los valores de la columna**, para que puedas filtrar por ellos en Excel.
+La columna `subject` trae el tema tal y como lo nombra el ISTAC. En el catálogo filtrado son **25 temas**; aquí van los 10 con 5 indicadores o más (los otros 15 temas suman 36). **Los nombres de esta tabla son literalmente los valores de la columna**, para que puedas filtrar por ellos en Excel.
 
-| Tema (valor de `subject`) | Nº datasets | Ejemplos de `id` |
+| Tema (valor de `subject`) | Nº datasets | Ejemplos de `id` (y nivel territorial) |
 |------|:-----------:|---------|
-| **Empleo** | 57 | `ACCIDENTES_TRABAJO_BAJA`, `PARO_REGISTRADO`, contratos por isla y municipio |
-| **Hostelería y turismo** | 22 | `ALOJATUR_ABIERTOS`, `ALOJATUR_ESTANCIAS_MEDIAS` — pernoctaciones y viajeros por isla (mensual) |
-| **Población y hogares** | 22 | `POBLACION`, `POBLACION_00A14` — por municipio, isla, sexo y grupo de edad |
-| **Presupuestos y tributos** | 20 | `PRESUPUESTO_AYUNTAMIENTOS_LIQUIDADO_GASTO_HABITANTE` y variantes por municipio |
-| **Movimiento natural** | 18 | `DEFUNCIONES`, `DEFUNCIONES_EDAD_MEDIA`, nacimientos y matrimonios por municipio |
-| **Transporte, movilidad y comunicaciones** | 16 | `MATRICULA_VEHICULOS`, `PARQUE_VEHICULOS`, tráfico aéreo interinsular |
-| **Empresas y centros de trabajo** | 14 | `DIRCE_EMPRESAS`, `EMPRESAS_SEGURIDAD_SOCIAL` |
-| **Sistema de salud y atención sanitaria** | 13 | `GASTO_FARMACEUTICO`, `GASTO_FARMACEUTICO_MEDIO_ENVASE` (mensual) |
-| **Igualdad y diversidad de género** | 11 | `REPRESENTACION_FEMENINA_ALCALDIAS_PC` y otros indicadores por isla |
-| **Calidad de vida y usos del tiempo** | 10 | `JUEGOS_AZAR_APUESTAS_PRESENCIALES`, `JUEGOS_AZAR_BINGO` |
-| **Industria** | 10 | `EIAP_PRODUCCION_PROPIA`, `EMPRESAS_INDUSTRIA_PERSONAL_OCUPADO` |
-| **Justicia y seguridad ciudadana** | 9 | `POBLACION_RECLUSA`, `POBLACION_RECLUSA_HOMBRES` |
-| **Condiciones de vida** | 8 | `DESIGUALDAD_INDICE_GINI`, `DESIGUALDAD_P80_P20` |
-| **Educación y aprendizaje permanente** | 8 | `ALUMNADO_NO_UNIVERSITARIO_CONCERTADOS_REGIMEN_GENERAL` |
-| **Turismo, comercio, transporte y otros servicios** | 8 | `EMPRESAS_SERVICIOS_PERSONAL_OCUPADO` |
-| **Agricultura** | 7 | `SUPERFICIE_CULTIVO`, `SUPERFICIE_CULTIVO_HERBACEOS` |
-| **Comercio** | 7 | `EMPRESAS_COMERCIO_PERSONAL_OCUPADO` |
-| **Pensiones, prestaciones y ayudas de protección social** | 7 | `PENSIONES_CONTRIBUTIVAS`, `DESEMPLEO_PRESTACIONES` |
-| **Comercio exterior e internacionalización de la economía** | 6 | `COMERCIO_EXTERIOR_DEFICIT_COMERCIAL` |
-| **Construcción** | 6 | `CEMENTO_VENTAS`, `LICITACION_OFICIAL` |
-| **Agricultura y ganadería** | 5 | `PRECIOS_AGRICOLAS_MEDIO_PONDERADO_AGUACATE` |
-| **Empleos y relación con la actividad económica** | 5 | `AFILIACIONES_MEDIAS`, `AFILIACIONES_MEDIAS_HOMBRES` |
-| *Otros 39 temas con menos de 5 datasets* | 111 | `PIB_PM`, `IPC`, `ENERGIA_ELECTRICA_DISPONIBLE`, `GANADO_BOVINO`, `HIPOTECAS_CONSTITUIDAS`, `IPV`… |
+| **Población y hogares** | 22 | `POBLACION`, `POBLACION_00A14`, `POBLACION_00A14_PC` (MUNI) |
+| **Empleo** | 20 | `AFILIACIONES`, `AFILIACIONES_ASALARIADOS`, `AFILIACIONES_ASALARIADOS_HOMBRES` (CCAA y MUNI) |
+| **Hostelería y turismo** | 14 | `ALOJATUR_ABIERTOS`, `ALOJATUR_ESTANCIAS_MEDIAS`, `ALOJATUR_HABITACIONES_OCUPACION` (MUNI) |
+| **Movimiento natural** | 11 | `DEFUNCIONES`, `DEFUNCIONES_EDAD_MEDIA`, `DEFUNCIONES_EDAD_MEDIA_HOMBRES` (MUNI) |
+| **Presupuestos y tributos** | 9 | `PRESUPUESTO_AYUNTAMIENTOS_LIQUIDADO_GASTO_HABITANTE` y variantes (MUNI) |
+| **Transporte, movilidad y comunicaciones** | 6 | `MATRICULA_VEHICULOS`, `MATRICULA_VEHICULOS_TURISMOS`, `PARQUE_VEHICULOS` (MUNI) |
+| **Agricultura** | 5 | `SUPERFICIE_CULTIVO`, `SUPERFICIE_CULTIVO_HERBACEOS`, `SUPERFICIE_CULTIVO_LENOSOS` (MUNI) |
+| **Calidad de vida y usos del tiempo** | 5 | `POBREZA_AROPE_POB_E`, `POBREZA_CARENCIA_MATERIAL_SEVERA_POB_E` (CCAA) |
+| **Construcción** | 5 | `LICITACION_OFICIAL`, `LICITACION_OFICIAL_EDIFICACION`, `LICITACION_OFICIAL_INGENIERIA_CIVIL` (CCAA) |
+| **Empresas y centros de trabajo** | 5 | `EMPRESAS_SEGURIDAD_SOCIAL`, `SOCIEDADES_MERCANTILES_AMPLIADAS` (MUNI y PROV) |
+| *Otros 15 temas con menos de 5 datasets* | 36 | `EMPLEO_REGISTRADO_AYUNTAMIENTOS`, `GANADO_BOVINO`, `HIPOTECAS_CONSTITUIDAS`… |
 
-> **El mismo asunto aparece bajo varios `subject`.** El ISTAC no tiene una clasificación única: la salud está repartida entre `Sistema de salud y atención sanitaria` (13), `Estado de salud y morbilidad` (3), `Salud` (3) y `Salud y protección ambiental` (3); la agricultura, entre `Agricultura` (7), `Agricultura y ganadería` (5), `Ganadería` (4) y `Agricultura, ganadería y pesca` (3). Busca por palabra clave en la columna `id`, no solo por `subject`.
+> **El mismo asunto aparece bajo varios `subject`.** El ISTAC no tiene una clasificación única: por ejemplo, la agricultura está en `Agricultura` (5) y la ganadería en `Ganadería` (4), y en el catálogo completo hay además `Agricultura y ganadería` y `Agricultura, ganadería y pesca`. Busca por palabra clave en la columna `id`, no solo por `subject`.
 
 ---
 

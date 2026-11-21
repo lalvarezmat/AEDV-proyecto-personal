@@ -1774,8 +1774,8 @@ repetirlo entero.</p>
 <tbody>
 <tr class="odd">
 <td>ISTAC (indicadores)</td>
-<td>400</td>
-<td>~15 minutos</td>
+<td>402</td>
+<td>~1 hora</td>
 </tr>
 <tr class="even">
 <td>ISTAC (recursos estadísticos)</td>
@@ -1850,7 +1850,8 @@ original.</p>
 <tr class="even">
 <td>ISTAC (indicadores)</td>
 <td><code>ISTAC/ISTAC_datasets.xlsx</code></td>
-<td>Canarias: municipios, islas, CCAA</td>
+<td>Canarias: municipios; algunos comparan con España, sus CCAA o sus
+provincias</td>
 </tr>
 <tr class="odd">
 <td>ISTAC (recursos estadísticos)</td>
@@ -2011,9 +2012,9 @@ apoyándose en las columnas que los anticipan:</p>
 <tbody>
 <tr class="odd">
 <td><strong>ISTAC (indicadores)</strong></td>
-<td><code>area</code> (nivel geográfico: <code>MUNI</code>,
-<code>ISLA</code>, <code>CCAA</code>…) y <code>freq</code>
-(frecuencia)</td>
+<td><code>area</code> (nivel territorial; <code>n.reg.gran</code> da el
+nº de territorios de cada nivel), <code>freq</code> (frecuencia) y
+<code>n.periodos</code> (nº de periodos)</td>
 </tr>
 <tr class="even">
 <td><strong>ISTAC (recursos estadísticos)</strong></td>
@@ -2511,13 +2512,27 @@ operación.</p>
 <hr />
 </div>
 </div>
-<div id="istac-istacistac_datasets.xlsx-400-datasets" class="section level2" number="2.2">
+<div id="istac-istacistac_datasets.xlsx-138-datasets" class="section level2" number="2.2">
 <h2><span class="header-section-number">2.2</span> ISTAC —
-<code>ISTAC/ISTAC_datasets.xlsx</code> (400 datasets)</h2>
-<p>Contiene todos los datasets estadísticos de Canarias accesibles a
-través de la librería <code>istacr</code>. Es el catálogo completo sin
-filtrar, por lo que incluye datasets de todo tipo de frecuencias y
-coberturas geográficas.</p>
+<code>ISTAC/ISTAC_datasets.xlsx</code> (138 datasets)</h2>
+<p>Recoge los <strong>indicadores</strong> del ISTAC accesibles a través
+de la librería <code>istacr</code>: series ya elaboradas de una sola
+medida (territorio × fecha × valor). Hay <strong>dos catálogos</strong>,
+como en los recursos estadísticos:</p>
+<ul>
+<li><strong><code>ISTAC_datasets.xlsx</code></strong>, el que hay que
+usar: <strong>solo los indicadores que sirven para el proyecto</strong>.
+Tienen una frecuencia reconocida, su último dato es de <strong>2024 o
+posterior</strong>, tienen los periodos que exige el criterio de tamaño
+de AEDV (10 años, 20 semestres, 40 trimestres, 60 meses, 200 semanas o
+1096 días) y datos de <strong>15 regiones o más</strong>. Casi todos son
+municipales; el resto, por comunidades autónomas o por provincias.</li>
+<li><strong><code>ISTAC_datasets.raw.xlsx</code></strong>: los 402
+indicadores, cumplan o no, con las mismas columnas. Sirve para buscar un
+indicador auxiliar (por ejemplo, uno de Canarias en conjunto o por
+islas). <code>ISTAC_DatasetSelection.Rmd</code> acepta también sus
+identificadores.</li>
+</ul>
 <div id="descripción-de-columnas" class="section level3" number="2.2.1">
 <h3><span class="header-section-number">2.2.1</span> Descripción de
 columnas</h3>
@@ -2542,40 +2557,48 @@ nivel, por tema (<code>subject</code>).</td>
 <tr class="even">
 <td><code>id</code></td>
 <td>Identificador del indicador en el sistema ISTAC. Nombre corto en
-mayúsculas (ej. <code>POBLACION</code>,
-<code>ACCIDENTES_TRABAJO_BAJA</code>). <strong>Es el valor que hay que
-incluir en el vector <code>IDS</code></strong> en
+mayúsculas (ej. <code>POBLACION</code>, <code>PARO_REGISTRADO</code>).
+<strong>Es el valor que hay que incluir en el vector
+<code>IDS</code></strong> en
 <code>ISTAC_DatasetSelection.Rmd</code>.</td>
 </tr>
 <tr class="odd">
 <td><code>subject</code></td>
-<td>Tema al que pertenece el dataset. Permite filtrar por área de
+<td>Tema al que pertenece el indicador. Permite filtrar por área de
 interés.</td>
 </tr>
 <tr class="even">
 <td><code>n.reg</code></td>
-<td>Número de regiones distintas con datos. El valor nos da una pista de
-la cobertura geográfica, por ejemplo, un valor alrededor de 97, sugiere
-que son municipios de las islas, un valor alrededor de 20, que son CCAA,
-un valor alrededor de 7 que los datos son por islas, un valor alrededor
-de 40 pueden ser provincias españolas.</td>
+<td>Número de territorios distintos con datos, de todos los niveles (por
+ejemplo, los municipios, las islas y Canarias).</td>
 </tr>
 <tr class="odd">
-<td><code>n.obs</code></td>
-<td>Número total de observaciones (filas) del dataset.</td>
+<td><code>n.reg.gran</code></td>
+<td>Cuántos de esos territorios hay de cada nivel, del más fino al más
+grueso: <code>MUNI(88) ISLA(7) CCAA(1)</code> son 88 municipios, las 7
+islas y Canarias.</td>
 </tr>
 <tr class="even">
-<td><code>area</code></td>
-<td>Tipo de área geográfica detectada automáticamente: <code>MUNI</code>
-(municipios), <code>ISLA</code> (islas), <code>CCAA</code> (comunidades
-autónomas), <code>PROV</code> (provincias), <code>CANA</code> (Canarias
-como conjunto) u <code>OTRO</code>.</td>
+<td><code>n.obs</code></td>
+<td>Número total de observaciones (filas) del indicador.</td>
 </tr>
 <tr class="odd">
+<td><code>area</code></td>
+<td>Nivel territorial del indicador: el <strong>más fino</strong> de
+<code>n.reg.gran</code> que tiene al menos dos territorios. Si solo está
+Canarias, <code>CANA</code>. Los niveles son los mismos que en los
+recursos estadísticos (ver <a href="#istac-niveles">Niveles
+territoriales</a>).</td>
+</tr>
+<tr class="even">
 <td><code>freq</code></td>
 <td>Frecuencia temporal: <code>Y</code> (anual), <code>S</code>
 (semestral), <code>Q</code> (trimestral), <code>M</code> (mensual),
 <code>W</code> (semanal), <code>D</code> (diaria).</td>
+</tr>
+<tr class="odd">
+<td><code>n.periodos</code></td>
+<td>Número de periodos de esa frecuencia.</td>
 </tr>
 <tr class="even">
 <td><code>initDate</code></td>
@@ -2592,10 +2615,10 @@ como conjunto) u <code>OTRO</code>.</td>
 <h3><span class="header-section-number">2.2.2</span> Organización por
 temas</h3>
 <p>La columna <code>subject</code> trae el tema tal y como lo nombra el
-ISTAC. Son <strong>61 temas distintos</strong>, así que aquí van los 22
-con 5 datasets o más; el resto está repartido en temas de 1 a 4
-datasets. <strong>Los nombres de esta tabla son literalmente los valores
-de la columna</strong>, para que puedas filtrar por ellos en Excel.</p>
+ISTAC. En el catálogo filtrado son <strong>25 temas</strong>; aquí van
+los 10 con 5 indicadores o más (los otros 15 temas suman 36).
+<strong>Los nombres de esta tabla son literalmente los valores de la
+columna</strong>, para que puedas filtrar por ellos en Excel.</p>
 <table>
 <colgroup>
 <col width="21%" />
@@ -2606,160 +2629,90 @@ de la columna</strong>, para que puedas filtrar por ellos en Excel.</p>
 <tr class="header">
 <th>Tema (valor de <code>subject</code>)</th>
 <th align="center">Nº datasets</th>
-<th>Ejemplos de <code>id</code></th>
+<th>Ejemplos de <code>id</code> (y nivel territorial)</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><strong>Empleo</strong></td>
-<td align="center">57</td>
-<td><code>ACCIDENTES_TRABAJO_BAJA</code>, <code>PARO_REGISTRADO</code>,
-contratos por isla y municipio</td>
-</tr>
-<tr class="even">
-<td><strong>Hostelería y turismo</strong></td>
-<td align="center">22</td>
-<td><code>ALOJATUR_ABIERTOS</code>,
-<code>ALOJATUR_ESTANCIAS_MEDIAS</code> — pernoctaciones y viajeros por
-isla (mensual)</td>
-</tr>
-<tr class="odd">
 <td><strong>Población y hogares</strong></td>
 <td align="center">22</td>
-<td><code>POBLACION</code>, <code>POBLACION_00A14</code> — por
-municipio, isla, sexo y grupo de edad</td>
+<td><code>POBLACION</code>, <code>POBLACION_00A14</code>,
+<code>POBLACION_00A14_PC</code> (MUNI)</td>
 </tr>
 <tr class="even">
-<td><strong>Presupuestos y tributos</strong></td>
+<td><strong>Empleo</strong></td>
 <td align="center">20</td>
-<td><code>PRESUPUESTO_AYUNTAMIENTOS_LIQUIDADO_GASTO_HABITANTE</code> y
-variantes por municipio</td>
+<td><code>AFILIACIONES</code>, <code>AFILIACIONES_ASALARIADOS</code>,
+<code>AFILIACIONES_ASALARIADOS_HOMBRES</code> (CCAA y MUNI)</td>
 </tr>
 <tr class="odd">
+<td><strong>Hostelería y turismo</strong></td>
+<td align="center">14</td>
+<td><code>ALOJATUR_ABIERTOS</code>,
+<code>ALOJATUR_ESTANCIAS_MEDIAS</code>,
+<code>ALOJATUR_HABITACIONES_OCUPACION</code> (MUNI)</td>
+</tr>
+<tr class="even">
 <td><strong>Movimiento natural</strong></td>
-<td align="center">18</td>
+<td align="center">11</td>
 <td><code>DEFUNCIONES</code>, <code>DEFUNCIONES_EDAD_MEDIA</code>,
-nacimientos y matrimonios por municipio</td>
+<code>DEFUNCIONES_EDAD_MEDIA_HOMBRES</code> (MUNI)</td>
+</tr>
+<tr class="odd">
+<td><strong>Presupuestos y tributos</strong></td>
+<td align="center">9</td>
+<td><code>PRESUPUESTO_AYUNTAMIENTOS_LIQUIDADO_GASTO_HABITANTE</code> y
+variantes (MUNI)</td>
 </tr>
 <tr class="even">
 <td><strong>Transporte, movilidad y comunicaciones</strong></td>
-<td align="center">16</td>
-<td><code>MATRICULA_VEHICULOS</code>, <code>PARQUE_VEHICULOS</code>,
-tráfico aéreo interinsular</td>
+<td align="center">6</td>
+<td><code>MATRICULA_VEHICULOS</code>,
+<code>MATRICULA_VEHICULOS_TURISMOS</code>, <code>PARQUE_VEHICULOS</code>
+(MUNI)</td>
 </tr>
 <tr class="odd">
-<td><strong>Empresas y centros de trabajo</strong></td>
-<td align="center">14</td>
-<td><code>DIRCE_EMPRESAS</code>,
-<code>EMPRESAS_SEGURIDAD_SOCIAL</code></td>
-</tr>
-<tr class="even">
-<td><strong>Sistema de salud y atención sanitaria</strong></td>
-<td align="center">13</td>
-<td><code>GASTO_FARMACEUTICO</code>,
-<code>GASTO_FARMACEUTICO_MEDIO_ENVASE</code> (mensual)</td>
-</tr>
-<tr class="odd">
-<td><strong>Igualdad y diversidad de género</strong></td>
-<td align="center">11</td>
-<td><code>REPRESENTACION_FEMENINA_ALCALDIAS_PC</code> y otros
-indicadores por isla</td>
+<td><strong>Agricultura</strong></td>
+<td align="center">5</td>
+<td><code>SUPERFICIE_CULTIVO</code>,
+<code>SUPERFICIE_CULTIVO_HERBACEOS</code>,
+<code>SUPERFICIE_CULTIVO_LENOSOS</code> (MUNI)</td>
 </tr>
 <tr class="even">
 <td><strong>Calidad de vida y usos del tiempo</strong></td>
-<td align="center">10</td>
-<td><code>JUEGOS_AZAR_APUESTAS_PRESENCIALES</code>,
-<code>JUEGOS_AZAR_BINGO</code></td>
+<td align="center">5</td>
+<td><code>POBREZA_AROPE_POB_E</code>,
+<code>POBREZA_CARENCIA_MATERIAL_SEVERA_POB_E</code> (CCAA)</td>
 </tr>
 <tr class="odd">
-<td><strong>Industria</strong></td>
-<td align="center">10</td>
-<td><code>EIAP_PRODUCCION_PROPIA</code>,
-<code>EMPRESAS_INDUSTRIA_PERSONAL_OCUPADO</code></td>
-</tr>
-<tr class="even">
-<td><strong>Justicia y seguridad ciudadana</strong></td>
-<td align="center">9</td>
-<td><code>POBLACION_RECLUSA</code>,
-<code>POBLACION_RECLUSA_HOMBRES</code></td>
-</tr>
-<tr class="odd">
-<td><strong>Condiciones de vida</strong></td>
-<td align="center">8</td>
-<td><code>DESIGUALDAD_INDICE_GINI</code>,
-<code>DESIGUALDAD_P80_P20</code></td>
-</tr>
-<tr class="even">
-<td><strong>Educación y aprendizaje permanente</strong></td>
-<td align="center">8</td>
-<td><code>ALUMNADO_NO_UNIVERSITARIO_CONCERTADOS_REGIMEN_GENERAL</code></td>
-</tr>
-<tr class="odd">
-<td><strong>Turismo, comercio, transporte y otros
-servicios</strong></td>
-<td align="center">8</td>
-<td><code>EMPRESAS_SERVICIOS_PERSONAL_OCUPADO</code></td>
-</tr>
-<tr class="even">
-<td><strong>Agricultura</strong></td>
-<td align="center">7</td>
-<td><code>SUPERFICIE_CULTIVO</code>,
-<code>SUPERFICIE_CULTIVO_HERBACEOS</code></td>
-</tr>
-<tr class="odd">
-<td><strong>Comercio</strong></td>
-<td align="center">7</td>
-<td><code>EMPRESAS_COMERCIO_PERSONAL_OCUPADO</code></td>
-</tr>
-<tr class="even">
-<td><strong>Pensiones, prestaciones y ayudas de protección
-social</strong></td>
-<td align="center">7</td>
-<td><code>PENSIONES_CONTRIBUTIVAS</code>,
-<code>DESEMPLEO_PRESTACIONES</code></td>
-</tr>
-<tr class="odd">
-<td><strong>Comercio exterior e internacionalización de la
-economía</strong></td>
-<td align="center">6</td>
-<td><code>COMERCIO_EXTERIOR_DEFICIT_COMERCIAL</code></td>
-</tr>
-<tr class="even">
 <td><strong>Construcción</strong></td>
-<td align="center">6</td>
-<td><code>CEMENTO_VENTAS</code>, <code>LICITACION_OFICIAL</code></td>
-</tr>
-<tr class="odd">
-<td><strong>Agricultura y ganadería</strong></td>
 <td align="center">5</td>
-<td><code>PRECIOS_AGRICOLAS_MEDIO_PONDERADO_AGUACATE</code></td>
+<td><code>LICITACION_OFICIAL</code>,
+<code>LICITACION_OFICIAL_EDIFICACION</code>,
+<code>LICITACION_OFICIAL_INGENIERIA_CIVIL</code> (CCAA)</td>
 </tr>
 <tr class="even">
-<td><strong>Empleos y relación con la actividad económica</strong></td>
+<td><strong>Empresas y centros de trabajo</strong></td>
 <td align="center">5</td>
-<td><code>AFILIACIONES_MEDIAS</code>,
-<code>AFILIACIONES_MEDIAS_HOMBRES</code></td>
+<td><code>EMPRESAS_SEGURIDAD_SOCIAL</code>,
+<code>SOCIEDADES_MERCANTILES_AMPLIADAS</code> (MUNI y PROV)</td>
 </tr>
 <tr class="odd">
-<td><em>Otros 39 temas con menos de 5 datasets</em></td>
-<td align="center">111</td>
-<td><code>PIB_PM</code>, <code>IPC</code>,
-<code>ENERGIA_ELECTRICA_DISPONIBLE</code>, <code>GANADO_BOVINO</code>,
-<code>HIPOTECAS_CONSTITUIDAS</code>, <code>IPV</code>…</td>
+<td><em>Otros 15 temas con menos de 5 datasets</em></td>
+<td align="center">36</td>
+<td><code>EMPLEO_REGISTRADO_AYUNTAMIENTOS</code>,
+<code>GANADO_BOVINO</code>, <code>HIPOTECAS_CONSTITUIDAS</code>…</td>
 </tr>
 </tbody>
 </table>
 <blockquote>
 <p><strong>El mismo asunto aparece bajo varios
 <code>subject</code>.</strong> El ISTAC no tiene una clasificación
-única: la salud está repartida entre
-<code>Sistema de salud y atención sanitaria</code> (13),
-<code>Estado de salud y morbilidad</code> (3), <code>Salud</code> (3) y
-<code>Salud y protección ambiental</code> (3); la agricultura, entre
-<code>Agricultura</code> (7), <code>Agricultura y ganadería</code> (5),
-<code>Ganadería</code> (4) y <code>Agricultura, ganadería y pesca</code>
-(3). Busca por palabra clave en la columna <code>id</code>, no solo por
-<code>subject</code>.</p>
+única: por ejemplo, la agricultura está en <code>Agricultura</code> (5)
+y la ganadería en <code>Ganadería</code> (4), y en el catálogo completo
+hay además <code>Agricultura y ganadería</code> y
+<code>Agricultura, ganadería y pesca</code>. Busca por palabra clave en
+la columna <code>id</code>, no solo por <code>subject</code>.</p>
 </blockquote>
 <hr />
 </div>

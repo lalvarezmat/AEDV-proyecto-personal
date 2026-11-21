@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-11-20" />
+<meta name="date" content="2026-11-21" />
 
 <title>Exploración de los datasets del ISTAC usando la librería istacr</title>
 
@@ -363,7 +363,7 @@ display: none;
 
 <h1 class="title toc-ignore">Exploración de los datasets del ISTAC
 usando la librería <code>istacr</code></h1>
-<h4 class="date">2026-11-20</h4>
+<h4 class="date">2026-11-21</h4>
 
 </div>
 
@@ -427,15 +427,64 @@ regiones distintas utilizadas, la frecuencia de los datos
 (<code>Y</code> anual, <code>S</code> semestral, <code>Q</code>
 trimestral, <code>M</code> mensual, <code>W</code> semanal,
 <code>D</code> diaria, y <code>?</code> si el formato de fecha no se
-reconoce), el periodo en años que cubre y detectamos si los datasets
-tienen datos de municipios de las islas.</p>
-<pre class="r"><code>deteccion_area_geografica &lt;- function(u){
-  if(any(c(&quot;38005&quot;,&quot;35012&quot;,&quot;38027&quot;) %in% u)) return(&quot;MUNI&quot;)
-  if(any(c(&quot;ES705&quot;,&quot;ES706&quot;,&quot;ES708&quot;) %in% u)) return(&quot;ISLA&quot;)
-  if(any(c(&quot;ES11&quot;,&quot;ES51&quot;,&quot;ES30&quot;)   %in% u)) return(&quot;CCAA&quot;)
-  if(any(c(&quot;ES213&quot;,&quot;ES425&quot;,&quot;ES701&quot;) %in% u)) return(&quot;PROV&quot;)
-  if(length(u) == 1 &amp;&amp; &quot;ES70&quot; %in% u)       return(&quot;CANA&quot;)
-  return(&quot;OTRO&quot;)
+reconoce), el nº de periodos de esa frecuencia, el periodo que cubre y
+el nivel territorial.</p>
+<p>El <strong>nivel territorial</strong> sale de la ficha de cada
+indicador (<code>istacr::get_indicators_code()</code>): cada territorio
+trae su <strong>granularidad</strong>, es decir, el tipo de territorio
+que es (municipio, isla, comunidad autónoma…), de la lista oficial del
+ISTAC. Con ella se calculan dos columnas, con el mismo criterio que el
+catálogo de los recursos estadísticos
+(<code>ISTAC_recursos.xlsx</code>):</p>
+<ul>
+<li><code>n.reg.gran</code>: nº de territorios de cada granularidad, de
+la más fina a la más gruesa; <code>OTROS</code> son los códigos sin
+granularidad o con una que no está en la lista de abajo.</li>
+<li><code>area</code>: la granularidad <strong>más fina</strong> que
+tiene al menos dos territorios (o la única que haya). Si solo está
+Canarias (una comunidad autónoma), <code>CANA</code>.</li>
+</ul>
+<pre class="r"><code># GRANULARIDADES DEL ISTAC, DE LA MÁS FINA A LA MÁS GRUESA, CON LA ETIQUETA
+# CORTA DE LA COLUMNA area (LAS MISMAS QUE ISTAC_recursos_TableDatasetGeneration.Rmd;
+# LAS ZONAS DE CALIDAD DEL AIRE SON GRUPOS DE ISLAS)
+NIVELES &lt;- c(MICRO_TOURISTIC_CENTRES = &quot;MICRO&quot;, MICRO_TOURISTIC_ENTITIES = &quot;MICRO&quot;,
+             MUNICIPALITIES = &quot;MUNI&quot;, COUNTIES = &quot;COMARCA&quot;, LARGE_COUNTIES = &quot;GCOMARCA&quot;,
+             ISLANDS = &quot;ISLA&quot;, AIR_QUALITY_ZONES = &quot;ZCAIRE&quot;, PROVINCES = &quot;PROV&quot;,
+             REGIONS = &quot;CCAA&quot;, COUNTRIES = &quot;PAIS&quot;)
+
+# ETIQUETA DE CADA TERRITORIO (OTROS: SIN GRANULARIDAD O NO PREVISTA)
+etiqueta_nivel &lt;- function(g){
+  e &lt;- unname(NIVELES[g])
+  e[is.na(e)] &lt;- &quot;OTROS&quot;
+  e
+}
+
+# Nº DE TERRITORIOS POR NIVEL, DEL MÁS FINO AL MÁS GRUESO (OTROS AL FINAL)
+conteo_niveles &lt;- function(g){
+  n &lt;- table(etiqueta_nivel(g))
+  n[order(match(names(n), c(unique(NIVELES), &quot;OTROS&quot;)))]
+}
+
+# NIVEL TERRITORIAL: EL MÁS FINO CON AL MENOS DOS TERRITORIOS (O EL ÚNICO QUE HAYA)
+area_territorial &lt;- function(g){
+  n &lt;- conteo_niveles(g)
+  n &lt;- n[names(n) != &quot;OTROS&quot;]
+  if(!length(n)) return(&quot;OTRO&quot;)
+  k &lt;- which(n &gt;= 2)[1]
+  if(is.na(k)) k &lt;- 1
+  if(names(n)[k] == &quot;CCAA&quot; &amp;&amp; n[[k]] == 1) return(&quot;CANA&quot;)
+  names(n)[k]
+}
+
+# Fechas de la frecuencia detectada (descarta, por ejemplo, los totales anuales
+# de una serie mensual) para contar los periodos
+fechas_frecuencia &lt;- function(fechas, f){
+  d &lt;- unique(fechas[!is.na(fechas)])
+  patron &lt;- c(Y = &quot;^\\d{4}$&quot;, S = &quot;^\\d{4}-S[1-2]$&quot;, Q = &quot;^\\d{4}-Q[1-4]$&quot;,
+              M = &quot;^\\d{4}-M?(0[1-9]|1[0-2])$&quot;, W = &quot;^\\d{4}-W\\d{1,2}$&quot;,
+              D = &quot;^\\d{4}-\\d{2}-\\d{2}$&quot;)[f]
+  if(is.na(patron)) return(character())
+  sort(d[grepl(patron, d)])
 }
 
 # Detecta la frecuencia de una serie a partir del FORMATO de sus fechas.
@@ -494,7 +543,9 @@ cat(&quot;ISTAC_datasets tiene&quot;, nrow(ISTAC_datasets), &quot;filas\n&quot;)
 <pre class="r"><code>GEOGRAPHICAL_LISTADO  &lt;- as.character()
 n.obs &lt;- as.numeric()
 n.reg &lt;- as.numeric()
+n.reg.gran &lt;- as.character()
 freq &lt;- as.character()
+n.periodos &lt;- as.numeric()
 initDate &lt;- as.character()
 lastDate &lt;- as.character()
 area &lt;- as.character()
@@ -506,12 +557,19 @@ for(id in ISTAC_datasets$id){
   n.obs &lt;- c(n.obs,nrow(tb))
   AREAid &lt;- unique(tb$GEOGRAPHICAL)
   n.reg &lt;- c(n.reg,length(AREAid))
-  area &lt;- c(area, deteccion_area_geografica(AREAid))
+  # GRANULARIDAD DE CADA TERRITORIO, DE LA FICHA DEL INDICADOR
+  rep_geo &lt;- istacr::get_indicators_code(id)$dimension$GEOGRAPHICAL$representation
+  gran &lt;- unname(setNames(rep_geo$granularityCode, rep_geo$code)[AREAid])
+  gran[is.na(gran)] &lt;- &quot;_O&quot;
+  n.niv &lt;- conteo_niveles(gran)
+  n.reg.gran &lt;- c(n.reg.gran, paste0(names(n.niv), &quot;(&quot;, n.niv, &quot;)&quot;, collapse = &quot; &quot;))
+  area &lt;- c(area, area_territorial(gran))
   dates &lt;- tb  |&gt; pull(TIME) |&gt; unique() |&gt; sort()
   #initDate &lt;- c(initDate,paste0(substr(dates[1],1,4),&quot;-&quot;,substr(dates[length(dates)],1,4)))
   initDate &lt;- c(initDate,min(dates))
   lastDate &lt;- c(lastDate,max(dates))
   freq &lt;- c(freq,deteccion_frecuencia(dates))
+  n.periodos &lt;- c(n.periodos, length(fechas_frecuencia(dates, tail(freq, 1))))
   log_avance(which(ISTAC_datasets$id == id)[1], nrow(ISTAC_datasets), id,
              as.numeric(difftime(Sys.time(), t.inicio, units = &quot;secs&quot;)),
              paste0(&quot;freq=&quot;, tail(freq,1), &quot; n.obs=&quot;, tail(n.obs,1)))
@@ -531,20 +589,105 @@ ISTAC_datasets &lt;- ISTAC_datasets |&gt;
   relocate(lastDate,.after=initDate) |&gt;
   mutate(n.obs = n.obs) |&gt; 
   relocate(n.obs,.after=title) |&gt; 
-  mutate(n.reg = n.reg) |&gt; 
-  relocate(n.reg,.after=title) |&gt; 
+  mutate(n.reg = n.reg) |&gt;
+  relocate(n.reg,.after=title) |&gt;
+  mutate(n.reg.gran = n.reg.gran, .after = n.reg) |&gt;
+  mutate(n.periodos = n.periodos, .after = freq) |&gt;
   mutate(area = area) |&gt;
   relocate(area,.after=title)</code></pre>
 <!-- Imprimimos información básica de cada dataset y la guardamos en disco como una hoja Excel. -->
-<pre class="default"><code>ISTAC_datasets |&gt; 
-  select(id,subject,n.reg,n.obs,area,freq,initDate,lastDate) |&gt;
+<pre class="default"><code>ISTAC_datasets |&gt;
+  select(id,subject,n.reg,n.reg.gran,n.obs,area,freq,n.periodos,initDate,lastDate) |&gt;
+  arrange(area, subject, id) |&gt;
   mutate(`Nº` = row_number(), .before = 1) |&gt;
   knitr::kable()</code></pre>
-<p>Escribimos los datasets detectados en una hoja excel</p>
-<pre class="r"><code>ISTAC_datasets |&gt; 
-  select(id,subject,n.reg,n.obs,area,freq,initDate,lastDate) |&gt;
-   mutate(`Nº` = row_number(), .before = 1) |&gt;
-   write.xlsx(&quot;ISTAC_datasets.xlsx&quot;)</code></pre>
+<p>Se escriben dos catálogos, como en el resto de fuentes:</p>
+<ul>
+<li><strong>ISTAC_datasets.raw.xlsx</strong>: todos los
+indicadores.</li>
+<li><strong>ISTAC_datasets.xlsx</strong>: solo los que sirven para el
+proyecto de AEDV: frecuencia reconocida, último dato de 2024 o
+posterior, los periodos que exige el criterio de tamaño de las series
+(10 años, 20 semestres, 40 trimestres, 60 meses, 200 semanas o 1096
+días) y datos de <strong>15 regiones o más</strong> (contando todos los
+niveles territoriales del indicador).</li>
+</ul>
+<pre class="r"><code># UMBRALES DEL CRITERIO AEDV DE TAMAÑO DE LAS SERIES Y DEL CATÁLOGO FILTRADO
+umbral_freq &lt;- c(Y = 10, S = 20, Q = 40, M = 60, W = 200, D = 1096)
+ANIO_MINIMO &lt;- 2024
+MIN_REGIONES &lt;- 15
+
+ISTAC_datasets.raw &lt;- ISTAC_datasets |&gt;
+  select(id,subject,n.reg,n.reg.gran,n.obs,area,freq,n.periodos,initDate,lastDate) |&gt;
+  # ORDENADO POR NIVEL TERRITORIAL Y, DENTRO DE ÉL, POR TEMA
+  arrange(area, subject, id)
+
+ISTAC_datasets.filtrados &lt;- ISTAC_datasets.raw |&gt;
+  filter(freq %in% names(umbral_freq),
+         as.integer(substr(lastDate, 1, 4)) &gt;= ANIO_MINIMO,
+         n.periodos &gt;= umbral_freq[freq],
+         n.reg &gt;= MIN_REGIONES)
+
+ISTAC_datasets.raw |&gt;
+  mutate(`Nº` = row_number(), .before = 1) |&gt;
+  write.xlsx(&quot;ISTAC_datasets.raw.xlsx&quot;)
+ISTAC_datasets.filtrados |&gt;
+  mutate(`Nº` = row_number(), .before = 1) |&gt;
+  write.xlsx(&quot;ISTAC_datasets.xlsx&quot;)
+
+cat(&quot;ISTAC_datasets.raw.xlsx:&quot;, nrow(ISTAC_datasets.raw), &quot;indicadores;&quot;,
+    &quot;ISTAC_datasets.xlsx:&quot;, nrow(ISTAC_datasets.filtrados), &quot;\n&quot;)</code></pre>
+<pre><code>## ISTAC_datasets.raw.xlsx: 402 indicadores; ISTAC_datasets.xlsx: 138</code></pre>
+<pre class="r"><code># REPARTO POR NIVEL TERRITORIAL DE LOS DOS CATÁLOGOS
+full_join(count(ISTAC_datasets.raw, area, name = &quot;completo&quot;),
+          count(ISTAC_datasets.filtrados, area, name = &quot;filtrado&quot;), by = &quot;area&quot;) |&gt;
+  knitr::kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">area</th>
+<th align="right">completo</th>
+<th align="right">filtrado</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">CANA</td>
+<td align="right">93</td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="left">CCAA</td>
+<td align="right">40</td>
+<td align="right">30</td>
+</tr>
+<tr class="odd">
+<td align="left">GCOMARCA</td>
+<td align="right">9</td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="left">ISLA</td>
+<td align="right">89</td>
+<td align="right">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">MUNI</td>
+<td align="right">124</td>
+<td align="right">97</td>
+</tr>
+<tr class="even">
+<td align="left">OTRO</td>
+<td align="right">1</td>
+<td align="right">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">PROV</td>
+<td align="right">46</td>
+<td align="right">11</td>
+</tr>
+</tbody>
+</table>
 </div>
 
 
