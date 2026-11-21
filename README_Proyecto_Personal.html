@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-11-17" />
+<meta name="date" content="2026-11-21" />
 
 <title>Proyecto Personal AEDV — Guía de trabajo</title>
 
@@ -1617,7 +1617,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Proyecto Personal AEDV — Guía de
 trabajo</h1>
-<h4 class="date">2026-11-17</h4>
+<h4 class="date">2026-11-21</h4>
 
 </div>
 
@@ -2168,7 +2168,7 @@ que parte la siguiente:</p>
 <p><strong>1. Inventario — el catálogo ya está hecho.</strong> Abre el
 catálogo Excel de la fuente que te interese:
 <code>SelecciónDatasetsProyecto/INE/INE.datasets.xlsx</code>,
-<code>SelecciónDatasetsProyecto/ISTAC/ISTAC_datasets.xlsx</code>,
+<code>SelecciónDatasetsProyecto/ISTAC/ISTAC_indicadores.xlsx</code>,
 <code>SelecciónDatasetsProyecto/EUROSTAT/Eurostat.datasets.xlsx</code> o
 <code>SelecciónDatasetsProyecto/WORLD_BANK/wb.datasets.xlsx</code>. Cada
 catálogo lo generó el <code>*_TableDatasetGeneration.Rmd</code> de su
@@ -2410,7 +2410,7 @@ memoria el chunk que indica el
 tabla por uno que describa el dataset. Por ejemplo:</li>
 </ol>
 <pre><code>```{r, results=&#39;asis&#39;, cache=FALSE}
-ipc &lt;- aedv_incluir_dataset(&quot;76136_analisis.Rmd&quot;)
+ipc &lt;- aedv_incluir_dataset(&quot;76136_analisis.Rmd&quot;, validacion = TRUE)
 ```</code></pre>
 <p>Al compilar la memoria, el análisis completo aparece en el lugar del
 chunk —con sus tablas, su validación y los títulos colgando de
@@ -2438,7 +2438,7 @@ justo después, cada una con su propio nombre. Por ejemplo, para CLIMA
 Canarias:</li>
 </ul>
 <pre><code>```{r, results=&#39;asis&#39;, cache=FALSE}
-clima &lt;- aedv_incluir_dataset(&quot;CLIMA_CANARIAS_analisis.Rmd&quot;)
+clima &lt;- aedv_incluir_dataset(&quot;CLIMA_CANARIAS_analisis.Rmd&quot;, validacion = TRUE)
 clima_obs  &lt;- clima$data   # observaciones mensuales por municipio, 1990-2022
 clima_proy &lt;- clima$proy   # proyecciones por escenario, modelo y horizonte
 ```</code></pre>

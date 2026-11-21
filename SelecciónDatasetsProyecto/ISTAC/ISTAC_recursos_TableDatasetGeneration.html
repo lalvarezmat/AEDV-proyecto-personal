@@ -382,8 +382,8 @@ p { font-size: 14px; margin-bottom: 10px;
 .tabla-scroll table td, .tabla-scroll table th { white-space: nowrap; }
 </style>
 <p>El ISTAC publica sus datos a través de dos API. El catálogo
-<strong>ISTAC_datasets.xlsx</strong> (generado por
-<strong>ISTAC_TableDatasetGeneration.Rmd</strong>) recoge los
+<strong>ISTAC_indicadores.xlsx</strong> (generado por
+<strong>ISTAC_indicadores_TableDatasetGeneration.Rmd</strong>) recoge los
 <strong>indicadores</strong>, unas 400 series ya elaboradas. Este
 documento recorre la otra, la <strong>API de recursos
 estadísticos</strong>, que contiene todas las tablas que publica cada
@@ -566,7 +566,7 @@ dimension_territorial &lt;- function(codelists){
 <h1><span class="header-section-number">3</span> Primera pasada:
 metadatos de cada dataset</h1>
 <pre class="r"><code># Detecta la frecuencia de una serie a partir del FORMATO de sus fechas (la
-# misma función que ISTAC_TableDatasetGeneration.Rmd). Muchos datasets mezclan
+# misma función que ISTAC_indicadores_TableDatasetGeneration.Rmd). Muchos datasets mezclan
 # el agregado anual (&quot;1999&quot;) con el detalle (&quot;1999-Q1&quot;), así que se descartan los
 # valores de 4 caracteres y se devuelve la granularidad más fina que aparezca.
 deteccion_frecuencia &lt;- function(fechas){

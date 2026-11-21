@@ -280,7 +280,7 @@ Las preguntas de la Entrega 1 son un **punto de partida, no una versión definit
   ETAPA 4   incorporas a tu memoria de proyecto personal los ficheros que ha guardado y su análisis
 ```
 
-**1. Inventario — el catálogo ya está hecho.** Abre el catálogo Excel de la fuente que te interese: `SelecciónDatasetsProyecto/INE/INE.datasets.xlsx`, `SelecciónDatasetsProyecto/ISTAC/ISTAC_datasets.xlsx`, `SelecciónDatasetsProyecto/EUROSTAT/Eurostat.datasets.xlsx` o `SelecciónDatasetsProyecto/WORLD_BANK/wb.datasets.xlsx`. Cada catálogo lo generó el `*_TableDatasetGeneration.Rmd` de su carpeta recorriendo la API del organismo dataset a dataset; **tú no tienes que ejecutarlo**, solo leer el Excel. Es un índice —una fila por dataset con su ficha: identificador, nombre, frecuencia, cobertura geográfica, fechas—, **no contiene los datos**.
+**1. Inventario — el catálogo ya está hecho.** Abre el catálogo Excel de la fuente que te interese: `SelecciónDatasetsProyecto/INE/INE.datasets.xlsx`, `SelecciónDatasetsProyecto/ISTAC/ISTAC_indicadores.xlsx`, `SelecciónDatasetsProyecto/EUROSTAT/Eurostat.datasets.xlsx` o `SelecciónDatasetsProyecto/WORLD_BANK/wb.datasets.xlsx`. Cada catálogo lo generó el `*_TableDatasetGeneration.Rmd` de su carpeta recorriendo la API del organismo dataset a dataset; **tú no tienes que ejecutarlo**, solo leer el Excel. Es un índice —una fila por dataset con su ficha: identificador, nombre, frecuencia, cobertura geográfica, fechas—, **no contiene los datos**.
 
 **2. Búsqueda del tema.** Busca dentro del catálogo los datasets de tu tema: súbele el `.xlsx` a una IA y pídele los identificadores relacionados, y que descarte los que no vayan a cumplir los requisitos de arriba (`README_Selección_Tema` detalla qué columna los anticipa en cada fuente). Lo que sale es una **lista de candidatos**, no una elección: quien dice si un dataset sirve es la etapa 3.
 
@@ -382,7 +382,7 @@ Esta es la **etapa 4 (incorporación)** del flujo de selección de datos del Pas
 
 ````
 `r ''````{r, results='asis', cache=FALSE}
-ipc <- aedv_incluir_dataset("76136_analisis.Rmd")
+ipc <- aedv_incluir_dataset("76136_analisis.Rmd", validacion = TRUE)
 ```
 ````
 
@@ -394,7 +394,7 @@ Al compilar la memoria, el análisis completo aparece en el lugar del chunk —c
 
 ````
 `r ''````{r, results='asis', cache=FALSE}
-clima <- aedv_incluir_dataset("CLIMA_CANARIAS_analisis.Rmd")
+clima <- aedv_incluir_dataset("CLIMA_CANARIAS_analisis.Rmd", validacion = TRUE)
 clima_obs  <- clima$data   # observaciones mensuales por municipio, 1990-2022
 clima_proy <- clima$proy   # proyecciones por escenario, modelo y horizonte
 ```

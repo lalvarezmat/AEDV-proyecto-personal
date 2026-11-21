@@ -1659,8 +1659,8 @@ cuatro.</p>
 <p>El <strong>ISTAC</strong> publica sus datos por dos vías y por eso
 tiene <strong>dos catálogos</strong>, cada uno con su pareja de
 documentos: los <strong>indicadores</strong>
-(<code>ISTAC_datasets.xlsx</code>, unas 400 series ya elaboradas de una
-sola medida) y los <strong>recursos estadísticos</strong>
+(<code>ISTAC_indicadores.xlsx</code>, unas 400 series ya elaboradas de
+una sola medida) y los <strong>recursos estadísticos</strong>
 (<code>ISTAC_recursos.xlsx</code>, las tablas que publica cada operación
 estadística, que pueden tener varias dimensiones como las del INE).
 Conviene mirar en los dos.</p>
@@ -1849,7 +1849,7 @@ original.</p>
 </tr>
 <tr class="even">
 <td>ISTAC (indicadores)</td>
-<td><code>ISTAC/ISTAC_datasets.xlsx</code></td>
+<td><code>ISTAC/ISTAC_indicadores.xlsx</code></td>
 <td>Canarias: municipios; algunos comparan con España, sus CCAA o sus
 provincias</td>
 </tr>
@@ -1990,7 +1990,7 @@ catálogo los datasets de tu tema</h2>
 arriba abajo: <strong>se busca dentro de él</strong>. Hay dos maneras y
 lo razonable es combinarlas.</p>
 <p><strong>Con una IA, que es lo más rápido.</strong> Súbele el
-<code>.xlsx</code> de la fuente (<code>ISTAC_datasets.xlsx</code>,
+<code>.xlsx</code> de la fuente (<code>ISTAC_indicadores.xlsx</code>,
 <code>ISTAC_recursos.xlsx</code>, <code>wb.datasets.xlsx</code>,
 <code>Eurostat.datasets.xlsx</code> o <code>INE.datasets.xlsx</code>) a
 ChatGPT, Claude o similar y pídele los identificadores relacionados con
@@ -2209,7 +2209,7 @@ memoria el chunk que indica el documento</strong>, cambiando el nombre
 de la tabla por uno que describa el dataset. Por ejemplo:</li>
 </ol>
 <pre><code>```{r, results=&#39;asis&#39;, cache=FALSE}
-ipc &lt;- aedv_incluir_dataset(&quot;76136_analisis.Rmd&quot;)
+ipc &lt;- aedv_incluir_dataset(&quot;76136_analisis.Rmd&quot;, validacion = TRUE)
 ```</code></pre>
 <p>Al compilar la memoria, el análisis aparece en el lugar del chunk y
 los datos quedan en la tabla que elijas (aquí <code>ipc</code>, un
@@ -2512,26 +2512,26 @@ operación.</p>
 <hr />
 </div>
 </div>
-<div id="istac-istacistac_datasets.xlsx-138-datasets" class="section level2" number="2.2">
+<div id="istac-istacistac_indicadores.xlsx-138-datasets" class="section level2" number="2.2">
 <h2><span class="header-section-number">2.2</span> ISTAC —
-<code>ISTAC/ISTAC_datasets.xlsx</code> (138 datasets)</h2>
+<code>ISTAC/ISTAC_indicadores.xlsx</code> (138 datasets)</h2>
 <p>Recoge los <strong>indicadores</strong> del ISTAC accesibles a través
 de la librería <code>istacr</code>: series ya elaboradas de una sola
 medida (territorio × fecha × valor). Hay <strong>dos catálogos</strong>,
 como en los recursos estadísticos:</p>
 <ul>
-<li><strong><code>ISTAC_datasets.xlsx</code></strong>, el que hay que
+<li><strong><code>ISTAC_indicadores.xlsx</code></strong>, el que hay que
 usar: <strong>solo los indicadores que sirven para el proyecto</strong>.
 Tienen una frecuencia reconocida, su último dato es de <strong>2024 o
 posterior</strong>, tienen los periodos que exige el criterio de tamaño
 de AEDV (10 años, 20 semestres, 40 trimestres, 60 meses, 200 semanas o
 1096 días) y datos de <strong>15 regiones o más</strong>. Casi todos son
 municipales; el resto, por comunidades autónomas o por provincias.</li>
-<li><strong><code>ISTAC_datasets.raw.xlsx</code></strong>: los 402
+<li><strong><code>ISTAC_indicadores.raw.xlsx</code></strong>: los 402
 indicadores, cumplan o no, con las mismas columnas. Sirve para buscar un
 indicador auxiliar (por ejemplo, uno de Canarias en conjunto o por
-islas). <code>ISTAC_DatasetSelection.Rmd</code> acepta también sus
-identificadores.</li>
+islas). <code>ISTAC_indicadores_DatasetSelection.Rmd</code> acepta
+también sus identificadores.</li>
 </ul>
 <div id="descripción-de-columnas" class="section level3" number="2.2.1">
 <h3><span class="header-section-number">2.2.1</span> Descripción de
@@ -2560,7 +2560,7 @@ nivel, por tema (<code>subject</code>).</td>
 mayúsculas (ej. <code>POBLACION</code>, <code>PARO_REGISTRADO</code>).
 <strong>Es el valor que hay que incluir en el vector
 <code>IDS</code></strong> en
-<code>ISTAC_DatasetSelection.Rmd</code>.</td>
+<code>ISTAC_indicadores_DatasetSelection.Rmd</code>.</td>
 </tr>
 <tr class="odd">
 <td><code>subject</code></td>

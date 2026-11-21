@@ -354,18 +354,16 @@ data <- hist |>
   arrange(VARIABLE, REGION, TIME)
 ```
 
-**data**
+**tabla original** (100 filas elegidas al azar)
+
+<div class="tabla-scroll-xy">
 
 ```{r}
-data |> print(n=5)
-```
-
-Muestra de las primeras 20 filas del histórico observado por provincia, variable y mes:
-
-<div class="tabla-scroll">
-
-```{r}
-data |> slice(1:20) |> knitr::kable()
+# muestra de 100 filas al azar (semilla fija: sale la misma en cada compilación)
+set.seed(1)
+data |>
+  slice_sample(n = 100) |>
+  knitr::kable()
 ```
 
 </div>

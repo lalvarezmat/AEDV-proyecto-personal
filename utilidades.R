@@ -2472,9 +2472,13 @@ aedv_generar_analisis <- function(nombre, titulo, ficheros, tablas = "data",
     stop("No existen los ficheros: ", paste(faltan, collapse = ", "), call. = FALSE)
 
   # código que el alumno pega en la memoria; con varias tablas, la lista se
-  # separa en una tabla por línea, con su propio nombre
+  # separa en una tabla por línea, con su propio nombre. Si el análisis tiene
+  # la parte de validación, la llamada lleva validacion = TRUE explícito, para
+  # que se vea que es el argumento que se cambia a FALSE en un dataset auxiliar
   fichero <- paste0(nombre, "_analisis.Rmd")
-  codigo  <- paste0(sugerencia, " <- aedv_incluir_dataset(\"", fichero, "\")")
+  validacion <- any(analisis == "<!-- INICIO DE LA VALIDACIÓN AEDV -->")
+  codigo  <- paste0(sugerencia, " <- aedv_incluir_dataset(\"", fichero, "\"",
+                    if (validacion) ", validacion = TRUE", ")")
   if (length(tablas) > 1) {
     if (!setequal(desempaquetar, tablas))
       stop("desempaquetar tiene que nombrar las tablas: ",
@@ -2519,7 +2523,6 @@ aedv_generar_analisis <- function(nombre, titulo, ficheros, tablas = "data",
            "las que se sigue trabajando en el resto de la memoria. Este dataset tiene ",
            length(tablas), " tablas: `aedv_incluir_dataset()` las devuelve juntas en una ",
            "lista, y las líneas que siguen a la llamada las separan, cada una con su nombre.")
-  validacion <- any(analisis == "<!-- INICIO DE LA VALIDACIÓN AEDV -->")
 
   cat(
     "Al compilar este documento se ha generado el fichero **`", fichero, "`**: es la ",
@@ -2541,8 +2544,9 @@ aedv_generar_analisis <- function(nombre, titulo, ficheros, tablas = "data",
     "Al compilar la memoria, el análisis aparece en el lugar del chunk y ", resultado,
     " Si incorporas varios datasets, pega un chunk por cada uno, con nombres de tabla distintos.",
     if (validacion)
-      paste0(" En un dataset auxiliar, que no tiene que cumplir los requisitos de AEDV, ",
-             "`aedv_incluir_dataset(\"", fichero, "\", validacion = FALSE)` omite la validación."),
+      paste0(" Con `validacion = TRUE` el análisis incluye la validación de requisitos AEDV; ",
+             "en un dataset auxiliar, que no tiene que cumplirlos, cambia a `validacion = FALSE` ",
+             "para omitirla."),
     "\n\n",
     "El texto explicativo del dataset (qué mide, qué significa cada variable y cada una de ",
     "sus opciones...) se escribe en la memoria, antes o después del chunk, no en `", fichero,

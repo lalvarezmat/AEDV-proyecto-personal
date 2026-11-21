@@ -257,11 +257,19 @@ metadatos |>
 data <- readRDS(paste0(filename, ".rds"))
 ```
 
-**data**
+**tabla original** (100 filas elegidas al azar)
+
+<div class="tabla-scroll-xy">
 
 ```{r}
-data |> print(n=5)
+# muestra de 100 filas al azar (semilla fija: sale la misma en cada compilación)
+set.seed(1)
+data |>
+  slice_sample(n = 100) |>
+  knitr::kable()
 ```
+
+</div>
 
 ```{r}
 # COLUMNA GEOGRÁFICA: se guardó en los metadatos (geo.col.name) al construir el

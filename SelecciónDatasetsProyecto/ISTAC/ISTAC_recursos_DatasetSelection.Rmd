@@ -73,7 +73,7 @@ rename <- dplyr::rename
 
 Este documento analiza en detalle un dataset de la **API de recursos estadísticos** del ISTAC, elegido a partir de la tabla que genera **ISTAC_recursos_TableDatasetGeneration.Rmd** ([ISTAC_recursos.xlsx](ISTAC_recursos.xlsx)), y comprueba si cumple los requisitos para ser el dataset principal del proyecto personal de **AEDV**.
 
-A diferencia de los **indicadores** del ISTAC (**ISTAC_DatasetSelection.Rmd**), que tienen siempre las mismas columnas (territorio, fecha y valor) y se combinan varios en una tabla, aquí se analiza **un único dataset** que, además del territorio y la fecha, puede tener otras dimensiones (sexo, edad, tipo de medida...). Cada combinación de valores de esas dimensiones es un atributo que se sigue en el tiempo para cada región.
+A diferencia de los **indicadores** del ISTAC (**ISTAC_indicadores_DatasetSelection.Rmd**), que tienen siempre las mismas columnas (territorio, fecha y valor) y se combinan varios en una tabla, aquí se analiza **un único dataset** que, además del territorio y la fecha, puede tener otras dimensiones (sexo, edad, tipo de medida...). Cada combinación de valores de esas dimensiones es un atributo que se sigue en el tiempo para cada región.
 
 
 <!--  ================  PARA PROBAR TUS PROPIOS DATASETS EDITA EL CÓDIGO SIGUIENTE  ============ -->
@@ -249,12 +249,16 @@ metadatos |>
 data <- readRDS(paste0(filename, ".rds"))
 ```
 
-**data**
+**tabla original** (100 filas elegidas al azar)
 
-<div class="tabla-scroll">
+<div class="tabla-scroll-xy">
 
 ```{r}
-data |> print(n=5)
+# muestra de 100 filas al azar (semilla fija: sale la misma en cada compilación)
+set.seed(1)
+data |>
+  slice_sample(n = 100) |>
+  knitr::kable()
 ```
 
 </div>
@@ -292,23 +296,6 @@ for(col in colnames(data)){
   imprime_caja(tb |> as.matrix() |> noquote(), texto)
 }
 ```
-
-## Regiones y número de observaciones
-
-<div class="caja-scroll">
-
-```{r}
-# se muestran TODAS las regiones, en una caja con scroll vertical en vez de
-# alargar la página (con municipios son casi 100)
-data |>
-  group_by(GEOGRAPHICAL, NAME) |>
-  summarise(N.Observ = dplyr::n(), .groups = "drop") |>
-  arrange(NAME) |>
-  as.data.frame() |>
-  print(row.names = FALSE)
-```
-
-</div>
 
 <!-- INICIO DE LA VALIDACIÓN AEDV -->
 

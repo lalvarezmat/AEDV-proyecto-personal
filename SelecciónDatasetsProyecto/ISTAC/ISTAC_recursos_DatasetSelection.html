@@ -408,12 +408,13 @@ que genera <strong>ISTAC_recursos_TableDatasetGeneration.Rmd</strong>
 cumple los requisitos para ser el dataset principal del proyecto
 personal de <strong>AEDV</strong>.</p>
 <p>A diferencia de los <strong>indicadores</strong> del ISTAC
-(<strong>ISTAC_DatasetSelection.Rmd</strong>), que tienen siempre las
-mismas columnas (territorio, fecha y valor) y se combinan varios en una
-tabla, aquí se analiza <strong>un único dataset</strong> que, además del
-territorio y la fecha, puede tener otras dimensiones (sexo, edad, tipo
-de medida…). Cada combinación de valores de esas dimensiones es un
-atributo que se sigue en el tiempo para cada región.</p>
+(<strong>ISTAC_indicadores_DatasetSelection.Rmd</strong>), que tienen
+siempre las mismas columnas (territorio, fecha y valor) y se combinan
+varios en una tabla, aquí se analiza <strong>un único dataset</strong>
+que, además del territorio y la fecha, puede tener otras dimensiones
+(sexo, edad, tipo de medida…). Cada combinación de valores de esas
+dimensiones es un atributo que se sigue en el tiempo para cada
+región.</p>
 <!--  ================  PARA PROBAR TUS PROPIOS DATASETS EDITA EL CÓDIGO SIGUIENTE  ============ -->
 <p>Para analizar otro dataset basta con cambiar su identificador en el
 chunk de abajo y volver a compilar.</p>
@@ -628,17 +629,728 @@ periodos</td>
 </tbody>
 </table>
 </div>
-<p><strong>data</strong></p>
-<div class="tabla-scroll">
-<pre><code>## # A tibble: 54,708 × 5
-##   GEOGRAPHICAL NAME   TIME    MEDIDAS                               VALUE
-##   &lt;chr&gt;        &lt;chr&gt;  &lt;chr&gt;   &lt;chr&gt;                                 &lt;dbl&gt;
-## 1 35001        Agaete 2019-01 Ingresos totales                   340986. 
-## 2 35001        Agaete 2019-01 Viviendas vacacionales reservadas     236  
-## 3 35001        Agaete 2019-01 Tasa de vivienda reservada             96.3
-## 4 35001        Agaete 2019-01 Viviendas vacacionales disponibles    245  
-## 5 35001        Agaete 2019-01 Plazas disponibles                   1228  
-## # ℹ 54,703 more rows</code></pre>
+<p><strong>tabla original</strong> (100 filas elegidas al azar)</p>
+<div class="tabla-scroll-xy">
+<table>
+<colgroup>
+<col width="11%" />
+<col width="33%" />
+<col width="7%" />
+<col width="37%" />
+<col width="10%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">GEOGRAPHICAL</th>
+<th align="left">NAME</th>
+<th align="left">TIME</th>
+<th align="left">MEDIDAS</th>
+<th align="right">VALUE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">38010</td>
+<td align="left">Buenavista del Norte</td>
+<td align="left">2020-11</td>
+<td align="left">Viviendas vacacionales disponibles</td>
+<td align="right">86.00</td>
+</tr>
+<tr class="even">
+<td align="left">38043</td>
+<td align="left">Tacoronte</td>
+<td align="left">2025-02</td>
+<td align="left">Plazas disponibles</td>
+<td align="right">1430.00</td>
+</tr>
+<tr class="odd">
+<td align="left">35008</td>
+<td align="left">Firgas</td>
+<td align="left">2020-05</td>
+<td align="left">Estancia media en la vivienda vacacional</td>
+<td align="right">2.47</td>
+</tr>
+<tr class="even">
+<td align="left">35021</td>
+<td align="left">Santa Brígida</td>
+<td align="left">2023-01</td>
+<td align="left">Tasa de vivienda reservada</td>
+<td align="right">91.41</td>
+</tr>
+<tr class="odd">
+<td align="left">38011</td>
+<td align="left">Candelaria</td>
+<td align="left">2023-12</td>
+<td align="left">Tasa de vivienda reservada</td>
+<td align="right">96.81</td>
+</tr>
+<tr class="even">
+<td align="left">38024</td>
+<td align="left">Los Llanos de Aridane</td>
+<td align="left">2025-07</td>
+<td align="left">Viviendas vacacionales reservadas</td>
+<td align="right">451.00</td>
+</tr>
+<tr class="odd">
+<td align="left">ES704</td>
+<td align="left">Fuerteventura</td>
+<td align="left">2021-08</td>
+<td align="left">Plazas disponibles</td>
+<td align="right">21191.00</td>
+</tr>
+<tr class="even">
+<td align="left">35025</td>
+<td align="left">Tejeda</td>
+<td align="left">2024-02</td>
+<td align="left">Ingresos totales</td>
+<td align="right">153153.17</td>
+</tr>
+<tr class="odd">
+<td align="left">35015</td>
+<td align="left">Pájara</td>
+<td align="left">2023-08</td>
+<td align="left">Tasa de vivienda reservada</td>
+<td align="right">94.67</td>
+</tr>
+<tr class="even">
+<td align="left">38011</td>
+<td align="left">Candelaria</td>
+<td align="left">2025-10</td>
+<td align="left">Tasa de vivienda reservada</td>
+<td align="right">82.04</td>
+</tr>
+<tr class="odd">
+<td align="left">38011</td>
+<td align="left">Candelaria</td>
+<td align="left">2022-05</td>
+<td align="left">Plazas disponibles</td>
+<td align="right">1035.00</td>
+</tr>
+<tr class="even">
+<td align="left">38006</td>
+<td align="left">Arona</td>
+<td align="left">2023-04</td>
+<td align="left">Viviendas vacacionales disponibles</td>
+<td align="right">3845.00</td>
+</tr>
+<tr class="odd">
+<td align="left">38036</td>
+<td align="left">San Sebastián de La Gomera</td>
+<td align="left">2024-03</td>
+<td align="left">Estancia media en la vivienda vacacional</td>
+<td align="right">3.97</td>
+</tr>
+<tr class="even">
+<td align="left">35022</td>
+<td align="left">Santa Lucía de Tirajana</td>
+<td align="left">2023-12</td>
+<td align="left">Estancia media en la vivienda vacacional</td>
+<td align="right">3.79</td>
+</tr>
+<tr class="odd">
+<td align="left">38044</td>
+<td align="left">El Tanque</td>
+<td align="left">2024-04</td>
+<td align="left">Tasa de vivienda reservada</td>
+<td align="right">81.48</td>
+</tr>
+<tr class="even">
+<td align="left">35013</td>
+<td align="left">Moya</td>
+<td align="left">2023-04</td>
+<td align="left">Ingresos totales</td>
+<td align="right">115690.05</td>
+</tr>
+<tr class="odd">
+<td align="left">38014</td>
+<td align="left">Fuencaliente de La Palma</td>
+<td align="left">2025-03</td>
+<td align="left">Viviendas vacacionales reservadas</td>
+<td align="right">100.00</td>
+</tr>
+<tr class="even">
+<td align="left">38042</td>
+<td align="left">Los Silos</td>
+<td align="left">2020-06</td>
+<td align="left">Viviendas vacacionales disponibles</td>
+<td align="right">42.00</td>
+</tr>
+<tr class="odd">
+<td align="left">38031</td>
+<td align="left">Los Realejos</td>
+<td align="left">2021-01</td>
+<td align="left">Viviendas vacacionales disponibles</td>
+<td align="right">148.00</td>
+</tr>
+<tr class="even">
+<td align="left">ES705</td>
+<td align="left">Gran Canaria</td>
+<td align="left">2024-08</td>
+<td align="left">Estancia media en la vivienda vacacional</td>
+<td align="right">4.53</td>
+</tr>
+<tr class="odd">
+<td align="left">38022</td>
+<td align="left">Icod de los Vinos</td>
+<td align="left">2022-07</td>
+<td align="left">Viviendas vacacionales disponibles</td>
+<td align="right">413.00</td>
+</tr>
+<tr class="even">
+<td align="left">38047</td>
+<td align="left">Tijarafe</td>
+<td align="left">2022-11</td>
+<td align="left">Tasa de vivienda reservada</td>
+<td align="right">91.85</td>
+</tr>
+<tr class="odd">
+<td align="left">35029</td>
+<td align="left">Tinajo</td>
+<td align="left">2022-06</td>
+<td align="left">Estancia media en la vivienda vacacional</td>
+<td align="right">3.99</td>
+</tr>
+<tr class="even">
+<td align="left">35012</td>
+<td align="left">Mogán</td>
+<td align="left">2023-05</td>
+<td align="left">Tasa de vivienda reservada</td>
+<td align="right">77.97</td>
+</tr>
+<tr class="odd">
+<td align="left">38027</td>
+<td align="left">El Paso</td>
+<td align="left">2021-01</td>
+<td align="left">Estancia media en la vivienda vacacional</td>
+<td align="right">3.77</td>
+</tr>
+<tr class="even">
+<td align="left">38014</td>
+<td align="left">Fuencaliente de La Palma</td>
+<td align="left">2021-02</td>
+<td align="left">Plazas disponibles</td>
+<td align="right">237.00</td>
+</tr>
+<tr class="odd">
+<td align="left">38001</td>
+<td align="left">Adeje</td>
+<td align="left">2019-11</td>
+<td align="left">Estancia media en la vivienda vacacional</td>
+<td align="right">5.17</td>
+</tr>
+<tr class="even">
+<td align="left">38005</td>
+<td align="left">Arico</td>
+<td align="left">2023-11</td>
+<td align="left">Viviendas vacacionales disponibles</td>
+<td align="right">512.00</td>
+</tr>
+<tr class="odd">
+<td align="left">35030</td>
+<td align="left">Tuineje</td>
+<td align="left">2026-09</td>
+<td align="left">Viviendas vacacionales reservadas</td>
+<td align="right">340.00</td>
+</tr>
+<tr class="even">
+<td align="left">ES703</td>
+<td align="left">El Hierro</td>
+<td align="left">2019-05</td>
+<td align="left">Ingresos totales</td>
+<td align="right">119798.88</td>
+</tr>
+<tr class="odd">
+<td align="left">38005</td>
+<td align="left">Arico</td>
+<td align="left">2025-02</td>
+<td align="left">Plazas disponibles</td>
+<td align="right">2565.00</td>
+</tr>
+<tr class="even">
+<td align="left">38012</td>
+<td align="left">Fasnia</td>
+<td align="left">2021-06</td>
+<td align="left">Plazas disponibles</td>
+<td align="right">180.00</td>
+</tr>
+<tr class="odd">
+<td align="left">38049</td>
+<td align="left">Valle Gran Rey</td>
+<td align="left">2025-03</td>
+<td align="left">Viviendas vacacionales disponibles</td>
+<td align="right">337.00</td>
+</tr>
+<tr class="even">
+<td align="left">38004</td>
+<td align="left">Arafo</td>
+<td align="left">2025-04</td>
+<td align="left">Plazas disponibles</td>
+<td align="right">233.00</td>
+</tr>
+<tr class="odd">
+<td align="left">35024</td>
+<td align="left">Teguise</td>
+<td align="left">2023-04</td>
+<td align="left">Estancia media en la vivienda vacacional</td>
+<td align="right">4.17</td>
+</tr>
+<tr class="even">
+<td align="left">35015</td>
+<td align="left">Pájara</td>
+<td align="left">2020-02</td>
+<td align="left">Viviendas vacacionales reservadas</td>
+<td align="right">655.00</td>
+</tr>
+<tr class="odd">
+<td align="left">35017</td>
+<td align="left">Puerto del Rosario</td>
+<td align="left">2024-02</td>
+<td align="left">Viviendas vacacionales reservadas</td>
+<td align="right">307.00</td>
+</tr>
+<tr class="even">
+<td align="left">35007</td>
+<td align="left">Betancuria</td>
+<td align="left">2025-08</td>
+<td align="left">Plazas disponibles</td>
+<td align="right">134.00</td>
+</tr>
+<tr class="odd">
+<td align="left">ES706</td>
+<td align="left">La Gomera</td>
+<td align="left">2024-01</td>
+<td align="left">Plazas disponibles</td>
+<td align="right">2814.00</td>
+</tr>
+<tr class="even">
+<td align="left">38014</td>
+<td align="left">Fuencaliente de La Palma</td>
+<td align="left">2024-02</td>
+<td align="left">Viviendas vacacionales reservadas</td>
+<td align="right">91.00</td>
+</tr>
+<tr class="odd">
+<td align="left">38037</td>
+<td align="left">Santa Cruz de La Palma</td>
+<td align="left">2021-04</td>
+<td align="left">Tasa de vivienda reservada</td>
+<td align="right">87.96</td>
+</tr>
+<tr class="even">
+<td align="left">38008</td>
+<td align="left">Breña Alta</td>
+<td align="left">2019-04</td>
+<td align="left">Estancia media en la vivienda vacacional</td>
+<td align="right">5.04</td>
+</tr>
+<tr class="odd">
+<td align="left">35025</td>
+<td align="left">Tejeda</td>
+<td align="left">2025-01</td>
+<td align="left">Plazas disponibles</td>
+<td align="right">425.00</td>
+</tr>
+<tr class="even">
+<td align="left">38022</td>
+<td align="left">Icod de los Vinos</td>
+<td align="left">2023-05</td>
+<td align="left">Viviendas vacacionales reservadas</td>
+<td align="right">329.00</td>
+</tr>
+<tr class="odd">
+<td align="left">38036</td>
+<td align="left">San Sebastián de La Gomera</td>
+<td align="left">2023-07</td>
+<td align="left">Ingresos totales</td>
+<td align="right">134027.66</td>
+</tr>
+<tr class="even">
+<td align="left">38052</td>
+<td align="left">Vilaflor de Chasna</td>
+<td align="left">2019-04</td>
+<td align="left">Ingresos totales</td>
+<td align="right">19694.78</td>
+</tr>
+<tr class="odd">
+<td align="left">38017</td>
+<td align="left">Granadilla de Abona</td>
+<td align="left">2020-01</td>
+<td align="left">Estancia media en la vivienda vacacional</td>
+<td align="right">4.64</td>
+</tr>
+<tr class="even">
+<td align="left">35002</td>
+<td align="left">Agüimes</td>
+<td align="left">2023-01</td>
+<td align="left">Estancia media en la vivienda vacacional</td>
+<td align="right">4.35</td>
+</tr>
+<tr class="odd">
+<td align="left">35012</td>
+<td align="left">Mogán</td>
+<td align="left">2026-10</td>
+<td align="left">Ingresos totales</td>
+<td align="right">3603218.69</td>
+</tr>
+<tr class="even">
+<td align="left">38041</td>
+<td align="left">El Sauzal</td>
+<td align="left">2021-12</td>
+<td align="left">Viviendas vacacionales disponibles</td>
+<td align="right">100.00</td>
+</tr>
+<tr class="odd">
+<td align="left">38024</td>
+<td align="left">Los Llanos de Aridane</td>
+<td align="left">2023-08</td>
+<td align="left">Viviendas vacacionales reservadas</td>
+<td align="right">219.00</td>
+</tr>
+<tr class="even">
+<td align="left">35021</td>
+<td align="left">Santa Brígida</td>
+<td align="left">2020-03</td>
+<td align="left">Tasa de vivienda reservada</td>
+<td align="right">81.60</td>
+</tr>
+<tr class="odd">
+<td align="left">38019</td>
+<td align="left">Guía de Isora</td>
+<td align="left">2024-10</td>
+<td align="left">Plazas disponibles</td>
+<td align="right">2651.00</td>
+</tr>
+<tr class="even">
+<td align="left">35025</td>
+<td align="left">Tejeda</td>
+<td align="left">2019-11</td>
+<td align="left">Estancia media en la vivienda vacacional</td>
+<td align="right">2.84</td>
+</tr>
+<tr class="odd">
+<td align="left">38036</td>
+<td align="left">San Sebastián de La Gomera</td>
+<td align="left">2020-09</td>
+<td align="left">Plazas disponibles</td>
+<td align="right">515.00</td>
+</tr>
+<tr class="even">
+<td align="left">35009</td>
+<td align="left">Gáldar</td>
+<td align="left">2026-06</td>
+<td align="left">Plazas disponibles</td>
+<td align="right">640.00</td>
+</tr>
+<tr class="odd">
+<td align="left">38041</td>
+<td align="left">El Sauzal</td>
+<td align="left">2024-06</td>
+<td align="left">Ingresos totales</td>
+<td align="right">401338.28</td>
+</tr>
+<tr class="even">
+<td align="left">38036</td>
+<td align="left">San Sebastián de La Gomera</td>
+<td align="left">2022-11</td>
+<td align="left">Plazas disponibles</td>
+<td align="right">511.00</td>
+</tr>
+<tr class="odd">
+<td align="left">38028</td>
+<td align="left">Puerto de la Cruz</td>
+<td align="left">2019-12</td>
+<td align="left">Viviendas vacacionales disponibles</td>
+<td align="right">795.00</td>
+</tr>
+<tr class="even">
+<td align="left">38025</td>
+<td align="left">La Matanza de Acentejo</td>
+<td align="left">2026-09</td>
+<td align="left">Plazas disponibles</td>
+<td align="right">582.00</td>
+</tr>
+<tr class="odd">
+<td align="left">38036</td>
+<td align="left">San Sebastián de La Gomera</td>
+<td align="left">2026-01</td>
+<td align="left">Tasa de vivienda reservada</td>
+<td align="right">92.68</td>
+</tr>
+<tr class="even">
+<td align="left">35030</td>
+<td align="left">Tuineje</td>
+<td align="left">2026-10</td>
+<td align="left">Estancia media en la vivienda vacacional</td>
+<td align="right">4.88</td>
+</tr>
+<tr class="odd">
+<td align="left">38019</td>
+<td align="left">Guía de Isora</td>
+<td align="left">2023-08</td>
+<td align="left">Viviendas vacacionales reservadas</td>
+<td align="right">538.00</td>
+</tr>
+<tr class="even">
+<td align="left">38053</td>
+<td align="left">Villa de Mazo</td>
+<td align="left">2024-12</td>
+<td align="left">Estancia media en la vivienda vacacional</td>
+<td align="right">4.39</td>
+</tr>
+<tr class="odd">
+<td align="left">38031</td>
+<td align="left">Los Realejos</td>
+<td align="left">2024-10</td>
+<td align="left">Plazas disponibles</td>
+<td align="right">1120.00</td>
+</tr>
+<tr class="even">
+<td align="left">38019</td>
+<td align="left">Guía de Isora</td>
+<td align="left">2024-02</td>
+<td align="left">Tasa de vivienda reservada</td>
+<td align="right">93.61</td>
+</tr>
+<tr class="odd">
+<td align="left">35022</td>
+<td align="left">Santa Lucía de Tirajana</td>
+<td align="left">2019-02</td>
+<td align="left">Viviendas vacacionales disponibles</td>
+<td align="right">303.00</td>
+</tr>
+<tr class="even">
+<td align="left">35009</td>
+<td align="left">Gáldar</td>
+<td align="left">2024-11</td>
+<td align="left">Viviendas vacacionales reservadas</td>
+<td align="right">192.00</td>
+</tr>
+<tr class="odd">
+<td align="left">35025</td>
+<td align="left">Tejeda</td>
+<td align="left">2024-08</td>
+<td align="left">Viviendas vacacionales reservadas</td>
+<td align="right">85.00</td>
+</tr>
+<tr class="even">
+<td align="left">ES704</td>
+<td align="left">Fuerteventura</td>
+<td align="left">2023-12</td>
+<td align="left">Viviendas vacacionales disponibles</td>
+<td align="right">6201.00</td>
+</tr>
+<tr class="odd">
+<td align="left">38015</td>
+<td align="left">Garachico</td>
+<td align="left">2019-01</td>
+<td align="left">Tasa de vivienda reservada</td>
+<td align="right">94.96</td>
+</tr>
+<tr class="even">
+<td align="left">38005</td>
+<td align="left">Arico</td>
+<td align="left">2026-09</td>
+<td align="left">Tasa de vivienda reservada</td>
+<td align="right">87.15</td>
+</tr>
+<tr class="odd">
+<td align="left">38006</td>
+<td align="left">Arona</td>
+<td align="left">2020-10</td>
+<td align="left">Viviendas vacacionales disponibles</td>
+<td align="right">2348.00</td>
+</tr>
+<tr class="even">
+<td align="left">38012</td>
+<td align="left">Fasnia</td>
+<td align="left">2022-09</td>
+<td align="left">Plazas disponibles</td>
+<td align="right">248.00</td>
+</tr>
+<tr class="odd">
+<td align="left">38053</td>
+<td align="left">Villa de Mazo</td>
+<td align="left">2019-11</td>
+<td align="left">Viviendas vacacionales disponibles</td>
+<td align="right">128.00</td>
+</tr>
+<tr class="even">
+<td align="left">35023</td>
+<td align="left">Santa María de Guía de Gran Canaria</td>
+<td align="left">2020-10</td>
+<td align="left">Ingresos totales</td>
+<td align="right">27467.71</td>
+</tr>
+<tr class="odd">
+<td align="left">38025</td>
+<td align="left">La Matanza de Acentejo</td>
+<td align="left">2022-10</td>
+<td align="left">Plazas disponibles</td>
+<td align="right">613.00</td>
+</tr>
+<tr class="even">
+<td align="left">35022</td>
+<td align="left">Santa Lucía de Tirajana</td>
+<td align="left">2026-09</td>
+<td align="left">Tasa de vivienda reservada</td>
+<td align="right">90.45</td>
+</tr>
+<tr class="odd">
+<td align="left">38051</td>
+<td align="left">La Victoria de Acentejo</td>
+<td align="left">2020-06</td>
+<td align="left">Tasa de vivienda reservada</td>
+<td align="right">84.62</td>
+</tr>
+<tr class="even">
+<td align="left">38030</td>
+<td align="left">Puntallana</td>
+<td align="left">2023-12</td>
+<td align="left">Plazas disponibles</td>
+<td align="right">240.00</td>
+</tr>
+<tr class="odd">
+<td align="left">38012</td>
+<td align="left">Fasnia</td>
+<td align="left">2020-06</td>
+<td align="left">Estancia media en la vivienda vacacional</td>
+<td align="right">2.65</td>
+</tr>
+<tr class="even">
+<td align="left">38035</td>
+<td align="left">San Miguel de Abona</td>
+<td align="left">2023-11</td>
+<td align="left">Viviendas vacacionales disponibles</td>
+<td align="right">743.00</td>
+</tr>
+<tr class="odd">
+<td align="left">ES704</td>
+<td align="left">Fuerteventura</td>
+<td align="left">2026-07</td>
+<td align="left">Plazas disponibles</td>
+<td align="right">25281.00</td>
+</tr>
+<tr class="even">
+<td align="left">35026</td>
+<td align="left">Telde</td>
+<td align="left">2022-03</td>
+<td align="left">Viviendas vacacionales reservadas</td>
+<td align="right">269.00</td>
+</tr>
+<tr class="odd">
+<td align="left">35032</td>
+<td align="left">Valleseco</td>
+<td align="left">2020-12</td>
+<td align="left">Viviendas vacacionales disponibles</td>
+<td align="right">21.00</td>
+</tr>
+<tr class="even">
+<td align="left">38027</td>
+<td align="left">El Paso</td>
+<td align="left">2021-01</td>
+<td align="left">Viviendas vacacionales reservadas</td>
+<td align="right">133.00</td>
+</tr>
+<tr class="odd">
+<td align="left">35016</td>
+<td align="left">Las Palmas de Gran Canaria</td>
+<td align="left">2019-01</td>
+<td align="left">Plazas disponibles</td>
+<td align="right">8904.00</td>
+</tr>
+<tr class="even">
+<td align="left">38050</td>
+<td align="left">Vallehermoso</td>
+<td align="left">2022-04</td>
+<td align="left">Plazas disponibles</td>
+<td align="right">461.00</td>
+</tr>
+<tr class="odd">
+<td align="left">35012</td>
+<td align="left">Mogán</td>
+<td align="left">2023-12</td>
+<td align="left">Plazas disponibles</td>
+<td align="right">7203.00</td>
+</tr>
+<tr class="even">
+<td align="left">38002</td>
+<td align="left">Agulo</td>
+<td align="left">2025-06</td>
+<td align="left">Tasa de vivienda reservada</td>
+<td align="right">90.20</td>
+</tr>
+<tr class="odd">
+<td align="left">38006</td>
+<td align="left">Arona</td>
+<td align="left">2022-12</td>
+<td align="left">Tasa de vivienda reservada</td>
+<td align="right">95.23</td>
+</tr>
+<tr class="even">
+<td align="left">35020</td>
+<td align="left">La Aldea de San Nicolás</td>
+<td align="left">2020-10</td>
+<td align="left">Viviendas vacacionales reservadas</td>
+<td align="right">70.00</td>
+</tr>
+<tr class="odd">
+<td align="left">38026</td>
+<td align="left">La Orotava</td>
+<td align="left">2021-02</td>
+<td align="left">Estancia media en la vivienda vacacional</td>
+<td align="right">3.32</td>
+</tr>
+<tr class="even">
+<td align="left">38026</td>
+<td align="left">La Orotava</td>
+<td align="left">2021-12</td>
+<td align="left">Ingresos totales</td>
+<td align="right">358515.90</td>
+</tr>
+<tr class="odd">
+<td align="left">35006</td>
+<td align="left">Arucas</td>
+<td align="left">2022-02</td>
+<td align="left">Tasa de vivienda reservada</td>
+<td align="right">89.53</td>
+</tr>
+<tr class="even">
+<td align="left">35016</td>
+<td align="left">Las Palmas de Gran Canaria</td>
+<td align="left">2021-02</td>
+<td align="left">Plazas disponibles</td>
+<td align="right">4857.00</td>
+</tr>
+<tr class="odd">
+<td align="left">38040</td>
+<td align="left">Santiago del Teide</td>
+<td align="left">2021-11</td>
+<td align="left">Plazas disponibles</td>
+<td align="right">2615.00</td>
+</tr>
+<tr class="even">
+<td align="left">38047</td>
+<td align="left">Tijarafe</td>
+<td align="left">2020-01</td>
+<td align="left">Viviendas vacacionales disponibles</td>
+<td align="right">195.00</td>
+</tr>
+<tr class="odd">
+<td align="left">38031</td>
+<td align="left">Los Realejos</td>
+<td align="left">2022-09</td>
+<td align="left">Estancia media en la vivienda vacacional</td>
+<td align="right">3.97</td>
+</tr>
+<tr class="even">
+<td align="left">38019</td>
+<td align="left">Guía de Isora</td>
+<td align="left">2023-09</td>
+<td align="left">Estancia media en la vivienda vacacional</td>
+<td align="right">3.53</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div id="información-sobre-las-columnas-de-la-tabla-descargada" class="section level2" number="2.1">
 <h2><span class="header-section-number">2.1</span> Información sobre las
@@ -955,114 +1667,10 @@ posibles y el nº de observaciones.</p>
 [5,] Viviendas vacacionales disponibles       9118    
 [6,] Viviendas vacacionales reservadas        9118    </code></pre>
 </div>
-</div>
-<div id="regiones-y-número-de-observaciones" class="section level2" number="2.2">
-<h2><span class="header-section-number">2.2</span> Regiones y número de
-observaciones</h2>
-<div class="caja-scroll">
-<pre><code>##  GEOGRAPHICAL                                NAME N.Observ
-##         38001                               Adeje      564
-##         35001                              Agaete      564
-##         38002                               Agulo      564
-##         35002                             Agüimes      564
-##         38003                             Alajeró      564
-##         35003                             Antigua      564
-##         38004                               Arafo      564
-##         38005                               Arico      564
-##         38006                               Arona      564
-##         35004                            Arrecife      564
-##         35005                            Artenara      564
-##         35006                              Arucas      564
-##         38007                          Barlovento      564
-##         35007                          Betancuria      564
-##         38008                          Breña Alta      564
-##         38009                          Breña Baja      564
-##         38010                Buenavista del Norte      564
-##          ES70                            Canarias      564
-##         38011                          Candelaria      564
-##            _U                         Desconocido      564
-##         ES703                           El Hierro      564
-##         38027                             El Paso      564
-##         38901               El Pinar de El Hierro      564
-##         38032                          El Rosario      564
-##         38041                           El Sauzal      564
-##         38044                           El Tanque      564
-##         38012                              Fasnia      564
-##         35008                              Firgas      564
-##         38013                            Frontera      564
-##         38014            Fuencaliente de La Palma      564
-##         ES704                       Fuerteventura      564
-##         38015                           Garachico      564
-##         38016                             Garafía      564
-##         ES705                        Gran Canaria      564
-##         38017                 Granadilla de Abona      564
-##         38019                       Guía de Isora      564
-##         35009                              Gáldar      564
-##         38020                              Güímar      564
-##         35010                               Haría      564
-##         38021                            Hermigua      564
-##         38022                   Icod de los Vinos      564
-##         35011                             Ingenio      564
-##         35020             La Aldea de San Nicolás      564
-##         ES706                           La Gomera      564
-##         38018                          La Guancha      564
-##         38025              La Matanza de Acentejo      564
-##         35014                            La Oliva      564
-##         38026                          La Orotava      564
-##         ES707                            La Palma      564
-##         38051             La Victoria de Acentejo      564
-##         ES708                           Lanzarote      564
-##         35016          Las Palmas de Gran Canaria      564
-##         38024               Los Llanos de Aridane      564
-##         38031                        Los Realejos      564
-##         38042                           Los Silos      564
-##         35012                               Mogán      564
-##         35013                                Moya      564
-##         38028                   Puerto de la Cruz      564
-##         35017                  Puerto del Rosario      564
-##         38029                          Puntagorda      564
-##         38030                          Puntallana      564
-##         35015                              Pájara      564
-##         38033                 San Andrés y Sauces      564
-##         35018                       San Bartolomé      564
-##         35019           San Bartolomé de Tirajana      564
-##         38023          San Cristóbal de La Laguna      564
-##         38034               San Juan de la Rambla      564
-##         38035                 San Miguel de Abona      564
-##         38036          San Sebastián de La Gomera      564
-##         35021                       Santa Brígida      564
-##         38037              Santa Cruz de La Palma      564
-##         38038              Santa Cruz de Tenerife      564
-##         35022             Santa Lucía de Tirajana      564
-##         35023 Santa María de Guía de Gran Canaria      564
-##         38039                        Santa Úrsula      564
-##         38040                  Santiago del Teide      564
-##         38043                           Tacoronte      564
-##         38045                           Tazacorte      564
-##         38046                            Tegueste      564
-##         35024                             Teguise      564
-##         35025                              Tejeda      564
-##         35026                               Telde      564
-##         ES709                            Tenerife      564
-##         35027                               Teror      564
-##         38047                            Tijarafe      564
-##         35029                              Tinajo      564
-##         35030                             Tuineje      564
-##         35028                                Tías      564
-##         38049                      Valle Gran Rey      564
-##         38050                        Vallehermoso      564
-##         35032                           Valleseco      564
-##         35031         Valsequillo de Gran Canaria      564
-##         38048                            Valverde      564
-##         35033                   Vega de San Mateo      564
-##         38052                  Vilaflor de Chasna      564
-##         38053                       Villa de Mazo      564
-##         35034                               Yaiza      564</code></pre>
-</div>
 <!-- INICIO DE LA VALIDACIÓN AEDV -->
 </div>
-<div id="validación-de-requisitos-aedv" class="section level2" number="2.3">
-<h2><span class="header-section-number">2.3</span> Validación de
+<div id="validación-de-requisitos-aedv" class="section level2" number="2.2">
+<h2><span class="header-section-number">2.2</span> Validación de
 requisitos AEDV</h2>
 <p><strong>Combinaciones de atributos</strong>: nº de regiones, último
 periodo y percentiles del tamaño de la serie temporal (nº de periodos
@@ -1261,16 +1869,16 @@ la memoria, cambiando los nombres de las tablas por otros que describan
 el dataset:</li>
 </ol>
 <pre><code>```{r, results=&#39;asis&#39;, cache=FALSE}
-datos_C00065A_000061 &lt;- aedv_incluir_dataset(&quot;C00065A_000061_analisis.Rmd&quot;)
+datos_C00065A_000061 &lt;- aedv_incluir_dataset(&quot;C00065A_000061_analisis.Rmd&quot;, validacion = TRUE)
 ```</code></pre>
 <p>Al compilar la memoria, el análisis aparece en el lugar del chunk y
 los datos quedan en la tabla <code>datos_C00065A_000061</code> (un
 tibble), con la que se sigue trabajando en el resto de la memoria. Si
 incorporas varios datasets, pega un chunk por cada uno, con nombres de
-tabla distintos. En un dataset auxiliar, que no tiene que cumplir los
-requisitos de AEDV,
-<code>aedv_incluir_dataset(&quot;C00065A_000061_analisis.Rmd&quot;, validacion = FALSE)</code>
-omite la validación.</p>
+tabla distintos. Con <code>validacion = TRUE</code> el análisis incluye
+la validación de requisitos AEDV; en un dataset auxiliar, que no tiene
+que cumplirlos, cambia a <code>validacion = FALSE</code> para
+omitirla.</p>
 <p>El texto explicativo del dataset (qué mide, qué significa cada
 variable y cada una de sus opciones…) se escribe en la memoria, antes o
 después del chunk, no en <code>C00065A_000061_analisis.Rmd</code>: ese

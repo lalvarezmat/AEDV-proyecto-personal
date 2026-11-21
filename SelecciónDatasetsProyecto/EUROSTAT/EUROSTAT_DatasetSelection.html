@@ -11,7 +11,7 @@
 
 <meta name="author" content="Luis Alvarez" />
 
-<meta name="date" content="2026-10-08" />
+<meta name="date" content="2026-11-21" />
 
 <title>Análisis de datasets seleccionados de Eurostat</title>
 
@@ -365,7 +365,7 @@ display: none;
 <h1 class="title toc-ignore">Análisis de datasets seleccionados de
 Eurostat</h1>
 <h4 class="author">Luis Alvarez</h4>
-<h4 class="date">2026-10-08</h4>
+<h4 class="date">2026-11-21</h4>
 
 </div>
 
@@ -547,7 +547,7 @@ NUTS 3 region</td>
 </tr>
 <tr class="even">
 <td align="left">N.observaciones</td>
-<td align="left">735652</td>
+<td align="left">735643</td>
 </tr>
 <tr class="odd">
 <td align="left">N.regiones</td>
@@ -599,7 +599,7 @@ NUTS 3 region</td>
 </tr>
 <tr class="odd">
 <td align="left">last.update.of.data</td>
-<td align="left">28.08.2026</td>
+<td align="left">19.11.2026</td>
 </tr>
 <tr class="even">
 <td align="left">last.table.structure.change</td>
@@ -707,16 +707,722 @@ year 2015 included. 4) Starting with the reference year 2016, the
 population density indicator is computed using the new data on area
 ’Area by NUTS 3 region (reg_area3).</p>
 </div>
-<p><strong>data</strong></p>
-<pre><code>## # A tibble: 735,709 × 5
-##   sex   age    geo   TIME_PERIOD  values
-##   &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt; &lt;date&gt;        &lt;dbl&gt;
-## 1 T     TOTAL  AL    1990-01-01  3286500
-## 2 T     TOTAL  AL0   1990-01-01  3286500
-## 3 F     TOTAL  AT    1990-01-01  3989903
-## 4 F     UNK    AT    1990-01-01        0
-## 5 F     Y15-64 AT    1990-01-01  2589567
-## # ℹ 735,704 more rows</code></pre>
+<p><strong>tabla original</strong> (100 filas elegidas al azar)</p>
+<div class="tabla-scroll-xy">
+<table>
+<thead>
+<tr class="header">
+<th align="left">sex</th>
+<th align="left">age</th>
+<th align="left">geo</th>
+<th align="left">TIME_PERIOD</th>
+<th align="right">values</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">F</td>
+<td align="left">Y_GE65</td>
+<td align="left">DEA2D</td>
+<td align="left">2019-01-01</td>
+<td align="right">63535</td>
+</tr>
+<tr class="even">
+<td align="left">M</td>
+<td align="left">Y15-64</td>
+<td align="left">DE731</td>
+<td align="left">2016-01-01</td>
+<td align="right">67610</td>
+</tr>
+<tr class="odd">
+<td align="left">T</td>
+<td align="left">Y_GE65</td>
+<td align="left">AT112</td>
+<td align="left">2004-01-01</td>
+<td align="right">24964</td>
+</tr>
+<tr class="even">
+<td align="left">M</td>
+<td align="left">Y_GE65</td>
+<td align="left">NO085</td>
+<td align="left">2015-01-01</td>
+<td align="right">19769</td>
+</tr>
+<tr class="odd">
+<td align="left">F</td>
+<td align="left">Y15-64</td>
+<td align="left">EL651</td>
+<td align="left">2023-01-01</td>
+<td align="right">50001</td>
+</tr>
+<tr class="even">
+<td align="left">F</td>
+<td align="left">Y_LT15</td>
+<td align="left">LU00</td>
+<td align="left">1994-01-01</td>
+<td align="right">35364</td>
+</tr>
+<tr class="odd">
+<td align="left">F</td>
+<td align="left">UNK</td>
+<td align="left">PL432</td>
+<td align="left">2010-01-01</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">T</td>
+<td align="left">UNK</td>
+<td align="left">DEB3H</td>
+<td align="left">2014-01-01</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">F</td>
+<td align="left">TOTAL</td>
+<td align="left">FI196</td>
+<td align="left">2022-01-01</td>
+<td align="right">108046</td>
+</tr>
+<tr class="even">
+<td align="left">M</td>
+<td align="left">UNK</td>
+<td align="left">UKF2</td>
+<td align="left">2018-01-01</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">F</td>
+<td align="left">Y15-64</td>
+<td align="left">TR905</td>
+<td align="left">2009-01-01</td>
+<td align="right">54692</td>
+</tr>
+<tr class="even">
+<td align="left">M</td>
+<td align="left">TOTAL</td>
+<td align="left">DEB3B</td>
+<td align="left">2019-01-01</td>
+<td align="right">64389</td>
+</tr>
+<tr class="odd">
+<td align="left">M</td>
+<td align="left">Y_LT15</td>
+<td align="left">EL511</td>
+<td align="left">2010-01-01</td>
+<td align="right">11113</td>
+</tr>
+<tr class="even">
+<td align="left">T</td>
+<td align="left">TOTAL</td>
+<td align="left">BE31</td>
+<td align="left">2022-01-01</td>
+<td align="right">410619</td>
+</tr>
+<tr class="odd">
+<td align="left">F</td>
+<td align="left">Y15-64</td>
+<td align="left">TR813</td>
+<td align="left">2018-01-01</td>
+<td align="right">67607</td>
+</tr>
+<tr class="even">
+<td align="left">M</td>
+<td align="left">Y_GE65</td>
+<td align="left">ES512</td>
+<td align="left">2007-01-01</td>
+<td align="right">47797</td>
+</tr>
+<tr class="odd">
+<td align="left">F</td>
+<td align="left">Y15-64</td>
+<td align="left">SE232</td>
+<td align="left">2012-01-01</td>
+<td align="right">508680</td>
+</tr>
+<tr class="even">
+<td align="left">F</td>
+<td align="left">Y15-64</td>
+<td align="left">DE227</td>
+<td align="left">2022-01-01</td>
+<td align="right">51522</td>
+</tr>
+<tr class="odd">
+<td align="left">T</td>
+<td align="left">TOTAL</td>
+<td align="left">NO060</td>
+<td align="left">2021-01-01</td>
+<td align="right">471124</td>
+</tr>
+<tr class="even">
+<td align="left">M</td>
+<td align="left">Y_GE65</td>
+<td align="left">UKF22</td>
+<td align="left">2019-01-01</td>
+<td align="right">71084</td>
+</tr>
+<tr class="odd">
+<td align="left">F</td>
+<td align="left">Y15-64</td>
+<td align="left">AT11</td>
+<td align="left">2014-01-01</td>
+<td align="right">95136</td>
+</tr>
+<tr class="even">
+<td align="left">T</td>
+<td align="left">Y_GE65</td>
+<td align="left">UKE</td>
+<td align="left">2016-01-01</td>
+<td align="right">981498</td>
+</tr>
+<tr class="odd">
+<td align="left">F</td>
+<td align="left">Y15-64</td>
+<td align="left">NO0A</td>
+<td align="left">2018-01-01</td>
+<td align="right">429118</td>
+</tr>
+<tr class="even">
+<td align="left">T</td>
+<td align="left">Y_GE65</td>
+<td align="left">FRJ1</td>
+<td align="left">2017-01-01</td>
+<td align="right">637135</td>
+</tr>
+<tr class="odd">
+<td align="left">F</td>
+<td align="left">TOTAL</td>
+<td align="left">HU212</td>
+<td align="left">2021-01-01</td>
+<td align="right">154923</td>
+</tr>
+<tr class="even">
+<td align="left">T</td>
+<td align="left">Y15-64</td>
+<td align="left">EL302</td>
+<td align="left">2005-01-01</td>
+<td align="right">354673</td>
+</tr>
+<tr class="odd">
+<td align="left">M</td>
+<td align="left">Y15-64</td>
+<td align="left">ITI16</td>
+<td align="left">2012-01-01</td>
+<td align="right">105324</td>
+</tr>
+<tr class="even">
+<td align="left">F</td>
+<td align="left">Y_GE65</td>
+<td align="left">ITH53</td>
+<td align="left">2003-01-01</td>
+<td align="right">55589</td>
+</tr>
+<tr class="odd">
+<td align="left">F</td>
+<td align="left">Y15-64</td>
+<td align="left">UKI4</td>
+<td align="left">2003-01-01</td>
+<td align="right">652723</td>
+</tr>
+<tr class="even">
+<td align="left">F</td>
+<td align="left">TOTAL</td>
+<td align="left">CY00</td>
+<td align="left">1994-01-01</td>
+<td align="right">318440</td>
+</tr>
+<tr class="odd">
+<td align="left">T</td>
+<td align="left">Y_LT15</td>
+<td align="left">UKF1</td>
+<td align="left">2006-01-01</td>
+<td align="right">357464</td>
+</tr>
+<tr class="even">
+<td align="left">F</td>
+<td align="left">Y15-64</td>
+<td align="left">PT16I</td>
+<td align="left">2012-01-01</td>
+<td align="right">77329</td>
+</tr>
+<tr class="odd">
+<td align="left">M</td>
+<td align="left">Y15-64</td>
+<td align="left">NL41</td>
+<td align="left">2013-01-01</td>
+<td align="right">827878</td>
+</tr>
+<tr class="even">
+<td align="left">F</td>
+<td align="left">Y15-64</td>
+<td align="left">AL012</td>
+<td align="left">2015-01-01</td>
+<td align="right">92583</td>
+</tr>
+<tr class="odd">
+<td align="left">T</td>
+<td align="left">UNK</td>
+<td align="left">FI20</td>
+<td align="left">1992-01-01</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">T</td>
+<td align="left">TOTAL</td>
+<td align="left">RO226</td>
+<td align="left">2018-01-01</td>
+<td align="right">324437</td>
+</tr>
+<tr class="odd">
+<td align="left">F</td>
+<td align="left">UNK</td>
+<td align="left">ITI34</td>
+<td align="left">2018-01-01</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">T</td>
+<td align="left">Y_LT15</td>
+<td align="left">UKL24</td>
+<td align="left">2015-01-01</td>
+<td align="right">20135</td>
+</tr>
+<tr class="odd">
+<td align="left">M</td>
+<td align="left">UNK</td>
+<td align="left">FI20</td>
+<td align="left">2013-01-01</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">T</td>
+<td align="left">Y_GE65</td>
+<td align="left">ES13</td>
+<td align="left">1997-01-01</td>
+<td align="right">93621</td>
+</tr>
+<tr class="odd">
+<td align="left">T</td>
+<td align="left">TOTAL</td>
+<td align="left">TR4</td>
+<td align="left">2015-01-01</td>
+<td align="right">7332137</td>
+</tr>
+<tr class="even">
+<td align="left">M</td>
+<td align="left">UNK</td>
+<td align="left">NL327</td>
+<td align="left">2005-01-01</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">T</td>
+<td align="left">Y_LT15</td>
+<td align="left">UKG</td>
+<td align="left">2000-01-01</td>
+<td align="right">1038410</td>
+</tr>
+<tr class="even">
+<td align="left">M</td>
+<td align="left">UNK</td>
+<td align="left">PL72</td>
+<td align="left">2021-01-01</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">T</td>
+<td align="left">Y15-64</td>
+<td align="left">BE233</td>
+<td align="left">2022-01-01</td>
+<td align="right">54993</td>
+</tr>
+<tr class="even">
+<td align="left">F</td>
+<td align="left">UNK</td>
+<td align="left">DE257</td>
+<td align="left">2023-01-01</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">M</td>
+<td align="left">Y_GE65</td>
+<td align="left">DE21C</td>
+<td align="left">2022-01-01</td>
+<td align="right">20958</td>
+</tr>
+<tr class="even">
+<td align="left">F</td>
+<td align="left">Y_GE65</td>
+<td align="left">BE254</td>
+<td align="left">2022-01-01</td>
+<td align="right">35305</td>
+</tr>
+<tr class="odd">
+<td align="left">F</td>
+<td align="left">Y15-64</td>
+<td align="left">FRL02</td>
+<td align="left">2017-01-01</td>
+<td align="right">42343</td>
+</tr>
+<tr class="even">
+<td align="left">M</td>
+<td align="left">Y_GE65</td>
+<td align="left">TR63</td>
+<td align="left">2014-01-01</td>
+<td align="right">89937</td>
+</tr>
+<tr class="odd">
+<td align="left">T</td>
+<td align="left">Y_GE65</td>
+<td align="left">ITI18</td>
+<td align="left">2010-01-01</td>
+<td align="right">78353</td>
+</tr>
+<tr class="even">
+<td align="left">T</td>
+<td align="left">Y15-64</td>
+<td align="left">PT187</td>
+<td align="left">2013-01-01</td>
+<td align="right">102349</td>
+</tr>
+<tr class="odd">
+<td align="left">F</td>
+<td align="left">Y_GE65</td>
+<td align="left">DE4</td>
+<td align="left">2000-01-01</td>
+<td align="right">242695</td>
+</tr>
+<tr class="even">
+<td align="left">M</td>
+<td align="left">UNK</td>
+<td align="left">TR424</td>
+<td align="left">2021-01-01</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">T</td>
+<td align="left">UNK</td>
+<td align="left">CH061</td>
+<td align="left">2024-01-01</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">T</td>
+<td align="left">UNK</td>
+<td align="left">BE326</td>
+<td align="left">2012-01-01</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">M</td>
+<td align="left">TOTAL</td>
+<td align="left">TR722</td>
+<td align="left">2025-01-01</td>
+<td align="right">317652</td>
+</tr>
+<tr class="even">
+<td align="left">T</td>
+<td align="left">TOTAL</td>
+<td align="left">EE00A</td>
+<td align="left">2020-01-01</td>
+<td align="right">134259</td>
+</tr>
+<tr class="odd">
+<td align="left">T</td>
+<td align="left">UNK</td>
+<td align="left">CH056</td>
+<td align="left">1995-01-01</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">F</td>
+<td align="left">TOTAL</td>
+<td align="left">ITI4</td>
+<td align="left">2012-01-01</td>
+<td align="right">2917740</td>
+</tr>
+<tr class="odd">
+<td align="left">T</td>
+<td align="left">TOTAL</td>
+<td align="left">AT322</td>
+<td align="left">2015-01-01</td>
+<td align="right">164390</td>
+</tr>
+<tr class="even">
+<td align="left">M</td>
+<td align="left">TOTAL</td>
+<td align="left">PT11D</td>
+<td align="left">2006-01-01</td>
+<td align="right">103441</td>
+</tr>
+<tr class="odd">
+<td align="left">F</td>
+<td align="left">Y_GE65</td>
+<td align="left">EL</td>
+<td align="left">2020-01-01</td>
+<td align="right">1318204</td>
+</tr>
+<tr class="even">
+<td align="left">T</td>
+<td align="left">Y15-64</td>
+<td align="left">IS0</td>
+<td align="left">2003-01-01</td>
+<td align="right">188541</td>
+</tr>
+<tr class="odd">
+<td align="left">F</td>
+<td align="left">Y15-64</td>
+<td align="left">CZ0</td>
+<td align="left">2014-01-01</td>
+<td align="right">3508186</td>
+</tr>
+<tr class="even">
+<td align="left">M</td>
+<td align="left">UNK</td>
+<td align="left">ITF62</td>
+<td align="left">2001-01-01</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">M</td>
+<td align="left">Y_LT15</td>
+<td align="left">PL214</td>
+<td align="left">2014-01-01</td>
+<td align="right">60552</td>
+</tr>
+<tr class="even">
+<td align="left">T</td>
+<td align="left">Y_GE65</td>
+<td align="left">UKG13</td>
+<td align="left">2008-01-01</td>
+<td align="right">90632</td>
+</tr>
+<tr class="odd">
+<td align="left">F</td>
+<td align="left">Y_GE65</td>
+<td align="left">IE062</td>
+<td align="left">2017-01-01</td>
+<td align="right">42119</td>
+</tr>
+<tr class="even">
+<td align="left">T</td>
+<td align="left">UNK</td>
+<td align="left">FRF21</td>
+<td align="left">2010-01-01</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">F</td>
+<td align="left">Y_LT15</td>
+<td align="left">AT</td>
+<td align="left">2007-01-01</td>
+<td align="right">631450</td>
+</tr>
+<tr class="even">
+<td align="left">M</td>
+<td align="left">Y_LT15</td>
+<td align="left">BE222</td>
+<td align="left">2003-01-01</td>
+<td align="right">20188</td>
+</tr>
+<tr class="odd">
+<td align="left">F</td>
+<td align="left">TOTAL</td>
+<td align="left">BG322</td>
+<td align="left">2000-01-01</td>
+<td align="right">79189</td>
+</tr>
+<tr class="even">
+<td align="left">T</td>
+<td align="left">UNK</td>
+<td align="left">UKI7</td>
+<td align="left">2015-01-01</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">M</td>
+<td align="left">TOTAL</td>
+<td align="left">TRA11</td>
+<td align="left">2025-01-01</td>
+<td align="right">371693</td>
+</tr>
+<tr class="even">
+<td align="left">T</td>
+<td align="left">Y_GE65</td>
+<td align="left">SE313</td>
+<td align="left">2002-01-01</td>
+<td align="right">54871</td>
+</tr>
+<tr class="odd">
+<td align="left">T</td>
+<td align="left">UNK</td>
+<td align="left">PT11</td>
+<td align="left">2004-01-01</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">T</td>
+<td align="left">Y_GE65</td>
+<td align="left">FRJ23</td>
+<td align="left">2003-01-01</td>
+<td align="right">160466</td>
+</tr>
+<tr class="odd">
+<td align="left">M</td>
+<td align="left">Y_GE65</td>
+<td align="left">BE327</td>
+<td align="left">2007-01-01</td>
+<td align="right">9477</td>
+</tr>
+<tr class="even">
+<td align="left">F</td>
+<td align="left">TOTAL</td>
+<td align="left">EL653</td>
+<td align="left">2005-01-01</td>
+<td align="right">124664</td>
+</tr>
+<tr class="odd">
+<td align="left">F</td>
+<td align="left">UNK</td>
+<td align="left">DEB3H</td>
+<td align="left">2025-01-01</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">T</td>
+<td align="left">TOTAL</td>
+<td align="left">CZ063</td>
+<td align="left">2017-01-01</td>
+<td align="right">508952</td>
+</tr>
+<tr class="odd">
+<td align="left">T</td>
+<td align="left">Y_GE65</td>
+<td align="left">HR037</td>
+<td align="left">2001-01-01</td>
+<td align="right">19015</td>
+</tr>
+<tr class="even">
+<td align="left">T</td>
+<td align="left">Y_GE65</td>
+<td align="left">PT193</td>
+<td align="left">2021-01-01</td>
+<td align="right">71747</td>
+</tr>
+<tr class="odd">
+<td align="left">M</td>
+<td align="left">Y_GE65</td>
+<td align="left">PT1A</td>
+<td align="left">2021-01-01</td>
+<td align="right">179970</td>
+</tr>
+<tr class="even">
+<td align="left">T</td>
+<td align="left">Y_GE65</td>
+<td align="left">DEA51</td>
+<td align="left">2007-01-01</td>
+<td align="right">80299</td>
+</tr>
+<tr class="odd">
+<td align="left">F</td>
+<td align="left">Y15-64</td>
+<td align="left">DEA35</td>
+<td align="left">2020-01-01</td>
+<td align="right">70613</td>
+</tr>
+<tr class="even">
+<td align="left">T</td>
+<td align="left">Y_GE65</td>
+<td align="left">TRC11</td>
+<td align="left">2009-01-01</td>
+<td align="right">69267</td>
+</tr>
+<tr class="odd">
+<td align="left">M</td>
+<td align="left">UNK</td>
+<td align="left">ITC48</td>
+<td align="left">2008-01-01</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">M</td>
+<td align="left">TOTAL</td>
+<td align="left">ITC14</td>
+<td align="left">1992-01-01</td>
+<td align="right">78044</td>
+</tr>
+<tr class="odd">
+<td align="left">F</td>
+<td align="left">Y15-64</td>
+<td align="left">PT16G</td>
+<td align="left">2004-01-01</td>
+<td align="right">90354</td>
+</tr>
+<tr class="even">
+<td align="left">T</td>
+<td align="left">TOTAL</td>
+<td align="left">FRB02</td>
+<td align="left">2020-01-01</td>
+<td align="right">431443</td>
+</tr>
+<tr class="odd">
+<td align="left">F</td>
+<td align="left">Y15-64</td>
+<td align="left">FRC2</td>
+<td align="left">2000-01-01</td>
+<td align="right">360296</td>
+</tr>
+<tr class="even">
+<td align="left">T</td>
+<td align="left">Y_LT15</td>
+<td align="left">PL432</td>
+<td align="left">2018-01-01</td>
+<td align="right">94496</td>
+</tr>
+<tr class="odd">
+<td align="left">F</td>
+<td align="left">UNK</td>
+<td align="left">PL424</td>
+<td align="left">2011-01-01</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">F</td>
+<td align="left">Y15-64</td>
+<td align="left">UKJ37</td>
+<td align="left">2007-01-01</td>
+<td align="right">114450</td>
+</tr>
+<tr class="odd">
+<td align="left">T</td>
+<td align="left">Y15-64</td>
+<td align="left">DE121</td>
+<td align="left">2020-01-01</td>
+<td align="right">34139</td>
+</tr>
+<tr class="even">
+<td align="left">M</td>
+<td align="left">Y_LT15</td>
+<td align="left">UKJ12</td>
+<td align="left">2009-01-01</td>
+<td align="right">25030</td>
+</tr>
+<tr class="odd">
+<td align="left">M</td>
+<td align="left">TOTAL</td>
+<td align="left">EL541</td>
+<td align="left">1999-01-01</td>
+<td align="right">65534</td>
+</tr>
+<tr class="even">
+<td align="left">T</td>
+<td align="left">Y15-64</td>
+<td align="left">IS001</td>
+<td align="left">2007-01-01</td>
+<td align="right">129514</td>
+</tr>
+</tbody>
+</table>
+</div>
 <div id="información-sobre-las-columnas-de-la-tabla-descargada" class="section level2" number="2.1">
 <h2><span class="header-section-number">2.1</span> Información sobre las
 columnas de la tabla descargada</h2>
@@ -725,15 +1431,15 @@ posibles y el nº de observaciones.</p>
 <p><strong>COLUMNA: sex (3 opciones)</strong></p>
 <div class="caja-scroll caja-5">
 <pre><code>     sex N.Observ full_name
-[1,] T   245247   Total    
-[2,] F   245231   Females  
-[3,] M   245231   Males    </code></pre>
+[1,] T   245244   Total    
+[2,] F   245228   Females  
+[3,] M   245228   Males    </code></pre>
 </div>
 <p><strong>COLUMNA: age (5 opciones)</strong></p>
 <div class="caja-scroll caja-5">
 <pre><code>     age    N.Observ full_name          
 [1,] TOTAL  165915   Total              
-[2,] UNK    145060   Unknown            
+[2,] UNK    145051   Unknown            
 [3,] Y_GE65 141594   65 years or over   
 [4,] Y15-64 141570   From 15 to 64 years
 [5,] Y_LT15 141570   Less than 15 years </code></pre>
@@ -786,11 +1492,11 @@ posibles y el nº de observaciones.</p>
 [29,] 2018-01-01  31542   
 [30,] 2019-01-01  31464   
 [31,] 2020-01-01  27986   
-[32,] 2021-01-01  27426   
-[33,] 2022-01-01  27615   
-[34,] 2023-01-01  27234   
-[35,] 2024-01-01  26460   
-[36,] 2025-01-01  26760   </code></pre>
+[32,] 2021-01-01  27423   
+[33,] 2022-01-01  27612   
+[34,] 2023-01-01  27231   
+[35,] 2024-01-01  26463   
+[36,] 2025-01-01  26757   </code></pre>
 </div>
 <p><strong>Nº de observaciones en España/Canarias</strong></p>
 <pre><code>## # A tibble: 10 × 3
@@ -1238,16 +1944,16 @@ la memoria, cambiando los nombres de las tablas por otros que describan
 el dataset:</li>
 </ol>
 <pre><code>```{r, results=&#39;asis&#39;, cache=FALSE}
-datos_demo_r_pjanaggr3 &lt;- aedv_incluir_dataset(&quot;demo_r_pjanaggr3_analisis.Rmd&quot;)
+datos_demo_r_pjanaggr3 &lt;- aedv_incluir_dataset(&quot;demo_r_pjanaggr3_analisis.Rmd&quot;, validacion = TRUE)
 ```</code></pre>
 <p>Al compilar la memoria, el análisis aparece en el lugar del chunk y
 los datos quedan en la tabla <code>datos_demo_r_pjanaggr3</code> (un
 tibble), con la que se sigue trabajando en el resto de la memoria. Si
 incorporas varios datasets, pega un chunk por cada uno, con nombres de
-tabla distintos. En un dataset auxiliar, que no tiene que cumplir los
-requisitos de AEDV,
-<code>aedv_incluir_dataset(&quot;demo_r_pjanaggr3_analisis.Rmd&quot;, validacion = FALSE)</code>
-omite la validación.</p>
+tabla distintos. Con <code>validacion = TRUE</code> el análisis incluye
+la validación de requisitos AEDV; en un dataset auxiliar, que no tiene
+que cumplirlos, cambia a <code>validacion = FALSE</code> para
+omitirla.</p>
 <p>El texto explicativo del dataset (qué mide, qué significa cada
 variable y cada una de sus opciones…) se escribe en la memoria, antes o
 después del chunk, no en <code>demo_r_pjanaggr3_analisis.Rmd</code>: ese

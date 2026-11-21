@@ -57,8 +57,8 @@ knitr::opts_chunk$set(
   echo = FALSE,
   # las figuras se escriben fuera del proyecto (el html es self_contained y las
   # incrusta en base64), para que knitr no deje la carpeta auxiliar
-  # "ISTAC_DatasetSelection_files" junto al html
-  fig.path = paste0(tempdir(), "/ISTAC_DatasetSelection_files/")
+  # "ISTAC_indicadores_DatasetSelection_files" junto al html
+  fig.path = paste0(tempdir(), "/ISTAC_indicadores_DatasetSelection_files/")
 )
 ```
 
@@ -78,7 +78,7 @@ summarize <- dplyr::summarize
 rename <- dplyr::rename
 ```
 
-Este documento analiza en detalle los **indicadores** del ISTAC ya elegidos a partir de la tabla que genera **ISTAC_TableDatasetGeneration.Rmd** ([ISTAC_datasets.xlsx](ISTAC_datasets.xlsx)), y comprueba si cumplen los requisitos para ser el dataset principal del proyecto personal de **AEDV**.
+Este documento analiza en detalle los **indicadores** del ISTAC ya elegidos a partir de la tabla que genera **ISTAC_indicadores_TableDatasetGeneration.Rmd** ([ISTAC_indicadores.xlsx](ISTAC_indicadores.xlsx)), y comprueba si cumplen los requisitos para ser el dataset principal del proyecto personal de **AEDV**.
 
 A diferencia del INE o de Eurostat, aquí no se analiza un único dataset sino un **conjunto de indicadores** que se descargan y se combinan en una sola tabla: cada indicador es un atributo que se sigue en el tiempo para cada región de Canarias.
 
@@ -145,11 +145,11 @@ istac.data.download <- function(id, max_intentos = 3, tiempo_espera_seg = 1) {
 # CATÁLOGO DE INDICADORES: el filtrado y, para los indicadores que no están en
 # él (el filtro deja fuera indicadores que sí sirven, p. ej. como auxiliares),
 # el completo .raw
-ISTAC_datasets <- read.xlsx("ISTAC_datasets.xlsx") |>
+ISTAC_indicadores <- read.xlsx("ISTAC_indicadores.xlsx") |>
   as_tibble()
-if(file.exists("ISTAC_datasets.raw.xlsx"))
-  ISTAC_datasets <- bind_rows(ISTAC_datasets,
-                              read.xlsx("ISTAC_datasets.raw.xlsx") |> as_tibble()) |>
+if(file.exists("ISTAC_indicadores.raw.xlsx"))
+  ISTAC_indicadores <- bind_rows(ISTAC_indicadores,
+                              read.xlsx("ISTAC_indicadores.raw.xlsx") |> as_tibble()) |>
     distinct(id, .keep_all = TRUE)
 
 istac.regions <- read_csv("ISTAC_AREAS_GEOGRAFICAS.csv", show_col_types = FALSE) |>
@@ -197,17 +197,17 @@ cat("Fichero guardado:", paste0(filename, ".rds"),
     sprintf("(%.1f MB)\n", file.info(paste0(filename, ".rds"))$size / 1024^2))
 ```
 
-Guardamos también los metadatos de los indicadores recogidos en el catálogo de la asignatura (**ISTAC_datasets.xlsx**, generado por **ISTAC_TableDatasetGeneration.Rmd**): las filas correspondientes a los indicadores seleccionados, una por indicador, con la descripción generada por IA añadida.
+Guardamos también los metadatos de los indicadores recogidos en el catálogo de la asignatura (**ISTAC_indicadores.xlsx**, generado por **ISTAC_indicadores_TableDatasetGeneration.Rmd**): las filas correspondientes a los indicadores seleccionados, una por indicador, con la descripción generada por IA añadida.
 
 ```{r,echo=TRUE}
-metadatos <- ISTAC_datasets |>
+metadatos <- ISTAC_indicadores |>
   filter(id %in% IDS) |>
   left_join(desc_ia, by = "id") |>
   mutate(description = if_else(is.na(description), "BUSCAR DESCRIPCIÓN", description))
 
 if(nrow(metadatos) == 0)
   stop("Ninguno de los indicadores seleccionados aparece en el catálogo del ISTAC. ",
-       "Comprueba los códigos o vuelve a generar el catálogo con ISTAC_TableDatasetGeneration.Rmd")
+       "Comprueba los códigos o vuelve a generar el catálogo con ISTAC_indicadores_TableDatasetGeneration.Rmd")
 
 if(nrow(metadatos) < length(IDS))
   warning("Solo se han encontrado en el catálogo ", nrow(metadatos), " de los ",
@@ -252,12 +252,16 @@ metadatos |>
 data <- readRDS(paste0(filename, ".rds"))
 ```
 
-**data**
+**tabla original** (100 filas elegidas al azar)
 
-<div class="tabla-scroll">
+<div class="tabla-scroll-xy">
 
 ```{r}
-data |> print(n=5)
+# muestra de 100 filas al azar (semilla fija: sale la misma en cada compilación)
+set.seed(1)
+data |>
+  slice_sample(n = 100) |>
+  knitr::kable()
 ```
 
 </div>
@@ -297,24 +301,6 @@ for(col in colnames(data)){
   imprime_caja(tb |> as.matrix() |> noquote(), texto)
 }
 ```
-
-## Regiones y número de observaciones
-
-<div class="caja-scroll">
-
-```{r}
-# el nº de regiones depende del nivel del indicador (7 islas, pero más de 80
-# municipios): se muestran TODAS, en una caja con scroll vertical en vez de
-# alargar la página
-data |>
-  group_by(GEOGRAPHICAL, NAME) |>
-  summarise(N.Observ = dplyr::n(), .groups = "drop") |>
-  arrange(NAME) |>
-  as.data.frame() |>
-  print(row.names = FALSE)
-```
-
-</div>
 
 <!-- INICIO DE LA VALIDACIÓN AEDV -->
 

@@ -856,9 +856,19 @@ países que Wikipedia partía en dos series por un cambio de nombre solo en la
 tabla de PISA 2025 (`nombres_normalizados`); `entidad_parcial` marca 9
 sub-muestras no representativas del país completo (`entidades_especiales`).
 
+**tabla original** (100 filas elegidas al azar)
+
+<div class="tabla-scroll-xy">
+
 ```{r}
-pisa_paises |> print(n=5)
+# muestra de 100 filas al azar (semilla fija: sale la misma en cada compilación)
+set.seed(1)
+pisa_paises |>
+  slice_sample(n = 100) |>
+  knitr::kable()
 ```
+
+</div>
 
 **Tamaño de serie**: nº de los 9 ciclos posibles (2000-2025, trienal con
 huecos) con dato, por país.
@@ -881,9 +891,19 @@ puntuacion · aviso_exclusion`. España no desagrega por CCAA antes de 2009.
 `aviso_exclusion` marca 2 regiones en 2025 (Murcia, Cataluña) con alto
 porcentaje de alumnado excluido de la muestra.
 
+**tabla original** (100 filas elegidas al azar)
+
+<div class="tabla-scroll-xy">
+
 ```{r}
-pisa_ccaa |> print(n=5)
+# muestra de 100 filas al azar (semilla fija: sale la misma en cada compilación)
+set.seed(1)
+pisa_ccaa |>
+  slice_sample(n = 100) |>
+  knitr::kable()
 ```
+
+</div>
 
 **Tamaño de serie**: nº de los 6 ciclos posibles (2009-2025) con dato, por región.
 
@@ -909,9 +929,19 @@ ingresos) y `pobreza_relativa_pct` (% por debajo del 50% de la renta mediana
 del propio país). Gini y pobreza relativa, aunque correlacionados (0,84), no
 son lo mismo: uno mide desigualdad, el otro pobreza.
 
+**tabla original** (100 filas elegidas al azar)
+
+<div class="tabla-scroll-xy">
+
 ```{r}
-contexto_paises |> print(n=5)
+# muestra de 100 filas al azar (semilla fija: sale la misma en cada compilación)
+set.seed(1)
+contexto_paises |>
+  slice_sample(n = 100) |>
+  knitr::kable()
 ```
+
+</div>
 
 **Tamaño de serie**: nº de años con dato por país, y periodo cubierto.
 
@@ -935,9 +965,19 @@ metodología aplicada uniformemente a las 19 CCAA, los 5 primeros indicadores
 **sí son comparables entre regiones** sin más; `pib_miles_eur` **no** (es un
 valor absoluto sin normalizar por población: compara tamaño, no nivel de renta).
 
+**tabla original** (100 filas elegidas al azar)
+
+<div class="tabla-scroll-xy">
+
 ```{r}
-contexto_ccaa |> print(n=5)
+# muestra de 100 filas al azar (semilla fija: sale la misma en cada compilación)
+set.seed(1)
+contexto_ccaa |>
+  slice_sample(n = 100) |>
+  knitr::kable()
 ```
+
+</div>
 
 **Tamaño de serie**: nº de años con dato por región (panel completo: todas las
 regiones tienen el mismo nº de años en cada indicador).

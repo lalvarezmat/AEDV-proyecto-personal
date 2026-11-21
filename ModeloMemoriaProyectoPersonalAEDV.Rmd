@@ -664,7 +664,7 @@ Cada dataset se incluye con su propio chunk, con las opciones `results='asis'` y
 ```{r, results='asis', cache=FALSE}
 # IPC por comunidades autónomas (INE, tabla 76136): el análisis completo
 # aparece aquí y los datos quedan en la tabla ipc
-ipc <- aedv_incluir_dataset("76136_analisis.Rmd")
+ipc <- aedv_incluir_dataset("76136_analisis.Rmd", validacion = TRUE)
 ```
 ````
 
@@ -680,7 +680,7 @@ En los datasets con varias tablas (EDGAR, CLIMA e INFORME_PISA), la función las
 
 ````{verbatim, echo=TRUE}
 ```{r, results='asis', cache=FALSE}
-clima <- aedv_incluir_dataset("CLIMA_CANARIAS_analisis.Rmd")
+clima <- aedv_incluir_dataset("CLIMA_CANARIAS_analisis.Rmd", validacion = TRUE)
 clima_obs  <- clima$data   # observaciones mensuales por municipio, 1990-2022
 clima_proy <- clima$proy   # proyecciones por escenario, modelo y horizonte
 ```

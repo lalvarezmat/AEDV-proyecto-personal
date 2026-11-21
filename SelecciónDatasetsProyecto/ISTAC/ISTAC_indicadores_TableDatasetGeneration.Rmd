@@ -68,14 +68,14 @@ En este documento se estudia cómo explorar los datasets del **ISTAC** usando la
 
 # Lectura de la información básica de todos los datasets disponibles a través de `istacr` 
 
-Leemos los datos básicos de los datasets existentes y recopilamos en el tibble **ISTAC_datasets** la información básica
+Leemos los datos básicos de los datasets existentes y recopilamos en el tibble **ISTAC_indicadores** la información básica
 
 ```{r}
 # LECTURA INFORMACIÓN BÁSICA DATASETS ACCESIBLES A TRAVÉS DE istacr
 ISTAC_INDICATORS <- istacr::get_indicators(limit=1000)
 
-# RECOPILACIÓN INFORMACIÓN BÁSICA EN EL TIBBLE ISTAC_datasets
-ISTAC_datasets <- tibble(
+# RECOPILACIÓN INFORMACIÓN BÁSICA EN EL TIBBLE ISTAC_indicadores
+ISTAC_indicadores <- tibble(
   id=as.character(),
   title=as.character(),
   description=as.character(),
@@ -84,7 +84,7 @@ ISTAC_datasets <- tibble(
 )
 
 for(k in 1:length(ISTAC_INDICATORS$items$id)){
-  ISTAC_datasets <- ISTAC_datasets |> 
+  ISTAC_indicadores <- ISTAC_indicadores |> 
     add_row(
       id=ISTAC_INDICATORS$items$id[k],
       title=ISTAC_INDICATORS$items$title$es[k],
@@ -94,7 +94,7 @@ for(k in 1:length(ISTAC_INDICATORS$items$id)){
     )
 }
 
-ISTAC_datasets <- ISTAC_datasets |> 
+ISTAC_indicadores <- ISTAC_indicadores |> 
   arrange(subject,id)
 
 ```
@@ -193,7 +193,7 @@ if(requireNamespace("httr", quietly = TRUE)){
   httr::set_config(httr::timeout(60))
 }
 
-LOG <- "ISTAC_TableDatasetGeneration.log"
+LOG <- "ISTAC_indicadores_TableDatasetGeneration.log"
 cat(format(Sys.time()), "- inicio del recorrido\n", file = LOG)
 log_avance <- function(k, n, id, seg, nota = ""){
   cat(sprintf("%s  %4d/%4d  %-38s %6.1f s%s%s\n",
@@ -203,7 +203,7 @@ log_avance <- function(k, n, id, seg, nota = ""){
       file = LOG, append = TRUE)
 }
 
-cat("ISTAC_datasets tiene", nrow(ISTAC_datasets), "filas\n")
+cat("ISTAC_indicadores tiene", nrow(ISTAC_indicadores), "filas\n")
 
 GEOGRAPHICAL_LISTADO  <- as.character()
 n.obs <- as.numeric()
@@ -214,7 +214,7 @@ n.periodos <- as.numeric()
 initDate <- as.character()
 lastDate <- as.character()
 area <- as.character()
-for(id in ISTAC_datasets$id){
+for(id in ISTAC_indicadores$id){
   #print(id)
   t.inicio <- Sys.time()
   tb <- istacr::get_indicators_code_data(id)$dataframe
@@ -235,7 +235,7 @@ for(id in ISTAC_datasets$id){
   lastDate <- c(lastDate,max(dates))
   freq <- c(freq,deteccion_frecuencia(dates))
   n.periodos <- c(n.periodos, length(fechas_frecuencia(dates, tail(freq, 1))))
-  log_avance(which(ISTAC_datasets$id == id)[1], nrow(ISTAC_datasets), id,
+  log_avance(which(ISTAC_indicadores$id == id)[1], nrow(ISTAC_indicadores), id,
              as.numeric(difftime(Sys.time(), t.inicio, units = "secs")),
              paste0("freq=", tail(freq,1), " n.obs=", tail(n.obs,1)))
 
@@ -245,7 +245,7 @@ for(id in ISTAC_datasets$id){
 #   as_tibble() |>
 #   write_csv("ISTAC_AREAS_GEOGRAFICAS_LISTADO.csv")
 
-ISTAC_datasets <- ISTAC_datasets |>
+ISTAC_indicadores <- ISTAC_indicadores |>
   mutate(freq = freq) |> 
   relocate(freq,.after=title) |> 
   mutate(initDate = initDate) |> 
@@ -268,7 +268,7 @@ ISTAC_datasets <- ISTAC_datasets |>
 <!-- Imprimimos información básica de cada dataset y la guardamos en disco como una hoja Excel. -->
 
 ```{verbatim}
-ISTAC_datasets |>
+ISTAC_indicadores |>
   select(id,subject,n.reg,n.reg.gran,n.obs,area,freq,n.periodos,initDate,lastDate) |>
   arrange(area, subject, id) |>
   mutate(`Nº` = row_number(), .before = 1) |>
@@ -277,8 +277,8 @@ ISTAC_datasets |>
 
 Se escriben dos catálogos, como en el resto de fuentes:
 
-* **ISTAC_datasets.raw.xlsx**: todos los indicadores.
-* **ISTAC_datasets.xlsx**: solo los que sirven para el proyecto de AEDV: frecuencia reconocida, último dato de 2024 o posterior, los periodos que exige el criterio de tamaño de las series (10 años, 20 semestres, 40 trimestres, 60 meses, 200 semanas o 1096 días) y datos de **15 regiones o más** (contando todos los niveles territoriales del indicador).
+* **ISTAC_indicadores.raw.xlsx**: todos los indicadores.
+* **ISTAC_indicadores.xlsx**: solo los que sirven para el proyecto de AEDV: frecuencia reconocida, último dato de 2024 o posterior, los periodos que exige el criterio de tamaño de las series (10 años, 20 semestres, 40 trimestres, 60 meses, 200 semanas o 1096 días) y datos de **15 regiones o más** (contando todos los niveles territoriales del indicador).
 
 ```{r}
 # UMBRALES DEL CRITERIO AEDV DE TAMAÑO DE LAS SERIES Y DEL CATÁLOGO FILTRADO
@@ -286,30 +286,30 @@ umbral_freq <- c(Y = 10, S = 20, Q = 40, M = 60, W = 200, D = 1096)
 ANIO_MINIMO <- 2024
 MIN_REGIONES <- 15
 
-ISTAC_datasets.raw <- ISTAC_datasets |>
+ISTAC_indicadores.raw <- ISTAC_indicadores |>
   select(id,subject,n.reg,n.reg.gran,n.obs,area,freq,n.periodos,initDate,lastDate) |>
   # ORDENADO POR NIVEL TERRITORIAL Y, DENTRO DE ÉL, POR TEMA
   arrange(area, subject, id)
 
-ISTAC_datasets.filtrados <- ISTAC_datasets.raw |>
+ISTAC_indicadores.filtrados <- ISTAC_indicadores.raw |>
   filter(freq %in% names(umbral_freq),
          as.integer(substr(lastDate, 1, 4)) >= ANIO_MINIMO,
          n.periodos >= umbral_freq[freq],
          n.reg >= MIN_REGIONES)
 
-ISTAC_datasets.raw |>
+ISTAC_indicadores.raw |>
   mutate(`Nº` = row_number(), .before = 1) |>
-  write.xlsx("ISTAC_datasets.raw.xlsx")
-ISTAC_datasets.filtrados |>
+  write.xlsx("ISTAC_indicadores.raw.xlsx")
+ISTAC_indicadores.filtrados |>
   mutate(`Nº` = row_number(), .before = 1) |>
-  write.xlsx("ISTAC_datasets.xlsx")
+  write.xlsx("ISTAC_indicadores.xlsx")
 
-cat("ISTAC_datasets.raw.xlsx:", nrow(ISTAC_datasets.raw), "indicadores;",
-    "ISTAC_datasets.xlsx:", nrow(ISTAC_datasets.filtrados), "\n")
+cat("ISTAC_indicadores.raw.xlsx:", nrow(ISTAC_indicadores.raw), "indicadores;",
+    "ISTAC_indicadores.xlsx:", nrow(ISTAC_indicadores.filtrados), "\n")
 
 # REPARTO POR NIVEL TERRITORIAL DE LOS DOS CATÁLOGOS
-full_join(count(ISTAC_datasets.raw, area, name = "completo"),
-          count(ISTAC_datasets.filtrados, area, name = "filtrado"), by = "area") |>
+full_join(count(ISTAC_indicadores.raw, area, name = "completo"),
+          count(ISTAC_indicadores.filtrados, area, name = "filtrado"), by = "area") |>
   knitr::kable()
 ```
 

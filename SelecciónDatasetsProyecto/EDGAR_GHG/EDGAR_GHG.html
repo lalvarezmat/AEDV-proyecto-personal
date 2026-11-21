@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-10-08" />
+<meta name="date" content="2026-11-21" />
 
 <title>EDGAR: DATASETS EMISIONES GASES EFECTO INVERNADERO</title>
 
@@ -1492,7 +1492,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">EDGAR: DATASETS EMISIONES GASES EFECTO
 INVERNADERO</h1>
-<h4 class="date">2026-10-08</h4>
+<h4 class="date">2026-11-21</h4>
 
 </div>
 
@@ -1869,7 +1869,7 @@ Research), JRC - Comisión Europea</td>
 </tr>
 <tr class="odd">
 <td align="left">Fecha.de.generacion</td>
-<td align="left">2026-10-08</td>
+<td align="left">2026-11-21</td>
 </tr>
 <tr class="even">
 <td align="left">N.observaciones</td>
@@ -1927,16 +1927,831 @@ CO2 porque su GWP es 1)</td>
 </tbody>
 </table>
 </div>
-<p><strong>data</strong></p>
-<pre><code>## # A tibble: 278,419 × 6
-##    date EDGAR_Country_Code Country     Sector      Substance  value
-##   &lt;int&gt; &lt;chr&gt;              &lt;chr&gt;       &lt;chr&gt;       &lt;chr&gt;      &lt;dbl&gt;
-## 1  1970 AFG                Afghanistan Agriculture CO2       0.0292
-## 2  1971 AFG                Afghanistan Agriculture CO2       0.0292
-## 3  1972 AFG                Afghanistan Agriculture CO2       0.0292
-## 4  1973 AFG                Afghanistan Agriculture CO2       0.0292
-## 5  1974 AFG                Afghanistan Agriculture CO2       0.0400
-## # ℹ 278,414 more rows</code></pre>
+<p><strong>tabla original</strong> (100 filas elegidas al azar)</p>
+<div class="tabla-scroll-xy">
+<table style="width:100%;">
+<colgroup>
+<col width="4%" />
+<col width="16%" />
+<col width="38%" />
+<col width="18%" />
+<col width="13%" />
+<col width="9%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">date</th>
+<th align="left">EDGAR_Country_Code</th>
+<th align="left">Country</th>
+<th align="left">Sector</th>
+<th align="left">Substance</th>
+<th align="right">value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1974</td>
+<td align="left">PRT</td>
+<td align="left">Portugal</td>
+<td align="left">Fuel Production</td>
+<td align="left">CO2</td>
+<td align="right">1.3343749</td>
+</tr>
+<tr class="even">
+<td align="right">1999</td>
+<td align="left">VCT</td>
+<td align="left">Saint Vincent and the Grenadines</td>
+<td align="left">Industrial Combustion</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">0.0000758</td>
+</tr>
+<tr class="odd">
+<td align="right">1971</td>
+<td align="left">BRN</td>
+<td align="left">Brunei</td>
+<td align="left">Transport</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">0.0010692</td>
+</tr>
+<tr class="even">
+<td align="right">1991</td>
+<td align="left">SOM</td>
+<td align="left">Somalia</td>
+<td align="left">Fuel Production</td>
+<td align="left">CO2</td>
+<td align="right">0.0000001</td>
+</tr>
+<tr class="odd">
+<td align="right">2015</td>
+<td align="left">DNK</td>
+<td align="left">Denmark</td>
+<td align="left">Industrial Combustion</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">0.0082728</td>
+</tr>
+<tr class="even">
+<td align="right">2014</td>
+<td align="left">PER</td>
+<td align="left">Peru</td>
+<td align="left">Buildings</td>
+<td align="left">CO2</td>
+<td align="right">3.7172559</td>
+</tr>
+<tr class="odd">
+<td align="right">1987</td>
+<td align="left">GAB</td>
+<td align="left">Gabon</td>
+<td align="left">TOTAL</td>
+<td align="left">GWP_100_AR5_GHG</td>
+<td align="right">13.6064403</td>
+</tr>
+<tr class="even">
+<td align="right">2024</td>
+<td align="left">SUR</td>
+<td align="left">Suriname</td>
+<td align="left">Fuel Production</td>
+<td align="left">CO2</td>
+<td align="right">0.0334176</td>
+</tr>
+<tr class="odd">
+<td align="right">1986</td>
+<td align="left">CUB</td>
+<td align="left">Cuba</td>
+<td align="left">Fuel Production</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">0.8116924</td>
+</tr>
+<tr class="even">
+<td align="right">1995</td>
+<td align="left">LVA</td>
+<td align="left">Latvia</td>
+<td align="left">Buildings</td>
+<td align="left">CO2</td>
+<td align="right">1.4355410</td>
+</tr>
+<tr class="odd">
+<td align="right">1979</td>
+<td align="left">SLB</td>
+<td align="left">Solomon Islands</td>
+<td align="left">Fuel Production</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">0.0000082</td>
+</tr>
+<tr class="even">
+<td align="right">1985</td>
+<td align="left">KWT</td>
+<td align="left">Kuwait</td>
+<td align="left">Fuel Production</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">14.2224545</td>
+</tr>
+<tr class="odd">
+<td align="right">2018</td>
+<td align="left">NPL</td>
+<td align="left">Nepal</td>
+<td align="left">Transport</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">0.0657264</td>
+</tr>
+<tr class="even">
+<td align="right">2023</td>
+<td align="left">LAO</td>
+<td align="left">Laos</td>
+<td align="left">Buildings</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">0.4485456</td>
+</tr>
+<tr class="odd">
+<td align="right">2019</td>
+<td align="left">MRT</td>
+<td align="left">Mauritania</td>
+<td align="left">Power Industry</td>
+<td align="left">CO2</td>
+<td align="right">0.9022828</td>
+</tr>
+<tr class="even">
+<td align="right">1991</td>
+<td align="left">AZE</td>
+<td align="left">Azerbaijan</td>
+<td align="left">Buildings</td>
+<td align="left">CO2</td>
+<td align="right">7.8044612</td>
+</tr>
+<tr class="odd">
+<td align="right">1995</td>
+<td align="left">BMU</td>
+<td align="left">Bermuda</td>
+<td align="left">Buildings</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">0.0000468</td>
+</tr>
+<tr class="even">
+<td align="right">2007</td>
+<td align="left">SGP</td>
+<td align="left">Singapore</td>
+<td align="left">Transport</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">0.0441498</td>
+</tr>
+<tr class="odd">
+<td align="right">2013</td>
+<td align="left">COG</td>
+<td align="left">Congo</td>
+<td align="left">Industrial Combustion</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">0.0001138</td>
+</tr>
+<tr class="even">
+<td align="right">2014</td>
+<td align="left">SOM</td>
+<td align="left">Somalia</td>
+<td align="left">Industrial Combustion</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">0.0015399</td>
+</tr>
+<tr class="odd">
+<td align="right">1999</td>
+<td align="left">JPN</td>
+<td align="left">Japan</td>
+<td align="left">Fuel Production</td>
+<td align="left">CO2</td>
+<td align="right">64.0234764</td>
+</tr>
+<tr class="even">
+<td align="right">1990</td>
+<td align="left">KNA</td>
+<td align="left">Saint Kitts and Nevis</td>
+<td align="left">Buildings</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">0.0000354</td>
+</tr>
+<tr class="odd">
+<td align="right">2011</td>
+<td align="left">NCL</td>
+<td align="left">New Caledonia</td>
+<td align="left">Buildings</td>
+<td align="left">CO2</td>
+<td align="right">0.2091026</td>
+</tr>
+<tr class="even">
+<td align="right">2014</td>
+<td align="left">FIN</td>
+<td align="left">Finland</td>
+<td align="left">TOTAL</td>
+<td align="left">GWP_100_AR5_GHG</td>
+<td align="right">64.0920036</td>
+</tr>
+<tr class="odd">
+<td align="right">2011</td>
+<td align="left">FJI</td>
+<td align="left">Fiji</td>
+<td align="left">Buildings</td>
+<td align="left">CO2</td>
+<td align="right">0.1183759</td>
+</tr>
+<tr class="even">
+<td align="right">2024</td>
+<td align="left">NZL</td>
+<td align="left">New Zealand</td>
+<td align="left">Agriculture</td>
+<td align="left">CO2</td>
+<td align="right">0.6886052</td>
+</tr>
+<tr class="odd">
+<td align="right">2003</td>
+<td align="left">CUB</td>
+<td align="left">Cuba</td>
+<td align="left">Power Industry</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">0.0464292</td>
+</tr>
+<tr class="even">
+<td align="right">2019</td>
+<td align="left">SLE</td>
+<td align="left">Sierra Leone</td>
+<td align="left">TOTAL</td>
+<td align="left">GWP_100_AR5_GHG</td>
+<td align="right">6.6285355</td>
+</tr>
+<tr class="odd">
+<td align="right">2018</td>
+<td align="left">BGD</td>
+<td align="left">Bangladesh</td>
+<td align="left">Power Industry</td>
+<td align="left">CO2</td>
+<td align="right">46.0704211</td>
+</tr>
+<tr class="even">
+<td align="right">1971</td>
+<td align="left">MDA</td>
+<td align="left">Moldova</td>
+<td align="left">Waste</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">0.8704292</td>
+</tr>
+<tr class="odd">
+<td align="right">2019</td>
+<td align="left">IRL</td>
+<td align="left">Ireland</td>
+<td align="left">Transport</td>
+<td align="left">CO2</td>
+<td align="right">11.9517659</td>
+</tr>
+<tr class="even">
+<td align="right">1995</td>
+<td align="left">MRT</td>
+<td align="left">Mauritania</td>
+<td align="left">Buildings</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">0.1623442</td>
+</tr>
+<tr class="odd">
+<td align="right">1984</td>
+<td align="left">SHN</td>
+<td align="left">Saint Helena, Ascension and Tristan da Cunha</td>
+<td align="left">Power Industry</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">0.0000012</td>
+</tr>
+<tr class="even">
+<td align="right">1984</td>
+<td align="left">SDN</td>
+<td align="left">Sudan and South Sudan</td>
+<td align="left">TOTAL</td>
+<td align="left">GWP_100_AR5_GHG</td>
+<td align="right">59.0705637</td>
+</tr>
+<tr class="odd">
+<td align="right">2013</td>
+<td align="left">COK</td>
+<td align="left">Cook Islands</td>
+<td align="left">Fuel Production</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">0.0000003</td>
+</tr>
+<tr class="even">
+<td align="right">2006</td>
+<td align="left">WSM</td>
+<td align="left">Samoa</td>
+<td align="left">Power Industry</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">0.0001008</td>
+</tr>
+<tr class="odd">
+<td align="right">1973</td>
+<td align="left">KGZ</td>
+<td align="left">Kyrgyzstan</td>
+<td align="left">Fuel Production</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">0.4219316</td>
+</tr>
+<tr class="even">
+<td align="right">2001</td>
+<td align="left">CPV</td>
+<td align="left">Cabo Verde</td>
+<td align="left">Fuel Production</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">0.0490533</td>
+</tr>
+<tr class="odd">
+<td align="right">1992</td>
+<td align="left">MTQ</td>
+<td align="left">Martinique</td>
+<td align="left">Processes</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">0.0068119</td>
+</tr>
+<tr class="even">
+<td align="right">1991</td>
+<td align="left">MLI</td>
+<td align="left">Mali</td>
+<td align="left">Processes</td>
+<td align="left">CO2</td>
+<td align="right">0.0272194</td>
+</tr>
+<tr class="odd">
+<td align="right">1998</td>
+<td align="left">VNM</td>
+<td align="left">Viet Nam</td>
+<td align="left">Buildings</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">3.6015880</td>
+</tr>
+<tr class="even">
+<td align="right">1990</td>
+<td align="left">PAK</td>
+<td align="left">Pakistan</td>
+<td align="left">Waste</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">6.7734611</td>
+</tr>
+<tr class="odd">
+<td align="right">1972</td>
+<td align="left">MWI</td>
+<td align="left">Malawi</td>
+<td align="left">TOTAL</td>
+<td align="left">GWP_100_AR5_GHG</td>
+<td align="right">2.2660094</td>
+</tr>
+<tr class="even">
+<td align="right">2020</td>
+<td align="left">HTI</td>
+<td align="left">Haiti</td>
+<td align="left">Industrial Combustion</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">0.0052668</td>
+</tr>
+<tr class="odd">
+<td align="right">1977</td>
+<td align="left">RWA</td>
+<td align="left">Rwanda</td>
+<td align="left">Processes</td>
+<td align="left">CO2</td>
+<td align="right">0.0390648</td>
+</tr>
+<tr class="even">
+<td align="right">2008</td>
+<td align="left">AGO</td>
+<td align="left">Angola</td>
+<td align="left">Industrial Combustion</td>
+<td align="left">CO2</td>
+<td align="right">2.0929143</td>
+</tr>
+<tr class="odd">
+<td align="right">2018</td>
+<td align="left">COM</td>
+<td align="left">Comoros</td>
+<td align="left">Buildings</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">0.0055559</td>
+</tr>
+<tr class="even">
+<td align="right">2024</td>
+<td align="left">IRN</td>
+<td align="left">Iran</td>
+<td align="left">Power Industry</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">0.1965848</td>
+</tr>
+<tr class="odd">
+<td align="right">2000</td>
+<td align="left">RWA</td>
+<td align="left">Rwanda</td>
+<td align="left">Processes</td>
+<td align="left">CO2</td>
+<td align="right">0.0478668</td>
+</tr>
+<tr class="even">
+<td align="right">1981</td>
+<td align="left">AUS</td>
+<td align="left">Australia</td>
+<td align="left">Industrial Combustion</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">0.1285671</td>
+</tr>
+<tr class="odd">
+<td align="right">1999</td>
+<td align="left">PRT</td>
+<td align="left">Portugal</td>
+<td align="left">Waste</td>
+<td align="left">CO2</td>
+<td align="right">0.0079646</td>
+</tr>
+<tr class="even">
+<td align="right">1986</td>
+<td align="left">FLK</td>
+<td align="left">Falkland Islands</td>
+<td align="left">Transport</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">0.0000048</td>
+</tr>
+<tr class="odd">
+<td align="right">1994</td>
+<td align="left">PAN</td>
+<td align="left">Panama</td>
+<td align="left">Buildings</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">0.0150433</td>
+</tr>
+<tr class="even">
+<td align="right">1982</td>
+<td align="left">CHL</td>
+<td align="left">Chile</td>
+<td align="left">Fuel Production</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">9.5830044</td>
+</tr>
+<tr class="odd">
+<td align="right">1984</td>
+<td align="left">JAM</td>
+<td align="left">Jamaica</td>
+<td align="left">Processes</td>
+<td align="left">CO2</td>
+<td align="right">0.2243585</td>
+</tr>
+<tr class="even">
+<td align="right">2018</td>
+<td align="left">ISL</td>
+<td align="left">Iceland</td>
+<td align="left">Industrial Combustion</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">0.0002120</td>
+</tr>
+<tr class="odd">
+<td align="right">1989</td>
+<td align="left">QAT</td>
+<td align="left">Qatar</td>
+<td align="left">Buildings</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">0.0042845</td>
+</tr>
+<tr class="even">
+<td align="right">2007</td>
+<td align="left">PER</td>
+<td align="left">Peru</td>
+<td align="left">Processes</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">0.0007092</td>
+</tr>
+<tr class="odd">
+<td align="right">1976</td>
+<td align="left">TWN</td>
+<td align="left">Taiwan</td>
+<td align="left">Fuel Production</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">1.8764596</td>
+</tr>
+<tr class="even">
+<td align="right">2004</td>
+<td align="left">SLV</td>
+<td align="left">El Salvador</td>
+<td align="left">Buildings</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">0.0160972</td>
+</tr>
+<tr class="odd">
+<td align="right">2018</td>
+<td align="left">TGO</td>
+<td align="left">Togo</td>
+<td align="left">Transport</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">0.0069684</td>
+</tr>
+<tr class="even">
+<td align="right">2022</td>
+<td align="left">SVN</td>
+<td align="left">Slovenia</td>
+<td align="left">Buildings</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">0.0391233</td>
+</tr>
+<tr class="odd">
+<td align="right">2012</td>
+<td align="left">JPN</td>
+<td align="left">Japan</td>
+<td align="left">Waste</td>
+<td align="left">CO2</td>
+<td align="right">4.1464789</td>
+</tr>
+<tr class="even">
+<td align="right">1995</td>
+<td align="left">PER</td>
+<td align="left">Peru</td>
+<td align="left">Buildings</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">0.7833347</td>
+</tr>
+<tr class="odd">
+<td align="right">1994</td>
+<td align="left">PHL</td>
+<td align="left">Philippines</td>
+<td align="left">Buildings</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">2.3899810</td>
+</tr>
+<tr class="even">
+<td align="right">1981</td>
+<td align="left">IND</td>
+<td align="left">India</td>
+<td align="left">Fuel Production</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">0.1384497</td>
+</tr>
+<tr class="odd">
+<td align="right">1972</td>
+<td align="left">LKA</td>
+<td align="left">Sri Lanka</td>
+<td align="left">Processes</td>
+<td align="left">CO2</td>
+<td align="right">0.2192498</td>
+</tr>
+<tr class="even">
+<td align="right">1981</td>
+<td align="left">GMB</td>
+<td align="left">The Gambia</td>
+<td align="left">TOTAL</td>
+<td align="left">GWP_100_AR5_GHG</td>
+<td align="right">0.7480845</td>
+</tr>
+<tr class="odd">
+<td align="right">2019</td>
+<td align="left">SEN</td>
+<td align="left">Senegal</td>
+<td align="left">Power Industry</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">0.0646639</td>
+</tr>
+<tr class="even">
+<td align="right">1985</td>
+<td align="left">KIR</td>
+<td align="left">Kiribati</td>
+<td align="left">Processes</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">0.0005191</td>
+</tr>
+<tr class="odd">
+<td align="right">1991</td>
+<td align="left">PAN</td>
+<td align="left">Panama</td>
+<td align="left">Buildings</td>
+<td align="left">CO2</td>
+<td align="right">0.2356474</td>
+</tr>
+<tr class="even">
+<td align="right">2014</td>
+<td align="left">PRT</td>
+<td align="left">Portugal</td>
+<td align="left">Processes</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">0.0033254</td>
+</tr>
+<tr class="odd">
+<td align="right">1978</td>
+<td align="left">ARG</td>
+<td align="left">Argentina</td>
+<td align="left">Transport</td>
+<td align="left">CO2</td>
+<td align="right">26.6111188</td>
+</tr>
+<tr class="even">
+<td align="right">1992</td>
+<td align="left">YEM</td>
+<td align="left">Yemen</td>
+<td align="left">Processes</td>
+<td align="left">CO2</td>
+<td align="right">0.7535851</td>
+</tr>
+<tr class="odd">
+<td align="right">1987</td>
+<td align="left">BLZ</td>
+<td align="left">Belize</td>
+<td align="left">Buildings</td>
+<td align="left">CO2</td>
+<td align="right">0.0161105</td>
+</tr>
+<tr class="even">
+<td align="right">2016</td>
+<td align="left">ATG</td>
+<td align="left">Antigua and Barbuda</td>
+<td align="left">Processes</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">0.0036639</td>
+</tr>
+<tr class="odd">
+<td align="right">1970</td>
+<td align="left">AIA</td>
+<td align="left">Anguilla</td>
+<td align="left">Power Industry</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">0.0000009</td>
+</tr>
+<tr class="even">
+<td align="right">1985</td>
+<td align="left">CHL</td>
+<td align="left">Chile</td>
+<td align="left">Processes</td>
+<td align="left">CO2</td>
+<td align="right">1.8235585</td>
+</tr>
+<tr class="odd">
+<td align="right">1998</td>
+<td align="left">LSO</td>
+<td align="left">Lesotho</td>
+<td align="left">TOTAL</td>
+<td align="left">GWP_100_AR5_GHG</td>
+<td align="right">1.9208890</td>
+</tr>
+<tr class="even">
+<td align="right">2017</td>
+<td align="left">WSM</td>
+<td align="left">Samoa</td>
+<td align="left">Power Industry</td>
+<td align="left">CO2</td>
+<td align="right">0.0750100</td>
+</tr>
+<tr class="odd">
+<td align="right">2006</td>
+<td align="left">CHE</td>
+<td align="left">Switzerland and Liechtenstein</td>
+<td align="left">Industrial Combustion</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">0.0286556</td>
+</tr>
+<tr class="even">
+<td align="right">2007</td>
+<td align="left">JAM</td>
+<td align="left">Jamaica</td>
+<td align="left">Buildings</td>
+<td align="left">CO2</td>
+<td align="right">0.8397964</td>
+</tr>
+<tr class="odd">
+<td align="right">1987</td>
+<td align="left">PAN</td>
+<td align="left">Panama</td>
+<td align="left">TOTAL</td>
+<td align="left">GWP_100_AR5_GHG</td>
+<td align="right">7.2965502</td>
+</tr>
+<tr class="even">
+<td align="right">2024</td>
+<td align="left">CRI</td>
+<td align="left">Costa Rica</td>
+<td align="left">Industrial Combustion</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">0.0118754</td>
+</tr>
+<tr class="odd">
+<td align="right">1973</td>
+<td align="left">AZE</td>
+<td align="left">Azerbaijan</td>
+<td align="left">Agriculture</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">4.9747710</td>
+</tr>
+<tr class="even">
+<td align="right">1979</td>
+<td align="left">GMB</td>
+<td align="left">The Gambia</td>
+<td align="left">TOTAL</td>
+<td align="left">GWP_100_AR5_GHG</td>
+<td align="right">0.7145389</td>
+</tr>
+<tr class="odd">
+<td align="right">2016</td>
+<td align="left">TCD</td>
+<td align="left">Chad</td>
+<td align="left">Fuel Production</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">0.0172587</td>
+</tr>
+<tr class="even">
+<td align="right">1993</td>
+<td align="left">BRB</td>
+<td align="left">Barbados</td>
+<td align="left">Power Industry</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">0.0002735</td>
+</tr>
+<tr class="odd">
+<td align="right">2025</td>
+<td align="left">ARE</td>
+<td align="left">United Arab Emirates</td>
+<td align="left">Buildings</td>
+<td align="left">CO2</td>
+<td align="right">18.4557746</td>
+</tr>
+<tr class="even">
+<td align="right">1982</td>
+<td align="left">PRY</td>
+<td align="left">Paraguay</td>
+<td align="left">Waste</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">0.1858050</td>
+</tr>
+<tr class="odd">
+<td align="right">2005</td>
+<td align="left">CYP</td>
+<td align="left">Cyprus</td>
+<td align="left">Transport</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">0.0060956</td>
+</tr>
+<tr class="even">
+<td align="right">1991</td>
+<td align="left">LAO</td>
+<td align="left">Laos</td>
+<td align="left">Agriculture</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">1.1112853</td>
+</tr>
+<tr class="odd">
+<td align="right">1996</td>
+<td align="left">KGZ</td>
+<td align="left">Kyrgyzstan</td>
+<td align="left">Industrial Combustion</td>
+<td align="left">CO2</td>
+<td align="right">1.0064025</td>
+</tr>
+<tr class="even">
+<td align="right">2013</td>
+<td align="left">SVK</td>
+<td align="left">Slovakia</td>
+<td align="left">Waste</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">0.2094732</td>
+</tr>
+<tr class="odd">
+<td align="right">1996</td>
+<td align="left">MYS</td>
+<td align="left">Malaysia</td>
+<td align="left">Transport</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">0.2136517</td>
+</tr>
+<tr class="even">
+<td align="right">1971</td>
+<td align="left">LBY</td>
+<td align="left">Libya</td>
+<td align="left">Transport</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">0.0046133</td>
+</tr>
+<tr class="odd">
+<td align="right">1998</td>
+<td align="left">SLB</td>
+<td align="left">Solomon Islands</td>
+<td align="left">Transport</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">0.0020948</td>
+</tr>
+<tr class="even">
+<td align="right">2024</td>
+<td align="left">NZL</td>
+<td align="left">New Zealand</td>
+<td align="left">Fuel Production</td>
+<td align="left">CO2</td>
+<td align="right">0.6734058</td>
+</tr>
+<tr class="odd">
+<td align="right">1995</td>
+<td align="left">PAK</td>
+<td align="left">Pakistan</td>
+<td align="left">Waste</td>
+<td align="left">GWP_100_AR5_N2O</td>
+<td align="right">1.9964480</td>
+</tr>
+<tr class="even">
+<td align="right">1974</td>
+<td align="left">ZMB</td>
+<td align="left">Zambia</td>
+<td align="left">Agriculture</td>
+<td align="left">GWP_100_AR5_CH4</td>
+<td align="right">2.0370893</td>
+</tr>
+</tbody>
+</table>
+</div>
 <blockquote>
 <p><strong>Aviso sobre la tabla combinada:</strong> Esta tabla combina
 el desglose por sector con el total por país en una sola tabla, por lo
@@ -2922,16 +3737,729 @@ en un fichero aparte (<code>EDGAR_GHG_normalizado.rds</code>) porque
 tienen otra unidad y otra granularidad — solo país × año, sin desglose
 por <code>Sector</code>/<code>Substance</code> (son siempre el total del
 país).</p>
-<p><strong>data_normalizado</strong></p>
-<pre><code>## # A tibble: 18,960 × 5
-##    date EDGAR_Country_Code Country indicador  value
-##   &lt;int&gt; &lt;chr&gt;              &lt;chr&gt;   &lt;chr&gt;      &lt;dbl&gt;
-## 1  1970 ABW                Aruba   per_capita 0.649
-## 2  1971 ABW                Aruba   per_capita 0.725
-## 3  1972 ABW                Aruba   per_capita 0.901
-## 4  1973 ABW                Aruba   per_capita 0.977
-## 5  1974 ABW                Aruba   per_capita 0.960
-## # ℹ 18,955 more rows</code></pre>
+<p><strong>tabla normalizada</strong> (100 filas elegidas al azar)</p>
+<div class="tabla-scroll-xy">
+<table>
+<colgroup>
+<col width="5%" />
+<col width="20%" />
+<col width="49%" />
+<col width="12%" />
+<col width="12%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">date</th>
+<th align="left">EDGAR_Country_Code</th>
+<th align="left">Country</th>
+<th align="left">indicador</th>
+<th align="right">value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">2014</td>
+<td align="left">SEN</td>
+<td align="left">Senegal</td>
+<td align="left">per_gdp</td>
+<td align="right">0.4377405</td>
+</tr>
+<tr class="even">
+<td align="right">1984</td>
+<td align="left">HRV</td>
+<td align="left">Croatia</td>
+<td align="left">per_capita</td>
+<td align="right">7.9683364</td>
+</tr>
+<tr class="odd">
+<td align="right">2007</td>
+<td align="left">COL</td>
+<td align="left">Colombia</td>
+<td align="left">per_gdp</td>
+<td align="right">0.2679501</td>
+</tr>
+<tr class="even">
+<td align="right">1980</td>
+<td align="left">TTO</td>
+<td align="left">Trinidad and Tobago</td>
+<td align="left">per_capita</td>
+<td align="right">11.3400564</td>
+</tr>
+<tr class="odd">
+<td align="right">1975</td>
+<td align="left">PRI</td>
+<td align="left">Puerto Rico</td>
+<td align="left">per_capita</td>
+<td align="right">13.8076059</td>
+</tr>
+<tr class="even">
+<td align="right">1987</td>
+<td align="left">GIN</td>
+<td align="left">Guinea</td>
+<td align="left">per_capita</td>
+<td align="right">1.0193570</td>
+</tr>
+<tr class="odd">
+<td align="right">2000</td>
+<td align="left">DEU</td>
+<td align="left">Germany</td>
+<td align="left">per_gdp</td>
+<td align="right">0.2502720</td>
+</tr>
+<tr class="even">
+<td align="right">2004</td>
+<td align="left">ZMB</td>
+<td align="left">Zambia</td>
+<td align="left">per_capita</td>
+<td align="right">1.3635058</td>
+</tr>
+<tr class="odd">
+<td align="right">2018</td>
+<td align="left">BDI</td>
+<td align="left">Burundi</td>
+<td align="left">per_gdp</td>
+<td align="right">0.4830219</td>
+</tr>
+<tr class="even">
+<td align="right">2010</td>
+<td align="left">SVK</td>
+<td align="left">Slovakia</td>
+<td align="left">per_gdp</td>
+<td align="right">0.3037428</td>
+</tr>
+<tr class="odd">
+<td align="right">2007</td>
+<td align="left">GMB</td>
+<td align="left">The Gambia</td>
+<td align="left">per_gdp</td>
+<td align="right">0.3433802</td>
+</tr>
+<tr class="even">
+<td align="right">2004</td>
+<td align="left">TTO</td>
+<td align="left">Trinidad and Tobago</td>
+<td align="left">per_gdp</td>
+<td align="right">0.9603636</td>
+</tr>
+<tr class="odd">
+<td align="right">2008</td>
+<td align="left">ETH</td>
+<td align="left">Ethiopia</td>
+<td align="left">per_gdp</td>
+<td align="right">1.0921446</td>
+</tr>
+<tr class="even">
+<td align="right">1998</td>
+<td align="left">SWZ</td>
+<td align="left">Eswatini</td>
+<td align="left">per_capita</td>
+<td align="right">3.2430961</td>
+</tr>
+<tr class="odd">
+<td align="right">2022</td>
+<td align="left">PER</td>
+<td align="left">Peru</td>
+<td align="left">per_capita</td>
+<td align="right">2.9082965</td>
+</tr>
+<tr class="even">
+<td align="right">2018</td>
+<td align="left">SLE</td>
+<td align="left">Sierra Leone</td>
+<td align="left">per_gdp</td>
+<td align="right">0.3063882</td>
+</tr>
+<tr class="odd">
+<td align="right">2007</td>
+<td align="left">BEN</td>
+<td align="left">Benin</td>
+<td align="left">per_capita</td>
+<td align="right">1.1680291</td>
+</tr>
+<tr class="even">
+<td align="right">1999</td>
+<td align="left">LVA</td>
+<td align="left">Latvia</td>
+<td align="left">per_capita</td>
+<td align="right">4.9184482</td>
+</tr>
+<tr class="odd">
+<td align="right">2001</td>
+<td align="left">AZE</td>
+<td align="left">Azerbaijan</td>
+<td align="left">per_gdp</td>
+<td align="right">0.7845001</td>
+</tr>
+<tr class="even">
+<td align="right">1978</td>
+<td align="left">UZB</td>
+<td align="left">Uzbekistan</td>
+<td align="left">per_capita</td>
+<td align="right">7.2287818</td>
+</tr>
+<tr class="odd">
+<td align="right">1988</td>
+<td align="left">MMR</td>
+<td align="left">Myanmar/Burma</td>
+<td align="left">per_capita</td>
+<td align="right">1.6832559</td>
+</tr>
+<tr class="even">
+<td align="right">2011</td>
+<td align="left">HTI</td>
+<td align="left">Haiti</td>
+<td align="left">per_gdp</td>
+<td align="right">0.3745645</td>
+</tr>
+<tr class="odd">
+<td align="right">1975</td>
+<td align="left">STP</td>
+<td align="left">São Tomé and Príncipe</td>
+<td align="left">per_capita</td>
+<td align="right">0.4366698</td>
+</tr>
+<tr class="even">
+<td align="right">2004</td>
+<td align="left">VCT</td>
+<td align="left">Saint Vincent and the Grenadines</td>
+<td align="left">per_gdp</td>
+<td align="right">0.0854277</td>
+</tr>
+<tr class="odd">
+<td align="right">1973</td>
+<td align="left">FIN</td>
+<td align="left">Finland</td>
+<td align="left">per_capita</td>
+<td align="right">14.0282993</td>
+</tr>
+<tr class="even">
+<td align="right">2013</td>
+<td align="left">CHL</td>
+<td align="left">Chile</td>
+<td align="left">per_capita</td>
+<td align="right">6.6340183</td>
+</tr>
+<tr class="odd">
+<td align="right">1987</td>
+<td align="left">BRB</td>
+<td align="left">Barbados</td>
+<td align="left">per_capita</td>
+<td align="right">2.9788783</td>
+</tr>
+<tr class="even">
+<td align="right">1998</td>
+<td align="left">KHM</td>
+<td align="left">Cambodia</td>
+<td align="left">per_gdp</td>
+<td align="right">1.0506979</td>
+</tr>
+<tr class="odd">
+<td align="right">1996</td>
+<td align="left">BMU</td>
+<td align="left">Bermuda</td>
+<td align="left">per_gdp</td>
+<td align="right">0.0475961</td>
+</tr>
+<tr class="even">
+<td align="right">2025</td>
+<td align="left">MLI</td>
+<td align="left">Mali</td>
+<td align="left">per_gdp</td>
+<td align="right">0.6665274</td>
+</tr>
+<tr class="odd">
+<td align="right">2010</td>
+<td align="left">GUY</td>
+<td align="left">Guyana</td>
+<td align="left">per_capita</td>
+<td align="right">4.9694308</td>
+</tr>
+<tr class="even">
+<td align="right">1992</td>
+<td align="left">LVA</td>
+<td align="left">Latvia</td>
+<td align="left">per_capita</td>
+<td align="right">8.2639211</td>
+</tr>
+<tr class="odd">
+<td align="right">2015</td>
+<td align="left">BIH</td>
+<td align="left">Bosnia and Herzegovina</td>
+<td align="left">per_capita</td>
+<td align="right">7.8212946</td>
+</tr>
+<tr class="even">
+<td align="right">2003</td>
+<td align="left">TUN</td>
+<td align="left">Tunisia</td>
+<td align="left">per_capita</td>
+<td align="right">3.2208600</td>
+</tr>
+<tr class="odd">
+<td align="right">2001</td>
+<td align="left">SWE</td>
+<td align="left">Sweden</td>
+<td align="left">per_capita</td>
+<td align="right">8.5265632</td>
+</tr>
+<tr class="even">
+<td align="right">1991</td>
+<td align="left">POL</td>
+<td align="left">Poland</td>
+<td align="left">per_gdp</td>
+<td align="right">1.1086521</td>
+</tr>
+<tr class="odd">
+<td align="right">1994</td>
+<td align="left">SLB</td>
+<td align="left">Solomon Islands</td>
+<td align="left">per_gdp</td>
+<td align="right">0.3418684</td>
+</tr>
+<tr class="even">
+<td align="right">2003</td>
+<td align="left">JPN</td>
+<td align="left">Japan</td>
+<td align="left">per_capita</td>
+<td align="right">10.7540056</td>
+</tr>
+<tr class="odd">
+<td align="right">1996</td>
+<td align="left">TTO</td>
+<td align="left">Trinidad and Tobago</td>
+<td align="left">per_gdp</td>
+<td align="right">0.9522319</td>
+</tr>
+<tr class="even">
+<td align="right">1997</td>
+<td align="left">FIN</td>
+<td align="left">Finland</td>
+<td align="left">per_gdp</td>
+<td align="right">0.3807460</td>
+</tr>
+<tr class="odd">
+<td align="right">2002</td>
+<td align="left">PLW</td>
+<td align="left">Palau</td>
+<td align="left">per_gdp</td>
+<td align="right">4.5333751</td>
+</tr>
+<tr class="even">
+<td align="right">2001</td>
+<td align="left">CPV</td>
+<td align="left">Cabo Verde</td>
+<td align="left">per_gdp</td>
+<td align="right">0.2593109</td>
+</tr>
+<tr class="odd">
+<td align="right">2014</td>
+<td align="left">ESP</td>
+<td align="left">Spain and Andorra</td>
+<td align="left">per_gdp</td>
+<td align="right">0.1738359</td>
+</tr>
+<tr class="even">
+<td align="right">1993</td>
+<td align="left">NZL</td>
+<td align="left">New Zealand</td>
+<td align="left">per_capita</td>
+<td align="right">20.2212217</td>
+</tr>
+<tr class="odd">
+<td align="right">1998</td>
+<td align="left">MMR</td>
+<td align="left">Myanmar/Burma</td>
+<td align="left">per_gdp</td>
+<td align="right">1.5932142</td>
+</tr>
+<tr class="even">
+<td align="right">2009</td>
+<td align="left">SLB</td>
+<td align="left">Solomon Islands</td>
+<td align="left">per_capita</td>
+<td align="right">1.0125931</td>
+</tr>
+<tr class="odd">
+<td align="right">2010</td>
+<td align="left">LUX</td>
+<td align="left">Luxembourg</td>
+<td align="left">per_gdp</td>
+<td align="right">0.1835895</td>
+</tr>
+<tr class="even">
+<td align="right">2024</td>
+<td align="left">GBR</td>
+<td align="left">United Kingdom</td>
+<td align="left">per_capita</td>
+<td align="right">5.5279222</td>
+</tr>
+<tr class="odd">
+<td align="right">1999</td>
+<td align="left">SHN</td>
+<td align="left">Saint Helena, Ascension and Tristan da Cunha</td>
+<td align="left">per_capita</td>
+<td align="right">1.3323502</td>
+</tr>
+<tr class="even">
+<td align="right">1992</td>
+<td align="left">TWN</td>
+<td align="left">Taiwan</td>
+<td align="left">per_gdp</td>
+<td align="right">0.3823405</td>
+</tr>
+<tr class="odd">
+<td align="right">2014</td>
+<td align="left">MEX</td>
+<td align="left">Mexico</td>
+<td align="left">per_capita</td>
+<td align="right">5.3157307</td>
+</tr>
+<tr class="even">
+<td align="right">1973</td>
+<td align="left">TCD</td>
+<td align="left">Chad</td>
+<td align="left">per_capita</td>
+<td align="right">2.1231677</td>
+</tr>
+<tr class="odd">
+<td align="right">2001</td>
+<td align="left">SVN</td>
+<td align="left">Slovenia</td>
+<td align="left">per_gdp</td>
+<td align="right">0.3574791</td>
+</tr>
+<tr class="even">
+<td align="right">1982</td>
+<td align="left">QAT</td>
+<td align="left">Qatar</td>
+<td align="left">per_capita</td>
+<td align="right">79.7227223</td>
+</tr>
+<tr class="odd">
+<td align="right">2006</td>
+<td align="left">FJI</td>
+<td align="left">Fiji</td>
+<td align="left">per_gdp</td>
+<td align="right">0.3700517</td>
+</tr>
+<tr class="even">
+<td align="right">1992</td>
+<td align="left">PRI</td>
+<td align="left">Puerto Rico</td>
+<td align="left">per_capita</td>
+<td align="right">6.3235525</td>
+</tr>
+<tr class="odd">
+<td align="right">2002</td>
+<td align="left">LUX</td>
+<td align="left">Luxembourg</td>
+<td align="left">per_capita</td>
+<td align="right">24.7828515</td>
+</tr>
+<tr class="even">
+<td align="right">2000</td>
+<td align="left">KGZ</td>
+<td align="left">Kyrgyzstan</td>
+<td align="left">per_gdp</td>
+<td align="right">0.6042084</td>
+</tr>
+<tr class="odd">
+<td align="right">1995</td>
+<td align="left">SUR</td>
+<td align="left">Suriname</td>
+<td align="left">per_capita</td>
+<td align="right">5.5271035</td>
+</tr>
+<tr class="even">
+<td align="right">1987</td>
+<td align="left">BEN</td>
+<td align="left">Benin</td>
+<td align="left">per_capita</td>
+<td align="right">0.7861718</td>
+</tr>
+<tr class="odd">
+<td align="right">2017</td>
+<td align="left">GEO</td>
+<td align="left">Georgia</td>
+<td align="left">per_gdp</td>
+<td align="right">0.2830334</td>
+</tr>
+<tr class="even">
+<td align="right">2012</td>
+<td align="left">MDG</td>
+<td align="left">Madagascar</td>
+<td align="left">per_capita</td>
+<td align="right">1.3494864</td>
+</tr>
+<tr class="odd">
+<td align="right">2023</td>
+<td align="left">SDN</td>
+<td align="left">Sudan and South Sudan</td>
+<td align="left">per_capita</td>
+<td align="right">2.0856427</td>
+</tr>
+<tr class="even">
+<td align="right">2024</td>
+<td align="left">VUT</td>
+<td align="left">Vanuatu</td>
+<td align="left">per_capita</td>
+<td align="right">1.9576183</td>
+</tr>
+<tr class="odd">
+<td align="right">1997</td>
+<td align="left">PAK</td>
+<td align="left">Pakistan</td>
+<td align="left">per_gdp</td>
+<td align="right">0.4998354</td>
+</tr>
+<tr class="even">
+<td align="right">1974</td>
+<td align="left">BDI</td>
+<td align="left">Burundi</td>
+<td align="left">per_capita</td>
+<td align="right">0.5967480</td>
+</tr>
+<tr class="odd">
+<td align="right">1995</td>
+<td align="left">DNK</td>
+<td align="left">Denmark</td>
+<td align="left">per_gdp</td>
+<td align="right">0.2874899</td>
+</tr>
+<tr class="even">
+<td align="right">2011</td>
+<td align="left">ITA</td>
+<td align="left">Italy, San Marino and the Holy See</td>
+<td align="left">per_gdp</td>
+<td align="right">0.1667653</td>
+</tr>
+<tr class="odd">
+<td align="right">1970</td>
+<td align="left">LKA</td>
+<td align="left">Sri Lanka</td>
+<td align="left">per_capita</td>
+<td align="right">0.7439145</td>
+</tr>
+<tr class="even">
+<td align="right">2004</td>
+<td align="left">HUN</td>
+<td align="left">Hungary</td>
+<td align="left">per_capita</td>
+<td align="right">8.0182000</td>
+</tr>
+<tr class="odd">
+<td align="right">1980</td>
+<td align="left">IRL</td>
+<td align="left">Ireland</td>
+<td align="left">per_capita</td>
+<td align="right">15.3114451</td>
+</tr>
+<tr class="even">
+<td align="right">2003</td>
+<td align="left">COL</td>
+<td align="left">Colombia</td>
+<td align="left">per_capita</td>
+<td align="right">3.4899701</td>
+</tr>
+<tr class="odd">
+<td align="right">1976</td>
+<td align="left">SLB</td>
+<td align="left">Solomon Islands</td>
+<td align="left">per_capita</td>
+<td align="right">1.1119527</td>
+</tr>
+<tr class="even">
+<td align="right">2014</td>
+<td align="left">LTU</td>
+<td align="left">Lithuania</td>
+<td align="left">per_capita</td>
+<td align="right">7.4977456</td>
+</tr>
+<tr class="odd">
+<td align="right">1985</td>
+<td align="left">GIB</td>
+<td align="left">Gibraltar</td>
+<td align="left">per_capita</td>
+<td align="right">3.4798531</td>
+</tr>
+<tr class="even">
+<td align="right">1995</td>
+<td align="left">BWA</td>
+<td align="left">Botswana</td>
+<td align="left">per_capita</td>
+<td align="right">6.0570598</td>
+</tr>
+<tr class="odd">
+<td align="right">2022</td>
+<td align="left">ARM</td>
+<td align="left">Armenia</td>
+<td align="left">per_capita</td>
+<td align="right">4.1297936</td>
+</tr>
+<tr class="even">
+<td align="right">1993</td>
+<td align="left">ARE</td>
+<td align="left">United Arab Emirates</td>
+<td align="left">per_gdp</td>
+<td align="right">0.4215327</td>
+</tr>
+<tr class="odd">
+<td align="right">2016</td>
+<td align="left">MAR</td>
+<td align="left">Morocco</td>
+<td align="left">per_capita</td>
+<td align="right">2.6770365</td>
+</tr>
+<tr class="even">
+<td align="right">1996</td>
+<td align="left">LTU</td>
+<td align="left">Lithuania</td>
+<td align="left">per_gdp</td>
+<td align="right">0.5262111</td>
+</tr>
+<tr class="odd">
+<td align="right">2001</td>
+<td align="left">POL</td>
+<td align="left">Poland</td>
+<td align="left">per_gdp</td>
+<td align="right">0.5680562</td>
+</tr>
+<tr class="even">
+<td align="right">2018</td>
+<td align="left">JAM</td>
+<td align="left">Jamaica</td>
+<td align="left">per_gdp</td>
+<td align="right">0.3245403</td>
+</tr>
+<tr class="odd">
+<td align="right">2023</td>
+<td align="left">YEM</td>
+<td align="left">Yemen</td>
+<td align="left">per_capita</td>
+<td align="right">1.1900520</td>
+</tr>
+<tr class="even">
+<td align="right">2005</td>
+<td align="left">MOZ</td>
+<td align="left">Mozambique</td>
+<td align="left">per_gdp</td>
+<td align="right">0.7052548</td>
+</tr>
+<tr class="odd">
+<td align="right">2018</td>
+<td align="left">MEX</td>
+<td align="left">Mexico</td>
+<td align="left">per_capita</td>
+<td align="right">5.1469154</td>
+</tr>
+<tr class="even">
+<td align="right">1979</td>
+<td align="left">NAM</td>
+<td align="left">Namibia</td>
+<td align="left">per_capita</td>
+<td align="right">6.8413506</td>
+</tr>
+<tr class="odd">
+<td align="right">2020</td>
+<td align="left">FRO</td>
+<td align="left">Faroes</td>
+<td align="left">per_capita</td>
+<td align="right">2.0277736</td>
+</tr>
+<tr class="even">
+<td align="right">1998</td>
+<td align="left">ABW</td>
+<td align="left">Aruba</td>
+<td align="left">per_capita</td>
+<td align="right">4.2245171</td>
+</tr>
+<tr class="odd">
+<td align="right">2011</td>
+<td align="left">AGO</td>
+<td align="left">Angola</td>
+<td align="left">per_gdp</td>
+<td align="right">0.2650527</td>
+</tr>
+<tr class="even">
+<td align="right">2007</td>
+<td align="left">CHL</td>
+<td align="left">Chile</td>
+<td align="left">per_capita</td>
+<td align="right">5.8853914</td>
+</tr>
+<tr class="odd">
+<td align="right">1975</td>
+<td align="left">IDN</td>
+<td align="left">Indonesia</td>
+<td align="left">per_capita</td>
+<td align="right">1.3657503</td>
+</tr>
+<tr class="even">
+<td align="right">2025</td>
+<td align="left">TTO</td>
+<td align="left">Trinidad and Tobago</td>
+<td align="left">per_gdp</td>
+<td align="right">0.7530899</td>
+</tr>
+<tr class="odd">
+<td align="right">2009</td>
+<td align="left">FIN</td>
+<td align="left">Finland</td>
+<td align="left">per_gdp</td>
+<td align="right">0.2573847</td>
+</tr>
+<tr class="even">
+<td align="right">2018</td>
+<td align="left">VNM</td>
+<td align="left">Viet Nam</td>
+<td align="left">per_gdp</td>
+<td align="right">0.4117662</td>
+</tr>
+<tr class="odd">
+<td align="right">1991</td>
+<td align="left">UGA</td>
+<td align="left">Uganda</td>
+<td align="left">per_gdp</td>
+<td align="right">0.7940760</td>
+</tr>
+<tr class="even">
+<td align="right">2007</td>
+<td align="left">GMB</td>
+<td align="left">The Gambia</td>
+<td align="left">per_capita</td>
+<td align="right">1.0113242</td>
+</tr>
+<tr class="odd">
+<td align="right">2012</td>
+<td align="left">HTI</td>
+<td align="left">Haiti</td>
+<td align="left">per_gdp</td>
+<td align="right">0.3730014</td>
+</tr>
+<tr class="even">
+<td align="right">2004</td>
+<td align="left">PRK</td>
+<td align="left">North Korea</td>
+<td align="left">per_capita</td>
+<td align="right">4.4051574</td>
+</tr>
+<tr class="odd">
+<td align="right">2019</td>
+<td align="left">SLE</td>
+<td align="left">Sierra Leone</td>
+<td align="left">per_capita</td>
+<td align="right">0.8408515</td>
+</tr>
+<tr class="even">
+<td align="right">1997</td>
+<td align="left">MAR</td>
+<td align="left">Morocco</td>
+<td align="left">per_gdp</td>
+<td align="right">0.3933389</td>
+</tr>
+</tbody>
+</table>
+</div>
 <div class="tabla-scroll-xy con-desc">
 <table>
 <colgroup>
@@ -3223,7 +4751,7 @@ la memoria, cambiando los nombres de las tablas por otros que describan
 el dataset:</li>
 </ol>
 <pre><code>```{r, results=&#39;asis&#39;, cache=FALSE}
-edgar &lt;- aedv_incluir_dataset(&quot;EDGAR_GHG_analisis.Rmd&quot;)
+edgar &lt;- aedv_incluir_dataset(&quot;EDGAR_GHG_analisis.Rmd&quot;, validacion = TRUE)
 # este dataset tiene 2 tablas: aedv_incluir_dataset() las devuelve en una lista
 emisiones      &lt;- edgar$data       # emisiones por país, sector y gas
 emisiones_norm &lt;- edgar$data_norm  # emisiones per cápita y por unidad de PIB
@@ -3235,10 +4763,10 @@ en el resto de la memoria. Este dataset tiene 2 tablas:
 <code>aedv_incluir_dataset()</code> las devuelve juntas en una lista, y
 las líneas que siguen a la llamada las separan, cada una con su nombre.
 Si incorporas varios datasets, pega un chunk por cada uno, con nombres
-de tabla distintos. En un dataset auxiliar, que no tiene que cumplir los
-requisitos de AEDV,
-<code>aedv_incluir_dataset(&quot;EDGAR_GHG_analisis.Rmd&quot;, validacion = FALSE)</code>
-omite la validación.</p>
+de tabla distintos. Con <code>validacion = TRUE</code> el análisis
+incluye la validación de requisitos AEDV; en un dataset auxiliar, que no
+tiene que cumplirlos, cambia a <code>validacion = FALSE</code> para
+omitirla.</p>
 <p>El texto explicativo del dataset (qué mide, qué significa cada
 variable y cada una de sus opciones…) se escribe en la memoria, antes o
 después del chunk, no en <code>EDGAR_GHG_analisis.Rmd</code>: ese

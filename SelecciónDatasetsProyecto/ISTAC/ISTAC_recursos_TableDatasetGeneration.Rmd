@@ -47,7 +47,7 @@ summarise <- dplyr::summarise
 rename <- dplyr::rename
 ```
 
-El ISTAC publica sus datos a través de dos API. El catálogo **ISTAC_datasets.xlsx** (generado por **ISTAC_TableDatasetGeneration.Rmd**) recoge los **indicadores**, unas 400 series ya elaboradas. Este documento recorre la otra, la **API de recursos estadísticos**, que contiene todas las tablas que publica cada operación estadística del ISTAC (unas 5.000), y genera dos catálogos:
+El ISTAC publica sus datos a través de dos API. El catálogo **ISTAC_indicadores.xlsx** (generado por **ISTAC_indicadores_TableDatasetGeneration.Rmd**) recoge los **indicadores**, unas 400 series ya elaboradas. Este documento recorre la otra, la **API de recursos estadísticos**, que contiene todas las tablas que publica cada operación estadística del ISTAC (unas 5.000), y genera dos catálogos:
 
 * **ISTAC_recursos.raw.xlsx**: la ficha de **todos** los datasets con alguna versión publicada desde el 1 de enero de 2024 (los demás no pueden tener datos de 2024 o posteriores).
 
@@ -196,7 +196,7 @@ dimension_territorial <- function(codelists){
 
 ```{r}
 # Detecta la frecuencia de una serie a partir del FORMATO de sus fechas (la
-# misma función que ISTAC_TableDatasetGeneration.Rmd). Muchos datasets mezclan
+# misma función que ISTAC_indicadores_TableDatasetGeneration.Rmd). Muchos datasets mezclan
 # el agregado anual ("1999") con el detalle ("1999-Q1"), así que se descartan los
 # valores de 4 caracteres y se devuelve la granularidad más fina que aparezca.
 deteccion_frecuencia <- function(fechas){

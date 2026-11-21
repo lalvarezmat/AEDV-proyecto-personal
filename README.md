@@ -23,7 +23,7 @@ WORLD_BANK, EDGAR_GHG, CLIMA_CANARIAS, CLIMA_SPAIN, INFORME_PISA). Cada una cont
 documento que genera el catálogo (`*_TableDatasetGeneration`), el que descarga, valida y
 analiza los datasets elegidos (`*_DatasetSelection`) y los datos correspondientes
 (`.xlsx` de catálogo o `.rds`). El ISTAC tiene dos catálogos, cada uno con sus dos
-documentos: los indicadores (`ISTAC_datasets.xlsx`) y los recursos estadísticos
+documentos: los indicadores (`ISTAC_indicadores.xlsx`) y los recursos estadísticos
 (`ISTAC_recursos.xlsx`, tablas con varias dimensiones).
 
 ## Cómo se eligen los datasets: las cuatro etapas

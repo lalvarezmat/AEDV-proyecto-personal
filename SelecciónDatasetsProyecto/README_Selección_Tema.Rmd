@@ -20,7 +20,7 @@ Esta carpeta contiene herramientas para explorar y descargar datasets de siete f
 
 Las cuatro fuentes con API —**INE**, **ISTAC**, **EUROSTAT** y **Banco Mundial**— se abordan **exactamente igual**: la misma cadena de cuatro pasos, con los mismos dos documentos y los mismos tipos de fichero. Cambia el organismo y el nombre de los ficheros, no el procedimiento; si entiendes el flujo en una fuente, lo entiendes en las cuatro.
 
-El **ISTAC** publica sus datos por dos vías y por eso tiene **dos catálogos**, cada uno con su pareja de documentos: los **indicadores** (`ISTAC_datasets.xlsx`, unas 400 series ya elaboradas de una sola medida) y los **recursos estadísticos** (`ISTAC_recursos.xlsx`, las tablas que publica cada operación estadística, que pueden tener varias dimensiones como las del INE). Conviene mirar en los dos.
+El **ISTAC** publica sus datos por dos vías y por eso tiene **dos catálogos**, cada uno con su pareja de documentos: los **indicadores** (`ISTAC_indicadores.xlsx`, unas 400 series ya elaboradas de una sola medida) y los **recursos estadísticos** (`ISTAC_recursos.xlsx`, las tablas que publica cada operación estadística, que pueden tener varias dimensiones como las del INE). Conviene mirar en los dos.
 
 La idea de fondo es ir **de los miles de datasets que publica un organismo a unos pocos que acabarán en tu memoria**, estrechando el embudo en cada paso:
 
@@ -78,7 +78,7 @@ Por eso es importante **no depender del catálogo Excel para tu proyecto**: una 
 | Fuente | Catálogo | Cobertura |
 |--------|----------|-----------|
 | INE | `INE/INE.datasets.xlsx` | España: municipios, provincias, CCAA |
-| ISTAC (indicadores) | `ISTAC/ISTAC_datasets.xlsx` | Canarias: municipios; algunos comparan con España, sus CCAA o sus provincias |
+| ISTAC (indicadores) | `ISTAC/ISTAC_indicadores.xlsx` | Canarias: municipios; algunos comparan con España, sus CCAA o sus provincias |
 | ISTAC (recursos estadísticos) | `ISTAC/ISTAC_recursos.xlsx` | Canarias: municipios, islas; algunos comparan con España, sus CCAA o sus provincias |
 | EUROSTAT | `EUROSTAT/Eurostat.datasets.xlsx` | Europa: países y regiones NUTS 0, 1, 2 y 3 |
 | Banco Mundial | `WORLD_BANK/wb.datasets.xlsx` | Mundial: ≥100 países, ≥10 años |
@@ -123,7 +123,7 @@ Los datasets que usamos en AEDV siempre tienen una variable (columna) con un dat
 
 Un catálogo tiene entre 400 y 2.852 filas, así que no se lee de arriba abajo: **se busca dentro de él**. Hay dos maneras y lo razonable es combinarlas.
 
-**Con una IA, que es lo más rápido.** Súbele el `.xlsx` de la fuente (`ISTAC_datasets.xlsx`, `ISTAC_recursos.xlsx`, `wb.datasets.xlsx`, `Eurostat.datasets.xlsx` o `INE.datasets.xlsx`) a ChatGPT, Claude o similar y pídele los identificadores relacionados con tu tema: *«de este catálogo, dame los datasets sobre vivienda y alquiler, con su identificador y su nombre»*. Después pídele que **descarte los que no vayan a cumplir los requisitos**, apoyándose en las columnas que los anticipan:
+**Con una IA, que es lo más rápido.** Súbele el `.xlsx` de la fuente (`ISTAC_indicadores.xlsx`, `ISTAC_recursos.xlsx`, `wb.datasets.xlsx`, `Eurostat.datasets.xlsx` o `INE.datasets.xlsx`) a ChatGPT, Claude o similar y pídele los identificadores relacionados con tu tema: *«de este catálogo, dame los datasets sobre vivienda y alquiler, con su identificador y su nombre»*. Después pídele que **descarte los que no vayan a cumplir los requisitos**, apoyándose en las columnas que los anticipan:
 
 | Fuente | Columnas que anticipan si el dataset cumplirá los requisitos |
 |---|---|
@@ -211,7 +211,7 @@ Que en el paso 3 el guardado vaya **primero** y el análisis **después** no es 
 
 ````
 `r ''````{r, results='asis', cache=FALSE}
-ipc <- aedv_incluir_dataset("76136_analisis.Rmd")
+ipc <- aedv_incluir_dataset("76136_analisis.Rmd", validacion = TRUE)
 ```
 ````
 
@@ -286,19 +286,19 @@ El INE no trae una columna de tema, pero sí la operación estadística de la qu
 
 ---
 
-## ISTAC — `ISTAC/ISTAC_datasets.xlsx` (138 datasets)
+## ISTAC — `ISTAC/ISTAC_indicadores.xlsx` (138 datasets)
 
 Recoge los **indicadores** del ISTAC accesibles a través de la librería `istacr`: series ya elaboradas de una sola medida (territorio × fecha × valor). Hay **dos catálogos**, como en los recursos estadísticos:
 
-* **`ISTAC_datasets.xlsx`**, el que hay que usar: **solo los indicadores que sirven para el proyecto**. Tienen una frecuencia reconocida, su último dato es de **2024 o posterior**, tienen los periodos que exige el criterio de tamaño de AEDV (10 años, 20 semestres, 40 trimestres, 60 meses, 200 semanas o 1096 días) y datos de **15 regiones o más**. Casi todos son municipales; el resto, por comunidades autónomas o por provincias.
-* **`ISTAC_datasets.raw.xlsx`**: los 402 indicadores, cumplan o no, con las mismas columnas. Sirve para buscar un indicador auxiliar (por ejemplo, uno de Canarias en conjunto o por islas). `ISTAC_DatasetSelection.Rmd` acepta también sus identificadores.
+* **`ISTAC_indicadores.xlsx`**, el que hay que usar: **solo los indicadores que sirven para el proyecto**. Tienen una frecuencia reconocida, su último dato es de **2024 o posterior**, tienen los periodos que exige el criterio de tamaño de AEDV (10 años, 20 semestres, 40 trimestres, 60 meses, 200 semanas o 1096 días) y datos de **15 regiones o más**. Casi todos son municipales; el resto, por comunidades autónomas o por provincias.
+* **`ISTAC_indicadores.raw.xlsx`**: los 402 indicadores, cumplan o no, con las mismas columnas. Sirve para buscar un indicador auxiliar (por ejemplo, uno de Canarias en conjunto o por islas). `ISTAC_indicadores_DatasetSelection.Rmd` acepta también sus identificadores.
 
 ### Descripción de columnas
 
 | Columna | Descripción |
 |---------|-------------|
 | `Nº` | Número de fila de referencia en el catálogo. El catálogo está ordenado por nivel geográfico (`area`) y, dentro de cada nivel, por tema (`subject`). |
-| `id` | Identificador del indicador en el sistema ISTAC. Nombre corto en mayúsculas (ej. `POBLACION`, `PARO_REGISTRADO`). **Es el valor que hay que incluir en el vector `IDS`** en `ISTAC_DatasetSelection.Rmd`. |
+| `id` | Identificador del indicador en el sistema ISTAC. Nombre corto en mayúsculas (ej. `POBLACION`, `PARO_REGISTRADO`). **Es el valor que hay que incluir en el vector `IDS`** en `ISTAC_indicadores_DatasetSelection.Rmd`. |
 | `subject` | Tema al que pertenece el indicador. Permite filtrar por área de interés. |
 | `n.reg` | Número de territorios distintos con datos, de todos los niveles (por ejemplo, los municipios, las islas y Canarias). |
 | `n.reg.gran` | Cuántos de esos territorios hay de cada nivel, del más fino al más grueso: `MUNI(88) ISLA(7) CCAA(1)` son 88 municipios, las 7 islas y Canarias. |

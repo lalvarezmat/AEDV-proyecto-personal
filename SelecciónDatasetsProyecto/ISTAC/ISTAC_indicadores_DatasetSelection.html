@@ -9,10 +9,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
+<meta name="author" content="Luis Alvarez" />
 
 <meta name="date" content="2026-11-21" />
 
-<title>Exploración de los datasets del ISTAC usando la librería istacr</title>
+<title>Análisis de datasets seleccionados del ISTAC</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -361,21 +362,14 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">Exploración de los datasets del ISTAC
-usando la librería <code>istacr</code></h1>
+<h1 class="title toc-ignore">Análisis de datasets seleccionados del
+ISTAC</h1>
+<h4 class="author">Luis Alvarez</h4>
 <h4 class="date">2026-11-21</h4>
 
 </div>
 
 
-<!--
-# TRUCOS ÚTILES AL EDITAR UN FICHERO Rmarkdown: 
-(1) TECLAS: CTRL-MAY-1 : EDICIÓN DE CÓDIGO OCUPA/NO OCUPA TODA LA VENTANA
-(2) TECLAS: CTRL-ALT-C : EJECUTA UN CHUNK CUANDO EL CURSOR DEL RATÓN ESTA DENTRO DEL CHUNK (OTRA FORMA ES HACER CLICK EN EL BOTÓN TRIANGULAR VERDE EN LA ESQUINA SUPERIOR DERECHA DEL CHUNK)
-(3) ACTIVAR "knit on Save" PARA COMPILAR AUTOMÁTICAMENTE AL GUARDAR EL ARCHIVO (CTRL-S)
-PARA CREAR UN CHUNK NUEVO USAR BOTÓN VERDE CON UNA "C" EN LA PARTE SUPERIOR DERECHA DE LA VENTANA
-(4) PARA EJECUTAR UNA PORCIÓN DE CÓDIGO O VISUALIZAR EL VALOR DE UNA TABLA/VARIABLE SELECCIONAR EL CÓDIGO CON EL RATÓN Y HACER CTRL-ENTER -->
-<!-- A continuación se fijan algunas cuestiones básicas de estilo de formateado del texto. Opcionalmente, se puede usar un archivo CSS para definir en más detalle el formateado del texto -->
 <style>
 h1.title { font-size: 24px; }
 h1 { font-size: 20px; }
@@ -384,310 +378,1514 @@ h3 { font-size: 16px; }
 body { font-size: 14px;}
 p { font-size: 14px; margin-bottom: 10px;
 }
+/* Todas las cajas con scroll llevan la misma separación por debajo, para que no
+queden pegadas al texto que viene después (evita tener que poner <br> a mano
+   detrás de cada una) */
+.tabla-scroll, .caja-scroll, .tabla-scroll-xy { margin-bottom: 28px; }
 /* Tablas anchas: envolver el chunk en <div class="tabla-scroll"> ... </div> para verlas completas con scroll horizontal */
 .tabla-scroll { overflow-x: auto; }
 .tabla-scroll table { width: auto; min-width: 100%; }
 .tabla-scroll table td, .tabla-scroll table th { white-space: nowrap; }
+/* Textos y listados largos: envolver en <div class="caja-scroll"> ... </div>
+   para acotar su altura y recorrerlos con scroll vertical, en vez de ocupar
+   páginas enteras del documento */
+.caja-scroll { max-height: 250px; overflow-y: auto; padding: 10px 14px;
+               border: 1px solid #ddd; background-color: #fafafa; }
+/* Tablas que pueden ser anchas Y largas (p. ej. una fila por indicador): scroll
+   en los dos ejes, con la fila de cabecera fija arriba mientras se recorre.
+   Alternativa ligera a DT::datatable: HTML puro, sin JavaScript ni dependencias */
+/* max-height: cabecera + 5 filas a la vista; el resto se recorre con el scroll */
+.tabla-scroll-xy { overflow: auto; max-height: 190px; border: 1px solid #ddd; }
+.tabla-scroll-xy table { width: auto; min-width: 100%; margin-bottom: 0; }
+.tabla-scroll-xy table td, .tabla-scroll-xy table th { white-space: nowrap; }
+.tabla-scroll-xy thead th { position: sticky; top: 0; z-index: 1;
+                            background-color: #fff; box-shadow: inset 0 -1px 0 #ddd; }
+/* Celdas de cumple/no cumple de la tabla de validación de requisitos */
+.val-ok, .val-no { display: block; text-align: center; font-weight: bold;
+                   color: #fff; padding: 0 6px; border-radius: 3px; }
+.val-ok { background-color: #28a745; }
+.val-no { background-color: #dc3545; }
+/* Salidas de imprime_caja(): cabecera + 5 filas a la vista; el resto con scroll */
+.caja-scroll.caja-5 { max-height: 152px; }
 </style>
-<p>En este documento se estudia cómo explorar los datasets del
-<strong>ISTAC</strong> usando la librería <code>istacr</code>.</p>
-<div id="lectura-de-la-información-básica-de-todos-los-datasets-disponibles-a-través-de-istacr" class="section level1" number="1">
-<h1><span class="header-section-number">1</span> Lectura de la
-información básica de todos los datasets disponibles a través de
-<code>istacr</code></h1>
-<p>Leemos los datos básicos de los datasets existentes y recopilamos en
-el tibble <strong>ISTAC_datasets</strong> la información básica</p>
-<pre class="r"><code># LECTURA INFORMACIÓN BÁSICA DATASETS ACCESIBLES A TRAVÉS DE istacr
-ISTAC_INDICATORS &lt;- istacr::get_indicators(limit=1000)
+<p>Este documento analiza en detalle los <strong>indicadores</strong>
+del ISTAC ya elegidos a partir de la tabla que genera
+<strong>ISTAC_indicadores_TableDatasetGeneration.Rmd</strong> (<a href="ISTAC_indicadores.xlsx">ISTAC_indicadores.xlsx</a>), y comprueba
+si cumplen los requisitos para ser el dataset principal del proyecto
+personal de <strong>AEDV</strong>.</p>
+<p>A diferencia del INE o de Eurostat, aquí no se analiza un único
+dataset sino un <strong>conjunto de indicadores</strong> que se
+descargan y se combinan en una sola tabla: cada indicador es un atributo
+que se sigue en el tiempo para cada región de Canarias.</p>
+<!--  ================  PARA PROBAR TUS PROPIOS DATASETS EDITA EL CÓDIGO SIGUIENTE  ============ -->
+<p>Para analizar otros indicadores basta con cambiar sus códigos en el
+chunk de abajo y volver a compilar.</p>
+<pre class="r"><code># CÓDIGOS DE LOS INDICADORES QUE VAMOS A ANALIZAR
+IDS &lt;- c(&quot;MATRICULA_VEHICULOS&quot;, &quot;MATRICULA_VEHICULOS_TURISMOS&quot;, &quot;PARQUE_VEHICULOS&quot;,
+          &quot;PARQUE_VEHICULOS_HABITANTE&quot;, &quot;PARQUE_VEHICULOS_TURISMOS&quot;, &quot;PARQUE_VEHICULOS_TURISMOS_HABITANTE&quot;)
 
-# RECOPILACIÓN INFORMACIÓN BÁSICA EN EL TIBBLE ISTAC_datasets
-ISTAC_datasets &lt;- tibble(
-  id=as.character(),
-  title=as.character(),
-  description=as.character(),
-  notes=as.character(),
-  subject=as.character()
-)
+# nombre base de los ficheros que se guardan en disco
+filename &lt;- &quot;ISTAC_Selected&quot;</code></pre>
+<blockquote>
+<p><strong>Nota:</strong> la columna <code>description</code> de los
+metadatos se genera mediante consulta a IA a partir de fuentes oficiales
+del ISTAC. No proviene directamente de la API del ISTAC. Si se cambian
+los indicadores seleccionados habrá que rehacer la consulta a la IA
+pidiendo que se adapten las descripciones a los nuevos indicadores:</p>
+</blockquote>
+<pre class="r"><code># DESCRIPCIONES GENERADAS POR IA para los indicadores de vehículos (el ejemplo
+# por defecto es TURISTAS_*, que no tiene descripción propia todavía: sale
+# &quot;BUSCAR DESCRIPCIÓN&quot; más abajo hasta que se redacte)
+desc_ia &lt;- tibble(
+  id = c(
+    &quot;MATRICULA_VEHICULOS&quot;,
+    &quot;MATRICULA_VEHICULOS_TURISMOS&quot;,
+    &quot;PARQUE_VEHICULOS&quot;,
+    &quot;PARQUE_VEHICULOS_HABITANTE&quot;,
+    &quot;PARQUE_VEHICULOS_TURISMOS&quot;,
+    &quot;PARQUE_VEHICULOS_TURISMOS_HABITANTE&quot;
+  ),
+  description = c(
+    &quot;Número de vehículos ordinarios nuevos matriculados en circulación en cada municipio e isla de Canarias en un período. Excluye vehículos usados y rematriculaciones.&quot;,
+    &quot;Número de turismos (automóviles para transporte de pasajeros) nuevos matriculados en circulación. Desglose del indicador MATRICULA_VEHICULOS restringido a vehículos de tipo turismo.&quot;,
+    &quot;Número total de vehículos en circulación en un municipio o isla de Canarias en un momento dado. Cifra acumulada de todos los vehículos actualmente registrados en uso.&quot;,
+    &quot;Número de vehículos en circulación por cada 1.000 habitantes. Mide la intensidad de motorización y permite comparar el nivel de motorización entre territorios.&quot;,
+    &quot;Número total de turismos en circulación en un municipio o isla de Canarias. Desglose del parque total de vehículos restringido a automóviles de pasajeros.&quot;,
+    &quot;Número de turismos en circulación por cada 1.000 habitantes. Permite analizar los patrones de motorización por tipo de vehículo y comparar entre territorios.&quot;
+  )
+)</code></pre>
+<!--  ================  FIN EDICIÓN CÓDIGO PARA PROBAR TUS PROPIOS DATASETS ============ -->
+<div id="descarga-limpieza-y-guardado-de-los-datos" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> Descarga, limpieza y
+guardado de los datos</h1>
+<pre class="r"><code># CATÁLOGO DE INDICADORES: el filtrado y, para los indicadores que no están en
+# él (el filtro deja fuera indicadores que sí sirven, p. ej. como auxiliares),
+# el completo .raw
+ISTAC_indicadores &lt;- read.xlsx(&quot;ISTAC_indicadores.xlsx&quot;) |&gt;
+  as_tibble()
+if(file.exists(&quot;ISTAC_indicadores.raw.xlsx&quot;))
+  ISTAC_indicadores &lt;- bind_rows(ISTAC_indicadores,
+                              read.xlsx(&quot;ISTAC_indicadores.raw.xlsx&quot;) |&gt; as_tibble()) |&gt;
+    distinct(id, .keep_all = TRUE)
 
-for(k in 1:length(ISTAC_INDICATORS$items$id)){
-  ISTAC_datasets &lt;- ISTAC_datasets |&gt; 
-    add_row(
-      id=ISTAC_INDICATORS$items$id[k],
-      title=ISTAC_INDICATORS$items$title$es[k],
-      description=ISTAC_INDICATORS$items$conceptDescription$es[k],
-      notes=ISTAC_INDICATORS$items$notes$es[k],
-      subject=ISTAC_INDICATORS$items$subjectTitle$es[k]
-    )
+istac.regions &lt;- read_csv(&quot;ISTAC_AREAS_GEOGRAFICAS.csv&quot;, show_col_types = FALSE) |&gt;
+  as_tibble()</code></pre>
+<p>Descargamos cada indicador y los combinamos en una única tabla,
+añadiendo la columna <code>INDICATOR</code> para saber de cuál procede
+cada fila.</p>
+<pre class="r"><code>data &lt;- tibble()
+for(id in IDS){
+  tb &lt;- istac.data.download(id)
+  if(is.null(tb)) next
+
+  tb &lt;- tb |&gt;
+    as_tibble() |&gt;
+    rename(VALUE = OBSERVACIONES) |&gt;
+    mutate(
+      INDICATOR = id,
+      VALUE     = as.numeric(VALUE)
+    ) |&gt;
+    # MEASURE distingue el dato absoluto de variaciones/tasas derivadas del
+    # mismo indicador (p. ej. INTERPERIOD_PERCENTAGE_RATE): nos quedamos solo
+    # con el valor absoluto, que es la magnitud propia del indicador
+    filter(!is.na(VALUE), MEASURE == &quot;ABSOLUTE&quot;) |&gt;
+    select(-MEASURE) |&gt;
+    left_join(istac.regions, by = &quot;GEOGRAPHICAL&quot;) |&gt;
+    select(GEOGRAPHICAL, NAME, INDICATOR, TIME, VALUE)
+
+  data &lt;- bind_rows(data, tb)
 }
+data &lt;- arrange(data, GEOGRAPHICAL, TIME)</code></pre>
+<p>A diferencia del INE, Eurostat o el Banco Mundial, aquí no hace falta
+comprobar columnas con un solo valor: la API del ISTAC ya distingue el
+dato absoluto de sus variantes calculadas (<code>MEASURE</code>) y
+devuelve, por indicador, solo las columnas estructurales
+(<code>GEOGRAPHICAL</code>, <code>NAME</code>, <code>INDICATOR</code>,
+<code>TIME</code>, <code>VALUE</code>).</p>
+<p>Guardamos los datos <strong>lo primero de todo</strong>, nada más
+limpiarlos, en formato <code>rds</code> (el formato nativo de
+<code>R</code>: conserva los tipos de las columnas y ocupa mucho menos
+que un Excel).</p>
+<pre class="r"><code>saveRDS(data, file = paste0(filename, &quot;.rds&quot;))
 
-ISTAC_datasets &lt;- ISTAC_datasets |&gt; 
-  arrange(subject,id)</code></pre>
-<p>Añadimos el nº observaciones (filas) de cada dataset, el número de
-regiones distintas utilizadas, la frecuencia de los datos
-(<code>Y</code> anual, <code>S</code> semestral, <code>Q</code>
-trimestral, <code>M</code> mensual, <code>W</code> semanal,
-<code>D</code> diaria, y <code>?</code> si el formato de fecha no se
-reconoce), el nº de periodos de esa frecuencia, el periodo que cubre y
-el nivel territorial.</p>
-<p>El <strong>nivel territorial</strong> sale de la ficha de cada
-indicador (<code>istacr::get_indicators_code()</code>): cada territorio
-trae su <strong>granularidad</strong>, es decir, el tipo de territorio
-que es (municipio, isla, comunidad autónoma…), de la lista oficial del
-ISTAC. Con ella se calculan dos columnas, con el mismo criterio que el
-catálogo de los recursos estadísticos
-(<code>ISTAC_recursos.xlsx</code>):</p>
-<ul>
-<li><code>n.reg.gran</code>: nº de territorios de cada granularidad, de
-la más fina a la más gruesa; <code>OTROS</code> son los códigos sin
-granularidad o con una que no está en la lista de abajo.</li>
-<li><code>area</code>: la granularidad <strong>más fina</strong> que
-tiene al menos dos territorios (o la única que haya). Si solo está
-Canarias (una comunidad autónoma), <code>CANA</code>.</li>
-</ul>
-<pre class="r"><code># GRANULARIDADES DEL ISTAC, DE LA MÁS FINA A LA MÁS GRUESA, CON LA ETIQUETA
-# CORTA DE LA COLUMNA area (LAS MISMAS QUE ISTAC_recursos_TableDatasetGeneration.Rmd;
-# LAS ZONAS DE CALIDAD DEL AIRE SON GRUPOS DE ISLAS)
-NIVELES &lt;- c(MICRO_TOURISTIC_CENTRES = &quot;MICRO&quot;, MICRO_TOURISTIC_ENTITIES = &quot;MICRO&quot;,
-             MUNICIPALITIES = &quot;MUNI&quot;, COUNTIES = &quot;COMARCA&quot;, LARGE_COUNTIES = &quot;GCOMARCA&quot;,
-             ISLANDS = &quot;ISLA&quot;, AIR_QUALITY_ZONES = &quot;ZCAIRE&quot;, PROVINCES = &quot;PROV&quot;,
-             REGIONS = &quot;CCAA&quot;, COUNTRIES = &quot;PAIS&quot;)
+cat(&quot;Fichero guardado:&quot;, paste0(filename, &quot;.rds&quot;),
+    sprintf(&quot;(%.1f MB)\n&quot;, file.info(paste0(filename, &quot;.rds&quot;))$size / 1024^2))</code></pre>
+<pre><code>## Fichero guardado: ISTAC_Selected.rds (0.0 MB)</code></pre>
+<p>Guardamos también los metadatos de los indicadores recogidos en el
+catálogo de la asignatura (<strong>ISTAC_indicadores.xlsx</strong>,
+generado por
+<strong>ISTAC_indicadores_TableDatasetGeneration.Rmd</strong>): las
+filas correspondientes a los indicadores seleccionados, una por
+indicador, con la descripción generada por IA añadida.</p>
+<pre class="r"><code>metadatos &lt;- ISTAC_indicadores |&gt;
+  filter(id %in% IDS) |&gt;
+  left_join(desc_ia, by = &quot;id&quot;) |&gt;
+  mutate(description = if_else(is.na(description), &quot;BUSCAR DESCRIPCIÓN&quot;, description))
 
-# ETIQUETA DE CADA TERRITORIO (OTROS: SIN GRANULARIDAD O NO PREVISTA)
-etiqueta_nivel &lt;- function(g){
-  e &lt;- unname(NIVELES[g])
-  e[is.na(e)] &lt;- &quot;OTROS&quot;
-  e
-}
+if(nrow(metadatos) == 0)
+  stop(&quot;Ninguno de los indicadores seleccionados aparece en el catálogo del ISTAC. &quot;,
+       &quot;Comprueba los códigos o vuelve a generar el catálogo con ISTAC_indicadores_TableDatasetGeneration.Rmd&quot;)
 
-# Nº DE TERRITORIOS POR NIVEL, DEL MÁS FINO AL MÁS GRUESO (OTROS AL FINAL)
-conteo_niveles &lt;- function(g){
-  n &lt;- table(etiqueta_nivel(g))
-  n[order(match(names(n), c(unique(NIVELES), &quot;OTROS&quot;)))]
-}
+if(nrow(metadatos) &lt; length(IDS))
+  warning(&quot;Solo se han encontrado en el catálogo &quot;, nrow(metadatos), &quot; de los &quot;,
+          length(IDS), &quot; indicadores seleccionados: &quot;,
+          paste(setdiff(IDS, metadatos$id), collapse = &quot;, &quot;))
 
-# NIVEL TERRITORIAL: EL MÁS FINO CON AL MENOS DOS TERRITORIOS (O EL ÚNICO QUE HAYA)
-area_territorial &lt;- function(g){
-  n &lt;- conteo_niveles(g)
-  n &lt;- n[names(n) != &quot;OTROS&quot;]
-  if(!length(n)) return(&quot;OTRO&quot;)
-  k &lt;- which(n &gt;= 2)[1]
-  if(is.na(k)) k &lt;- 1
-  if(names(n)[k] == &quot;CCAA&quot; &amp;&amp; n[[k]] == 1) return(&quot;CANA&quot;)
-  names(n)[k]
-}
-
-# Fechas de la frecuencia detectada (descarta, por ejemplo, los totales anuales
-# de una serie mensual) para contar los periodos
-fechas_frecuencia &lt;- function(fechas, f){
-  d &lt;- unique(fechas[!is.na(fechas)])
-  patron &lt;- c(Y = &quot;^\\d{4}$&quot;, S = &quot;^\\d{4}-S[1-2]$&quot;, Q = &quot;^\\d{4}-Q[1-4]$&quot;,
-              M = &quot;^\\d{4}-M?(0[1-9]|1[0-2])$&quot;, W = &quot;^\\d{4}-W\\d{1,2}$&quot;,
-              D = &quot;^\\d{4}-\\d{2}-\\d{2}$&quot;)[f]
-  if(is.na(patron)) return(character())
-  sort(d[grepl(patron, d)])
-}
-
-# Detecta la frecuencia de una serie a partir del FORMATO de sus fechas.
-# Muchos datasets mezclan el agregado anual (&quot;1999&quot;) con el detalle
-# (&quot;1999-Q1&quot;), así que se descartan los valores de 4 caracteres y se devuelve
-# la granularidad más fina que aparezca.
-# Se compara con patrones explícitos en vez de restar dígitos de la fecha:
-# &quot;2026-Q1&quot;/&quot;2026-Q2&quot; y &quot;2026-01&quot;/&quot;2026-02&quot; son indistinguibles si uno se fija
-# solo en el carácter de la posición 7 (en ambos casos pasa de 1 a 2), y por eso
-# las series trimestrales se etiquetaban como mensuales.
-deteccion_frecuencia &lt;- function(fechas){
-  d &lt;- unique(fechas[!is.na(fechas)])
-  if(!length(d)) return(NA_character_)
-  d &lt;- d[nchar(d) &gt; 4]
-  if(!length(d)) return(&quot;Y&quot;)                        # solo agregados anuales
-  if(any(grepl(&quot;^\\d{4}-\\d{2}-\\d{2}$&quot;, d)))     return(&quot;D&quot;)
-  if(any(grepl(&quot;^\\d{4}-W\\d{1,2}$&quot;, d)))         return(&quot;W&quot;)
-  if(any(grepl(&quot;^\\d{4}-M?(0[1-9]|1[0-2])$&quot;, d))) return(&quot;M&quot;)
-  if(any(grepl(&quot;^\\d{4}-Q[1-4]$&quot;, d)))            return(&quot;Q&quot;)
-  if(any(grepl(&quot;^\\d{4}-S[1-2]$&quot;, d)))            return(&quot;S&quot;)
-  return(&quot;?&quot;)                                       # formato no previsto: se marca, no se adivina
-}
-
-# --- CONTROL DE CUELGUES ----------------------------------------------------
-# El recorrido son cientos de llamadas a la API del ISTAC y puede quedarse
-# esperando indefinidamente en una de ellas. Dos medidas:
-#
-# 1) Se acota el tiempo de cada llamada, para que una petición colgada termine
-#    en error en vez de bloquear el documento entero.
-# 2) Se deja constancia del avance en un fichero .log con marca de tiempo. Al
-#    compilar con quiet=TRUE no se ve NADA por consola -los print(id) van al
-#    documento, que no existe hasta el final-, así que sin este log no hay forma
-#    de saber si el proceso avanza o está colgado. El fichero se puede abrir
-#    mientras compila: la última línea dice por qué dataset va y cuánto tardó.
-#
-# NOTA: no se capturan los errores para saltarse el dataset. Si uno falla, el
-# documento se detiene y se relanza la compilación: se prefiere ir despacio a
-# perder datasets del catálogo sin enterarse.
-options(timeout = 60)
-if(requireNamespace(&quot;httr&quot;, quietly = TRUE)){
-  httr::set_config(httr::timeout(60))
-}
-
-LOG &lt;- &quot;ISTAC_TableDatasetGeneration.log&quot;
-cat(format(Sys.time()), &quot;- inicio del recorrido\n&quot;, file = LOG)
-log_avance &lt;- function(k, n, id, seg, nota = &quot;&quot;){
-  cat(sprintf(&quot;%s  %4d/%4d  %-38s %6.1f s%s%s\n&quot;,
-              format(Sys.time()), k, n, as.character(id), seg,
-              if(seg &gt; 30) &quot;   &lt;-- LENTO&quot; else &quot;&quot;,
-              if(nzchar(nota)) paste0(&quot;  &quot;, nota) else &quot;&quot;),
-      file = LOG, append = TRUE)
-}
-
-cat(&quot;ISTAC_datasets tiene&quot;, nrow(ISTAC_datasets), &quot;filas\n&quot;)</code></pre>
-<pre><code>## ISTAC_datasets tiene 402 filas</code></pre>
-<pre class="r"><code>GEOGRAPHICAL_LISTADO  &lt;- as.character()
-n.obs &lt;- as.numeric()
-n.reg &lt;- as.numeric()
-n.reg.gran &lt;- as.character()
-freq &lt;- as.character()
-n.periodos &lt;- as.numeric()
-initDate &lt;- as.character()
-lastDate &lt;- as.character()
-area &lt;- as.character()
-for(id in ISTAC_datasets$id){
-  #print(id)
-  t.inicio &lt;- Sys.time()
-  tb &lt;- istacr::get_indicators_code_data(id)$dataframe
-  if (! &quot;ABSOLUTE&quot; %in% tb$MEASURE) stop(&quot;El campo &#39;ABSOLUTE&#39; no existe en el tibble&quot;)
-  n.obs &lt;- c(n.obs,nrow(tb))
-  AREAid &lt;- unique(tb$GEOGRAPHICAL)
-  n.reg &lt;- c(n.reg,length(AREAid))
-  # GRANULARIDAD DE CADA TERRITORIO, DE LA FICHA DEL INDICADOR
-  rep_geo &lt;- istacr::get_indicators_code(id)$dimension$GEOGRAPHICAL$representation
-  gran &lt;- unname(setNames(rep_geo$granularityCode, rep_geo$code)[AREAid])
-  gran[is.na(gran)] &lt;- &quot;_O&quot;
-  n.niv &lt;- conteo_niveles(gran)
-  n.reg.gran &lt;- c(n.reg.gran, paste0(names(n.niv), &quot;(&quot;, n.niv, &quot;)&quot;, collapse = &quot; &quot;))
-  area &lt;- c(area, area_territorial(gran))
-  dates &lt;- tb  |&gt; pull(TIME) |&gt; unique() |&gt; sort()
-  #initDate &lt;- c(initDate,paste0(substr(dates[1],1,4),&quot;-&quot;,substr(dates[length(dates)],1,4)))
-  initDate &lt;- c(initDate,min(dates))
-  lastDate &lt;- c(lastDate,max(dates))
-  freq &lt;- c(freq,deteccion_frecuencia(dates))
-  n.periodos &lt;- c(n.periodos, length(fechas_frecuencia(dates, tail(freq, 1))))
-  log_avance(which(ISTAC_datasets$id == id)[1], nrow(ISTAC_datasets), id,
-             as.numeric(difftime(Sys.time(), t.inicio, units = &quot;secs&quot;)),
-             paste0(&quot;freq=&quot;, tail(freq,1), &quot; n.obs=&quot;, tail(n.obs,1)))
-
-}
-
-# GEOGRAPHICAL_LISTADO |&gt; 
-#   as_tibble() |&gt;
-#   write_csv(&quot;ISTAC_AREAS_GEOGRAFICAS_LISTADO.csv&quot;)
-
-ISTAC_datasets &lt;- ISTAC_datasets |&gt;
-  mutate(freq = freq) |&gt; 
-  relocate(freq,.after=title) |&gt; 
-  mutate(initDate = initDate) |&gt; 
-  relocate(initDate,.after=title) |&gt; 
-  mutate(lastDate = lastDate) |&gt; 
-  relocate(lastDate,.after=initDate) |&gt;
-  mutate(n.obs = n.obs) |&gt; 
-  relocate(n.obs,.after=title) |&gt; 
-  mutate(n.reg = n.reg) |&gt;
-  relocate(n.reg,.after=title) |&gt;
-  mutate(n.reg.gran = n.reg.gran, .after = n.reg) |&gt;
-  mutate(n.periodos = n.periodos, .after = freq) |&gt;
-  mutate(area = area) |&gt;
-  relocate(area,.after=title)</code></pre>
-<!-- Imprimimos información básica de cada dataset y la guardamos en disco como una hoja Excel. -->
-<pre class="default"><code>ISTAC_datasets |&gt;
-  select(id,subject,n.reg,n.reg.gran,n.obs,area,freq,n.periodos,initDate,lastDate) |&gt;
-  arrange(area, subject, id) |&gt;
-  mutate(`Nº` = row_number(), .before = 1) |&gt;
-  knitr::kable()</code></pre>
-<p>Se escriben dos catálogos, como en el resto de fuentes:</p>
-<ul>
-<li><strong>ISTAC_datasets.raw.xlsx</strong>: todos los
-indicadores.</li>
-<li><strong>ISTAC_datasets.xlsx</strong>: solo los que sirven para el
-proyecto de AEDV: frecuencia reconocida, último dato de 2024 o
-posterior, los periodos que exige el criterio de tamaño de las series
-(10 años, 20 semestres, 40 trimestres, 60 meses, 200 semanas o 1096
-días) y datos de <strong>15 regiones o más</strong> (contando todos los
-niveles territoriales del indicador).</li>
-</ul>
-<pre class="r"><code># UMBRALES DEL CRITERIO AEDV DE TAMAÑO DE LAS SERIES Y DEL CATÁLOGO FILTRADO
-umbral_freq &lt;- c(Y = 10, S = 20, Q = 40, M = 60, W = 200, D = 1096)
-ANIO_MINIMO &lt;- 2024
-MIN_REGIONES &lt;- 15
-
-ISTAC_datasets.raw &lt;- ISTAC_datasets |&gt;
-  select(id,subject,n.reg,n.reg.gran,n.obs,area,freq,n.periodos,initDate,lastDate) |&gt;
-  # ORDENADO POR NIVEL TERRITORIAL Y, DENTRO DE ÉL, POR TEMA
-  arrange(area, subject, id)
-
-ISTAC_datasets.filtrados &lt;- ISTAC_datasets.raw |&gt;
-  filter(freq %in% names(umbral_freq),
-         as.integer(substr(lastDate, 1, 4)) &gt;= ANIO_MINIMO,
-         n.periodos &gt;= umbral_freq[freq],
-         n.reg &gt;= MIN_REGIONES)
-
-ISTAC_datasets.raw |&gt;
-  mutate(`Nº` = row_number(), .before = 1) |&gt;
-  write.xlsx(&quot;ISTAC_datasets.raw.xlsx&quot;)
-ISTAC_datasets.filtrados |&gt;
-  mutate(`Nº` = row_number(), .before = 1) |&gt;
-  write.xlsx(&quot;ISTAC_datasets.xlsx&quot;)
-
-cat(&quot;ISTAC_datasets.raw.xlsx:&quot;, nrow(ISTAC_datasets.raw), &quot;indicadores;&quot;,
-    &quot;ISTAC_datasets.xlsx:&quot;, nrow(ISTAC_datasets.filtrados), &quot;\n&quot;)</code></pre>
-<pre><code>## ISTAC_datasets.raw.xlsx: 402 indicadores; ISTAC_datasets.xlsx: 138</code></pre>
-<pre class="r"><code># REPARTO POR NIVEL TERRITORIAL DE LOS DOS CATÁLOGOS
-full_join(count(ISTAC_datasets.raw, area, name = &quot;completo&quot;),
-          count(ISTAC_datasets.filtrados, area, name = &quot;filtrado&quot;), by = &quot;area&quot;) |&gt;
-  knitr::kable()</code></pre>
+write.xlsx(metadatos, file = paste0(filename, &quot;_metadatos.xlsx&quot;), overwrite = TRUE)</code></pre>
+<p>Una vez guardados en disco los metadatos (fichero xlsx) y los datos
+(fichero RDS), iniciamos el proceso de análisis. A partir de aquí el
+documento se compila <strong>solo</strong> con los ficheros ya guardados
+en disco; no se usa ningún objeto de las secciones anteriores. Es a
+propósito: es la parte que se incorpora a la memoria del proyecto
+personal (ver la última sección, <em>Incorporación del dataset a la
+memoria</em>), así que tiene que poder ejecutarse sola (lo único que se
+usa de lo definido anteriormente es <code>filename</code>).</p>
+<!------------------------------------------------------------------------------- 
+LA SECCIÓN SIGUIENTE, "Análisis del dataset", HASTA LA MARCA "FIN DE LA PARTE QUE SE INCORPORA A LA MEMORIA", ES LA QUE SE INCORPORA A LA MEMORIA DEL PROYECTO PERSONAL, EN LA SECCIÓN "COMPRENSIÓN DE LOS DATOS". AL COMPILAR ESTE DOCUMENTO SE GUARDA EN EL FICHERO <filename>_analisis.Rmd, QUE SE INCLUYE EN LA MEMORIA CON aedv_incluir_dataset() (VER LA ÚLTIMA SECCIÓN).
+LAS MARCAS "INICIO/FIN DE LA VALIDACIÓN AEDV" DELIMITAN LO QUE OMITE aedv_incluir_dataset(validacion = FALSE): NO BORRARLAS.
+--------------------------------------------------------------------------------->
+</div>
+<div id="análisis-del-dataset" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> Análisis del
+dataset</h1>
+<p><strong>metadatos</strong></p>
+<div class="tabla-scroll-xy">
 <table>
+<colgroup>
+<col width="1%" />
+<col width="10%" />
+<col width="11%" />
+<col width="1%" />
+<col width="7%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="3%" />
+<col width="2%" />
+<col width="2%" />
+<col width="54%" />
+</colgroup>
 <thead>
 <tr class="header">
+<th align="right">Nº</th>
+<th align="left">id</th>
+<th align="left">subject</th>
+<th align="right">n.reg</th>
+<th align="left">n.reg.gran</th>
+<th align="right">n.obs</th>
 <th align="left">area</th>
-<th align="right">completo</th>
-<th align="right">filtrado</th>
+<th align="left">freq</th>
+<th align="right">n.periodos</th>
+<th align="left">initDate</th>
+<th align="left">lastDate</th>
+<th align="left">description</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">CANA</td>
-<td align="right">93</td>
-<td align="right">NA</td>
-</tr>
-<tr class="even">
-<td align="left">CCAA</td>
-<td align="right">40</td>
-<td align="right">30</td>
-</tr>
-<tr class="odd">
-<td align="left">GCOMARCA</td>
-<td align="right">9</td>
-<td align="right">NA</td>
-</tr>
-<tr class="even">
-<td align="left">ISLA</td>
-<td align="right">89</td>
-<td align="right">NA</td>
-</tr>
-<tr class="odd">
-<td align="left">MUNI</td>
-<td align="right">124</td>
+<td align="right">122</td>
+<td align="left">MATRICULA_VEHICULOS</td>
+<td align="left">Transporte, movilidad y comunicaciones</td>
 <td align="right">97</td>
+<td align="left">MUNI(89) ISLA(7) CCAA(1)</td>
+<td align="right">11640</td>
+<td align="left">MUNI</td>
+<td align="left">Y</td>
+<td align="right">24</td>
+<td align="left">2003</td>
+<td align="left">2026</td>
+<td align="left">Número de vehículos ordinarios nuevos matriculados en
+circulación en cada municipio e isla de Canarias en un período. Excluye
+vehículos usados y rematriculaciones.</td>
 </tr>
 <tr class="even">
-<td align="left">OTRO</td>
-<td align="right">1</td>
-<td align="right">NA</td>
+<td align="right">123</td>
+<td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
+<td align="left">Transporte, movilidad y comunicaciones</td>
+<td align="right">97</td>
+<td align="left">MUNI(89) ISLA(7) CCAA(1)</td>
+<td align="right">11640</td>
+<td align="left">MUNI</td>
+<td align="left">Y</td>
+<td align="right">24</td>
+<td align="left">2003</td>
+<td align="left">2026</td>
+<td align="left">Número de turismos (automóviles para transporte de
+pasajeros) nuevos matriculados en circulación. Desglose del indicador
+MATRICULA_VEHICULOS restringido a vehículos de tipo turismo.</td>
 </tr>
 <tr class="odd">
-<td align="left">PROV</td>
-<td align="right">46</td>
-<td align="right">11</td>
+<td align="right">124</td>
+<td align="left">PARQUE_VEHICULOS</td>
+<td align="left">Transporte, movilidad y comunicaciones</td>
+<td align="right">96</td>
+<td align="left">MUNI(88) ISLA(7) CCAA(1)</td>
+<td align="right">7680</td>
+<td align="left">MUNI</td>
+<td align="left">Y</td>
+<td align="right">16</td>
+<td align="left">2010</td>
+<td align="left">2025</td>
+<td align="left">Número total de vehículos en circulación en un
+municipio o isla de Canarias en un momento dado. Cifra acumulada de
+todos los vehículos actualmente registrados en uso.</td>
+</tr>
+<tr class="even">
+<td align="right">125</td>
+<td align="left">PARQUE_VEHICULOS_HABITANTE</td>
+<td align="left">Transporte, movilidad y comunicaciones</td>
+<td align="right">96</td>
+<td align="left">MUNI(88) ISLA(7) CCAA(1)</td>
+<td align="right">4608</td>
+<td align="left">MUNI</td>
+<td align="left">Y</td>
+<td align="right">16</td>
+<td align="left">2010</td>
+<td align="left">2025</td>
+<td align="left">Número de vehículos en circulación por cada 1.000
+habitantes. Mide la intensidad de motorización y permite comparar el
+nivel de motorización entre territorios.</td>
+</tr>
+<tr class="odd">
+<td align="right">126</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS</td>
+<td align="left">Transporte, movilidad y comunicaciones</td>
+<td align="right">96</td>
+<td align="left">MUNI(88) ISLA(7) CCAA(1)</td>
+<td align="right">7680</td>
+<td align="left">MUNI</td>
+<td align="left">Y</td>
+<td align="right">16</td>
+<td align="left">2010</td>
+<td align="left">2025</td>
+<td align="left">Número total de turismos en circulación en un municipio
+o isla de Canarias. Desglose del parque total de vehículos restringido a
+automóviles de pasajeros.</td>
+</tr>
+<tr class="even">
+<td align="right">127</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS_HABITANTE</td>
+<td align="left">Transporte, movilidad y comunicaciones</td>
+<td align="right">96</td>
+<td align="left">MUNI(88) ISLA(7) CCAA(1)</td>
+<td align="right">4608</td>
+<td align="left">MUNI</td>
+<td align="left">Y</td>
+<td align="right">16</td>
+<td align="left">2010</td>
+<td align="left">2025</td>
+<td align="left">Número de turismos en circulación por cada 1.000
+habitantes. Permite analizar los patrones de motorización por tipo de
+vehículo y comparar entre territorios.</td>
 </tr>
 </tbody>
 </table>
+</div>
+<p><strong>tabla original</strong> (100 filas elegidas al azar)</p>
+<div class="tabla-scroll-xy">
+<table>
+<colgroup>
+<col width="14%" />
+<col width="30%" />
+<col width="40%" />
+<col width="5%" />
+<col width="10%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">GEOGRAPHICAL</th>
+<th align="left">NAME</th>
+<th align="left">INDICATOR</th>
+<th align="left">TIME</th>
+<th align="right">VALUE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">35010</td>
+<td align="left">Haría</td>
+<td align="left">MATRICULA_VEHICULOS</td>
+<td align="left">2008</td>
+<td align="right">90.0</td>
+</tr>
+<tr class="even">
+<td align="left">38038</td>
+<td align="left">Santa Cruz de Tenerife</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS_HABITANTE</td>
+<td align="left">2016</td>
+<td align="right">539.5</td>
+</tr>
+<tr class="odd">
+<td align="left">38009</td>
+<td align="left">Breña Baja</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS_HABITANTE</td>
+<td align="left">2019</td>
+<td align="right">568.6</td>
+</tr>
+<tr class="even">
+<td align="left">ES706</td>
+<td align="left">La Gomera</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS</td>
+<td align="left">2020</td>
+<td align="right">9571.0</td>
+</tr>
+<tr class="odd">
+<td align="left">38053</td>
+<td align="left">Villa de Mazo</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS</td>
+<td align="left">2023</td>
+<td align="right">3045.0</td>
+</tr>
+<tr class="even">
+<td align="left">ES708</td>
+<td align="left">Lanzarote</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS</td>
+<td align="left">2011</td>
+<td align="right">74061.0</td>
+</tr>
+<tr class="odd">
+<td align="left">38042</td>
+<td align="left">Los Silos</td>
+<td align="left">PARQUE_VEHICULOS_HABITANTE</td>
+<td align="left">2018</td>
+<td align="right">708.5</td>
+</tr>
+<tr class="even">
+<td align="left">38003</td>
+<td align="left">Alajeró</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS_HABITANTE</td>
+<td align="left">2010</td>
+<td align="right">323.9</td>
+</tr>
+<tr class="odd">
+<td align="left">38045</td>
+<td align="left">Tazacorte</td>
+<td align="left">MATRICULA_VEHICULOS</td>
+<td align="left">2017</td>
+<td align="right">110.0</td>
+</tr>
+<tr class="even">
+<td align="left">35012</td>
+<td align="left">Mogán</td>
+<td align="left">PARQUE_VEHICULOS</td>
+<td align="left">2019</td>
+<td align="right">17473.0</td>
+</tr>
+<tr class="odd">
+<td align="left">38043</td>
+<td align="left">Tacoronte</td>
+<td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
+<td align="left">2009</td>
+<td align="right">263.0</td>
+</tr>
+<tr class="even">
+<td align="left">35017</td>
+<td align="left">Puerto del Rosario</td>
+<td align="left">MATRICULA_VEHICULOS</td>
+<td align="left">2007</td>
+<td align="right">1864.0</td>
+</tr>
+<tr class="odd">
+<td align="left">ES70</td>
+<td align="left">Canarias</td>
+<td align="left">MATRICULA_VEHICULOS</td>
+<td align="left">2024</td>
+<td align="right">76763.0</td>
+</tr>
+<tr class="even">
+<td align="left">38040</td>
+<td align="left">Santiago del Teide</td>
+<td align="left">MATRICULA_VEHICULOS</td>
+<td align="left">2017</td>
+<td align="right">314.0</td>
+</tr>
+<tr class="odd">
+<td align="left">35011</td>
+<td align="left">Ingenio</td>
+<td align="left">MATRICULA_VEHICULOS</td>
+<td align="left">2008</td>
+<td align="right">1759.0</td>
+</tr>
+<tr class="even">
+<td align="left">38046</td>
+<td align="left">Tegueste</td>
+<td align="left">PARQUE_VEHICULOS</td>
+<td align="left">2020</td>
+<td align="right">9180.0</td>
+</tr>
+<tr class="odd">
+<td align="left">35008</td>
+<td align="left">Firgas</td>
+<td align="left">PARQUE_VEHICULOS_HABITANTE</td>
+<td align="left">2023</td>
+<td align="right">908.9</td>
+</tr>
+<tr class="even">
+<td align="left">38044</td>
+<td align="left">El Tanque</td>
+<td align="left">MATRICULA_VEHICULOS</td>
+<td align="left">2017</td>
+<td align="right">62.0</td>
+</tr>
+<tr class="odd">
+<td align="left">38037</td>
+<td align="left">Santa Cruz de La Palma</td>
+<td align="left">MATRICULA_VEHICULOS</td>
+<td align="left">2007</td>
+<td align="right">651.0</td>
+</tr>
+<tr class="even">
+<td align="left">38019</td>
+<td align="left">Guía de Isora</td>
+<td align="left">PARQUE_VEHICULOS_HABITANTE</td>
+<td align="left">2024</td>
+<td align="right">834.7</td>
+</tr>
+<tr class="odd">
+<td align="left">38025</td>
+<td align="left">La Matanza de Acentejo</td>
+<td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
+<td align="left">2013</td>
+<td align="right">61.0</td>
+</tr>
+<tr class="even">
+<td align="left">38012</td>
+<td align="left">Fasnia</td>
+<td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
+<td align="left">2013</td>
+<td align="right">18.0</td>
+</tr>
+<tr class="odd">
+<td align="left">35026</td>
+<td align="left">Telde</td>
+<td align="left">PARQUE_VEHICULOS_HABITANTE</td>
+<td align="left">2024</td>
+<td align="right">781.1</td>
+</tr>
+<tr class="even">
+<td align="left">38030</td>
+<td align="left">Puntallana</td>
+<td align="left">PARQUE_VEHICULOS</td>
+<td align="left">2011</td>
+<td align="right">1940.0</td>
+</tr>
+<tr class="odd">
+<td align="left">ES708</td>
+<td align="left">Lanzarote</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS_HABITANTE</td>
+<td align="left">2016</td>
+<td align="right">551.2</td>
+</tr>
+<tr class="even">
+<td align="left">38008</td>
+<td align="left">Breña Alta</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS</td>
+<td align="left">2017</td>
+<td align="right">3508.0</td>
+</tr>
+<tr class="odd">
+<td align="left">38053</td>
+<td align="left">Villa de Mazo</td>
+<td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
+<td align="left">2007</td>
+<td align="right">157.0</td>
+</tr>
+<tr class="even">
+<td align="left">35020</td>
+<td align="left">La Aldea de San Nicolás</td>
+<td align="left">MATRICULA_VEHICULOS</td>
+<td align="left">2013</td>
+<td align="right">49.0</td>
+</tr>
+<tr class="odd">
+<td align="left">35032</td>
+<td align="left">Valleseco</td>
+<td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
+<td align="left">2005</td>
+<td align="right">66.0</td>
+</tr>
+<tr class="even">
+<td align="left">35018</td>
+<td align="left">San Bartolomé</td>
+<td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
+<td align="left">2015</td>
+<td align="right">760.0</td>
+</tr>
+<tr class="odd">
+<td align="left">35024</td>
+<td align="left">Teguise</td>
+<td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
+<td align="left">2005</td>
+<td align="right">629.0</td>
+</tr>
+<tr class="even">
+<td align="left">35014</td>
+<td align="left">La Oliva</td>
+<td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
+<td align="left">2020</td>
+<td align="right">174.0</td>
+</tr>
+<tr class="odd">
+<td align="left">38032</td>
+<td align="left">El Rosario</td>
+<td align="left">MATRICULA_VEHICULOS</td>
+<td align="left">2009</td>
+<td align="right">437.0</td>
+</tr>
+<tr class="even">
+<td align="left">38008</td>
+<td align="left">Breña Alta</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS_HABITANTE</td>
+<td align="left">2014</td>
+<td align="right">455.1</td>
+</tr>
+<tr class="odd">
+<td align="left">38025</td>
+<td align="left">La Matanza de Acentejo</td>
+<td align="left">MATRICULA_VEHICULOS</td>
+<td align="left">2012</td>
+<td align="right">80.0</td>
+</tr>
+<tr class="even">
+<td align="left">38005</td>
+<td align="left">Arico</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS</td>
+<td align="left">2022</td>
+<td align="right">4992.0</td>
+</tr>
+<tr class="odd">
+<td align="left">35011</td>
+<td align="left">Ingenio</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS_HABITANTE</td>
+<td align="left">2024</td>
+<td align="right">551.3</td>
+</tr>
+<tr class="even">
+<td align="left">ES708</td>
+<td align="left">Lanzarote</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS_HABITANTE</td>
+<td align="left">2024</td>
+<td align="right">593.6</td>
+</tr>
+<tr class="odd">
+<td align="left">ES705</td>
+<td align="left">Gran Canaria</td>
+<td align="left">PARQUE_VEHICULOS</td>
+<td align="left">2024</td>
+<td align="right">712181.0</td>
+</tr>
+<tr class="even">
+<td align="left">ES709</td>
+<td align="left">Tenerife</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS</td>
+<td align="left">2015</td>
+<td align="right">454184.0</td>
+</tr>
+<tr class="odd">
+<td align="left">35026</td>
+<td align="left">Telde</td>
+<td align="left">PARQUE_VEHICULOS_HABITANTE</td>
+<td align="left">2017</td>
+<td align="right">698.2</td>
+</tr>
+<tr class="even">
+<td align="left">38015</td>
+<td align="left">Garachico</td>
+<td align="left">MATRICULA_VEHICULOS</td>
+<td align="left">2012</td>
+<td align="right">29.0</td>
+</tr>
+<tr class="odd">
+<td align="left">ES70</td>
+<td align="left">Canarias</td>
+<td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
+<td align="left">2015</td>
+<td align="right">47912.0</td>
+</tr>
+<tr class="even">
+<td align="left">35005</td>
+<td align="left">Artenara</td>
+<td align="left">PARQUE_VEHICULOS_HABITANTE</td>
+<td align="left">2020</td>
+<td align="right">903.4</td>
+</tr>
+<tr class="odd">
+<td align="left">35010</td>
+<td align="left">Haría</td>
+<td align="left">MATRICULA_VEHICULOS</td>
+<td align="left">2018</td>
+<td align="right">119.0</td>
+</tr>
+<tr class="even">
+<td align="left">38016</td>
+<td align="left">Garafía</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS</td>
+<td align="left">2013</td>
+<td align="right">670.0</td>
+</tr>
+<tr class="odd">
+<td align="left">38040</td>
+<td align="left">Santiago del Teide</td>
+<td align="left">PARQUE_VEHICULOS_HABITANTE</td>
+<td align="left">2014</td>
+<td align="right">657.0</td>
+</tr>
+<tr class="even">
+<td align="left">38019</td>
+<td align="left">Guía de Isora</td>
+<td align="left">PARQUE_VEHICULOS_HABITANTE</td>
+<td align="left">2010</td>
+<td align="right">682.7</td>
+</tr>
+<tr class="odd">
+<td align="left">38019</td>
+<td align="left">Guía de Isora</td>
+<td align="left">PARQUE_VEHICULOS_HABITANTE</td>
+<td align="left">2014</td>
+<td align="right">706.7</td>
+</tr>
+<tr class="even">
+<td align="left">38023</td>
+<td align="left">San Cristóbal de La Laguna</td>
+<td align="left">MATRICULA_VEHICULOS</td>
+<td align="left">2019</td>
+<td align="right">5368.0</td>
+</tr>
+<tr class="odd">
+<td align="left">38016</td>
+<td align="left">Garafía</td>
+<td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
+<td align="left">2005</td>
+<td align="right">17.0</td>
+</tr>
+<tr class="even">
+<td align="left">38050</td>
+<td align="left">Vallehermoso</td>
+<td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
+<td align="left">2012</td>
+<td align="right">9.0</td>
+</tr>
+<tr class="odd">
+<td align="left">38033</td>
+<td align="left">San Andrés y Sauces</td>
+<td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
+<td align="left">2025</td>
+<td align="right">50.0</td>
+</tr>
+<tr class="even">
+<td align="left">38048</td>
+<td align="left">Valverde</td>
+<td align="left">PARQUE_VEHICULOS</td>
+<td align="left">2025</td>
+<td align="right">5629.0</td>
+</tr>
+<tr class="odd">
+<td align="left">35017</td>
+<td align="left">Puerto del Rosario</td>
+<td align="left">MATRICULA_VEHICULOS</td>
+<td align="left">2003</td>
+<td align="right">1484.0</td>
+</tr>
+<tr class="even">
+<td align="left">38901</td>
+<td align="left">El Pinar de El Hierro</td>
+<td align="left">PARQUE_VEHICULOS</td>
+<td align="left">2024</td>
+<td align="right">1566.0</td>
+</tr>
+<tr class="odd">
+<td align="left">38011</td>
+<td align="left">Candelaria</td>
+<td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
+<td align="left">2009</td>
+<td align="right">285.0</td>
+</tr>
+<tr class="even">
+<td align="left">35005</td>
+<td align="left">Artenara</td>
+<td align="left">PARQUE_VEHICULOS</td>
+<td align="left">2010</td>
+<td align="right">814.0</td>
+</tr>
+<tr class="odd">
+<td align="left">38038</td>
+<td align="left">Santa Cruz de Tenerife</td>
+<td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
+<td align="left">2012</td>
+<td align="right">2481.0</td>
+</tr>
+<tr class="even">
+<td align="left">38050</td>
+<td align="left">Vallehermoso</td>
+<td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
+<td align="left">2024</td>
+<td align="right">15.0</td>
+</tr>
+<tr class="odd">
+<td align="left">38001</td>
+<td align="left">Adeje</td>
+<td align="left">MATRICULA_VEHICULOS</td>
+<td align="left">2017</td>
+<td align="right">1745.0</td>
+</tr>
+<tr class="even">
+<td align="left">38050</td>
+<td align="left">Vallehermoso</td>
+<td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
+<td align="left">2013</td>
+<td align="right">19.0</td>
+</tr>
+<tr class="odd">
+<td align="left">38040</td>
+<td align="left">Santiago del Teide</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS_HABITANTE</td>
+<td align="left">2024</td>
+<td align="right">545.1</td>
+</tr>
+<tr class="even">
+<td align="left">35017</td>
+<td align="left">Puerto del Rosario</td>
+<td align="left">MATRICULA_VEHICULOS</td>
+<td align="left">2025</td>
+<td align="right">1247.0</td>
+</tr>
+<tr class="odd">
+<td align="left">35028</td>
+<td align="left">Tías</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS</td>
+<td align="left">2020</td>
+<td align="right">15304.0</td>
+</tr>
+<tr class="even">
+<td align="left">ES707</td>
+<td align="left">La Palma</td>
+<td align="left">PARQUE_VEHICULOS_HABITANTE</td>
+<td align="left">2022</td>
+<td align="right">945.8</td>
+</tr>
+<tr class="odd">
+<td align="left">38002</td>
+<td align="left">Agulo</td>
+<td align="left">PARQUE_VEHICULOS_HABITANTE</td>
+<td align="left">2019</td>
+<td align="right">685.6</td>
+</tr>
+<tr class="even">
+<td align="left">38028</td>
+<td align="left">Puerto de la Cruz</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS</td>
+<td align="left">2015</td>
+<td align="right">18613.0</td>
+</tr>
+<tr class="odd">
+<td align="left">ES704</td>
+<td align="left">Fuerteventura</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS_HABITANTE</td>
+<td align="left">2019</td>
+<td align="right">462.9</td>
+</tr>
+<tr class="even">
+<td align="left">38027</td>
+<td align="left">El Paso</td>
+<td align="left">PARQUE_VEHICULOS_HABITANTE</td>
+<td align="left">2015</td>
+<td align="right">932.7</td>
+</tr>
+<tr class="odd">
+<td align="left">35012</td>
+<td align="left">Mogán</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS_HABITANTE</td>
+<td align="left">2023</td>
+<td align="right">567.0</td>
+</tr>
+<tr class="even">
+<td align="left">38045</td>
+<td align="left">Tazacorte</td>
+<td align="left">PARQUE_VEHICULOS</td>
+<td align="left">2010</td>
+<td align="right">3262.0</td>
+</tr>
+<tr class="odd">
+<td align="left">38042</td>
+<td align="left">Los Silos</td>
+<td align="left">PARQUE_VEHICULOS</td>
+<td align="left">2021</td>
+<td align="right">3477.0</td>
+</tr>
+<tr class="even">
+<td align="left">38024</td>
+<td align="left">Los Llanos de Aridane</td>
+<td align="left">MATRICULA_VEHICULOS</td>
+<td align="left">2023</td>
+<td align="right">508.0</td>
+</tr>
+<tr class="odd">
+<td align="left">38029</td>
+<td align="left">Puntagorda</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS</td>
+<td align="left">2016</td>
+<td align="right">694.0</td>
+</tr>
+<tr class="even">
+<td align="left">38053</td>
+<td align="left">Villa de Mazo</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS_HABITANTE</td>
+<td align="left">2021</td>
+<td align="right">602.9</td>
+</tr>
+<tr class="odd">
+<td align="left">35008</td>
+<td align="left">Firgas</td>
+<td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
+<td align="left">2020</td>
+<td align="right">81.0</td>
+</tr>
+<tr class="even">
+<td align="left">38027</td>
+<td align="left">El Paso</td>
+<td align="left">PARQUE_VEHICULOS</td>
+<td align="left">2015</td>
+<td align="right">6955.0</td>
+</tr>
+<tr class="odd">
+<td align="left">38049</td>
+<td align="left">Valle Gran Rey</td>
+<td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
+<td align="left">2003</td>
+<td align="right">64.0</td>
+</tr>
+<tr class="even">
+<td align="left">35003</td>
+<td align="left">Antigua</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS_HABITANTE</td>
+<td align="left">2022</td>
+<td align="right">484.7</td>
+</tr>
+<tr class="odd">
+<td align="left">35007</td>
+<td align="left">Betancuria</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS</td>
+<td align="left">2017</td>
+<td align="right">455.0</td>
+</tr>
+<tr class="even">
+<td align="left">38023</td>
+<td align="left">San Cristóbal de La Laguna</td>
+<td align="left">MATRICULA_VEHICULOS</td>
+<td align="left">2005</td>
+<td align="right">8032.0</td>
+</tr>
+<tr class="odd">
+<td align="left">38010</td>
+<td align="left">Buenavista del Norte</td>
+<td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
+<td align="left">2023</td>
+<td align="right">35.0</td>
+</tr>
+<tr class="even">
+<td align="left">38012</td>
+<td align="left">Fasnia</td>
+<td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
+<td align="left">2009</td>
+<td align="right">25.0</td>
+</tr>
+<tr class="odd">
+<td align="left">35021</td>
+<td align="left">Santa Brígida</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS_HABITANTE</td>
+<td align="left">2022</td>
+<td align="right">578.3</td>
+</tr>
+<tr class="even">
+<td align="left">38050</td>
+<td align="left">Vallehermoso</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS</td>
+<td align="left">2018</td>
+<td align="right">1118.0</td>
+</tr>
+<tr class="odd">
+<td align="left">38024</td>
+<td align="left">Los Llanos de Aridane</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS</td>
+<td align="left">2015</td>
+<td align="right">10605.0</td>
+</tr>
+<tr class="even">
+<td align="left">38002</td>
+<td align="left">Agulo</td>
+<td align="left">PARQUE_VEHICULOS_TURISMOS_HABITANTE</td>
+<td align="left">2019</td>
+<td align="right">396.4</td>
+</tr>
+<tr class="odd">
+<td align="left">35016</td>
+<td align="left">Las Palmas de Gran Canaria</td>
+<td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
+<td align="left">2012</td>
+<td align="right">5317.0</td>
+</tr>
+<tr class="even">
+<td align="left">35005</td>
+<td align="left">Artenara</td>
+<td align="left">PARQUE_VEHICULOS</td>
+<td align="left">2016</td>
+<td align="right">876.0</td>
+</tr>
+<tr class="odd">
+<td align="left">38026</td>
+<td align="left">La Orotava</td>
+<td align="left">MATRICULA_VEHICULOS</td>
+<td align="left">2016</td>
+<td align="right">960.0</td>
+</tr>
+<tr class="even">
+<td align="left">35005</td>
+<td align="left">Artenara</td>
+<td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
+<td align="left">2022</td>
+<td align="right">155.0</td>
+</tr>
+<tr class="odd">
+<td align="left">38028</td>
+<td align="left">Puerto de la Cruz</td>
+<td align="left">PARQUE_VEHICULOS</td>
+<td align="left">2016</td>
+<td align="right">24567.0</td>
+</tr>
+<tr class="even">
+<td align="left">38034</td>
+<td align="left">San Juan de la Rambla</td>
+<td align="left">MATRICULA_VEHICULOS</td>
+<td align="left">2006</td>
+<td align="right">182.0</td>
+</tr>
+<tr class="odd">
+<td align="left">38034</td>
+<td align="left">San Juan de la Rambla</td>
+<td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
+<td align="left">2009</td>
+<td align="right">37.0</td>
+</tr>
+<tr class="even">
+<td align="left">35034</td>
+<td align="left">Yaiza</td>
+<td align="left">PARQUE_VEHICULOS</td>
+<td align="left">2016</td>
+<td align="right">10110.0</td>
+</tr>
+<tr class="odd">
+<td align="left">38013</td>
+<td align="left">La Frontera</td>
+<td align="left">PARQUE_VEHICULOS_HABITANTE</td>
+<td align="left">2011</td>
+<td align="right">919.4</td>
+</tr>
+<tr class="even">
+<td align="left">35001</td>
+<td align="left">Agaete</td>
+<td align="left">PARQUE_VEHICULOS</td>
+<td align="left">2012</td>
+<td align="right">3305.0</td>
+</tr>
+<tr class="odd">
+<td align="left">35018</td>
+<td align="left">San Bartolomé</td>
+<td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
+<td align="left">2014</td>
+<td align="right">1411.0</td>
+</tr>
+<tr class="even">
+<td align="left">38011</td>
+<td align="left">Candelaria</td>
+<td align="left">MATRICULA_VEHICULOS</td>
+<td align="left">2007</td>
+<td align="right">937.0</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="información-sobre-las-columnas-de-la-tabla-descargada" class="section level2" number="2.1">
+<h2><span class="header-section-number">2.1</span> Información sobre las
+columnas de la tabla descargada</h2>
+<p>Se presentan las diferentes dimensiones, cada una con sus valores
+posibles y el nº de observaciones.</p>
+<p><strong>COLUMNA: GEOGRAPHICAL (97 opciones)</strong></p>
+<div class="caja-scroll caja-5">
+<pre><code>      GEOGRAPHICAL N.observ
+ [1,] 35001        112     
+ [2,] 35002        112     
+ [3,] 35003        112     
+ [4,] 35004        112     
+ [5,] 35005        112     
+ [6,] 35006        112     
+ [7,] 35008        112     
+ [8,] 35009        112     
+ [9,] 35010        112     
+[10,] 35011        112     
+[11,] 35012        112     
+[12,] 35013        112     
+[13,] 35014        112     
+[14,] 35015        112     
+[15,] 35016        112     
+[16,] 35017        112     
+[17,] 35018        112     
+[18,] 35019        112     
+[19,] 35020        112     
+[20,] 35021        112     
+[21,] 35022        112     
+[22,] 35023        112     
+[23,] 35024        112     
+[24,] 35025        112     
+[25,] 35026        112     
+[26,] 35027        112     
+[27,] 35028        112     
+[28,] 35029        112     
+[29,] 35030        112     
+[30,] 35031        112     
+[31,] 35032        112     
+[32,] 35033        112     
+[33,] 35034        112     
+[34,] 38001        112     
+[35,] 38002        112     
+[36,] 38004        112     
+[37,] 38005        112     
+[38,] 38006        112     
+[39,] 38007        112     
+[40,] 38008        112     
+[41,] 38009        112     
+[42,] 38010        112     
+[43,] 38011        112     
+[44,] 38012        112     
+[45,] 38014        112     
+[46,] 38015        112     
+[47,] 38017        112     
+[48,] 38018        112     
+[49,] 38019        112     
+[50,] 38020        112     
+[51,] 38021        112     
+[52,] 38022        112     
+[53,] 38023        112     
+[54,] 38024        112     
+[55,] 38025        112     
+[56,] 38026        112     
+[57,] 38027        112     
+[58,] 38028        112     
+[59,] 38029        112     
+[60,] 38030        112     
+[61,] 38031        112     
+[62,] 38032        112     
+[63,] 38033        112     
+[64,] 38034        112     
+[65,] 38035        112     
+[66,] 38036        112     
+[67,] 38037        112     
+[68,] 38038        112     
+[69,] 38039        112     
+[70,] 38040        112     
+[71,] 38041        112     
+[72,] 38042        112     
+[73,] 38043        112     
+[74,] 38044        112     
+[75,] 38045        112     
+[76,] 38046        112     
+[77,] 38047        112     
+[78,] 38048        112     
+[79,] 38049        112     
+[80,] 38050        112     
+[81,] 38051        112     
+[82,] 38052        112     
+[83,] 38053        112     
+[84,] ES70         112     
+[85,] ES703        112     
+[86,] ES704        112     
+[87,] ES705        112     
+[88,] ES706        112     
+[89,] ES707        112     
+[90,] ES708        112     
+[91,] ES709        112     
+[92,] 38003        111     
+[93,] 38016        111     
+[94,] 35007        110     
+[95,] 38013        102     
+[96,] 38901        102     
+[97,] 38013_1912    10     </code></pre>
+</div>
+<p><strong>COLUMNA: NAME (97 opciones)</strong></p>
+<div class="caja-scroll caja-5">
+<pre><code>      NAME                                           N.observ
+ [1,] Adeje                                          112     
+ [2,] Agaete                                         112     
+ [3,] Agulo                                          112     
+ [4,] Agüimes                                        112     
+ [5,] Antigua                                        112     
+ [6,] Arafo                                          112     
+ [7,] Arico                                          112     
+ [8,] Arona                                          112     
+ [9,] Arrecife                                       112     
+[10,] Artenara                                       112     
+[11,] Arucas                                         112     
+[12,] Barlovento                                     112     
+[13,] Breña Alta                                     112     
+[14,] Breña Baja                                     112     
+[15,] Buenavista del Norte                           112     
+[16,] Canarias                                       112     
+[17,] Candelaria                                     112     
+[18,] El Hierro                                      112     
+[19,] El Paso                                        112     
+[20,] El Rosario                                     112     
+[21,] El Sauzal                                      112     
+[22,] El Tanque                                      112     
+[23,] Fasnia                                         112     
+[24,] Firgas                                         112     
+[25,] Fuencaliente de la Palma                       112     
+[26,] Fuerteventura                                  112     
+[27,] Garachico                                      112     
+[28,] Gran Canaria                                   112     
+[29,] Granadilla de Abona                            112     
+[30,] Guía de Isora                                  112     
+[31,] Gáldar                                         112     
+[32,] Güímar                                         112     
+[33,] Haría                                          112     
+[34,] Hermigua                                       112     
+[35,] Icod de los Vinos                              112     
+[36,] Ingenio                                        112     
+[37,] La Aldea de San Nicolás                        112     
+[38,] La Gomera                                      112     
+[39,] La Guancha                                     112     
+[40,] La Matanza de Acentejo                         112     
+[41,] La Oliva                                       112     
+[42,] La Orotava                                     112     
+[43,] La Palma                                       112     
+[44,] La Victoria de Acentejo                        112     
+[45,] Lanzarote                                      112     
+[46,] Las Palmas de Gran Canaria                     112     
+[47,] Los Llanos de Aridane                          112     
+[48,] Los Realejos                                   112     
+[49,] Los Silos                                      112     
+[50,] Mogán                                          112     
+[51,] Moya                                           112     
+[52,] Puerto de la Cruz                              112     
+[53,] Puerto del Rosario                             112     
+[54,] Puntagorda                                     112     
+[55,] Puntallana                                     112     
+[56,] Pájara                                         112     
+[57,] San Andrés y Sauces                            112     
+[58,] San Bartolomé                                  112     
+[59,] San Bartolomé de Tirajana                      112     
+[60,] San Cristóbal de La Laguna                     112     
+[61,] San Juan de la Rambla                          112     
+[62,] San Miguel de Abona                            112     
+[63,] San Sebastián de La Gomera                     112     
+[64,] Santa Brígida                                  112     
+[65,] Santa Cruz de La Palma                         112     
+[66,] Santa Cruz de Tenerife                         112     
+[67,] Santa Lucía de Tirajana                        112     
+[68,] Santa María de Guía de Gran Canaria            112     
+[69,] Santa Úrsula                                   112     
+[70,] Santiago del Teide                             112     
+[71,] Tacoronte                                      112     
+[72,] Tazacorte                                      112     
+[73,] Tegueste                                       112     
+[74,] Teguise                                        112     
+[75,] Tejeda                                         112     
+[76,] Telde                                          112     
+[77,] Tenerife                                       112     
+[78,] Teror                                          112     
+[79,] Tijarafe                                       112     
+[80,] Tinajo                                         112     
+[81,] Tuineje                                        112     
+[82,] Tías                                           112     
+[83,] Valle Gran Rey                                 112     
+[84,] Vallehermoso                                   112     
+[85,] Valleseco                                      112     
+[86,] Valsequillo de Gran Canaria                    112     
+[87,] Valverde                                       112     
+[88,] Vega de San Mateo                              112     
+[89,] Vilaflor de Chasna                             112     
+[90,] Villa de Mazo                                  112     
+[91,] Yaiza                                          112     
+[92,] Alajeró                                        111     
+[93,] Garafía                                        111     
+[94,] Betancuria                                     110     
+[95,] El Pinar de El Hierro                          102     
+[96,] La Frontera                                    102     
+[97,] La Frontera (delimitación histórica, pre-2007)  10     </code></pre>
+</div>
+<p><strong>COLUMNA: INDICATOR (6 opciones)</strong></p>
+<div class="caja-scroll caja-5">
+<pre><code>     INDICATOR                           N.observ
+[1,] MATRICULA_VEHICULOS                 2298    
+[2,] MATRICULA_VEHICULOS_TURISMOS        2296    
+[3,] PARQUE_VEHICULOS                    1536    
+[4,] PARQUE_VEHICULOS_HABITANTE          1536    
+[5,] PARQUE_VEHICULOS_TURISMOS           1536    
+[6,] PARQUE_VEHICULOS_TURISMOS_HABITANTE 1536    </code></pre>
+</div>
+<p><strong>COLUMNA: TIME (24 opciones)</strong></p>
+<div class="caja-scroll caja-5">
+<pre><code>      TIME N.observ
+ [1,] 2010 576     
+ [2,] 2011 576     
+ [3,] 2012 576     
+ [4,] 2013 576     
+ [5,] 2014 576     
+ [6,] 2015 576     
+ [7,] 2016 576     
+ [8,] 2017 576     
+ [9,] 2018 576     
+[10,] 2019 576     
+[11,] 2020 576     
+[12,] 2021 576     
+[13,] 2022 576     
+[14,] 2023 576     
+[15,] 2024 576     
+[16,] 2025 576     
+[17,] 2008 192     
+[18,] 2009 192     
+[19,] 2003 190     
+[20,] 2004 190     
+[21,] 2005 190     
+[22,] 2006 190     
+[23,] 2007 190     
+[24,] 2026 188     </code></pre>
+</div>
+<!-- INICIO DE LA VALIDACIÓN AEDV -->
+</div>
+<div id="validación-de-requisitos-aedv" class="section level2" number="2.2">
+<h2><span class="header-section-number">2.2</span> Validación de
+requisitos AEDV</h2>
+<p><strong>Indicadores</strong>: nº de regiones, rango de fechas y
+percentiles del tamaño de la serie temporal (periodos por región).</p>
+<div class="tabla-scroll-xy">
+<table style="width:100%;">
+<colgroup>
+<col width="25%" />
+<col width="27%" />
+<col width="3%" />
+<col width="6%" />
+<col width="7%" />
+<col width="7%" />
+<col width="6%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="3%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">INDICATOR</th>
+<th align="left">subject</th>
+<th align="left">area</th>
+<th align="left">freq_obs</th>
+<th align="right">n_regiones</th>
+<th align="left">date_start</th>
+<th align="left">date_end</th>
+<th align="right">P0</th>
+<th align="right">P25</th>
+<th align="right">P50</th>
+<th align="right">P75</th>
+<th align="right">P100</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">MATRICULA_VEHICULOS</td>
+<td align="left">Transporte, movilidad y comunicaciones</td>
+<td align="left">MUNI</td>
+<td align="left">Y</td>
+<td align="right">97</td>
+<td align="left">2003</td>
+<td align="left">2026</td>
+<td align="right">5</td>
+<td align="right">24</td>
+<td align="right">24</td>
+<td align="right">24</td>
+<td align="right">24</td>
+</tr>
+<tr class="even">
+<td align="left">MATRICULA_VEHICULOS_TURISMOS</td>
+<td align="left">Transporte, movilidad y comunicaciones</td>
+<td align="left">MUNI</td>
+<td align="left">Y</td>
+<td align="right">97</td>
+<td align="left">2003</td>
+<td align="left">2026</td>
+<td align="right">5</td>
+<td align="right">24</td>
+<td align="right">24</td>
+<td align="right">24</td>
+<td align="right">24</td>
+</tr>
+<tr class="odd">
+<td align="left">PARQUE_VEHICULOS</td>
+<td align="left">Transporte, movilidad y comunicaciones</td>
+<td align="left">MUNI</td>
+<td align="left">Y</td>
+<td align="right">96</td>
+<td align="left">2010</td>
+<td align="left">2025</td>
+<td align="right">16</td>
+<td align="right">16</td>
+<td align="right">16</td>
+<td align="right">16</td>
+<td align="right">16</td>
+</tr>
+<tr class="even">
+<td align="left">PARQUE_VEHICULOS_HABITANTE</td>
+<td align="left">Transporte, movilidad y comunicaciones</td>
+<td align="left">MUNI</td>
+<td align="left">Y</td>
+<td align="right">96</td>
+<td align="left">2010</td>
+<td align="left">2025</td>
+<td align="right">16</td>
+<td align="right">16</td>
+<td align="right">16</td>
+<td align="right">16</td>
+<td align="right">16</td>
+</tr>
+<tr class="odd">
+<td align="left">PARQUE_VEHICULOS_TURISMOS</td>
+<td align="left">Transporte, movilidad y comunicaciones</td>
+<td align="left">MUNI</td>
+<td align="left">Y</td>
+<td align="right">96</td>
+<td align="left">2010</td>
+<td align="left">2025</td>
+<td align="right">16</td>
+<td align="right">16</td>
+<td align="right">16</td>
+<td align="right">16</td>
+<td align="right">16</td>
+</tr>
+<tr class="even">
+<td align="left">PARQUE_VEHICULOS_TURISMOS_HABITANTE</td>
+<td align="left">Transporte, movilidad y comunicaciones</td>
+<td align="left">MUNI</td>
+<td align="left">Y</td>
+<td align="right">96</td>
+<td align="left">2010</td>
+<td align="left">2025</td>
+<td align="right">16</td>
+<td align="right">16</td>
+<td align="right">16</td>
+<td align="right">16</td>
+<td align="right">16</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tabla-scroll-xy">
+<table style="width:100%;">
+<colgroup>
+<col width="20%" />
+<col width="19%" />
+<col width="19%" />
+<col width="19%" />
+<col width="19%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Indicador</th>
+<th align="center">Cobertura geográfica</th>
+<th align="center">Datos actualizados (≥ 2024)</th>
+<th align="center">Tamaño series (P25 ≥ umbral)</th>
+<th align="center">CUMPLE LOS 3</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">MATRICULA_VEHICULOS [Y]</td>
+<td align="center"><span class="val-ok">✔</span></td>
+<td align="center"><span class="val-ok">✔</span></td>
+<td align="center"><span class="val-ok">✔</span></td>
+<td align="center"><span class="val-ok">✔</span></td>
+</tr>
+<tr class="even">
+<td align="left">MATRICULA_VEHICULOS_TURISMOS [Y]</td>
+<td align="center"><span class="val-ok">✔</span></td>
+<td align="center"><span class="val-ok">✔</span></td>
+<td align="center"><span class="val-ok">✔</span></td>
+<td align="center"><span class="val-ok">✔</span></td>
+</tr>
+<tr class="odd">
+<td align="left">PARQUE_VEHICULOS [Y]</td>
+<td align="center"><span class="val-ok">✔</span></td>
+<td align="center"><span class="val-ok">✔</span></td>
+<td align="center"><span class="val-ok">✔</span></td>
+<td align="center"><span class="val-ok">✔</span></td>
+</tr>
+<tr class="even">
+<td align="left">PARQUE_VEHICULOS_HABITANTE [Y]</td>
+<td align="center"><span class="val-ok">✔</span></td>
+<td align="center"><span class="val-ok">✔</span></td>
+<td align="center"><span class="val-ok">✔</span></td>
+<td align="center"><span class="val-ok">✔</span></td>
+</tr>
+<tr class="odd">
+<td align="left">PARQUE_VEHICULOS_TURISMOS [Y]</td>
+<td align="center"><span class="val-ok">✔</span></td>
+<td align="center"><span class="val-ok">✔</span></td>
+<td align="center"><span class="val-ok">✔</span></td>
+<td align="center"><span class="val-ok">✔</span></td>
+</tr>
+<tr class="even">
+<td align="left">PARQUE_VEHICULOS_TURISMOS_HABITANTE [Y]</td>
+<td align="center"><span class="val-ok">✔</span></td>
+<td align="center"><span class="val-ok">✔</span></td>
+<td align="center"><span class="val-ok">✔</span></td>
+<td align="center"><span class="val-ok">✔</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>De los <strong>6</strong> indicadores seleccionados,
+<strong>6</strong> cumplen los tres criterios de validación (cobertura
+geográfica, datos actualizados y tamaño de las series temporales).</p>
+<p>El requisito de disponer de al menos 4 atributos válidos <strong>se
+cumple ✓</strong>.</p>
+<!-- FIN DE LA VALIDACIÓN AEDV -->
+<!-- FIN DE LA PARTE QUE SE INCORPORA A LA MEMORIA -->
+</div>
+</div>
+<div id="incorporación-del-dataset-a-la-memoria" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> Incorporación del
+dataset a la memoria</h1>
+<p>Al compilar este documento se ha generado el fichero
+<strong><code>ISTAC_Selected_analisis.Rmd</code></strong>: es la sección
+<em>Análisis del dataset</em> de arriba, preparada para la sección
+<strong>Comprensión de los datos</strong> de la memoria, con los títulos
+al nivel de esa sección. Para incorporar el dataset a la memoria:</p>
+<ol style="list-style-type: decimal">
+<li>Copia a la carpeta de la memoria estos ficheros de la carpeta
+<code>ISTAC</code>: <code>ISTAC_Selected.rds</code>,
+<code>ISTAC_Selected_metadatos.xlsx</code> y
+<code>ISTAC_Selected_analisis.Rmd</code>.</li>
+<li>Comprueba que en la carpeta de la memoria está también
+<code>utilidades.R</code> (viene en la carpeta
+<code>ProyectoPersonal</code>, junto al modelo de memoria) y que la
+memoria lo carga en el chunk de librerías:
+<code>source(&quot;utilidades.R&quot;)</code>.</li>
+<li>Pega este chunk en la sección <em>Comprensión de los datos</em> de
+la memoria, cambiando los nombres de las tablas por otros que describan
+el dataset:</li>
+</ol>
+<pre><code>```{r, results=&#39;asis&#39;, cache=FALSE}
+datos_ISTAC_Selected &lt;- aedv_incluir_dataset(&quot;ISTAC_Selected_analisis.Rmd&quot;, validacion = TRUE)
+```</code></pre>
+<p>Al compilar la memoria, el análisis aparece en el lugar del chunk y
+los datos quedan en la tabla <code>datos_ISTAC_Selected</code> (un
+tibble), con la que se sigue trabajando en el resto de la memoria. Si
+incorporas varios datasets, pega un chunk por cada uno, con nombres de
+tabla distintos. Con <code>validacion = TRUE</code> el análisis incluye
+la validación de requisitos AEDV; en un dataset auxiliar, que no tiene
+que cumplirlos, cambia a <code>validacion = FALSE</code> para
+omitirla.</p>
+<p>El texto explicativo del dataset (qué mide, qué significa cada
+variable y cada una de sus opciones…) se escribe en la memoria, antes o
+después del chunk, no en <code>ISTAC_Selected_analisis.Rmd</code>: ese
+fichero se sustituye cada vez que se vuelve a generar.</p>
 </div>
 
 

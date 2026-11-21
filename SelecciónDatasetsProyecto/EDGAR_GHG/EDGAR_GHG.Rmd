@@ -370,11 +370,19 @@ knitr::kable(ficha)
 data <- readRDS(paste0(filename, ".rds"))
 ```
 
-**data**
+**tabla original** (100 filas elegidas al azar)
+
+<div class="tabla-scroll-xy">
 
 ```{r}
-data |> print(n=5)
+# muestra de 100 filas al azar (semilla fija: sale la misma en cada compilación)
+set.seed(1)
+data |>
+  slice_sample(n = 100) |>
+  knitr::kable()
 ```
+
+</div>
 
 > **Aviso sobre la tabla combinada:** Esta tabla combina el desglose por sector con el total por país en una sola tabla, por lo que **NO debe sumarse a ciegas** sobre `Sector` ni sobre `Substance`. Las filas `Sector == "TOTAL"` (con `Substance == "GWP_100_AR5_GHG"`) ya son la suma de todos los sectores y sustancias: sumarlas junto con el resto duplicaría las emisiones. Ver la sección *Descripción de las variables de la tabla* más abajo.
 
@@ -509,11 +517,19 @@ Novedad de la versión 2026 del dataset: junto a las emisiones absolutas, EDGAR 
 data_norm <- readRDS(paste0(filename, "_normalizado.rds"))
 ```
 
-**data_normalizado**
+**tabla normalizada** (100 filas elegidas al azar)
+
+<div class="tabla-scroll-xy">
 
 ```{r}
-data_norm |> print(n=5)
+# muestra de 100 filas al azar (semilla fija: sale la misma en cada compilación)
+set.seed(1)
+data_norm |>
+  slice_sample(n = 100) |>
+  knitr::kable()
 ```
+
+</div>
 
 <div class="tabla-scroll-xy con-desc">
 
