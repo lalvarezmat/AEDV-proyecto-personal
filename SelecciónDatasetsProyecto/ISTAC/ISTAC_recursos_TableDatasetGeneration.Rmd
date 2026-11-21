@@ -47,17 +47,19 @@ summarise <- dplyr::summarise
 rename <- dplyr::rename
 ```
 
-El ISTAC publica sus datos a través de dos API. El catálogo **ISTAC_datasets.xlsx** (generado por **ISTAC_TableDatasetGeneration.Rmd**) recoge los **indicadores**, unas 400 series ya elaboradas. Este documento recorre la otra, la **API de recursos estadísticos**, que contiene todas las tablas que publica cada operación estadística del ISTAC (unas 5.000), y guarda en **ISTAC_recursos.xlsx** las que sirven para el proyecto de AEDV. Un dataset entra en el catálogo si cumple **todo** lo siguiente:
+El ISTAC publica sus datos a través de dos API. El catálogo **ISTAC_datasets.xlsx** (generado por **ISTAC_TableDatasetGeneration.Rmd**) recoge los **indicadores**, unas 400 series ya elaboradas. Este documento recorre la otra, la **API de recursos estadísticos**, que contiene todas las tablas que publica cada operación estadística del ISTAC (unas 5.000), y genera dos catálogos:
 
-* Tiene una **dimensión territorial** y una **dimensión temporal** (`TIME_PERIOD`) con una frecuencia reconocida: `Y` anual, `S` semestral, `Q` trimestral, `M` mensual, `W` semanal o `D` diaria.
+* **ISTAC_recursos.raw.xlsx**: la ficha de **todos** los datasets con alguna versión publicada desde el 1 de enero de 2024 (los demás no pueden tener datos de 2024 o posteriores).
 
-* Su **último dato es de 2024 o posterior**.
+* **ISTAC_recursos.xlsx**: solo los que sirven para el proyecto de AEDV, es decir, los que cumplen **todo** lo siguiente:
 
-* Tiene al menos la **mitad** de los periodos que exige el criterio de tamaño de las series de AEDV: 5 años, 10 semestres, 20 trimestres, 30 meses, 100 semanas o 548 días. El criterio completo lo comprueba después la validación del dataset.
+    * Tienen una **dimensión territorial** y una **dimensión temporal** (`TIME_PERIOD`) con una frecuencia reconocida: `Y` anual, `S` semestral, `Q` trimestral, `M` mensual, `W` semanal o `D` diaria.
+    * Su **último dato es de 2024 o posterior**.
+    * Tienen los periodos que exige el criterio de tamaño de las series de AEDV: **10** años, **20** semestres, **40** trimestres, **60** meses, **200** semanas o **1096** días.
+    * Tienen datos de **15 regiones o más** (contando todos los niveles territoriales del dataset).
+    * Tienen valores numéricos.
 
-* Tiene valores numéricos.
-
-Del listado de la API solo se piden los datasets con alguna versión publicada desde el 1 de enero de 2024 (los demás no pueden tener datos de 2024). Después el recorrido se hace en dos pasadas: primero se leen los **metadatos** de cada dataset (rápido, sin descargar los datos), que bastan para descartar los que no cumplen las fechas ni el número de periodos, y después se descargan los **datos** de los que quedan para comprobar el territorio y calcular el resto de la información.
+El recorrido se hace en dos pasadas. Primero se leen los **metadatos** de cada dataset (rápido, sin descargar los datos): bastan para la ficha del catálogo completo (fechas, periodos, territorios y dimensiones). Después se descargan los **datos** de los que tienen frecuencia reconocida, último dato de 2024 o posterior y al menos la **mitad** de los periodos del criterio AEDV, para contar las observaciones con valor numérico y los territorios que de verdad tienen datos.
 
 
 # Listado de los datasets de la API de recursos estadísticos
@@ -66,9 +68,12 @@ Del listado de la API solo se piden los datasets con alguna versión publicada d
 # DIRECCIÓN DE LA API DE RECURSOS ESTADÍSTICOS DEL ISTAC
 API <- "https://datos.canarias.es/api/estadisticas/statistical-resources/v1.0"
 
-# UMBRALES: LA MITAD DEL Nº DE PERIODOS DEL CRITERIO AEDV DE CADA FRECUENCIA
-umbral_periodos <- c(Y = 5, S = 10, Q = 20, M = 30, W = 100, D = 548)
+# UMBRALES DEL CRITERIO AEDV DE TAMAÑO DE LAS SERIES, POR FRECUENCIA. SE
+# DESCARGAN LOS DATOS DE LOS QUE TIENEN AL MENOS LA MITAD
+umbral_freq <- c(Y = 10, S = 20, Q = 40, M = 60, W = 200, D = 1096)
+umbral_periodos <- umbral_freq / 2
 ANIO_MINIMO <- 2024   # año mínimo del último dato
+MIN_REGIONES <- 15    # nº mínimo de regiones del catálogo filtrado
 
 # --- CONTROL DE CUELGUES ----------------------------------------------------
 # Se acota el tiempo de cada llamada y se deja constancia del avance en un .log
@@ -118,6 +123,75 @@ cat("Versiones publicadas desde", ANIO_MINIMO, ":", nrow(listado), " datasets di
 ```
 
 
+# Niveles territoriales
+
+La **dimensión territorial** es la que el ISTAC declara como geográfica en los metadatos (`GEOGRAPHIC_DIMENSION`). Cada uno de sus territorios trae su **granularidad**, es decir, el tipo de territorio que es (municipio, isla, provincia, comunidad autónoma…), de la lista oficial del ISTAC (`CL_GRANULARIDADES_GEOGRAFICAS`). Con ella se calculan dos columnas:
+
+* `n.reg.gran`: nº de territorios de cada granularidad, de la más fina a la más gruesa; `OTROS` son los códigos sin granularidad (resto, no consta, desconocido…).
+* `area`: la granularidad **más fina** que tiene al menos dos territorios (o la única que haya). Si solo está Canarias (una comunidad autónoma), `CANA`.
+
+Los pocos datasets sin dimensión geográfica en los metadatos tienen el territorio en una dimensión normal (por ejemplo, el lugar de residencia): se toma la dimensión con códigos de España/Canarias y se reconoce la granularidad por la forma del código. En el catálogo completo, esos datasets solo tienen territorio si se han descargado sus datos.
+
+```{r}
+# GRANULARIDADES DEL ISTAC QUE APARECEN EN LOS DATASETS, DE LA MÁS FINA A LA MÁS
+# GRUESA, CON LA ETIQUETA CORTA DE LA COLUMNA area (LAS ZONAS DE CALIDAD DEL AIRE
+# SON GRUPOS DE ISLAS: LANZAROTE Y FUERTEVENTURA; LA GOMERA, LA PALMA Y EL HIERRO)
+NIVELES <- c(MICRO_TOURISTIC_CENTRES = "MICRO", MICRO_TOURISTIC_ENTITIES = "MICRO",
+             MUNICIPALITIES = "MUNI", COUNTIES = "COMARCA", LARGE_COUNTIES = "GCOMARCA",
+             ISLANDS = "ISLA", AIR_QUALITY_ZONES = "ZCAIRE", PROVINCES = "PROV",
+             REGIONS = "CCAA", COUNTRIES = "PAIS")
+
+# GRANULARIDAD POR LA FORMA DEL CÓDIGO (SOLO SI NO HAY DIMENSIÓN GEOGRÁFICA OFICIAL)
+granularidad_codigo <- function(u){
+  case_when(grepl("^3[58][0-9]{3}$", u) ~ "MUNICIPALITIES",
+            grepl("^ES[0-9]{2}$", u)    ~ "REGIONS",
+            u == "ES"                   ~ "COUNTRIES",
+            TRUE                        ~ "_O")
+}
+
+# ETIQUETA DE CADA TERRITORIO (OTROS: SIN GRANULARIDAD O NO PREVISTA)
+etiqueta_nivel <- function(g){
+  e <- unname(NIVELES[g])
+  e[is.na(e)] <- "OTROS"
+  e
+}
+
+# Nº DE TERRITORIOS POR NIVEL, DEL MÁS FINO AL MÁS GRUESO (OTROS AL FINAL)
+conteo_niveles <- function(g){
+  n <- table(etiqueta_nivel(g))
+  n[order(match(names(n), c(unique(NIVELES), "OTROS")))]
+}
+
+# NIVEL TERRITORIAL: EL MÁS FINO CON AL MENOS DOS TERRITORIOS (O EL ÚNICO QUE HAYA)
+area_territorial <- function(g){
+  n <- conteo_niveles(g)
+  n <- n[names(n) != "OTROS"]
+  if(!length(n)) return("OTRO")
+  k <- which(n >= 2)[1]
+  if(is.na(k)) k <- 1
+  if(names(n)[k] == "CCAA" && n[[k]] == 1) return("CANA")
+  names(n)[k]
+}
+
+# COLUMNAS DEL TERRITORIO A PARTIR DE LA GRANULARIDAD DE CADA TERRITORIO
+resumen_territorio <- function(geo, gran){
+  if(is.na(geo)) return(tibble(dim.geo = NA_character_, n.reg = NA_integer_,
+                               n.reg.gran = NA_character_, area = NA_character_))
+  gran[is.na(gran)] <- "_O"
+  n.niv <- conteo_niveles(gran)
+  tibble(dim.geo = geo, n.reg = length(gran),
+         n.reg.gran = paste0(names(n.niv), "(", n.niv, ")", collapse = " "),
+         area = area_territorial(gran))
+}
+
+# DIMENSIÓN TERRITORIAL SIN METADATOS: LA QUE TIENE CÓDIGOS DE ESPAÑA/CANARIAS
+dimension_territorial <- function(codelists){
+  es_territorio <- sapply(codelists, function(cl) mean(grepl("^ES[0-9A-Z]*$|^3[58][0-9]{3}$", cl$id)) > 0.5)
+  names(codelists)[es_territorio][1]
+}
+```
+
+
 # Primera pasada: metadatos de cada dataset
 
 ```{r}
@@ -157,9 +231,19 @@ texto_es <- function(x){
 }
 
 meta <- tibble()
+geo_meta <- list()   # dimensión geográfica oficial de cada dataset y granularidad de cada territorio
 for(k in seq_along(ids)){
   t.inicio <- Sys.time()
   m <- con_reintentos(fromJSON(sprintf("%s/datasets/ISTAC/%s/~latest.json?fields=-data", API, ids[k])))
+  # DIMENSIONES DEL DATASET; LA DE TIPO GEOGRAPHIC_DIMENSION TRAE LA GRANULARIDAD DE CADA TERRITORIO
+  dd <- m$metadata$dimensions$dimension
+  k.geo <- which(dd$type == "GEOGRAPHIC_DIMENSION")[1]
+  if(!is.na(k.geo)){
+    v <- dd$dimensionValues$value[[k.geo]]
+    geo_meta[[ids[k]]] <- list(dim = dd$id[k.geo], gran = setNames(v$geographicGranularity$id, v$id))
+  }
+  n.valores <- sapply(dd$dimensionValues$value, NROW)
+  otras <- !dd$type %in% c("GEOGRAPHIC_DIMENSION", "TIME_DIMENSION")
   fechas <- m$metadata$temporalCoverages$item$id
   f <- deteccion_frecuencia(fechas)
   periodos <- fechas_frecuencia(fechas, f)
@@ -171,59 +255,47 @@ for(k in seq_along(ids)){
     n.periodos = length(periodos),
     initDate = if(length(periodos)) min(periodos) else NA_character_,
     lastDate = if(length(periodos)) max(periodos) else NA_character_,
-    lastUpdate = as.Date(substr(m$metadata$lastUpdate, 1, 10))
+    lastUpdate = as.Date(substr(m$metadata$lastUpdate, 1, 10)),
+    resumen_territorio(if(is.na(k.geo)) NA_character_ else dd$id[k.geo], unname(geo_meta[[ids[k]]]$gran)),
+    DIM = paste0(dd$id[otras], "(", n.valores[otras], ")", collapse = " ")
   ))
   log_avance("metadato", k, length(ids), ids[k],
              as.numeric(difftime(Sys.time(), t.inicio, units = "secs")),
              paste0("freq=", f, " periodos=", length(periodos)))
 }
 
-# CANDIDATOS: FRECUENCIA RECONOCIDA, ÚLTIMO DATO RECIENTE Y PERIODOS SUFICIENTES
+# SE DESCARGAN LOS DATOS DE LOS QUE TIENEN FRECUENCIA RECONOCIDA, ÚLTIMO DATO
+# RECIENTE Y AL MENOS LA MITAD DE LOS PERIODOS DEL CRITERIO AEDV
 candidatos <- meta |>
   filter(freq %in% names(umbral_periodos),
          as.integer(substr(lastDate, 1, 4)) >= ANIO_MINIMO,
          n.periodos >= umbral_periodos[freq])
-cat("Datasets:", nrow(meta), " candidatos tras los metadatos:", nrow(candidatos), "\n")
+cat("Datasets:", nrow(meta), " se descargan los datos de:", nrow(candidatos), "\n")
 ```
 
 
 # Segunda pasada: datos de los candidatos
 
-Se descargan los datos de cada candidato para localizar la dimensión territorial, contar las regiones y las observaciones con valor numérico y recoger el resto de dimensiones del dataset (columna `DIM`).
+Se descargan los datos de cada candidato para contar las observaciones con valor numérico y los territorios que de verdad tienen datos, y para recoger el resto de dimensiones del dataset (columna `DIM`). Estos valores sustituyen a los de los metadatos.
 
 ```{r}
-# MISMA CLASIFICACIÓN DEL NIVEL TERRITORIAL QUE ISTAC_TableDatasetGeneration.Rmd
-deteccion_area_geografica <- function(u){
-  if(any(c("38005","35012","38027") %in% u)) return("MUNI")
-  if(any(c("ES705","ES706","ES708") %in% u)) return("ISLA")
-  if(any(c("ES11","ES51","ES30")   %in% u)) return("CCAA")
-  if(any(c("ES213","ES425","ES701") %in% u)) return("PROV")
-  if(length(u) == 1 && "ES70" %in% u)       return("CANA")
-  return("OTRO")
-}
-
-# DIMENSIÓN TERRITORIAL: LA QUE TIENE CÓDIGOS DE ESPAÑA/CANARIAS (ES..., MUNICIPIOS 35xxx/38xxx)
-dimension_territorial <- function(codelists){
-  es_territorio <- sapply(codelists, function(cl) mean(grepl("^ES[0-9A-Z]*$|^3[58][0-9]{3}$", cl$id)) > 0.5)
-  names(codelists)[es_territorio][1]
-}
-
 info <- tibble()
 for(k in seq_len(nrow(candidatos))){
   id <- candidatos$id[k]
   t.inicio <- Sys.time()
   r <- con_reintentos(get_statisticalresources_datasets_agency_resource_version("ISTAC", id, "~latest"))
   tb <- r$dataframe |> mutate(valor = suppressWarnings(as.numeric(OBSERVACIONES)))
-  geo <- dimension_territorial(r$codelists)
+  gm <- geo_meta[[id]]
+  oficial <- !is.null(gm) && gm$dim %in% names(tb)
+  geo <- if(oficial) gm$dim else dimension_territorial(r$codelists)
   dims <- setdiff(names(r$codelists), c(geo, "TIME_PERIOD"))
   regiones <- if(is.na(geo)) character() else unique(tb[[geo]])
+  gran <- if(oficial) unname(gm$gran[regiones]) else granularidad_codigo(regiones)
   info <- bind_rows(info, tibble(
     id = id,
     tiempo = "TIME_PERIOD" %in% names(tb),
-    territorio = !is.na(geo),
-    n.reg = length(regiones),
     n.obs = sum(!is.na(tb$valor)),
-    area = if(is.na(geo)) NA_character_ else deteccion_area_geografica(regiones),
+    resumen_territorio(geo, gran),
     DIM = paste0(dims, "(", sapply(dims, function(d) n_distinct(tb[[d]])), ")", collapse = " ")
   ))
   log_avance("datos", k, nrow(candidatos), id,
@@ -231,14 +303,26 @@ for(k in seq_len(nrow(candidatos))){
              paste0("geo=", geo, " n.obs=", sum(!is.na(tb$valor))))
 }
 
-# CATÁLOGO: CANDIDATOS CON TIEMPO, TERRITORIO Y VALORES NUMÉRICOS
-ISTAC_recursos <- candidatos |>
-  inner_join(info, by = "id") |>
-  filter(tiempo, territorio, n.obs > 0) |>
-  select(id, nombre, subject, n.reg, n.obs, area, freq, n.periodos, initDate, lastDate, DIM, lastUpdate) |>
+# CATÁLOGO COMPLETO: METADATOS DE TODOS, CORREGIDOS CON LOS DATOS DE LOS CANDIDATOS
+columnas_datos <- c("dim.geo", "n.reg", "n.reg.gran", "area", "DIM")
+ISTAC_recursos.raw <- meta |>
+  rows_update(info |> select(id, all_of(columnas_datos)), by = "id") |>
+  left_join(info |> select(id, tiempo, n.obs), by = "id") |>
+  select(id, nombre, subject, n.reg, n.reg.gran, n.obs, area, dim.geo, freq, n.periodos,
+         initDate, lastDate, DIM, lastUpdate, tiempo) |>
   # ORDENADO POR NIVEL TERRITORIAL Y, DENTRO DE ÉL, POR OPERACIÓN ESTADÍSTICA
   arrange(area, subject, id)
-cat("Datasets en el catálogo:", nrow(ISTAC_recursos), "\n")
+
+# CATÁLOGO FILTRADO: CRITERIOS AEDV Y AL MENOS MIN_REGIONES REGIONES
+ISTAC_recursos <- ISTAC_recursos.raw |>
+  filter(tiempo %in% TRUE, !is.na(dim.geo), n.obs > 0,
+         freq %in% names(umbral_freq),
+         as.integer(substr(lastDate, 1, 4)) >= ANIO_MINIMO,
+         n.periodos >= umbral_freq[freq],
+         n.reg >= MIN_REGIONES)
+ISTAC_recursos.raw <- select(ISTAC_recursos.raw, -tiempo)
+ISTAC_recursos <- select(ISTAC_recursos, -tiempo)
+cat("Catálogo completo:", nrow(ISTAC_recursos.raw), " catálogo filtrado:", nrow(ISTAC_recursos), "\n")
 ```
 
 
@@ -246,25 +330,39 @@ cat("Datasets en el catálogo:", nrow(ISTAC_recursos), "\n")
 
 ```{r}
 # Nº DE DATASETS QUE QUEDAN TRAS CADA FILTRO
+con_datos <- ISTAC_recursos.raw |> filter(!is.na(n.obs))
+paso <- function(x) x |>
+  filter(freq %in% names(umbral_freq), as.integer(substr(lastDate, 1, 4)) >= ANIO_MINIMO)
 tibble(
-  paso = c(paste("Datasets publicados desde", ANIO_MINIMO), "Frecuencia reconocida", "Último dato en 2024 o después",
-           "Periodos suficientes (candidatos)", "Con territorio, tiempo y valores numéricos"),
-  datasets = c(nrow(meta),
-               sum(meta$freq %in% names(umbral_periodos)),
-               sum(meta$freq %in% names(umbral_periodos) & as.integer(substr(meta$lastDate, 1, 4)) >= ANIO_MINIMO, na.rm = TRUE),
+  paso = c(paste("Datasets publicados desde", ANIO_MINIMO, "(catálogo completo)"),
+           paste("Frecuencia reconocida y último dato en", ANIO_MINIMO, "o después"),
+           "Al menos la mitad de los periodos (se descargan sus datos)",
+           "Con territorio, tiempo y valores numéricos",
+           "Periodos del criterio AEDV",
+           paste(MIN_REGIONES, "regiones o más (catálogo filtrado)")),
+  datasets = c(nrow(ISTAC_recursos.raw),
+               nrow(paso(ISTAC_recursos.raw)),
                nrow(candidatos),
+               sum(con_datos$n.obs > 0 & !is.na(con_datos$dim.geo) & con_datos$id %in% info$id[info$tiempo]),
+               sum(con_datos$n.obs > 0 & !is.na(con_datos$dim.geo) & con_datos$id %in% info$id[info$tiempo] &
+                   con_datos$n.periodos >= umbral_freq[con_datos$freq]),
                nrow(ISTAC_recursos))
 ) |>
   knitr::kable()
 
-# REPARTO POR FRECUENCIA Y POR NIVEL TERRITORIAL
-ISTAC_recursos |> count(freq) |> knitr::kable()
-ISTAC_recursos |> count(area) |> knitr::kable()
+# REPARTO POR FRECUENCIA Y POR NIVEL TERRITORIAL DE LOS DOS CATÁLOGOS
+full_join(count(ISTAC_recursos.raw, freq, name = "completo"), count(ISTAC_recursos, freq, name = "filtrado"), by = "freq") |>
+  knitr::kable()
+full_join(count(ISTAC_recursos.raw, area, name = "completo"), count(ISTAC_recursos, area, name = "filtrado"), by = "area") |>
+  knitr::kable()
 ```
 
-Escribimos el catálogo en una hoja Excel
+Escribimos los dos catálogos en sendas hojas Excel
 
 ```{r}
+ISTAC_recursos.raw |>
+  mutate(`Nº` = row_number(), .before = 1) |>
+  write.xlsx("ISTAC_recursos.raw.xlsx")
 ISTAC_recursos |>
   mutate(`Nº` = row_number(), .before = 1) |>
   write.xlsx("ISTAC_recursos.xlsx")

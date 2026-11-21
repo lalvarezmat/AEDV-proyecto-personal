@@ -117,10 +117,16 @@ La API entrega los datos con **códigos** en todas las dimensiones (`35004` en v
 * `VALUE`: el valor numérico. Se eliminan las filas sin dato.
 
 ```{r,echo=TRUE}
-# DIMENSIÓN TERRITORIAL: LA QUE TIENE CÓDIGOS DE ESPAÑA/CANARIAS (ES..., MUNICIPIOS 35xxx/38xxx)
-es_territorio <- sapply(recurso$codelists,
-                        function(cl) mean(grepl("^ES[0-9A-Z]*$|^3[58][0-9]{3}$", cl$id)) > 0.5)
-geo_dim <- names(recurso$codelists)[es_territorio][1]
+# DIMENSIÓN TERRITORIAL: LA DEL CATÁLOGO (COLUMNA dim.geo DEL FILTRADO O DEL COMPLETO)
+catalogos <- intersect(c("ISTAC_recursos.xlsx", "ISTAC_recursos.raw.xlsx"), list.files())
+geo_dim <- unlist(lapply(catalogos, function(f) read.xlsx(f) |> filter(id == Dataset.Id) |> pull(dim.geo)))
+geo_dim <- head(na.omit(geo_dim), 1)
+# SI EL DATASET NO ESTÁ EN EL CATÁLOGO: LA QUE TIENE CÓDIGOS DE ESPAÑA/CANARIAS
+if(length(geo_dim) == 0){
+  es_territorio <- sapply(recurso$codelists,
+                          function(cl) mean(grepl("^ES[0-9A-Z]*$|^3[58][0-9]{3}$", cl$id)) > 0.5)
+  geo_dim <- names(recurso$codelists)[es_territorio][1]
+}
 if(is.na(geo_dim) || !"TIME_PERIOD" %in% names(recurso$codelists))
   stop("El dataset ", Dataset.Id, " no tiene dimensión territorial o temporal")
 
@@ -180,11 +186,17 @@ cat("Fichero guardado:", paste0(filename, ".rds"),
 Guardamos también los metadatos del dataset recogidos en el catálogo de la asignatura (**ISTAC_recursos.xlsx**, generado por **ISTAC_recursos_TableDatasetGeneration.Rmd**): la fila correspondiente a este dataset, con las columnas pasadas a filas (`Campo`/`Valor`) para que quepan en una tabla estrecha.
 
 ```{r,echo=TRUE}
+# el catálogo habitual es el filtrado; si el dataset no está en él (el filtro
+# deja fuera datasets que sí sirven) se busca en el catálogo completo .raw
 fila_metadatos <- read.xlsx("ISTAC_recursos.xlsx") |>
   filter(id == Dataset.Id)
 
+if(nrow(fila_metadatos) == 0 && file.exists("ISTAC_recursos.raw.xlsx"))
+  fila_metadatos <- read.xlsx("ISTAC_recursos.raw.xlsx") |>
+    filter(id == Dataset.Id)
+
 if(nrow(fila_metadatos) == 0)
-  stop("El dataset ", Dataset.Id, " no aparece en el catálogo ISTAC_recursos.xlsx. ",
+  stop("El dataset ", Dataset.Id, " no aparece en el catálogo del ISTAC (ISTAC_recursos.xlsx ni ISTAC_recursos.raw.xlsx). ",
        "Comprueba el identificador o vuelve a generar el catálogo con ISTAC_recursos_TableDatasetGeneration.Rmd")
 
 # lastUpdate viene del Excel como número de serie de fechas de Excel
@@ -357,9 +369,13 @@ umbral_freq <- c(Y = 10L, S = 20L, Q = 40L, M = 60L, W = 200L, D = 1096L, otro =
 ANYO_MINIMO <- 2024
 
 # Cobertura geográfica: el umbral depende del nivel territorial del dataset
-# (columna area del catálogo), con los mismos valores que los indicadores del ISTAC
+# (columna area del catálogo): MUNI, ISLA, CCAA y PROV con los mismos valores que
+# los indicadores del ISTAC; MICRO (51 núcleos), COMARCA (27) y GCOMARCA (11) con
+# el mismo criterio. ZCAIRE (2 zonas), PAIS y CANA no llegan nunca a la cobertura
 area <- metadatos$Valor[metadatos$Campo == "area"]
-umbral_cob <- unname(c(MUNI = 80L, ISLA = 6L, CCAA = 15L, PROV = 40L, CANA = NA_integer_, OTRO = NA_integer_)[area])
+umbral_cob <- unname(c(MICRO = 45L, MUNI = 80L, COMARCA = 24L, GCOMARCA = 10L, ISLA = 6L,
+                       PROV = 40L, CCAA = 15L, ZCAIRE = NA_integer_, PAIS = NA_integer_,
+                       CANA = NA_integer_, OTRO = NA_integer_)[area])
 
 tb_val <- tb |>
   mutate(

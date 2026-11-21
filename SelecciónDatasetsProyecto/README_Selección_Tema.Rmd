@@ -59,8 +59,8 @@ Conviene saberlo porque regenerar un catálogo es un proceso **largo**: recorre 
 | Fuente | Datasets recorridos | Duración aproximada |
 |---|---|---|
 | ISTAC (indicadores) | 400 | ~15 minutos |
-| ISTAC (recursos estadísticos) | 3.565 | ~2 h 50 min |
-| EUROSTAT | 3.050 | ~2 horas (estimada) |
+| ISTAC (recursos estadísticos) | 3.565 | ~2 h 30 min |
+| EUROSTAT | 3.121 | ~25 minutos |
 | INE | 7.142 | ~4 h 30 min |
 | Banco Mundial | 16.643 | **~13 horas** |
 
@@ -99,7 +99,7 @@ Los datasets que usamos en AEDV siempre tienen una variable (columna) con un dat
 
 * **Cobertura geográfica**: el dataset debe cubrir ampliamente las áreas geográficas de su nivel:
     - **Países** (Banco Mundial): más de 100 países.
-    - **Canarias** (ISTAC): más de 80 municipios, más de 6 islas o más de 15 comunidades autónomas, según el nivel del dato.
+    - **Canarias** (ISTAC): más de 80 municipios, más de 6 islas o más de 15 comunidades autónomas, según el nivel del dato. En los recursos estadísticos hay además comarcas y microdestinos turísticos, con su propio umbral (ver [Niveles territoriales](#istac-niveles)).
     - **España** (INE): más de 500 municipios, más de 40 provincias o más de 15 comunidades autónomas.
     - **Europa** (EUROSTAT): al menos 25 países (NUTS 0), 90 grandes regiones (NUTS 1), 200 regiones (NUTS 2) o 500 provincias (NUTS 3). Basta con cumplirlo en **uno** de los cuatro niveles.
 
@@ -128,7 +128,7 @@ Un catálogo tiene entre 400 y 2.852 filas, así que no se lee de arriba abajo: 
 | Fuente | Columnas que anticipan si el dataset cumplirá los requisitos |
 |---|---|
 | **ISTAC (indicadores)** | `area` (nivel geográfico: `MUNI`, `ISLA`, `CCAA`…) y `freq` (frecuencia) |
-| **ISTAC (recursos estadísticos)** | `area`, `freq`, `n.periodos` (nº de periodos) y `DIM` (dimensiones con su nº de valores) |
+| **ISTAC (recursos estadísticos)** | `area` (nivel territorial; `n.reg.gran` da el nº de territorios de cada nivel), `freq`, `n.periodos` (nº de periodos) y `DIM` (dimensiones con su nº de valores) |
 | **Banco Mundial** | `Ncountries` y `dateEnd` |
 | **INE** | `Codigo` (desglose geográfico) y `Periodicidad` |
 | **EUROSTAT** | `topic` (familia temática), `NUTS0`–`NUTS3` (cobertura por nivel), `N.atrib.combinados` y las columnas `ESPAÑA`/`CANARIAS` |
@@ -338,9 +338,12 @@ La columna `subject` trae el tema tal y como lo nombra el ISTAC. Son **61 temas 
 
 ---
 
-## ISTAC — `ISTAC/ISTAC_recursos.xlsx` (1.158 datasets)
+## ISTAC — `ISTAC/ISTAC_recursos.xlsx` (208 datasets)
 
-Recoge las tablas de la **API de recursos estadísticos** del ISTAC: las que publica cada operación estadística (encuestas, estadísticas de registros, censos…). Son muchas más que los indicadores (casi 5.000), así que el catálogo **solo incluye las que sirven para el proyecto**: las que tienen una dimensión territorial y una temporal con frecuencia reconocida, su último dato es de **2024 o posterior** y tienen al menos **la mitad de los periodos** que exige el criterio de tamaño de AEDV (5 años, 10 semestres, 20 trimestres, 30 meses, 100 semanas o 548 días). El criterio completo lo comprueba después `ISTAC_recursos_DatasetSelection.Rmd`.
+Recoge las tablas de la **API de recursos estadísticos** del ISTAC: las que publica cada operación estadística (encuestas, estadísticas de registros, censos…). Son muchas más que los indicadores (casi 5.000), así que hay **dos catálogos**, como en EUROSTAT:
+
+* **`ISTAC_recursos.xlsx`**, el que hay que usar: **solo las tablas que sirven para el proyecto**. Tienen una dimensión territorial y una temporal con frecuencia reconocida, su último dato es de **2024 o posterior**, tienen los periodos que exige el criterio de tamaño de AEDV (10 años, 20 semestres, 40 trimestres, 60 meses, 200 semanas o 1096 días) y datos de **15 regiones o más**. Por eso no aparecen las tablas que solo tienen las islas o Canarias en conjunto. El criterio completo lo comprueba después `ISTAC_recursos_DatasetSelection.Rmd`.
+* **`ISTAC_recursos.raw.xlsx`**: la ficha de **todas** las tablas publicadas desde 2024, cumplan o no. Sirve para buscar un dataset auxiliar (por ejemplo, uno de Canarias en conjunto) o para comprobar por qué una tabla no está en el otro. Tiene las mismas columnas; `n.obs` solo está calculado en las que tienen al menos la mitad de los periodos del criterio. `ISTAC_recursos_DatasetSelection.Rmd` acepta también sus identificadores.
 
 A diferencia de los indicadores, un dataset de este catálogo puede tener **varias dimensiones** además del territorio y la fecha (sexo, edad, tipo de medida, país de residencia…), como los del INE: cada combinación de sus valores es un atributo, así que un solo dataset puede bastar para tener los 4 atributos.
 
@@ -352,47 +355,58 @@ A diferencia de los indicadores, un dataset de este catálogo puede tener **vari
 | `id` | Identificador del dataset en el ISTAC (ej. `C00065A_000061`). **Es el valor que hay que poner en `Dataset.Id`** en `ISTAC_recursos_DatasetSelection.Rmd`. Las primeras letras y cifras identifican la operación estadística. |
 | `nombre` | Título del dataset tal como lo publica el ISTAC. Termina indicando el desglose territorial y temporal (ej. *«Islas y municipios de Canarias por periodos»*). |
 | `subject` | Operación estadística de la que procede (ej. `Encuesta de Alojamiento Turístico`). |
-| `n.reg` | Número de regiones distintas con datos (incluye Canarias y, si las hay, las islas). |
+| `n.reg` | Número de territorios distintos con datos, de todos los niveles (por ejemplo, los municipios, las islas y Canarias). |
+| `n.reg.gran` | Cuántos de esos territorios hay de cada nivel, del más fino al más grueso: `MUNI(88) ISLA(7) CCAA(1) OTROS(1)` son 88 municipios, las 7 islas, Canarias y un código sin nivel. Los niveles se explican en la [tabla siguiente](#istac-niveles). |
 | `n.obs` | Número de observaciones con valor numérico. |
-| `area` | Nivel geográfico detectado: `MUNI`, `ISLA`, `CCAA`, `PROV`, `CANA` (solo Canarias en conjunto) u `OTRO` (por ejemplo, España y Canarias). |
+| `area` | Nivel territorial del dataset: el **más fino** de `n.reg.gran` que tiene al menos dos territorios. Si solo está Canarias, `CANA`. |
+| `dim.geo` | Nombre de la dimensión que contiene el territorio. Casi siempre es `TERRITORIO`; en unos pocos datasets es otra, como `LUGAR_RESIDENCIA`. |
 | `freq` | Frecuencia temporal: `Y`, `S`, `Q`, `M`, `W` o `D`. |
 | `n.periodos` | Número de periodos de esa frecuencia. |
 | `initDate` / `lastDate` | Primer y último periodo (los meses aparecen como `2019-M01`). |
 | `DIM` | Resto de dimensiones con su nº de valores (ej. `MEDIDAS(6) SEXO(3)`). |
 | `lastUpdate` | Fecha de la última publicación del dataset en el ISTAC. |
 
+### Niveles territoriales (`area`) {#istac-niveles}
+
+El ISTAC asigna a cada territorio una **granularidad**, es decir, el tipo de territorio que es, sacada de una lista oficial con 44 tipos (`CL_GRANULARIDADES_GEOGRAFICAS`). Un mismo dataset suele mezclar varias: la tabla de viviendas vacacionales (`C00065A_000061`) trae los 88 municipios, las 7 islas y el total de Canarias. El catálogo cuenta los territorios de cada granularidad (columna `n.reg.gran`) y clasifica el dataset por la más fina que tiene al menos dos territorios (columna `area`). En el catálogo aparecen estas:
+
+| `area` | Granularidad del ISTAC | Qué contiene | Cobertura exigida |
+|--------|------------------------|--------------|:-----------------:|
+| `MICRO` | Microdestinos turísticos (núcleos y entidades) | Las zonas turísticas de cada isla. Hay dos niveles: **núcleos** (51 a 54, como *Puerto de Mogán*, *Playa del Inglés* o *Corralejo*) y **entidades**, que los agrupan (20 a 23, como *Maspalomas* o *Jandía*). Cada isla tiene además un núcleo y una entidad *no turísticos* con el resto. | más de 45 |
+| `MUNI` | Municipios | Los 88 municipios de Canarias. | más de 80 |
+| `COMARCA` | Comarcas | 27 comarcas: de 2 a 8 por isla (*Tenerife - Acentejo*, *Gran Canaria - Sureste*…), salvo El Hierro, que es una sola. | más de 24 |
+| `GCOMARCA` | Grandes comarcas | 11 grandes comarcas: Gran Canaria y Tenerife se dividen en *Área Metropolitana*, *Norte* y *Sur*, y las otras cinco islas son una cada una. | más de 10 |
+| `ISLA` | Islas | Las 7 islas. Alguna tabla junta además La Gomera y El Hierro en un solo territorio. | más de 6 |
+| `ZCAIRE` | Zonas de calidad del aire | En el catálogo son dos **grupos de islas**: *Lanzarote y Fuerteventura* y *La Gomera, La Palma y El Hierro*. | no se alcanza |
+| `PROV` | Provincias | Las 2 provincias canarias o las 52 de España. | más de 40 |
+| `CCAA` | Comunidades autónomas | Las 17 comunidades autónomas más Ceuta y Melilla. | más de 15 |
+| `CANA` | Comunidades autónomas, con un solo territorio | Solo Canarias en conjunto. | no se alcanza |
+| `PAIS` | Países | Solo España. | no se alcanza |
+
+Los códigos que el ISTAC no asigna a ninguna granularidad (*resto de la isla*, *no consta*, *desconocido*…) figuran en `n.reg.gran` como `OTROS` y no cuentan para clasificar.
+
+La **cobertura exigida** es la del criterio de cobertura geográfica de AEDV: el número de territorios que comprueba `ISTAC_recursos_DatasetSelection.Rmd`, contando todos los niveles del dataset. Los de nivel `ISLA`, `ZCAIRE`, `CANA` y `PAIS` tienen menos de 15 regiones, así que solo están en `ISTAC_recursos.raw.xlsx`. Los `CANA`, `PAIS` y `ZCAIRE` no pueden cumplir nunca la cobertura y solo sirven como datasets auxiliares.
+
 ### Organización por operaciones estadísticas
 
-Son **95 operaciones**; aquí van las 31 con 10 datasets o más (el resto, 64 operaciones, suma 196 datasets). Los nombres son literalmente los valores de `subject`.
+Son **46 operaciones**; aquí van las 11 con 5 datasets o más (el resto, 35 operaciones, suma 62 datasets). Los nombres son literalmente los valores de `subject`.
 
 | Operación (valor de `subject`) | Nº datasets |
 |------|:-----------:|
-| **Encuesta sobre el Gasto Turístico** | 306 |
-| **Estadística de Afiliación a la Seguridad Social: Cifras en Áreas Pequeñas de Canarias** | 69 |
-| **Encuesta de Alojamiento Turístico** | 47 |
-| **Encuesta de Condiciones de Vida** | 41 |
-| **Encuesta de Ingresos y Condiciones de Vida de los Hogares Canarios** | 41 |
-| **Estadística de Accidentes de Trabajo** | 34 |
-| **Estadística de Movimiento Laboral Registrado** | 31 |
-| **Estadística de Matrimonios** | 26 |
-| **Análisis de la Mortalidad** | 25 |
+| **Encuesta de Alojamiento Turístico** | 28 |
+| **Estadística de Afiliación a la Seguridad Social: Cifras en Áreas Pequeñas de Canarias** | 23 |
 | **Estadística del Plan Concertado de Prestaciones Básicas de Servicios Sociales** | 23 |
-| **Estadística de Inserción Laboral** | 22 |
-| **Estadística de Movimientos Turísticos en Fronteras de Canarias** | 22 |
-| **Estadística de las Enseñanzas no Universitarias** | 21 |
-| **Estadística de Nacimientos** | 20 |
-| **Recopilación de Estadísticas sobre Violencia de Género** | 19 |
-| **Sistema para la Autonomía y Atención a la Dependencia** | 19 |
-| **Censos de Población y Viviendas** | 18 |
 | **Índice de Precios de Consumo** | 18 |
-| **Encuesta de Morbilidad Hospitalaria** | 16 |
-| **Estadística sobre Efectivos de Ganado en Canarias** | 16 |
-| **Estadística de Parque de Vehículos** | 13 |
-| **Estadística sobre Accidentes de Circulación** | 13 |
-| *Otras 9 operaciones con 10 a 12 datasets* | 102 |
-| *Otras 64 operaciones con menos de 10 datasets* | 196 |
+| **Estadística de Población Activa Registrada** | 15 |
+| **Estadística de Movimiento Laboral Registrado** | 11 |
+| **Estadística Anual de Superficies y Producciones de Cultivos** | 6 |
+| **Estadística de Hipotecas** | 6 |
+| **Estadística sobre Efectivos de Ganado en Canarias** | 6 |
+| **Encuesta Trimestral de Coste Laboral** | 5 |
+| **Estadística de Obras en Edificación: Visados de Dirección de Obras** | 5 |
+| *Otras 35 operaciones con menos de 5 datasets* | 62 |
 
-> **Cuidado con el nivel `CANA`.** 347 datasets (109 de ellos de la Encuesta sobre el Gasto Turístico y 37 de la Encuesta de Condiciones de Vida) tienen **una sola región**, Canarias en conjunto. Entran en el catálogo porque tienen territorio y serie temporal, pero **no pueden cumplir el criterio de cobertura geográfica**: sirven como datasets auxiliares, no como dataset principal. Mira la columna `area` antes de elegir.
+> **Lo que no está en el catálogo filtrado.** `ISTAC_recursos.raw.xlsx` tiene 3.565 tablas de 122 operaciones; el filtrado se queda con 208. Fuera quedan sobre todo las de **pocas regiones** (1.475 tablas de Canarias en conjunto, `CANA`, y 730 solo por islas, `ISLA`) y las de **pocos periodos**: las encuestas por grandes comarcas (`GCOMARCA`, 389 tablas), por ejemplo, solo tienen unos pocos años sueltos. Las operaciones con más tablas en el raw son la Encuesta de Ingresos y Condiciones de Vida de los Hogares Canarios, la Encuesta sobre el Gasto Turístico y la Encuesta de Hábitos y Confianza Socioeconómica, y casi ninguna de sus tablas llega al filtrado: si te interesa una de ellas, búscala en el raw y úsala como dataset auxiliar.
 
 > **Versiones que ya no se actualizan.** Cuando el ISTAC cambia la base de una estadística publica una tabla nueva y deja la anterior congelada: por ejemplo, el IPC en base 2021 (`E30138A_000001`) termina en 2025-12 y su continuación es la tabla en base 2025 (`E30138A_000010`). Si encuentras dos tablas casi iguales, quédate con la de `lastDate` más reciente.
 

@@ -11,7 +11,7 @@
 
 <meta name="author" content="Luis Alvarez" />
 
-<meta name="date" content="2026-11-20" />
+<meta name="date" content="2026-11-21" />
 
 <title>Análisis de un dataset de los recursos estadísticos del ISTAC</title>
 
@@ -365,7 +365,7 @@ display: none;
 <h1 class="title toc-ignore">Análisis de un dataset de los recursos
 estadísticos del ISTAC</h1>
 <h4 class="author">Luis Alvarez</h4>
-<h4 class="date">2026-11-20</h4>
+<h4 class="date">2026-11-21</h4>
 
 </div>
 
@@ -441,10 +441,16 @@ indicadores del ISTAC (<code>2019-01</code>).</li>
 <li><code>VALUE</code>: el valor numérico. Se eliminan las filas sin
 dato.</li>
 </ul>
-<pre class="r"><code># DIMENSIÓN TERRITORIAL: LA QUE TIENE CÓDIGOS DE ESPAÑA/CANARIAS (ES..., MUNICIPIOS 35xxx/38xxx)
-es_territorio &lt;- sapply(recurso$codelists,
-                        function(cl) mean(grepl(&quot;^ES[0-9A-Z]*$|^3[58][0-9]{3}$&quot;, cl$id)) &gt; 0.5)
-geo_dim &lt;- names(recurso$codelists)[es_territorio][1]
+<pre class="r"><code># DIMENSIÓN TERRITORIAL: LA DEL CATÁLOGO (COLUMNA dim.geo DEL FILTRADO O DEL COMPLETO)
+catalogos &lt;- intersect(c(&quot;ISTAC_recursos.xlsx&quot;, &quot;ISTAC_recursos.raw.xlsx&quot;), list.files())
+geo_dim &lt;- unlist(lapply(catalogos, function(f) read.xlsx(f) |&gt; filter(id == Dataset.Id) |&gt; pull(dim.geo)))
+geo_dim &lt;- head(na.omit(geo_dim), 1)
+# SI EL DATASET NO ESTÁ EN EL CATÁLOGO: LA QUE TIENE CÓDIGOS DE ESPAÑA/CANARIAS
+if(length(geo_dim) == 0){
+  es_territorio &lt;- sapply(recurso$codelists,
+                          function(cl) mean(grepl(&quot;^ES[0-9A-Z]*$|^3[58][0-9]{3}$&quot;, cl$id)) &gt; 0.5)
+  geo_dim &lt;- names(recurso$codelists)[es_territorio][1]
+}
 if(is.na(geo_dim) || !&quot;TIME_PERIOD&quot; %in% names(recurso$codelists))
   stop(&quot;El dataset &quot;, Dataset.Id, &quot; no tiene dimensión territorial o temporal&quot;)
 
@@ -506,11 +512,17 @@ de la asignatura (<strong>ISTAC_recursos.xlsx</strong>, generado por
 correspondiente a este dataset, con las columnas pasadas a filas
 (<code>Campo</code>/<code>Valor</code>) para que quepan en una tabla
 estrecha.</p>
-<pre class="r"><code>fila_metadatos &lt;- read.xlsx(&quot;ISTAC_recursos.xlsx&quot;) |&gt;
+<pre class="r"><code># el catálogo habitual es el filtrado; si el dataset no está en él (el filtro
+# deja fuera datasets que sí sirven) se busca en el catálogo completo .raw
+fila_metadatos &lt;- read.xlsx(&quot;ISTAC_recursos.xlsx&quot;) |&gt;
   filter(id == Dataset.Id)
 
+if(nrow(fila_metadatos) == 0 &amp;&amp; file.exists(&quot;ISTAC_recursos.raw.xlsx&quot;))
+  fila_metadatos &lt;- read.xlsx(&quot;ISTAC_recursos.raw.xlsx&quot;) |&gt;
+    filter(id == Dataset.Id)
+
 if(nrow(fila_metadatos) == 0)
-  stop(&quot;El dataset &quot;, Dataset.Id, &quot; no aparece en el catálogo ISTAC_recursos.xlsx. &quot;,
+  stop(&quot;El dataset &quot;, Dataset.Id, &quot; no aparece en el catálogo del ISTAC (ISTAC_recursos.xlsx ni ISTAC_recursos.raw.xlsx). &quot;,
        &quot;Comprueba el identificador o vuelve a generar el catálogo con ISTAC_recursos_TableDatasetGeneration.Rmd&quot;)
 
 # lastUpdate viene del Excel como número de serie de fechas de Excel
@@ -574,12 +586,20 @@ periodos</td>
 <td align="left">97</td>
 </tr>
 <tr class="odd">
+<td align="left">n.reg.gran</td>
+<td align="left">MUNI(88) ISLA(7) CCAA(1) OTROS(1)</td>
+</tr>
+<tr class="even">
 <td align="left">n.obs</td>
 <td align="left">54708</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">area</td>
 <td align="left">MUNI</td>
+</tr>
+<tr class="even">
+<td align="left">dim.geo</td>
+<td align="left">TERRITORIO</td>
 </tr>
 <tr class="odd">
 <td align="left">freq</td>
