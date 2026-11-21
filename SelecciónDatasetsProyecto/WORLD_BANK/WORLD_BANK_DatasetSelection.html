@@ -11,7 +11,7 @@
 
 <meta name="author" content="Luis Alvarez" />
 
-<meta name="date" content="2026-10-08" />
+<meta name="date" content="2026-11-21" />
 
 <title>Análisis de datasets seleccionados del Banco Mundial</title>
 
@@ -365,7 +365,7 @@ display: none;
 <h1 class="title toc-ignore">Análisis de datasets seleccionados del
 Banco Mundial</h1>
 <h4 class="author">Luis Alvarez</h4>
-<h4 class="date">2026-10-08</h4>
+<h4 class="date">2026-11-21</h4>
 
 </div>
 
@@ -582,13 +582,13 @@ dataset</h1>
 <td align="left">ER.H2O.FWTL.K3</td>
 <td align="left">Annual freshwater withdrawals, total (billion cubic
 meters)</td>
-<td align="right">227</td>
-<td align="right">6749</td>
+<td align="right">228</td>
+<td align="right">6785</td>
 <td align="left">1962</td>
 <td align="left">2022</td>
 <td align="right">61</td>
-<td align="left">2026-07-13</td>
-<td align="left">iso3c 227</td>
+<td align="left">2026-11-11</td>
+<td align="left">iso3c 228</td>
 </tr>
 <tr class="even">
 <td align="right">446</td>
@@ -596,13 +596,13 @@ meters)</td>
 <td align="left">ER.H2O.FWTL.ZS</td>
 <td align="left">Annual freshwater withdrawals, total (% of internal
 resources)</td>
-<td align="right">223</td>
-<td align="right">6630</td>
+<td align="right">224</td>
+<td align="right">6658</td>
 <td align="left">1962</td>
 <td align="left">2022</td>
 <td align="right">61</td>
-<td align="left">2026-07-13</td>
-<td align="left">iso3c 223</td>
+<td align="left">2026-11-11</td>
+<td align="left">iso3c 224</td>
 </tr>
 </tbody>
 </table>
@@ -640,22 +640,737 @@ for domestic uses include drinking water, municipal use or supply, and
 use for public services, commercial establishments, and homes. Data are
 for the most recent year available for 1987-2002.</p>
 </div>
-<p><strong>data</strong></p>
-<pre><code>## # A tibble: 13,379 × 5
-##   iso3c country                     indicator       date value
-##   &lt;chr&gt; &lt;chr&gt;                       &lt;chr&gt;          &lt;dbl&gt; &lt;dbl&gt;
-## 1 AFE   Africa Eastern and Southern ER.H2O.FWTL.K3  1990  37.1
-## 2 AFE   Africa Eastern and Southern ER.H2O.FWTL.K3  1991  37.3
-## 3 AFE   Africa Eastern and Southern ER.H2O.FWTL.K3  1992  39.2
-## 4 AFE   Africa Eastern and Southern ER.H2O.FWTL.K3  1993  39.4
-## 5 AFE   Africa Eastern and Southern ER.H2O.FWTL.K3  1994  42.0
-## # ℹ 13,374 more rows</code></pre>
+<p><strong>tabla original</strong> (100 filas elegidas al azar)</p>
+<div class="tabla-scroll-xy">
+<table>
+<colgroup>
+<col width="5%" />
+<col width="61%" />
+<col width="14%" />
+<col width="4%" />
+<col width="12%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">iso3c</th>
+<th align="left">country</th>
+<th align="left">indicator</th>
+<th align="right">date</th>
+<th align="right">value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">BEL</td>
+<td align="left">Belgium</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2002</td>
+<td align="right">56.1308333</td>
+</tr>
+<tr class="even">
+<td align="left">MDV</td>
+<td align="left">Maldives</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2013</td>
+<td align="right">15.6666667</td>
+</tr>
+<tr class="odd">
+<td align="left">GMB</td>
+<td align="left">Gambia, The</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">1987</td>
+<td align="right">1.3308824</td>
+</tr>
+<tr class="even">
+<td align="left">ROU</td>
+<td align="left">Romania</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">1979</td>
+<td align="right">42.2840963</td>
+</tr>
+<tr class="odd">
+<td align="left">YEM</td>
+<td align="left">Yemen, Rep.</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2010</td>
+<td align="right">3.5650000</td>
+</tr>
+<tr class="even">
+<td align="left">PER</td>
+<td align="left">Peru</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2015</td>
+<td align="right">1.8400305</td>
+</tr>
+<tr class="odd">
+<td align="left">USA</td>
+<td align="left">United States</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2011</td>
+<td align="right">15.0425124</td>
+</tr>
+<tr class="even">
+<td align="left">RWA</td>
+<td align="left">Rwanda</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2010</td>
+<td align="right">3.9595133</td>
+</tr>
+<tr class="odd">
+<td align="left">MNE</td>
+<td align="left">Montenegro</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2021</td>
+<td align="right">3.0927600</td>
+</tr>
+<tr class="even">
+<td align="left">FCV</td>
+<td align="left">Fragility, Conflict, and Violence (FCV) situations</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">1997</td>
+<td align="right">262.4400230</td>
+</tr>
+<tr class="odd">
+<td align="left">SWZ</td>
+<td align="left">Eswatini</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2020</td>
+<td align="right">40.4545455</td>
+</tr>
+<tr class="even">
+<td align="left">TUN</td>
+<td align="left">Tunisia</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2005</td>
+<td align="right">68.3909416</td>
+</tr>
+<tr class="odd">
+<td align="left">MWI</td>
+<td align="left">Malawi</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2001</td>
+<td align="right">7.9748141</td>
+</tr>
+<tr class="even">
+<td align="left">BGR</td>
+<td align="left">Bulgaria</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2010</td>
+<td align="right">28.3809524</td>
+</tr>
+<tr class="odd">
+<td align="left">MNG</td>
+<td align="left">Mongolia</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2022</td>
+<td align="right">0.4624000</td>
+</tr>
+<tr class="even">
+<td align="left">BRB</td>
+<td align="left">Barbados</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2006</td>
+<td align="right">87.5000000</td>
+</tr>
+<tr class="odd">
+<td align="left">TMN</td>
+<td align="left">Middle East, North Africa, Afghanistan &amp; Pakistan
+(IDA &amp; IBRD)</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2021</td>
+<td align="right">143.0404090</td>
+</tr>
+<tr class="even">
+<td align="left">PRE</td>
+<td align="left">Pre-demographic dividend</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2021</td>
+<td align="right">4.3519886</td>
+</tr>
+<tr class="odd">
+<td align="left">MLI</td>
+<td align="left">Mali</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2002</td>
+<td align="right">5.1032632</td>
+</tr>
+<tr class="even">
+<td align="left">BEN</td>
+<td align="left">Benin</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2020</td>
+<td align="right">1.2621359</td>
+</tr>
+<tr class="odd">
+<td align="left">NAM</td>
+<td align="left">Namibia</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">1987</td>
+<td align="right">2.8603896</td>
+</tr>
+<tr class="even">
+<td align="left">AZE</td>
+<td align="left">Azerbaijan</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2012</td>
+<td align="right">11.9750000</td>
+</tr>
+<tr class="odd">
+<td align="left">MUS</td>
+<td align="left">Mauritius</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">1974</td>
+<td align="right">13.0861505</td>
+</tr>
+<tr class="even">
+<td align="left">MDA</td>
+<td align="left">Moldova</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2009</td>
+<td align="right">0.8650000</td>
+</tr>
+<tr class="odd">
+<td align="left">IRN</td>
+<td align="left">Iran, Islamic Rep.</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2017</td>
+<td align="right">92.9500000</td>
+</tr>
+<tr class="even">
+<td align="left">JPN</td>
+<td align="left">Japan</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2002</td>
+<td align="right">84.4500000</td>
+</tr>
+<tr class="odd">
+<td align="left">TUN</td>
+<td align="left">Tunisia</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">1979</td>
+<td align="right">1.7340000</td>
+</tr>
+<tr class="even">
+<td align="left">GRC</td>
+<td align="left">Greece</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2014</td>
+<td align="right">17.0965517</td>
+</tr>
+<tr class="odd">
+<td align="left">SRB</td>
+<td align="left">Serbia</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2006</td>
+<td align="right">46.0645890</td>
+</tr>
+<tr class="even">
+<td align="left">CUB</td>
+<td align="left">Cuba</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2015</td>
+<td align="right">6.9580000</td>
+</tr>
+<tr class="odd">
+<td align="left">LBR</td>
+<td align="left">Liberia</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">1997</td>
+<td align="right">0.0653077</td>
+</tr>
+<tr class="even">
+<td align="left">SAS</td>
+<td align="left">South Asia</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2017</td>
+<td align="right">706.1557000</td>
+</tr>
+<tr class="odd">
+<td align="left">GHA</td>
+<td align="left">Ghana</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2002</td>
+<td align="right">1.0362500</td>
+</tr>
+<tr class="even">
+<td align="left">PAK</td>
+<td align="left">Pakistan</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2000</td>
+<td align="right">172.5600000</td>
+</tr>
+<tr class="odd">
+<td align="left">CEB</td>
+<td align="left">Central Europe and the Baltics</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2019</td>
+<td align="right">12.4117813</td>
+</tr>
+<tr class="even">
+<td align="left">DZA</td>
+<td align="left">Algeria</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">1999</td>
+<td align="right">5.5133818</td>
+</tr>
+<tr class="odd">
+<td align="left">BWA</td>
+<td align="left">Botswana</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">1996</td>
+<td align="right">0.1535200</td>
+</tr>
+<tr class="even">
+<td align="left">COD</td>
+<td align="left">Congo, Dem. Rep.</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2008</td>
+<td align="right">0.6836000</td>
+</tr>
+<tr class="odd">
+<td align="left">BLZ</td>
+<td align="left">Belize</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2005</td>
+<td align="right">0.1010000</td>
+</tr>
+<tr class="even">
+<td align="left">URY</td>
+<td align="left">Uruguay</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">1990</td>
+<td align="right">3.0368764</td>
+</tr>
+<tr class="odd">
+<td align="left">LDC</td>
+<td align="left">Least developed countries: UN classification</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2022</td>
+<td align="right">4.4460714</td>
+</tr>
+<tr class="even">
+<td align="left">TUR</td>
+<td align="left">Turkiye</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2010</td>
+<td align="right">46.9600000</td>
+</tr>
+<tr class="odd">
+<td align="left">GHA</td>
+<td align="left">Ghana</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">1993</td>
+<td align="right">2.7157316</td>
+</tr>
+<tr class="even">
+<td align="left">JPN</td>
+<td align="left">Japan</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">1998</td>
+<td align="right">20.8356589</td>
+</tr>
+<tr class="odd">
+<td align="left">FRA</td>
+<td align="left">France</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2012</td>
+<td align="right">28.0630000</td>
+</tr>
+<tr class="even">
+<td align="left">BGD</td>
+<td align="left">Bangladesh</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2014</td>
+<td align="right">35.8700000</td>
+</tr>
+<tr class="odd">
+<td align="left">SAU</td>
+<td align="left">Saudi Arabia</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2010</td>
+<td align="right">21.9483333</td>
+</tr>
+<tr class="even">
+<td align="left">QAT</td>
+<td align="left">Qatar</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">1987</td>
+<td align="right">420.0000000</td>
+</tr>
+<tr class="odd">
+<td align="left">SEN</td>
+<td align="left">Senegal</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">1991</td>
+<td align="right">5.5455575</td>
+</tr>
+<tr class="even">
+<td align="left">CSS</td>
+<td align="left">Caribbean small states</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2022</td>
+<td align="right">2.6693000</td>
+</tr>
+<tr class="odd">
+<td align="left">HUN</td>
+<td align="left">Hungary</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">1973</td>
+<td align="right">3.5716400</td>
+</tr>
+<tr class="even">
+<td align="left">POL</td>
+<td align="left">Poland</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2004</td>
+<td align="right">11.8382000</td>
+</tr>
+<tr class="odd">
+<td align="left">ARG</td>
+<td align="left">Argentina</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2003</td>
+<td align="right">32.3635182</td>
+</tr>
+<tr class="even">
+<td align="left">BEN</td>
+<td align="left">Benin</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">1990</td>
+<td align="right">1.3018204</td>
+</tr>
+<tr class="odd">
+<td align="left">IBT</td>
+<td align="left">IDA &amp; IBRD total</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2016</td>
+<td align="right">3050.0942493</td>
+</tr>
+<tr class="even">
+<td align="left">MLI</td>
+<td align="left">Mali</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">1994</td>
+<td align="right">5.4285380</td>
+</tr>
+<tr class="odd">
+<td align="left">IRN</td>
+<td align="left">Iran, Islamic Rep.</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">1975</td>
+<td align="right">45.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">IRN</td>
+<td align="left">Iran, Islamic Rep.</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">1987</td>
+<td align="right">61.6926667</td>
+</tr>
+<tr class="odd">
+<td align="left">JAM</td>
+<td align="left">Jamaica</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">1998</td>
+<td align="right">9.9391508</td>
+</tr>
+<tr class="even">
+<td align="left">HUN</td>
+<td align="left">Hungary</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2018</td>
+<td align="right">81.9743583</td>
+</tr>
+<tr class="odd">
+<td align="left">NOR</td>
+<td align="left">Norway</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2005</td>
+<td align="right">2.7391857</td>
+</tr>
+<tr class="even">
+<td align="left">LTU</td>
+<td align="left">Lithuania</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2010</td>
+<td align="right">1.0358000</td>
+</tr>
+<tr class="odd">
+<td align="left">NIC</td>
+<td align="left">Nicaragua</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2018</td>
+<td align="right">0.8328750</td>
+</tr>
+<tr class="even">
+<td align="left">BRB</td>
+<td align="left">Barbados</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2002</td>
+<td align="right">101.2500000</td>
+</tr>
+<tr class="odd">
+<td align="left">TMN</td>
+<td align="left">Middle East, North Africa, Afghanistan &amp; Pakistan
+(IDA &amp; IBRD)</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2020</td>
+<td align="right">476.4659200</td>
+</tr>
+<tr class="even">
+<td align="left">POL</td>
+<td align="left">Poland</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">1975</td>
+<td align="right">25.2462687</td>
+</tr>
+<tr class="odd">
+<td align="left">GNQ</td>
+<td align="left">Equatorial Guinea</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2001</td>
+<td align="right">0.0687692</td>
+</tr>
+<tr class="even">
+<td align="left">ARE</td>
+<td align="left">United Arab Emirates</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2019</td>
+<td align="right">1628.6666667</td>
+</tr>
+<tr class="odd">
+<td align="left">ZAF</td>
+<td align="left">South Africa</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2010</td>
+<td align="right">14.8614615</td>
+</tr>
+<tr class="even">
+<td align="left">MDV</td>
+<td align="left">Maldives</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">1999</td>
+<td align="right">17.5641033</td>
+</tr>
+<tr class="odd">
+<td align="left">NPL</td>
+<td align="left">Nepal</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2018</td>
+<td align="right">9.4971000</td>
+</tr>
+<tr class="even">
+<td align="left">ESP</td>
+<td align="left">Spain</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">1996</td>
+<td align="right">31.3699041</td>
+</tr>
+<tr class="odd">
+<td align="left">NOR</td>
+<td align="left">Norway</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2008</td>
+<td align="right">2.9342500</td>
+</tr>
+<tr class="even">
+<td align="left">MLT</td>
+<td align="left">Malta</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">1982</td>
+<td align="right">49.1089109</td>
+</tr>
+<tr class="odd">
+<td align="left">BRN</td>
+<td align="left">Brunei Darussalam</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2022</td>
+<td align="right">1.0823529</td>
+</tr>
+<tr class="even">
+<td align="left">DEU</td>
+<td align="left">Germany</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2005</td>
+<td align="right">37.6986402</td>
+</tr>
+<tr class="odd">
+<td align="left">RUS</td>
+<td align="left">Russian Federation</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2010</td>
+<td align="right">69.7000000</td>
+</tr>
+<tr class="even">
+<td align="left">ETH</td>
+<td align="left">Ethiopia</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2008</td>
+<td align="right">8.5944364</td>
+</tr>
+<tr class="odd">
+<td align="left">KWT</td>
+<td align="left">Kuwait</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">1996</td>
+<td align="right">0.2951655</td>
+</tr>
+<tr class="even">
+<td align="left">PRY</td>
+<td align="left">Paraguay</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">1997</td>
+<td align="right">0.4761538</td>
+</tr>
+<tr class="odd">
+<td align="left">KHM</td>
+<td align="left">Cambodia</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2012</td>
+<td align="right">2.1840000</td>
+</tr>
+<tr class="even">
+<td align="left">BHR</td>
+<td align="left">Bahrain</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">1991</td>
+<td align="right">0.1982692</td>
+</tr>
+<tr class="odd">
+<td align="left">MUS</td>
+<td align="left">Mauritius</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2010</td>
+<td align="right">23.1552163</td>
+</tr>
+<tr class="even">
+<td align="left">MNG</td>
+<td align="left">Mongolia</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2000</td>
+<td align="right">1.4031830</td>
+</tr>
+<tr class="odd">
+<td align="left">SWE</td>
+<td align="left">Sweden</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">1982</td>
+<td align="right">2.1354386</td>
+</tr>
+<tr class="even">
+<td align="left">JOR</td>
+<td align="left">Jordan</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2018</td>
+<td align="right">135.3372434</td>
+</tr>
+<tr class="odd">
+<td align="left">LBN</td>
+<td align="left">Lebanon</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">1993</td>
+<td align="right">26.3015351</td>
+</tr>
+<tr class="even">
+<td align="left">THA</td>
+<td align="left">Thailand</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2011</td>
+<td align="right">57.3070000</td>
+</tr>
+<tr class="odd">
+<td align="left">PER</td>
+<td align="left">Peru</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2010</td>
+<td align="right">18.3164000</td>
+</tr>
+<tr class="even">
+<td align="left">AZE</td>
+<td align="left">Azerbaijan</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2002</td>
+<td align="right">9.9190000</td>
+</tr>
+<tr class="odd">
+<td align="left">KHM</td>
+<td align="left">Cambodia</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2011</td>
+<td align="right">1.8109453</td>
+</tr>
+<tr class="even">
+<td align="left">VCT</td>
+<td align="left">St. Vincent and the Grenadines</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2007</td>
+<td align="right">0.0091000</td>
+</tr>
+<tr class="odd">
+<td align="left">NIC</td>
+<td align="left">Nicaragua</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">2022</td>
+<td align="right">1.2730200</td>
+</tr>
+<tr class="even">
+<td align="left">SVN</td>
+<td align="left">Slovenia</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2014</td>
+<td align="right">5.2506695</td>
+</tr>
+<tr class="odd">
+<td align="left">ALB</td>
+<td align="left">Albania</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">1997</td>
+<td align="right">1.4304600</td>
+</tr>
+<tr class="even">
+<td align="left">AUS</td>
+<td align="left">Australia</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2013</td>
+<td align="right">3.8918699</td>
+</tr>
+<tr class="odd">
+<td align="left">ITA</td>
+<td align="left">Italy</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">1996</td>
+<td align="right">24.1782048</td>
+</tr>
+<tr class="even">
+<td align="left">GNB</td>
+<td align="left">Guinea-Bissau</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2021</td>
+<td align="right">1.0937500</td>
+</tr>
+<tr class="odd">
+<td align="left">GRC</td>
+<td align="left">Greece</td>
+<td align="left">ER.H2O.FWTL.ZS</td>
+<td align="right">2004</td>
+<td align="right">16.3925287</td>
+</tr>
+<tr class="even">
+<td align="left">CHN</td>
+<td align="left">China</td>
+<td align="left">ER.H2O.FWTL.K3</td>
+<td align="right">1983</td>
+<td align="right">468.8475000</td>
+</tr>
+</tbody>
+</table>
+</div>
 <div id="información-sobre-las-columnas-de-la-tabla-descargada" class="section level2" number="2.1">
 <h2><span class="header-section-number">2.1</span> Información sobre las
 columnas de la tabla descargada</h2>
 <p>Se presentan las diferentes dimensiones, cada una con sus valores
 posibles y el nº de observaciones.</p>
-<p><strong>COLUMNA: iso3c (227 opciones)</strong></p>
+<p><strong>COLUMNA: iso3c (228 opciones)</strong></p>
 <div class="caja-scroll caja-5">
 <pre><code>       iso3c N.observ
   [1,] BRB   122     
@@ -763,130 +1478,131 @@ posibles y el nº de observaciones.</p>
 [103,] ZAF    66     
 [104,] BRN    64     
 [105,] DEU    64     
-[106,] GNB    64     
-[107,] HTI    64     
-[108,] OMN    64     
-[109,] PRT    64     
-[110,] AZE    62     
-[111,] CHL    62     
-[112,] EST    62     
-[113,] GEO    62     
-[114,] GUY    62     
-[115,] MDA    62     
-[116,] RUS    62     
-[117,] SAU    62     
-[118,] SLV    62     
-[119,] TUR    62     
-[120,] UKR    62     
-[121,] ZMB    62     
-[122,] AFE    61     
-[123,] ARM    60     
-[124,] AUS    60     
-[125,] CZE    60     
-[126,] JAM    60     
-[127,] KAZ    60     
-[128,] MNG    60     
-[129,] STP    60     
-[130,] SVK    60     
-[131,] KGZ    58     
-[132,] MWI    58     
-[133,] TJK    58     
-[134,] TKM    58     
-[135,] TZA    58     
-[136,] UZB    58     
-[137,] BLR    56     
-[138,] COD    56     
-[139,] CUB    56     
-[140,] LTU    56     
-[141,] LVA    56     
-[142,] VCT    56     
-[143,] DMA    54     
-[144,] MKD    54     
-[145,] TTO    52     
-[146,] NIC    50     
-[147,] COM    48     
-[148,] BIH    46     
-[149,] COL    46     
-[150,] DOM    46     
-[151,] ECU    46     
-[152,] ERI    46     
-[153,] NPL    46     
-[154,] PNG    46     
-[155,] PRK    46     
-[156,] RWA    46     
-[157,] CPV    44     
-[158,] GTM    44     
-[159,] PSE    44     
-[160,] ETH    42     
-[161,] HRV    42     
-[162,] SVN    42     
-[163,] HND    40     
-[164,] TLS    38     
-[165,] GRD    36     
-[166,] LAO    36     
-[167,] KHM    34     
-[168,] PHL    34     
-[169,] SRB    34     
-[170,] SYC    34     
-[171,] MCO    33     
-[172,] LCA    32     
-[173,] THA    32     
-[174,] BGD    30     
-[175,] BTN    30     
-[176,] KWT    30     
-[177,] PER    30     
-[178,] PAN    26     
-[179,] CRI    22     
-[180,] KNA    22     
-[181,] SDN    22     
-[182,] SSD    22     
-[183,] ARB    18     
-[184,] CEB    18     
-[185,] CSS    18     
-[186,] EAP    18     
-[187,] EAR    18     
-[188,] EAS    18     
-[189,] ECA    18     
-[190,] ECS    18     
-[191,] EMU    18     
-[192,] EUU    18     
-[193,] HPC    18     
-[194,] IBD    18     
-[195,] IBT    18     
-[196,] IDA    18     
-[197,] IDB    18     
-[198,] IDX    18     
-[199,] LAC    18     
-[200,] LCN    18     
-[201,] LDC    18     
-[202,] LMY    18     
-[203,] LTE    18     
-[204,] MEA    18     
-[205,] MIC    18     
-[206,] MNA    18     
-[207,] NAC    18     
-[208,] OED    18     
-[209,] OSS    18     
-[210,] PRE    18     
-[211,] PST    18     
-[212,] SAS    18     
-[213,] SSA    18     
-[214,] SSF    18     
-[215,] SST    18     
-[216,] TEA    18     
-[217,] TEC    18     
-[218,] TLA    18     
-[219,] TMN    18     
-[220,] TSA    18     
-[221,] TSS    18     
-[222,] WLD    18     
-[223,] XD     18     
-[224,] XM     18     
-[225,] XN     18     
-[226,] XT     18     
-[227,] MNE    17     </code></pre>
+[106,] FCV    64     
+[107,] GNB    64     
+[108,] HTI    64     
+[109,] OMN    64     
+[110,] PRT    64     
+[111,] AZE    62     
+[112,] CHL    62     
+[113,] EST    62     
+[114,] GEO    62     
+[115,] GUY    62     
+[116,] MDA    62     
+[117,] RUS    62     
+[118,] SAU    62     
+[119,] SLV    62     
+[120,] TUR    62     
+[121,] UKR    62     
+[122,] ZMB    62     
+[123,] AFE    61     
+[124,] ARM    60     
+[125,] AUS    60     
+[126,] CZE    60     
+[127,] JAM    60     
+[128,] KAZ    60     
+[129,] MNG    60     
+[130,] STP    60     
+[131,] SVK    60     
+[132,] KGZ    58     
+[133,] MWI    58     
+[134,] TJK    58     
+[135,] TKM    58     
+[136,] TZA    58     
+[137,] UZB    58     
+[138,] BLR    56     
+[139,] COD    56     
+[140,] CUB    56     
+[141,] LTU    56     
+[142,] LVA    56     
+[143,] VCT    56     
+[144,] DMA    54     
+[145,] MKD    54     
+[146,] TTO    52     
+[147,] NIC    50     
+[148,] COM    48     
+[149,] BIH    46     
+[150,] COL    46     
+[151,] DOM    46     
+[152,] ECU    46     
+[153,] ERI    46     
+[154,] NPL    46     
+[155,] PNG    46     
+[156,] PRK    46     
+[157,] RWA    46     
+[158,] CPV    44     
+[159,] GTM    44     
+[160,] PSE    44     
+[161,] ETH    42     
+[162,] HRV    42     
+[163,] SVN    42     
+[164,] HND    40     
+[165,] TLS    38     
+[166,] GRD    36     
+[167,] LAO    36     
+[168,] KHM    34     
+[169,] PHL    34     
+[170,] SRB    34     
+[171,] SYC    34     
+[172,] MCO    33     
+[173,] LCA    32     
+[174,] THA    32     
+[175,] BGD    30     
+[176,] BTN    30     
+[177,] KWT    30     
+[178,] PER    30     
+[179,] PAN    26     
+[180,] CRI    22     
+[181,] KNA    22     
+[182,] SDN    22     
+[183,] SSD    22     
+[184,] ARB    18     
+[185,] CEB    18     
+[186,] CSS    18     
+[187,] EAP    18     
+[188,] EAR    18     
+[189,] EAS    18     
+[190,] ECA    18     
+[191,] ECS    18     
+[192,] EMU    18     
+[193,] EUU    18     
+[194,] HPC    18     
+[195,] IBD    18     
+[196,] IBT    18     
+[197,] IDA    18     
+[198,] IDB    18     
+[199,] IDX    18     
+[200,] LAC    18     
+[201,] LCN    18     
+[202,] LDC    18     
+[203,] LMY    18     
+[204,] LTE    18     
+[205,] MEA    18     
+[206,] MIC    18     
+[207,] MNA    18     
+[208,] NAC    18     
+[209,] OED    18     
+[210,] OSS    18     
+[211,] PRE    18     
+[212,] PST    18     
+[213,] SAS    18     
+[214,] SSA    18     
+[215,] SSF    18     
+[216,] SST    18     
+[217,] TEA    18     
+[218,] TEC    18     
+[219,] TLA    18     
+[220,] TMN    18     
+[221,] TSA    18     
+[222,] TSS    18     
+[223,] WLD    18     
+[224,] XD     18     
+[225,] XM     18     
+[226,] XN     18     
+[227,] XT     18     
+[228,] MNE    17     </code></pre>
 </div>
-<p><strong>COLUMNA: country (227 opciones)</strong></p>
+<p><strong>COLUMNA: country (228 opciones)</strong></p>
 <div class="caja-scroll caja-5">
 <pre><code>       country                                                 N.observ
   [1,] Barbados                                                122     
@@ -993,175 +1709,176 @@ posibles y el nº de observaciones.</p>
 [102,] Sri Lanka                                                66     
 [103,] Yemen, Rep.                                              66     
 [104,] Brunei Darussalam                                        64     
-[105,] Germany                                                  64     
-[106,] Guinea-Bissau                                            64     
-[107,] Haiti                                                    64     
-[108,] Oman                                                     64     
-[109,] Portugal                                                 64     
-[110,] Azerbaijan                                               62     
-[111,] Chile                                                    62     
-[112,] El Salvador                                              62     
-[113,] Estonia                                                  62     
-[114,] Georgia                                                  62     
-[115,] Guyana                                                   62     
-[116,] Moldova                                                  62     
-[117,] Russian Federation                                       62     
-[118,] Saudi Arabia                                             62     
-[119,] Turkiye                                                  62     
-[120,] Ukraine                                                  62     
-[121,] Zambia                                                   62     
-[122,] Africa Eastern and Southern                              61     
-[123,] Armenia                                                  60     
-[124,] Australia                                                60     
-[125,] Czechia                                                  60     
-[126,] Jamaica                                                  60     
-[127,] Kazakhstan                                               60     
-[128,] Mongolia                                                 60     
-[129,] Sao Tome and Principe                                    60     
-[130,] Slovak Republic                                          60     
-[131,] Kyrgyz Republic                                          58     
-[132,] Malawi                                                   58     
-[133,] Tajikistan                                               58     
-[134,] Tanzania                                                 58     
-[135,] Turkmenistan                                             58     
-[136,] Uzbekistan                                               58     
-[137,] Belarus                                                  56     
-[138,] Congo, Dem. Rep.                                         56     
-[139,] Cuba                                                     56     
-[140,] Latvia                                                   56     
-[141,] Lithuania                                                56     
-[142,] St. Vincent and the Grenadines                           56     
-[143,] Dominica                                                 54     
-[144,] North Macedonia                                          54     
-[145,] Trinidad and Tobago                                      52     
-[146,] Nicaragua                                                50     
-[147,] Comoros                                                  48     
-[148,] Bosnia and Herzegovina                                   46     
-[149,] Colombia                                                 46     
-[150,] Dominican Republic                                       46     
-[151,] Ecuador                                                  46     
-[152,] Eritrea                                                  46     
-[153,] Korea, Dem. People&#39;s Rep.                                46     
-[154,] Nepal                                                    46     
-[155,] Papua New Guinea                                         46     
-[156,] Rwanda                                                   46     
-[157,] Cabo Verde                                               44     
-[158,] Guatemala                                                44     
-[159,] West Bank and Gaza                                       44     
-[160,] Croatia                                                  42     
-[161,] Ethiopia                                                 42     
-[162,] Slovenia                                                 42     
-[163,] Honduras                                                 40     
-[164,] Timor-Leste                                              38     
-[165,] Grenada                                                  36     
-[166,] Lao PDR                                                  36     
-[167,] Cambodia                                                 34     
-[168,] Philippines                                              34     
-[169,] Serbia                                                   34     
-[170,] Seychelles                                               34     
-[171,] Monaco                                                   33     
-[172,] St. Lucia                                                32     
-[173,] Thailand                                                 32     
-[174,] Bangladesh                                               30     
-[175,] Bhutan                                                   30     
-[176,] Kuwait                                                   30     
-[177,] Peru                                                     30     
-[178,] Panama                                                   26     
-[179,] Costa Rica                                               22     
-[180,] South Sudan                                              22     
-[181,] St. Kitts and Nevis                                      22     
-[182,] Sudan                                                    22     
-[183,] Arab World                                               18     
-[184,] Caribbean small states                                   18     
-[185,] Central Europe and the Baltics                           18     
-[186,] Early-demographic dividend                               18     
-[187,] East Asia &amp; Pacific                                      18     
-[188,] East Asia &amp; Pacific (IDA &amp; IBRD countries)               18     
-[189,] East Asia &amp; Pacific (excluding high income)              18     
-[190,] Euro area                                                18     
-[191,] Europe &amp; Central Asia                                    18     
-[192,] Europe &amp; Central Asia (IDA &amp; IBRD countries)             18     
-[193,] Europe &amp; Central Asia (excluding high income)            18     
-[194,] European Union                                           18     
-[195,] Heavily indebted poor countries (HIPC)                   18     
-[196,] High income                                              18     
-[197,] IBRD only                                                18     
-[198,] IDA &amp; IBRD total                                         18     
-[199,] IDA blend                                                18     
-[200,] IDA only                                                 18     
-[201,] IDA total                                                18     
-[202,] Late-demographic dividend                                18     
-[203,] Latin America &amp; Caribbean                                18     
-[204,] Latin America &amp; Caribbean (excluding high income)        18     
-[205,] Latin America &amp; the Caribbean (IDA &amp; IBRD countries)     18     
-[206,] Least developed countries: UN classification             18     
-[207,] Low &amp; middle income                                      18     
-[208,] Low income                                               18     
-[209,] Lower middle income                                      18     
-[210,] Middle East, North Africa, Afghanistan &amp; Pakistan        18     
-[211,] Middle East, North Africa, Afghanistan &amp; Pakistan (IDA   18     
-[212,] Middle East, North Africa, Afghanistan &amp; Pakistan (excl  18     
-[213,] Middle income                                            18     
-[214,] North America                                            18     
-[215,] OECD members                                             18     
-[216,] Other small states                                       18     
-[217,] Post-demographic dividend                                18     
-[218,] Pre-demographic dividend                                 18     
-[219,] Small states                                             18     
-[220,] South Asia                                               18     
-[221,] South Asia (IDA &amp; IBRD)                                  18     
-[222,] Sub-Saharan Africa                                       18     
-[223,] Sub-Saharan Africa (IDA &amp; IBRD countries)                18     
-[224,] Sub-Saharan Africa (excluding high income)               18     
-[225,] Upper middle income                                      18     
-[226,] World                                                    18     
-[227,] Montenegro                                               17     </code></pre>
+[105,] Fragility, Conflict, and Violence (FCV) situations       64     
+[106,] Germany                                                  64     
+[107,] Guinea-Bissau                                            64     
+[108,] Haiti                                                    64     
+[109,] Oman                                                     64     
+[110,] Portugal                                                 64     
+[111,] Azerbaijan                                               62     
+[112,] Chile                                                    62     
+[113,] El Salvador                                              62     
+[114,] Estonia                                                  62     
+[115,] Georgia                                                  62     
+[116,] Guyana                                                   62     
+[117,] Moldova                                                  62     
+[118,] Russian Federation                                       62     
+[119,] Saudi Arabia                                             62     
+[120,] Turkiye                                                  62     
+[121,] Ukraine                                                  62     
+[122,] Zambia                                                   62     
+[123,] Africa Eastern and Southern                              61     
+[124,] Armenia                                                  60     
+[125,] Australia                                                60     
+[126,] Czechia                                                  60     
+[127,] Jamaica                                                  60     
+[128,] Kazakhstan                                               60     
+[129,] Mongolia                                                 60     
+[130,] Sao Tome and Principe                                    60     
+[131,] Slovak Republic                                          60     
+[132,] Kyrgyz Republic                                          58     
+[133,] Malawi                                                   58     
+[134,] Tajikistan                                               58     
+[135,] Tanzania                                                 58     
+[136,] Turkmenistan                                             58     
+[137,] Uzbekistan                                               58     
+[138,] Belarus                                                  56     
+[139,] Congo, Dem. Rep.                                         56     
+[140,] Cuba                                                     56     
+[141,] Latvia                                                   56     
+[142,] Lithuania                                                56     
+[143,] St. Vincent and the Grenadines                           56     
+[144,] Dominica                                                 54     
+[145,] North Macedonia                                          54     
+[146,] Trinidad and Tobago                                      52     
+[147,] Nicaragua                                                50     
+[148,] Comoros                                                  48     
+[149,] Bosnia and Herzegovina                                   46     
+[150,] Colombia                                                 46     
+[151,] Dominican Republic                                       46     
+[152,] Ecuador                                                  46     
+[153,] Eritrea                                                  46     
+[154,] Korea, Dem. People&#39;s Rep.                                46     
+[155,] Nepal                                                    46     
+[156,] Papua New Guinea                                         46     
+[157,] Rwanda                                                   46     
+[158,] Cabo Verde                                               44     
+[159,] Guatemala                                                44     
+[160,] West Bank and Gaza                                       44     
+[161,] Croatia                                                  42     
+[162,] Ethiopia                                                 42     
+[163,] Slovenia                                                 42     
+[164,] Honduras                                                 40     
+[165,] Timor-Leste                                              38     
+[166,] Grenada                                                  36     
+[167,] Lao PDR                                                  36     
+[168,] Cambodia                                                 34     
+[169,] Philippines                                              34     
+[170,] Serbia                                                   34     
+[171,] Seychelles                                               34     
+[172,] Monaco                                                   33     
+[173,] St. Lucia                                                32     
+[174,] Thailand                                                 32     
+[175,] Bangladesh                                               30     
+[176,] Bhutan                                                   30     
+[177,] Kuwait                                                   30     
+[178,] Peru                                                     30     
+[179,] Panama                                                   26     
+[180,] Costa Rica                                               22     
+[181,] South Sudan                                              22     
+[182,] St. Kitts and Nevis                                      22     
+[183,] Sudan                                                    22     
+[184,] Arab World                                               18     
+[185,] Caribbean small states                                   18     
+[186,] Central Europe and the Baltics                           18     
+[187,] Early-demographic dividend                               18     
+[188,] East Asia &amp; Pacific                                      18     
+[189,] East Asia &amp; Pacific (IDA &amp; IBRD countries)               18     
+[190,] East Asia &amp; Pacific (excluding high income)              18     
+[191,] Euro area                                                18     
+[192,] Europe &amp; Central Asia                                    18     
+[193,] Europe &amp; Central Asia (IDA &amp; IBRD countries)             18     
+[194,] Europe &amp; Central Asia (excluding high income)            18     
+[195,] European Union                                           18     
+[196,] Heavily indebted poor countries (HIPC)                   18     
+[197,] High income                                              18     
+[198,] IBRD only                                                18     
+[199,] IDA &amp; IBRD total                                         18     
+[200,] IDA blend                                                18     
+[201,] IDA only                                                 18     
+[202,] IDA total                                                18     
+[203,] Late-demographic dividend                                18     
+[204,] Latin America &amp; Caribbean                                18     
+[205,] Latin America &amp; Caribbean (excluding high income)        18     
+[206,] Latin America &amp; the Caribbean (IDA &amp; IBRD countries)     18     
+[207,] Least developed countries: UN classification             18     
+[208,] Low &amp; middle income                                      18     
+[209,] Low income                                               18     
+[210,] Lower middle income                                      18     
+[211,] Middle East, North Africa, Afghanistan &amp; Pakistan        18     
+[212,] Middle East, North Africa, Afghanistan &amp; Pakistan (IDA   18     
+[213,] Middle East, North Africa, Afghanistan &amp; Pakistan (excl  18     
+[214,] Middle income                                            18     
+[215,] North America                                            18     
+[216,] OECD members                                             18     
+[217,] Other small states                                       18     
+[218,] Post-demographic dividend                                18     
+[219,] Pre-demographic dividend                                 18     
+[220,] Small states                                             18     
+[221,] South Asia                                               18     
+[222,] South Asia (IDA &amp; IBRD)                                  18     
+[223,] Sub-Saharan Africa                                       18     
+[224,] Sub-Saharan Africa (IDA &amp; IBRD countries)                18     
+[225,] Sub-Saharan Africa (excluding high income)               18     
+[226,] Upper middle income                                      18     
+[227,] World                                                    18     
+[228,] Montenegro                                               17     </code></pre>
 </div>
 <p><strong>COLUMNA: indicator (2 opciones)</strong></p>
 <div class="caja-scroll caja-5">
 <pre><code>     indicator      N.observ
-[1,] ER.H2O.FWTL.K3 6749    
-[2,] ER.H2O.FWTL.ZS 6630    </code></pre>
+[1,] ER.H2O.FWTL.K3 6785    
+[2,] ER.H2O.FWTL.ZS 6658    </code></pre>
 </div>
 <p><strong>COLUMNA: date (61 opciones)</strong></p>
 <div class="caja-scroll caja-5">
 <pre><code>      date N.observ
- [1,] 2014 450     
- [2,] 2015 450     
- [3,] 2016 450     
- [4,] 2017 450     
- [5,] 2018 450     
- [6,] 2019 450     
- [7,] 2020 450     
- [8,] 2021 450     
- [9,] 2022 446     
-[10,] 2012 362     
-[11,] 2013 362     
-[12,] 2010 354     
-[13,] 2011 354     
-[14,] 2008 352     
-[15,] 2009 352     
-[16,] 2007 346     
-[17,] 2006 342     
-[18,] 2005 335     
-[19,] 2004 331     
-[20,] 2003 329     
-[21,] 2002 327     
-[22,] 2001 321     
-[23,] 2000 317     
-[24,] 1999 297     
-[25,] 1998 295     
-[26,] 1997 293     
-[27,] 1996 291     
-[28,] 1995 287     
-[29,] 1994 274     
-[30,] 1993 262     
-[31,] 1992 245     
-[32,] 1991 221     
-[33,] 1990 209     
-[34,] 1989 183     
-[35,] 1988 182     
-[36,] 1987 180     
+ [1,] 2014 452     
+ [2,] 2015 452     
+ [3,] 2016 452     
+ [4,] 2017 452     
+ [5,] 2018 452     
+ [6,] 2019 452     
+ [7,] 2020 452     
+ [8,] 2021 452     
+ [9,] 2022 448     
+[10,] 2012 364     
+[11,] 2013 364     
+[12,] 2010 356     
+[13,] 2011 356     
+[14,] 2008 354     
+[15,] 2009 354     
+[16,] 2007 348     
+[17,] 2006 344     
+[18,] 2005 337     
+[19,] 2004 333     
+[20,] 2003 331     
+[21,] 2002 329     
+[22,] 2001 323     
+[23,] 2000 319     
+[24,] 1999 299     
+[25,] 1998 297     
+[26,] 1997 295     
+[27,] 1996 293     
+[28,] 1995 289     
+[29,] 1994 275     
+[30,] 1993 263     
+[31,] 1992 246     
+[32,] 1991 222     
+[33,] 1990 210     
+[34,] 1989 184     
+[35,] 1988 183     
+[36,] 1987 181     
 [37,] 1986 124     
 [38,] 1985 122     
 [39,] 1984 112     
@@ -1235,7 +1952,7 @@ percentiles del tamaño de la serie temporal (años por país).</p>
 <td align="left">ER.H2O.FWTL.K3</td>
 <td align="left">Annual freshwater withdrawals, total (billion cubic
 meters)</td>
-<td align="right">227</td>
+<td align="right">228</td>
 <td align="right">1962</td>
 <td align="right">2022</td>
 <td align="right">9</td>
@@ -1248,7 +1965,7 @@ meters)</td>
 <td align="left">ER.H2O.FWTL.ZS</td>
 <td align="left">Annual freshwater withdrawals, total (% of internal
 resources)</td>
-<td align="right">223</td>
+<td align="right">224</td>
 <td align="right">1962</td>
 <td align="right">2022</td>
 <td align="right">9</td>
@@ -1336,16 +2053,15 @@ la memoria, cambiando los nombres de las tablas por otros que describan
 el dataset:</li>
 </ol>
 <pre><code>```{r, results=&#39;asis&#39;, cache=FALSE}
-datos_WB_Selected &lt;- aedv_incluir_dataset(&quot;WB_Selected_analisis.Rmd&quot;)
+datos_WB_Selected &lt;- aedv_incluir_dataset(&quot;WB_Selected_analisis.Rmd&quot;, validacion = TRUE)
 ```</code></pre>
 <p>Al compilar la memoria, el análisis aparece en el lugar del chunk y
 los datos quedan en la tabla <code>datos_WB_Selected</code> (un tibble),
 con la que se sigue trabajando en el resto de la memoria. Si incorporas
 varios datasets, pega un chunk por cada uno, con nombres de tabla
-distintos. En un dataset auxiliar, que no tiene que cumplir los
-requisitos de AEDV,
-<code>aedv_incluir_dataset(&quot;WB_Selected_analisis.Rmd&quot;, validacion = FALSE)</code>
-omite la validación.</p>
+distintos. Con <code>validacion = TRUE</code> el análisis incluye la
+validación de requisitos AEDV; en un dataset auxiliar, que no tiene que
+cumplirlos, cambia a <code>validacion = FALSE</code> para omitirla.</p>
 <p>El texto explicativo del dataset (qué mide, qué significa cada
 variable y cada una de sus opciones…) se escribe en la memoria, antes o
 después del chunk, no en <code>WB_Selected_analisis.Rmd</code>: ese

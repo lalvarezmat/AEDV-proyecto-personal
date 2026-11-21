@@ -62,7 +62,7 @@ Conviene saberlo porque regenerar un catálogo es un proceso **largo**: recorre 
 | ISTAC (recursos estadísticos) | 3.565 | ~2 h 30 min |
 | EUROSTAT | 3.121 | ~25 minutos |
 | INE | 7.142 | ~4 h 30 min |
-| Banco Mundial | 16.643 | **~13 horas** |
+| Banco Mundial | 16.643 | **entre 5 y 16 horas** (según lo rápido que responda la API) |
 
 Los documentos de **EDGAR**, los dos **CLIMA** e **INFORME PISA** no recorren un catálogo de una API para que elijas: construyen un dataset ya fijado (en CLIMA, descargando unos 10 GB de NetCDF de AdapteCCa; en PISA, reconstruyendo de Wikipedia y de Banco Mundial/INE) para generar los `.rds`. Tampoco hay que ejecutarlos, porque esos `.rds` se distribuyen ya hechos en sus carpetas.
 
