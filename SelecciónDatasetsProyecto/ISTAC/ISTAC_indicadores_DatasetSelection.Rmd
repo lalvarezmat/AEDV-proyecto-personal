@@ -80,7 +80,7 @@ rename <- dplyr::rename
 
 Este documento analiza en detalle los **indicadores** del ISTAC ya elegidos a partir de la tabla que genera **ISTAC_indicadores_TableDatasetGeneration.Rmd** ([ISTAC_indicadores.xlsx](ISTAC_indicadores.xlsx)), y comprueba si cumplen los requisitos para ser el dataset principal del proyecto personal de **AEDV**.
 
-A diferencia del INE o de Eurostat, aquí no se analiza un único dataset sino un **conjunto de indicadores** que se descargan y se combinan en una sola tabla: cada indicador es un atributo que se sigue en el tiempo para cada región de Canarias.
+Aquí no se analiza un único dataset sino un **conjunto de indicadores** que se descargan y se combinan en una sola tabla: cada indicador es un atributo que se sigue en el tiempo para cada región de Canarias.
 
 
 <!--  ================  PARA PROBAR TUS PROPIOS DATASETS EDITA EL CÓDIGO SIGUIENTE  ============ --> 
@@ -186,7 +186,7 @@ for(id in IDS){
 data <- arrange(data, GEOGRAPHICAL, TIME)
 ```
 
-A diferencia del INE, Eurostat o el Banco Mundial, aquí no hace falta comprobar columnas con un solo valor: la API del ISTAC ya distingue el dato absoluto de sus variantes calculadas (`MEASURE`) y devuelve, por indicador, solo las columnas estructurales (`GEOGRAPHICAL`, `NAME`, `INDICATOR`, `TIME`, `VALUE`).
+Aquí no hace falta comprobar columnas con un solo valor: la API del ISTAC ya distingue el dato absoluto de sus variantes calculadas (`MEASURE`) y devuelve, por indicador, solo las columnas estructurales (`GEOGRAPHICAL`, `NAME`, `INDICATOR`, `TIME`, `VALUE`).
 
 Guardamos los datos **lo primero de todo**, nada más limpiarlos, en formato `rds` (el formato nativo de `R`: conserva los tipos de las columnas y ocupa mucho menos que un Excel).
 

@@ -120,8 +120,7 @@ VARS <- c("tasmax", "tasmin", "tmean", "tasmaxmax", "tasminmin",
           "tasmaxhwdmax", "pr", "prNa1", "prmax24", "prmax5days")
 ```
 
-A diferencia del INE, el ISTAC, EUROSTAT o el Banco Mundial, AdapteCCa **no tiene
-un catálogo previo** del que extraer la ficha del dataset: aquí los metadatos se
+AdapteCCa **no tiene un catálogo previo** del que extraer la ficha del dataset: aquí los metadatos se
 construyen en este mismo documento y se guardan en `CLIMA_CANARIAS_metadatos.xlsx`,
 con **cuatro hojas**:
 
@@ -130,9 +129,7 @@ con **cuatro hojas**:
 - `horizontes` — el periodo de 30 años que representa cada horizonte de las proyecciones.
 - `escenarios` — las 4 trayectorias de emisión SSP, con su forzamiento y su calentamiento estimado.
 
-Las tres últimas son las **explicaciones de los indicadores**, que es lo que en las
-otras fuentes viene ya dado en el catálogo (`Indicator_desc` en el Banco Mundial,
-`Descripcion` del `topic` en EUROSTAT).
+Las tres últimas son las **explicaciones de los indicadores**.
 
 > **Nota:** las descripciones han sido redactadas a partir de la documentación de
 > AdapteCCa (variables/índices del visor) y del 6º Informe del IPCC. **No provienen

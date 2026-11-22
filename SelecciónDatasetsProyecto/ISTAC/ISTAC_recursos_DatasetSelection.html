@@ -407,14 +407,10 @@ que genera <strong>ISTAC_recursos_TableDatasetGeneration.Rmd</strong>
 (<a href="ISTAC_recursos.xlsx">ISTAC_recursos.xlsx</a>), y comprueba si
 cumple los requisitos para ser el dataset principal del proyecto
 personal de <strong>AEDV</strong>.</p>
-<p>A diferencia de los <strong>indicadores</strong> del ISTAC
-(<strong>ISTAC_indicadores_DatasetSelection.Rmd</strong>), que tienen
-siempre las mismas columnas (territorio, fecha y valor) y se combinan
-varios en una tabla, aquí se analiza <strong>un único dataset</strong>
-que, además del territorio y la fecha, puede tener otras dimensiones
-(sexo, edad, tipo de medida…). Cada combinación de valores de esas
-dimensiones es un atributo que se sigue en el tiempo para cada
-región.</p>
+<p>Se analiza <strong>un único dataset</strong> que, además del
+territorio y la fecha, puede tener otras dimensiones (sexo, edad, tipo
+de medida…). Cada combinación de valores de esas dimensiones es un
+atributo que se sigue en el tiempo para cada región.</p>
 <!--  ================  PARA PROBAR TUS PROPIOS DATASETS EDITA EL CÓDIGO SIGUIENTE  ============ -->
 <p>Para analizar otro dataset basta con cambiar su identificador en el
 chunk de abajo y volver a compilar.</p>
@@ -435,8 +431,8 @@ códigos de cada dimensión con su nombre. Construimos una tabla ordenada
 <ul>
 <li><code>GEOGRAPHICAL</code> y <code>NAME</code>: código y nombre de la
 región (la dimensión territorial).</li>
-<li><code>TIME</code>: el periodo, con los meses escritos como en los
-indicadores del ISTAC (<code>2019-01</code>).</li>
+<li><code>TIME</code>: el periodo, con los meses escritos como
+<code>2019-01</code>.</li>
 <li>Una columna por cada una de las demás dimensiones, con el
 <strong>nombre</strong> de cada valor en vez del código.</li>
 <li><code>VALUE</code>: el valor numérico. Se eliminan las filas sin

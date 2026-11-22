@@ -1,5 +1,5 @@
 <!--
-Análisis del dataset "Emisiones de gases de efecto invernadero por país (EDGAR)", generado por EDGAR_GHG.Rmd el 2026-11-21.
+Análisis del dataset "Emisiones de gases de efecto invernadero por país (EDGAR)", generado por EDGAR_GHG.Rmd el 2026-11-22.
 Se incluye en la sección "Comprensión de los datos" de la memoria con este código, en un
 chunk con las opciones results='asis' y cache=FALSE:
 
@@ -285,9 +285,8 @@ con dato no nulo) — bastantes menos que en versiones del curso anteriores a 20
   y tenía 39 valores (la nomenclatura IPCC 2006 completa); EDGAR ya no publica ese
   desglose fino en el booklet.
 - **`Substance`** *(texto)* — Grupo de gases de la fila. Todos están ya expresados
-  en **CO2-equivalente** (GWP-100, AR5), así que a diferencia de versiones
-  anteriores del curso **no hay que preocuparse de mezclar unidades físicas
-  distintas**: solo hay 5 valores posibles:
+  en **CO2-equivalente** (GWP-100, AR5), así que **no se mezclan unidades
+  físicas distintas**: solo hay 5 valores posibles:
     - `CO2` — dióxido de carbono de origen fósil (ya no se reporta el biogénico
       por separado).
     - `GWP_100_AR5_CH4`, `GWP_100_AR5_N2O` — metano y óxido nitroso, agregados.

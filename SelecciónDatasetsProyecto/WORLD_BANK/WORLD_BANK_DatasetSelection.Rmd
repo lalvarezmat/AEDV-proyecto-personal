@@ -81,7 +81,7 @@ rename <- dplyr::rename
 
 Este documento analiza en detalle los **indicadores** del Banco Mundial ya elegidos a partir de la tabla que genera **WORLD_BANK_TableDatasetGeneration.Rmd** ([wb.datasets.xlsx](wb.datasets.xlsx)), y comprueba si cumplen los requisitos para ser el dataset principal del proyecto personal de **AEDV**.
 
-A diferencia del INE o de Eurostat, aquí no se analiza un único dataset sino un **conjunto de indicadores** que se descargan y se combinan en una sola tabla: cada indicador es un atributo que se sigue en el tiempo para cada país.
+Aquí no se analiza un único dataset sino un **conjunto de indicadores** que se descargan y se combinan en una sola tabla: cada indicador es un atributo que se sigue en el tiempo para cada país.
 
 
 <!--  ================  PARA PROBAR TUS PROPIOS DATASETS EDITA EL CÓDIGO SIGUIENTE  ============ -->

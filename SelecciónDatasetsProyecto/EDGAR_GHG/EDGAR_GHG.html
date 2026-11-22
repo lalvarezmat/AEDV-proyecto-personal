@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-11-21" />
+<meta name="date" content="2026-11-22" />
 
 <title>EDGAR: DATASETS EMISIONES GASES EFECTO INVERNADERO</title>
 
@@ -1492,7 +1492,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">EDGAR: DATASETS EMISIONES GASES EFECTO
 INVERNADERO</h1>
-<h4 class="date">2026-11-21</h4>
+<h4 class="date">2026-11-22</h4>
 
 </div>
 
@@ -1680,11 +1680,10 @@ cat(&quot;Fichero guardado:&quot;, paste0(filename, &quot;_normalizado.rds&quot;
 <div id="metadatos-del-dataset" class="section level2" number="1.1">
 <h2><span class="header-section-number">1.1</span> Metadatos del
 dataset</h2>
-<p>A diferencia del INE, el ISTAC, EUROSTAT o el Banco Mundial, EDGAR
-<strong>no tiene un catálogo previo</strong> del que extraer la ficha
-del dataset: aquí los metadatos se construyen en este mismo documento y
-se guardan en <code>EDGAR_GHG_metadatos.xlsx</code>, con <strong>cuatro
-hojas</strong>:</p>
+<p>EDGAR <strong>no tiene un catálogo previo</strong> del que extraer la
+ficha del dataset: aquí los metadatos se construyen en este mismo
+documento y se guardan en <code>EDGAR_GHG_metadatos.xlsx</code>, con
+<strong>cuatro hojas</strong>:</p>
 <ul>
 <li><code>dataset</code> — la ficha general (fuente, versión, cobertura,
 unidades) de las dos tablas de datos (<code>EDGAR_GHG.rds</code> y
@@ -1699,16 +1698,14 @@ columna <code>Substance</code>, con su unidad.</li>
 (emisiones per cápita y por PIB), con su unidad.</li>
 </ul>
 <p>Las tres últimas son las <strong>explicaciones de los
-indicadores</strong>, que es lo que en las otras fuentes viene ya dado
-en el catálogo (<code>Indicator_desc</code> en el Banco Mundial,
-<code>Descripcion</code> del <code>topic</code> en EUROSTAT).</p>
+indicadores</strong>.</p>
 <blockquote>
-<p><strong>Nota:</strong> a diferencia de versiones anteriores del
-curso, las descripciones de <code>Sector</code> de abajo son una
-<strong>traducción directa de la definición oficial que EDGAR publica en
-la hoja <code>info</code> del propio booklet</strong> (no generadas por
-IA). Las de <code>Substance</code> sí se han redactado a mano a partir
-de esa misma hoja y de fuentes generales sobre GWP-100 (AR5).</p>
+<p><strong>Nota:</strong> las descripciones de <code>Sector</code> de
+abajo son una <strong>traducción directa de la definición oficial que
+EDGAR publica en la hoja <code>info</code> del propio booklet</strong>
+(no generadas por IA). Las de <code>Substance</code> sí se han redactado
+a mano a partir de esa misma hoja y de fuentes generales sobre GWP-100
+(AR5).</p>
 </blockquote>
 <pre class="r"><code># DESCRIPCIÓN DE CADA SECTOR (columna `Sector`), traducida de la definición
 # oficial de EDGAR (hoja `info` del booklet)
@@ -1869,7 +1866,7 @@ Research), JRC - Comisión Europea</td>
 </tr>
 <tr class="odd">
 <td align="left">Fecha.de.generacion</td>
-<td align="left">2026-11-21</td>
+<td align="left">2026-11-22</td>
 </tr>
 <tr class="even">
 <td align="left">N.observaciones</td>
@@ -4634,9 +4631,9 @@ IPCC 2006 completa); EDGAR ya no publica ese desglose fino en el
 booklet.</li>
 <li><strong><code>Substance</code></strong> <em>(texto)</em> — Grupo de
 gases de la fila. Todos están ya expresados en
-<strong>CO2-equivalente</strong> (GWP-100, AR5), así que a diferencia de
-versiones anteriores del curso <strong>no hay que preocuparse de mezclar
-unidades físicas distintas</strong>: solo hay 5 valores posibles:
+<strong>CO2-equivalente</strong> (GWP-100, AR5), así que <strong>no se
+mezclan unidades físicas distintas</strong>: solo hay 5 valores
+posibles:
 <ul>
 <li><code>CO2</code> — dióxido de carbono de origen fósil (ya no se
 reporta el biogénico por separado).</li>

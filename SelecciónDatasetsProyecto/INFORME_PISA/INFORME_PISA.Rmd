@@ -479,9 +479,7 @@ indicadores más, ya identificados y validados en las carpetas `INE/` y
 
 **No hay un indicador de "gasto en educación" aislado por Comunidad Autónoma**:
 el catálogo del INE ya generado no incluye la Contabilidad Regional, y esta se
-obtiene aparte, directamente de INEbase (`ine.es`), por un mecanismo distinto al
-resto del proyecto (descarga directa de tablas, no la API `ineapir` que usan los
-generadores de catálogo). Además, esa fuente **no aísla la rama "Educación"**: la
+obtiene aparte, por descarga directa de tablas de INEbase (`ine.es`). Además, esa fuente **no aísla la rama "Educación"**: la
 clasificación de 11 ramas de las cuentas regionales la agrupa junto con
 administración pública, sanidad y servicios sociales (rama `O_Q`); se documenta
 esta limitación en los metadatos y no se presenta como si fuera gasto educativo puro.
@@ -596,7 +594,7 @@ cat("Fichero guardado:", f_contexto_ccaa, "-", nrow(contexto_ccaa), "filas,",
 
 ## Metadatos del dataset
 
-Igual que EDGAR o CLIMA, esta fuente **no tiene un catálogo previo** del que
+Esta fuente **no tiene un catálogo previo** del que
 extraer la ficha: los metadatos se construyen en este mismo documento y se
 guardan en **un único fichero**, `INFORME_PISA_metadatos.xlsx`, con **siete
 hojas**:
@@ -616,7 +614,7 @@ hojas**:
 - `contexto_indicadores` — diccionario de los 6 indicadores de contexto (fuente,
   ámbito país/CCAA, unidad, descripción y advertencias de uso).
 - `contexto_fuentes` — de dónde sale cada tabla de contexto: el Banco Mundial vía
-  `wbstats` (API, igual que el resto del proyecto) y el INE vía `ineapir`, pero la
+  `wbstats` (API) y el INE vía `ineapir`, pero la
   Contabilidad Regional (`peso_admin_edu_sanidad_pib_pct`, `pib_miles_eur`) por
   **descarga directa de INEbase** (tabla `tpx=76923`), fuera del catálogo ya
   generado en `INE/INE.datasets.xlsx`.
@@ -1017,9 +1015,8 @@ del curso (pensado para frecuencias Y/Q/M/W/D regulares):
   país en `contexto_paises`.
 - **Fiabilidad de la fuente**: la descarga oficial de la OCDE está bloqueada
   (403) y se reconstruye de Wikipedia, verificado cruzando España entre dos
-  parseos independientes; la Contabilidad Regional del INE se obtuvo por un
-  mecanismo distinto al resto del proyecto (descarga directa de INEbase, no la
-  API/catálogo ya generado). Ambas limitaciones están documentadas en los
+  parseos independientes; la Contabilidad Regional del INE se obtuvo por
+  descarga directa de INEbase. Ambas limitaciones están documentadas en los
   metadatos, no ocultan datos.
 - **0 valores `NA`, 0 filas duplicadas** en los cuatro ficheros.
 

@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-11-21" />
+<meta name="date" content="2026-11-22" />
 
 <title>INFORME PISA: resultados históricos por país y por Comunidad Autónoma</title>
 
@@ -1492,7 +1492,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">INFORME PISA: resultados históricos por
 país y por Comunidad Autónoma</h1>
-<h4 class="date">2026-11-21</h4>
+<h4 class="date">2026-11-22</h4>
 
 </div>
 
@@ -1935,15 +1935,13 @@ regional en valor absoluto.</li>
 </ul>
 <p><strong>No hay un indicador de “gasto en educación” aislado por
 Comunidad Autónoma</strong>: el catálogo del INE ya generado no incluye
-la Contabilidad Regional, y esta se obtiene aparte, directamente de
-INEbase (<code>ine.es</code>), por un mecanismo distinto al resto del
-proyecto (descarga directa de tablas, no la API <code>ineapir</code> que
-usan los generadores de catálogo). Además, esa fuente <strong>no aísla
-la rama “Educación”</strong>: la clasificación de 11 ramas de las
-cuentas regionales la agrupa junto con administración pública, sanidad y
-servicios sociales (rama <code>O_Q</code>); se documenta esta limitación
-en los metadatos y no se presenta como si fuera gasto educativo
-puro.</p>
+la Contabilidad Regional, y esta se obtiene aparte, por descarga directa
+de tablas de INEbase (<code>ine.es</code>). Además, esa fuente
+<strong>no aísla la rama “Educación”</strong>: la clasificación de 11
+ramas de las cuentas regionales la agrupa junto con administración
+pública, sanidad y servicios sociales (rama <code>O_Q</code>); se
+documenta esta limitación en los metadatos y no se presenta como si
+fuera gasto educativo puro.</p>
 <pre class="r"><code>DESCARGAR_CONTEXTO &lt;- !file.exists(f_contexto_paises) || !file.exists(f_contexto_ccaa)
 
 cat(if (DESCARGAR_CONTEXTO) &quot;No se encuentran los rds de contexto: se descargan del Banco Mundial y el INE.\n&quot;
@@ -2048,9 +2046,9 @@ cat(&quot;Fichero guardado:&quot;, f_contexto_ccaa, &quot;-&quot;, nrow(contexto
 <div id="metadatos-del-dataset" class="section level2" number="1.2">
 <h2><span class="header-section-number">1.2</span> Metadatos del
 dataset</h2>
-<p>Igual que EDGAR o CLIMA, esta fuente <strong>no tiene un catálogo
-previo</strong> del que extraer la ficha: los metadatos se construyen en
-este mismo documento y se guardan en <strong>un único fichero</strong>,
+<p>Esta fuente <strong>no tiene un catálogo previo</strong> del que
+extraer la ficha: los metadatos se construyen en este mismo documento y
+se guardan en <strong>un único fichero</strong>,
 <code>INFORME_PISA_metadatos.xlsx</code>, con <strong>siete
 hojas</strong>:</p>
 <ul>
@@ -2075,9 +2073,9 @@ cruzar con <code>contexto_ccaa</code>.</li>
 de contexto (fuente, ámbito país/CCAA, unidad, descripción y
 advertencias de uso).</li>
 <li><code>contexto_fuentes</code> — de dónde sale cada tabla de
-contexto: el Banco Mundial vía <code>wbstats</code> (API, igual que el
-resto del proyecto) y el INE vía <code>ineapir</code>, pero la
-Contabilidad Regional (<code>peso_admin_edu_sanidad_pib_pct</code>,
+contexto: el Banco Mundial vía <code>wbstats</code> (API) y el INE vía
+<code>ineapir</code>, pero la Contabilidad Regional
+(<code>peso_admin_edu_sanidad_pib_pct</code>,
 <code>pib_miles_eur</code>) por <strong>descarga directa de
 INEbase</strong> (tabla <code>tpx=76923</code>), fuera del catálogo ya
 generado en <code>INE/INE.datasets.xlsx</code>.</li>
@@ -2313,7 +2311,7 @@ es.wikipedia.org/wiki/Anexo:Resultados_del_Informe_PISA_en_España_por_Comunidad
 </tr>
 <tr class="odd">
 <td align="left">Fecha_de_generacion</td>
-<td align="left">2026-11-21</td>
+<td align="left">2026-11-22</td>
 </tr>
 <tr class="even">
 <td align="left">Fichero_paises</td>
@@ -5764,9 +5762,8 @@ OCDE está bloqueada
 <ol start="403" style="list-style-type: decimal">
 <li>y se reconstruye de Wikipedia, verificado cruzando España entre dos
 parseos independientes; la Contabilidad Regional del INE se obtuvo por
-un mecanismo distinto al resto del proyecto (descarga directa de
-INEbase, no la API/catálogo ya generado). Ambas limitaciones están
-documentadas en los metadatos, no ocultan datos.</li>
+descarga directa de INEbase. Ambas limitaciones están documentadas en
+los metadatos, no ocultan datos.</li>
 </ol></li>
 <li><strong>0 valores <code>NA</code>, 0 filas duplicadas</strong> en
 los cuatro ficheros.</li>

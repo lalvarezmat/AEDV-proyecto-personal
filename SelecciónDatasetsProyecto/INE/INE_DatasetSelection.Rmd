@@ -305,7 +305,7 @@ if(is.na(geo_col)) geo_col <- NULL
 
 ## Información sobre las columnas de la tabla descargada
 
-Se presentan las diferentes dimensiones, cada una con sus valores posibles y el nº de observaciones. A diferencia de Eurostat, el INE entrega los valores ya con su nombre completo, así que no hace falta traducir ningún código.
+Se presentan las diferentes dimensiones, cada una con sus valores posibles y el nº de observaciones.
 
 ```{r, results='asis'}
 # results='asis' para poder envolver la salida de cada columna en HTML propio

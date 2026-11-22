@@ -413,10 +413,10 @@ del ISTAC ya elegidos a partir de la tabla que genera
 <strong>ISTAC_indicadores_TableDatasetGeneration.Rmd</strong> (<a href="ISTAC_indicadores.xlsx">ISTAC_indicadores.xlsx</a>), y comprueba
 si cumplen los requisitos para ser el dataset principal del proyecto
 personal de <strong>AEDV</strong>.</p>
-<p>A diferencia del INE o de Eurostat, aquí no se analiza un único
-dataset sino un <strong>conjunto de indicadores</strong> que se
-descargan y se combinan en una sola tabla: cada indicador es un atributo
-que se sigue en el tiempo para cada región de Canarias.</p>
+<p>Aquí no se analiza un único dataset sino un <strong>conjunto de
+indicadores</strong> que se descargan y se combinan en una sola tabla:
+cada indicador es un atributo que se sigue en el tiempo para cada región
+de Canarias.</p>
 <!--  ================  PARA PROBAR TUS PROPIOS DATASETS EDITA EL CÓDIGO SIGUIENTE  ============ -->
 <p>Para analizar otros indicadores basta con cambiar sus códigos en el
 chunk de abajo y volver a compilar.</p>
@@ -496,12 +496,11 @@ for(id in IDS){
   data &lt;- bind_rows(data, tb)
 }
 data &lt;- arrange(data, GEOGRAPHICAL, TIME)</code></pre>
-<p>A diferencia del INE, Eurostat o el Banco Mundial, aquí no hace falta
-comprobar columnas con un solo valor: la API del ISTAC ya distingue el
-dato absoluto de sus variantes calculadas (<code>MEASURE</code>) y
-devuelve, por indicador, solo las columnas estructurales
-(<code>GEOGRAPHICAL</code>, <code>NAME</code>, <code>INDICATOR</code>,
-<code>TIME</code>, <code>VALUE</code>).</p>
+<p>Aquí no hace falta comprobar columnas con un solo valor: la API del
+ISTAC ya distingue el dato absoluto de sus variantes calculadas
+(<code>MEASURE</code>) y devuelve, por indicador, solo las columnas
+estructurales (<code>GEOGRAPHICAL</code>, <code>NAME</code>,
+<code>INDICATOR</code>, <code>TIME</code>, <code>VALUE</code>).</p>
 <p>Guardamos los datos <strong>lo primero de todo</strong>, nada más
 limpiarlos, en formato <code>rds</code> (el formato nativo de
 <code>R</code>: conserva los tipos de las columnas y ocupa mucho menos
