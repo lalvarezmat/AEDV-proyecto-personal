@@ -658,7 +658,7 @@ tablas de conteo o gráficas de barras de frecuencias absolutas sin transformaci
 
 Usando los Rmd **\_DatasetSelection** de las carpetas de ISTAC, INE, WORLD_BANK y EUROSTAT (o los de EDGAR, CLIMA e INFORME_PISA) seleccionamos los datasets y los incorporamos aquí en la memoria con `aedv_incluir_dataset()`, pegando en esta sección el chunk que indica cada uno de esos documentos en su última sección, según se explica en los ficheros `README_Proyecto_Personal.Rmd` (carpeta `ProyectoPersonal`) y `README_Selección_Tema.Rmd` (subcarpeta `SelecciónDatasetsProyecto`).
 
-Cada dataset se incluye con su propio chunk, con las opciones `results='asis'` y `cache=FALSE`. Los ficheros del dataset (el `.rds`, el `_metadatos.xlsx` y el `_analisis.Rmd`) tienen que estar en la carpeta de esta memoria. El argumento `titulo` es el título de la subsección del dataset en la memoria: cambia el que se propone (el del catálogo de la fuente) por uno que diga qué aporta el dataset a tu proyecto. Por ejemplo, el dataset principal del proyecto:
+Cada dataset se incluye con su propio chunk, con las opciones `results='asis'` y `cache=FALSE`. Los ficheros del dataset (el `.rds`, el `_metadatos.xlsx` y el `_analisis.Rmd`) tienen que estar en la carpeta de esta memoria. También tiene que estar siempre **`estilos.css`** en la carpeta donde se compila la memoria: es el que da a las tablas de los datasets el scroll horizontal y vertical; sin él, las tablas se imprimen enteras y ocupan páginas y páginas de la memoria. El argumento `titulo` es el título de la subsección del dataset en la memoria: cambia el que se propone (el del catálogo de la fuente) por uno que diga qué aporta el dataset a tu proyecto. Por ejemplo, el dataset principal del proyecto:
 
 ````{verbatim, echo=TRUE}
 ```{r, results='asis', cache=FALSE}
@@ -1139,33 +1139,50 @@ no solo en el proyecto personal sino en cualquier aspecto del desarrollo de la a
 
 *Escribe aquí tu reflexión.*
 
-### Productividad por fase {-}
+### Casos concretos de uso de la IA {-}
 
 <!--
-Rellena una fila por fase en la que hayas usado la IA. En "Comentario" resume en
-una o dos frases para qué te sirvió (y para qué no). En "Productividad" indica un
-factor multiplicativo ESTIMADO de cuánto crees que aumentó tu productividad en esa
-fase respecto a haberla hecho sin ninguna IA: ×1 = igual que sin IA, ×2 = el doble
-de rápido/productivo, ×0,8 = te ralentizó. Es una estimación subjetiva y honesta,
-no un dato medido; justifica los valores extremos en el comentario.
+Describe TRES casos reales de tu trabajo con la IA en la asignatura:
+
+1. Un caso en que la IA te ayudó de verdad.
+2. Un caso en que la IA se equivocó o te propuso algo que no servía (un
+   código incorrecto, un paquete que no está en el libro, una función que ya
+   existía en utilidades.R, una interpretación errónea de un resultado...) y
+   cómo te diste cuenta.
+3. Una tarea que decidiste NO delegar en la IA, y por qué.
+
+Para cada caso basta con unas pocas líneas: qué le pediste (resumido; no hace
+falta copiar la conversación), qué te devolvió y qué comprobaste, cambiaste o
+descartaste tú. Indica dónde está el resultado en la memoria (sección,
+gráfico o tabla), para que se pueda comprobar.
+
+Mejor un caso pequeño y real que uno grande y genérico: «me ayudó a hacer
+las gráficas» no dice nada; «le pedí que pasara a plotly el gráfico de la
+sección 3.6 y perdía los rótulos de los ejes; lo arreglé con...» sí.
+Los casos ilustran lo que cuentas en la reflexión de arriba (sobre todo en
+VERIFICACIÓN Y CRITERIO PROPIO y en LÍMITES): no repitas aquí esa reflexión.
 -->
 
-| Fase o tema | Comentario | Productividad |
-|---|---|:--:|
-| Familiarización con la asignatura | Aclarar conceptos y dudas del temario | ×4 |
-| Realización de ejercicios | Explicación de errores y pistas, sin copiar la solución | ×1,5 |
-| Selección del tema del proyecto | Exploración de ideas y validación de datasets | ×1,5 |
-| Procesado de datos (`dplyr`) | Filtros, `join`s y reestructuración de las tablas | ×2 |
-| Gráficas estáticas con `ggplot2` | Ajuste de estética, escalas y `facet_wrap` | ×3 |
-| Series temporales (`fpp3`) | Descomposición y modelos ARIMA | ×2,5 |
-| Análisis de atributos | Correlación, PCA y transformación Yeo-Johnson | ×2,5 |
-| Visualización dinámica | Conversión a `plotly`/`leaflet` y ajuste de tooltips | ×3 |
-| Desarrollo del dashboard | Estructura de `shiny`/`flexdashboard` y reactividad | ×4 |
-| Redacción de la memoria | Redacción ODS | ×10 |
-| Redacción de la memoria | Redacción de estado del arte | ×5 |
-| Redacción de la memoria | Revisión de estilo y coherencia del texto | ×2 |
+**Caso 1. La IA me ayudó:** *título breve del caso*
 
-*El listado de fases/temas y los factores son orientativos, sustitúyelos en base a tu experiencia real.*
+- **Qué le pedí:** …
+- **Qué me devolvió:** …
+- **Qué comprobé o cambié yo:** …
+- **Dónde está en la memoria:** …
+
+**Caso 2. La IA se equivocó:** *título breve del caso*
+
+- **Qué le pedí:** …
+- **Qué me devolvió:** …
+- **Cómo me di cuenta y qué hice:** …
+- **Dónde está en la memoria:** …
+
+**Caso 3. No lo delegué en la IA:** *título breve del caso*
+
+- **Qué tarea:** …
+- **Por qué no la delegué:** …
+- **Cómo la hice:** …
+- **Dónde está en la memoria:** …
 
 
 
