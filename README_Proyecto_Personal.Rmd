@@ -394,6 +394,7 @@ Al compilar la memoria, el análisis completo aparece en el lugar del chunk —c
 
 * **Varios datasets**: pega un chunk por cada uno, con nombres de tabla distintos. Cada análisis se ejecuta por separado, sin interferir con los demás ni con el resto de la memoria.
 * **Datasets auxiliares**: `aedv_incluir_dataset("...", validacion = FALSE)` omite la validación de requisitos AEDV, para no alargar la memoria con un dataset que no tiene que cumplirlos.
+* **Versión final de la memoria**: se pone `validacion = FALSE` en **todas** las cargas de datasets, también en la del dataset principal: una vez superada la fase de validación del tema, ya no hace falta insistir en la memoria final sobre la validación de requisitos AEDV.
 * **Datasets con varias tablas** (EDGAR, CLIMA e INFORME PISA): `aedv_incluir_dataset()` las devuelve juntas en una **lista**, y el chunk que propone su documento las separa justo después, cada una con su propio nombre. Por ejemplo, para CLIMA Canarias:
 
 ````

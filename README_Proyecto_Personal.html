@@ -2439,6 +2439,11 @@ interferir con los demás ni con el resto de la memoria.</li>
 <code>aedv_incluir_dataset(&quot;...&quot;, validacion = FALSE)</code> omite la
 validación de requisitos AEDV, para no alargar la memoria con un dataset
 que no tiene que cumplirlos.</li>
+<li><strong>Versión final de la memoria</strong>: se pone
+<code>validacion = FALSE</code> en <strong>todas</strong> las cargas de
+datasets, también en la del dataset principal: una vez superada la fase
+de validación del tema, ya no hace falta insistir en la memoria final
+sobre la validación de requisitos AEDV.</li>
 <li><strong>Datasets con varias tablas</strong> (EDGAR, CLIMA e INFORME
 PISA): <code>aedv_incluir_dataset()</code> las devuelve juntas en una
 <strong>lista</strong>, y el chunk que propone su documento las separa
