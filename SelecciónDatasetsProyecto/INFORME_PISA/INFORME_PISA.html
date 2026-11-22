@@ -5803,7 +5803,11 @@ la memoria, cambiando los nombres de las tablas por otros que describan
 el dataset:</li>
 </ol>
 <pre><code>```{r, results=&#39;asis&#39;, cache=FALSE}
-pisa &lt;- aedv_incluir_dataset(&quot;INFORME_PISA_analisis.Rmd&quot;, validacion = TRUE)
+pisa &lt;- aedv_incluir_dataset(
+  &quot;INFORME_PISA_analisis.Rmd&quot;,
+  validacion = TRUE,
+  titulo = &quot;Informe PISA y contexto socioeconómico, por país y por Comunidad Autónoma&quot;
+)
 # este dataset tiene 4 tablas: aedv_incluir_dataset() las devuelve en una lista
 pisa_paises     &lt;- pisa$pisa_paises      # resultados PISA por país, 2000-2025
 pisa_ccaa       &lt;- pisa$pisa_ccaa        # resultados PISA por Comunidad Autónoma, 2009-2025
@@ -5821,7 +5825,10 @@ Si incorporas varios datasets, pega un chunk por cada uno, con nombres
 de tabla distintos. Con <code>validacion = TRUE</code> el análisis
 incluye la validación de requisitos AEDV; en un dataset auxiliar, que no
 tiene que cumplirlos, cambia a <code>validacion = FALSE</code> para
-omitirla.</p>
+omitirla. En <code>titulo</code> va el título de la subsección del
+dataset en la memoria: el que se propone es el del catálogo de la
+fuente; cámbialo por uno que diga qué aporta este dataset a tu
+proyecto.</p>
 <p>El texto explicativo del dataset (qué mide, qué significa cada
 variable y cada una de sus opciones…) se escribe en la memoria, antes o
 después del chunk, no en <code>INFORME_PISA_analisis.Rmd</code>: ese

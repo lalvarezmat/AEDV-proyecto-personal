@@ -207,11 +207,15 @@ Que en el paso 3 el guardado vaya **primero** y el análisis **después** no es 
 
 1. Compila el `*_DatasetSelection.Rmd` con tus datasets y comprueba que cumplen los requisitos. Además del `.rds` y el `_metadatos.xlsx`, el documento guarda la sección «Análisis del dataset» (la mitad 3b) en un fichero **`<nombre>_analisis.Rmd`**, preparado para la memoria, y termina con una sección, *Incorporación del dataset a la memoria*, con las instrucciones exactas para tus ficheros.
 2. **Copia el `.rds`, el `_metadatos.xlsx` y el `_analisis.Rmd` a la carpeta de tu proyecto**, junto a tu memoria. En esa carpeta tiene que estar también `utilidades.R` (viene en la carpeta `ProyectoPersonal`), que la memoria carga con `source("utilidades.R")`.
-3. **Pega en la sección *Comprensión de los datos* de tu memoria el chunk que indica el documento**, cambiando el nombre de la tabla por uno que describa el dataset. Por ejemplo:
+3. **Pega en la sección *Comprensión de los datos* de tu memoria el chunk que indica el documento**, cambiando el nombre de la tabla por uno que describa el dataset y el **título** (`titulo`) por uno que diga qué aporta el dataset a tu proyecto (el que se propone es el del catálogo de la fuente). Por ejemplo:
 
 ````
 `r ''````{r, results='asis', cache=FALSE}
-ipc <- aedv_incluir_dataset("76136_analisis.Rmd", validacion = TRUE)
+ipc <- aedv_incluir_dataset(
+  "76136_analisis.Rmd",
+  validacion = TRUE,
+  titulo = "IPC por comunidad autónoma"
+)
 ```
 ````
 

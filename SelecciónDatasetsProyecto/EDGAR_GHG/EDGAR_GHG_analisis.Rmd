@@ -3,7 +3,11 @@ Análisis del dataset "Emisiones de gases de efecto invernadero por país (EDGAR
 Se incluye en la sección "Comprensión de los datos" de la memoria con este código, en un
 chunk con las opciones results='asis' y cache=FALSE:
 
-    edgar <- aedv_incluir_dataset("EDGAR_GHG_analisis.Rmd", validacion = TRUE)
+    edgar <- aedv_incluir_dataset(
+      "EDGAR_GHG_analisis.Rmd",
+      validacion = TRUE,
+      titulo = "Emisiones de gases de efecto invernadero por país (EDGAR)"
+    )
     # este dataset tiene 2 tablas: aedv_incluir_dataset() las devuelve en una lista
     emisiones      <- edgar$data       # emisiones por país, sector y gas
     emisiones_norm <- edgar$data_norm  # emisiones per cápita y por unidad de PIB

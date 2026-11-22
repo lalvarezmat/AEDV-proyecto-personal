@@ -7785,7 +7785,11 @@ la memoria, cambiando los nombres de las tablas por otros que describan
 el dataset:</li>
 </ol>
 <pre><code>```{r, results=&#39;asis&#39;, cache=FALSE}
-clima &lt;- aedv_incluir_dataset(&quot;CLIMA_SPAIN_analisis.Rmd&quot;, validacion = TRUE)
+clima &lt;- aedv_incluir_dataset(
+  &quot;CLIMA_SPAIN_analisis.Rmd&quot;,
+  validacion = TRUE,
+  titulo = &quot;Variables climáticas por provincia de España (AdapteCCa)&quot;
+)
 # este dataset tiene 2 tablas: aedv_incluir_dataset() las devuelve en una lista
 clima_obs  &lt;- clima$data  # observaciones mensuales por provincia
 clima_proy &lt;- clima$proy  # proyecciones por escenario, modelo y horizonte
@@ -7800,7 +7804,10 @@ Si incorporas varios datasets, pega un chunk por cada uno, con nombres
 de tabla distintos. Con <code>validacion = TRUE</code> el análisis
 incluye la validación de requisitos AEDV; en un dataset auxiliar, que no
 tiene que cumplirlos, cambia a <code>validacion = FALSE</code> para
-omitirla.</p>
+omitirla. En <code>titulo</code> va el título de la subsección del
+dataset en la memoria: el que se propone es el del catálogo de la
+fuente; cámbialo por uno que diga qué aporta este dataset a tu
+proyecto.</p>
 <p>El texto explicativo del dataset (qué mide, qué significa cada
 variable y cada una de sus opciones…) se escribe en la memoria, antes o
 después del chunk, no en <code>CLIMA_SPAIN_analisis.Rmd</code>: ese

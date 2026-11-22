@@ -2418,7 +2418,9 @@ p <-  geoj |>
 # Argumentos:
 #   nombre        : nombre base de los ficheros del dataset (el `filename` del
 #                   documento). El fichero generado es <nombre>_analisis.Rmd.
-#   titulo        : título de la sección del dataset en la memoria.
+#   titulo        : título de la sección del dataset en la memoria. Se escribe
+#                   en el fichero y en el chunk que se propone (argumento
+#                   titulo de aedv_incluir_dataset()), donde el alumno lo cambia.
 #   ficheros      : ficheros de datos que el alumno copia junto a la memoria
 #                   (rds y xlsx de metadatos).
 #   tablas        : tablas que devuelve el análisis (su `tablas_exportadas`).
@@ -2474,11 +2476,17 @@ aedv_generar_analisis <- function(nombre, titulo, ficheros, tablas = "data",
   # código que el alumno pega en la memoria; con varias tablas, la lista se
   # separa en una tabla por línea, con su propio nombre. Si el análisis tiene
   # la parte de validación, la llamada lleva validacion = TRUE explícito, para
-  # que se vea que es el argumento que se cambia a FALSE en un dataset auxiliar
+  # que se vea que es el argumento que se cambia a FALSE en un dataset auxiliar.
+  # El título va también explícito, en su propia línea, para que el alumno lo
+  # cambie por uno que diga qué papel tiene el dataset en su proyecto
   fichero <- paste0(nombre, "_analisis.Rmd")
   validacion <- any(analisis == "<!-- INICIO DE LA VALIDACIÓN AEDV -->")
-  codigo  <- paste0(sugerencia, " <- aedv_incluir_dataset(\"", fichero, "\"",
-                    if (validacion) ", validacion = TRUE", ")")
+  titulo_r <- gsub("\"", "\\\\\"", gsub("\\", "\\\\", titulo, fixed = TRUE))
+  codigo  <- c(paste0(sugerencia, " <- aedv_incluir_dataset("),
+               paste0("  \"", fichero, "\","),
+               if (validacion) "  validacion = TRUE,",
+               paste0("  titulo = \"", titulo_r, "\""),
+               ")")
   if (length(tablas) > 1) {
     if (!setequal(desempaquetar, tablas))
       stop("desempaquetar tiene que nombrar las tablas: ",
@@ -2547,6 +2555,9 @@ aedv_generar_analisis <- function(nombre, titulo, ficheros, tablas = "data",
       paste0(" Con `validacion = TRUE` el análisis incluye la validación de requisitos AEDV; ",
              "en un dataset auxiliar, que no tiene que cumplirlos, cambia a `validacion = FALSE` ",
              "para omitirla."),
+    " En `titulo` va el título de la subsección del dataset en la memoria: el que se propone ",
+    "es el del catálogo de la fuente; cámbialo por uno que diga qué aporta este dataset a tu ",
+    "proyecto.",
     "\n\n",
     "El texto explicativo del dataset (qué mide, qué significa cada variable y cada una de ",
     "sus opciones...) se escribe en la memoria, antes o después del chunk, no en `", fichero,
@@ -2562,7 +2573,8 @@ aedv_generar_analisis <- function(nombre, titulo, ficheros, tablas = "data",
 # saldría como texto literal:
 #
 #   {r, results='asis', cache=FALSE}
-#   paro <- aedv_incluir_dataset("35176_analisis.Rmd")
+#   paro <- aedv_incluir_dataset("35176_analisis.Rmd",
+#                                titulo = "Paro registrado por comunidad autónoma")
 #
 # Devuelve un tibble con los datos (la tabla `data` del análisis). Los
 # datasets con varias tablas (EDGAR, CLIMA, INFORME PISA) devuelven una lista
@@ -2580,17 +2592,32 @@ aedv_generar_analisis <- function(nombre, titulo, ficheros, tablas = "data",
 #                metadatos tienen que estar en la carpeta de la memoria.
 #   validacion : FALSE omite la validación de requisitos AEDV, para los
 #                datasets auxiliares que no tienen que cumplirlos.
+#   titulo     : título de la subsección del dataset en la memoria. Sin él
+#                se usa el que trae el fichero (el del catálogo de la fuente).
 #
 # Fuera de la compilación (al ejecutar el chunk en RStudio con Ctrl+Alt+C) no
 # se genera el informe: solo se ejecuta su código para devolver los datos, de
 # modo que se puede seguir trabajando chunk a chunk.
-aedv_incluir_dataset <- function(fichero, validacion = TRUE) {
+aedv_incluir_dataset <- function(fichero, validacion = TRUE, titulo = NULL) {
   if (!file.exists(fichero))
     stop("No se encuentra el fichero '", fichero, "'. Cópialo a la carpeta de ",
          "la memoria junto con el .rds y el _metadatos.xlsx del mismo dataset.",
          call. = FALSE)
 
   lineas <- readLines(fichero, encoding = "UTF-8", warn = FALSE)
+
+  # título propio: sustituye al del fichero, que es el primer título ###
+  # (el que pone aedv_generar_analisis() justo después del comentario inicial)
+  if (!is.null(titulo)) {
+    if (!is.character(titulo) || length(titulo) != 1 || !nzchar(trimws(titulo)))
+      stop("titulo tiene que ser un texto, p. ej. titulo = \"Paro registrado por ",
+           "comunidad autónoma\"", call. = FALSE)
+    pos <- grep("^### ", lineas)[1]
+    if (is.na(pos))
+      stop("El fichero '", fichero, "' no tiene título de sección (###) que ",
+           "sustituir.", call. = FALSE)
+    lineas[pos] <- paste0("### ", trimws(titulo))
+  }
 
   # sin validación: se quitan las líneas entre las dos marcas que la delimitan
   if (!validacion) {

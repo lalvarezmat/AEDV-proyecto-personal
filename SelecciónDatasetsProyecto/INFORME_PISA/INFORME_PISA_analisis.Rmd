@@ -3,7 +3,11 @@ Análisis del dataset "Informe PISA y contexto socioeconómico, por país y por 
 Se incluye en la sección "Comprensión de los datos" de la memoria con este código, en un
 chunk con las opciones results='asis' y cache=FALSE:
 
-    pisa <- aedv_incluir_dataset("INFORME_PISA_analisis.Rmd", validacion = TRUE)
+    pisa <- aedv_incluir_dataset(
+      "INFORME_PISA_analisis.Rmd",
+      validacion = TRUE,
+      titulo = "Informe PISA y contexto socioeconómico, por país y por Comunidad Autónoma"
+    )
     # este dataset tiene 4 tablas: aedv_incluir_dataset() las devuelve en una lista
     pisa_paises     <- pisa$pisa_paises      # resultados PISA por país, 2000-2025
     pisa_ccaa       <- pisa$pisa_ccaa        # resultados PISA por Comunidad Autónoma, 2009-2025

@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-11-21" />
+<meta name="date" content="2026-11-22" />
 
 <title>Proyecto Personal AEDV — Guía de trabajo</title>
 
@@ -1617,7 +1617,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Proyecto Personal AEDV — Guía de
 trabajo</h1>
-<h4 class="date">2026-11-21</h4>
+<h4 class="date">2026-11-22</h4>
 
 </div>
 
@@ -2407,22 +2407,30 @@ la memoria carga en su chunk de librerías con
 <li><strong>Pega en la sección <em>Comprensión de los datos</em> de la
 memoria el chunk que indica el
 <code>*_DatasetSelection.Rmd</code></strong>, cambiando el nombre de la
-tabla por uno que describa el dataset. Por ejemplo:</li>
+tabla por uno que describa el dataset y el <strong>título</strong>
+(<code>titulo</code>) por uno que diga qué aporta el dataset a tu
+proyecto: el que se propone es el del catálogo de la fuente, a veces en
+inglés y con el código del dataset. Por ejemplo:</li>
 </ol>
 <pre><code>```{r, results=&#39;asis&#39;, cache=FALSE}
-ipc &lt;- aedv_incluir_dataset(&quot;76136_analisis.Rmd&quot;, validacion = TRUE)
+ipc &lt;- aedv_incluir_dataset(
+  &quot;76136_analisis.Rmd&quot;,
+  validacion = TRUE,
+  titulo = &quot;IPC por comunidad autónoma&quot;
+)
 ```</code></pre>
 <p>Al compilar la memoria, el análisis completo aparece en el lugar del
 chunk —con sus tablas, su validación y los títulos colgando de
-<em>Comprensión de los datos</em>— y los datos quedan en la tabla que
-elijas (aquí <code>ipc</code>, un tibble), con la que se sigue
-trabajando en el resto de la memoria. El análisis arranca leyendo del
-disco los ficheros que acabas de copiar, así que funciona sin descargar
-nada de internet. El chunk necesita las opciones
-<code>results=&#39;asis&#39;</code> (sin ella, el análisis saldría como texto
-sin formato) y <code>cache=FALSE</code>. Al ejecutarlo en RStudio chunk
-a chunk (<code>Ctrl+Alt+C</code>), la función solo carga los datos, sin
-generar el análisis, para que puedas seguir trabajando con ellos.</p>
+<em>Comprensión de los datos</em>, el primero de ellos el de
+<code>titulo</code>— y los datos quedan en la tabla que elijas (aquí
+<code>ipc</code>, un tibble), con la que se sigue trabajando en el resto
+de la memoria. El análisis arranca leyendo del disco los ficheros que
+acabas de copiar, así que funciona sin descargar nada de internet. El
+chunk necesita las opciones <code>results=&#39;asis&#39;</code> (sin ella, el
+análisis saldría como texto sin formato) y <code>cache=FALSE</code>. Al
+ejecutarlo en RStudio chunk a chunk (<code>Ctrl+Alt+C</code>), la
+función solo carga los datos, sin generar el análisis, para que puedas
+seguir trabajando con ellos.</p>
 <ul>
 <li><strong>Varios datasets</strong>: pega un chunk por cada uno, con
 nombres de tabla distintos. Cada análisis se ejecuta por separado, sin
@@ -2438,7 +2446,11 @@ justo después, cada una con su propio nombre. Por ejemplo, para CLIMA
 Canarias:</li>
 </ul>
 <pre><code>```{r, results=&#39;asis&#39;, cache=FALSE}
-clima &lt;- aedv_incluir_dataset(&quot;CLIMA_CANARIAS_analisis.Rmd&quot;, validacion = TRUE)
+clima &lt;- aedv_incluir_dataset(
+  &quot;CLIMA_CANARIAS_analisis.Rmd&quot;,
+  validacion = TRUE,
+  titulo = &quot;Clima observado y proyectado en los municipios de Canarias&quot;
+)
 clima_obs  &lt;- clima$data   # observaciones mensuales por municipio, 1990-2022
 clima_proy &lt;- clima$proy   # proyecciones por escenario, modelo y horizonte
 ```</code></pre>

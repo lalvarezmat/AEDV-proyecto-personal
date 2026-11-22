@@ -2093,7 +2093,11 @@ la memoria, cambiando los nombres de las tablas por otros que describan
 el dataset:</li>
 </ol>
 <pre><code>```{r, results=&#39;asis&#39;, cache=FALSE}
-datos_WB_Selected &lt;- aedv_incluir_dataset(&quot;WB_Selected_analisis.Rmd&quot;, validacion = TRUE)
+datos_WB_Selected &lt;- aedv_incluir_dataset(
+  &quot;WB_Selected_analisis.Rmd&quot;,
+  validacion = TRUE,
+  titulo = &quot;Indicadores seleccionados del Banco Mundial (WB_Selected)&quot;
+)
 ```</code></pre>
 <p>Al compilar la memoria, el análisis aparece en el lugar del chunk y
 los datos quedan en la tabla <code>datos_WB_Selected</code> (un tibble),
@@ -2101,7 +2105,10 @@ con la que se sigue trabajando en el resto de la memoria. Si incorporas
 varios datasets, pega un chunk por cada uno, con nombres de tabla
 distintos. Con <code>validacion = TRUE</code> el análisis incluye la
 validación de requisitos AEDV; en un dataset auxiliar, que no tiene que
-cumplirlos, cambia a <code>validacion = FALSE</code> para omitirla.</p>
+cumplirlos, cambia a <code>validacion = FALSE</code> para omitirla. En
+<code>titulo</code> va el título de la subsección del dataset en la
+memoria: el que se propone es el del catálogo de la fuente; cámbialo por
+uno que diga qué aporta este dataset a tu proyecto.</p>
 <p>El texto explicativo del dataset (qué mide, qué significa cada
 variable y cada una de sus opciones…) se escribe en la memoria, antes o
 después del chunk, no en <code>WB_Selected_analisis.Rmd</code>: ese

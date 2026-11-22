@@ -378,15 +378,19 @@ Como resultado de la **Preparación de los datos**, con frecuencia se **combinan
 Esta es la **etapa 4 (incorporación)** del flujo de selección de datos del Paso 1. Al compilarse, cada `*_DatasetSelection.Rmd` guarda, junto a los datos, un fichero **`<nombre>_analisis.Rmd`** con su sección **Análisis del dataset** (la etapa 3b) preparada para la memoria, y termina con una sección, *Incorporación del dataset a la memoria*, que indica exactamente qué ficheros copiar y qué chunk pegar. Los pasos son dos:
 
 1. **Copia a la carpeta de tu memoria (`NombreApellido1Memoria.Rmd`) los ficheros del dataset**: el `.rds` (o los `.rds`), el `_metadatos.xlsx` y el `_analisis.Rmd`. En esa carpeta tiene que estar también `utilidades.R` (viene en la carpeta `ProyectoPersonal`, junto al modelo de memoria), que la memoria carga en su chunk de librerías con `source("utilidades.R")`.
-2. **Pega en la sección *Comprensión de los datos* de la memoria el chunk que indica el `*_DatasetSelection.Rmd`**, cambiando el nombre de la tabla por uno que describa el dataset. Por ejemplo:
+2. **Pega en la sección *Comprensión de los datos* de la memoria el chunk que indica el `*_DatasetSelection.Rmd`**, cambiando el nombre de la tabla por uno que describa el dataset y el **título** (`titulo`) por uno que diga qué aporta el dataset a tu proyecto: el que se propone es el del catálogo de la fuente, a veces en inglés y con el código del dataset. Por ejemplo:
 
 ````
 `r ''````{r, results='asis', cache=FALSE}
-ipc <- aedv_incluir_dataset("76136_analisis.Rmd", validacion = TRUE)
+ipc <- aedv_incluir_dataset(
+  "76136_analisis.Rmd",
+  validacion = TRUE,
+  titulo = "IPC por comunidad autónoma"
+)
 ```
 ````
 
-Al compilar la memoria, el análisis completo aparece en el lugar del chunk —con sus tablas, su validación y los títulos colgando de *Comprensión de los datos*— y los datos quedan en la tabla que elijas (aquí `ipc`, un tibble), con la que se sigue trabajando en el resto de la memoria. El análisis arranca leyendo del disco los ficheros que acabas de copiar, así que funciona sin descargar nada de internet. El chunk necesita las opciones `results='asis'` (sin ella, el análisis saldría como texto sin formato) y `cache=FALSE`. Al ejecutarlo en RStudio chunk a chunk (`Ctrl+Alt+C`), la función solo carga los datos, sin generar el análisis, para que puedas seguir trabajando con ellos.
+Al compilar la memoria, el análisis completo aparece en el lugar del chunk —con sus tablas, su validación y los títulos colgando de *Comprensión de los datos*, el primero de ellos el de `titulo`— y los datos quedan en la tabla que elijas (aquí `ipc`, un tibble), con la que se sigue trabajando en el resto de la memoria. El análisis arranca leyendo del disco los ficheros que acabas de copiar, así que funciona sin descargar nada de internet. El chunk necesita las opciones `results='asis'` (sin ella, el análisis saldría como texto sin formato) y `cache=FALSE`. Al ejecutarlo en RStudio chunk a chunk (`Ctrl+Alt+C`), la función solo carga los datos, sin generar el análisis, para que puedas seguir trabajando con ellos.
 
 * **Varios datasets**: pega un chunk por cada uno, con nombres de tabla distintos. Cada análisis se ejecuta por separado, sin interferir con los demás ni con el resto de la memoria.
 * **Datasets auxiliares**: `aedv_incluir_dataset("...", validacion = FALSE)` omite la validación de requisitos AEDV, para no alargar la memoria con un dataset que no tiene que cumplirlos.
@@ -394,7 +398,11 @@ Al compilar la memoria, el análisis completo aparece en el lugar del chunk —c
 
 ````
 `r ''````{r, results='asis', cache=FALSE}
-clima <- aedv_incluir_dataset("CLIMA_CANARIAS_analisis.Rmd", validacion = TRUE)
+clima <- aedv_incluir_dataset(
+  "CLIMA_CANARIAS_analisis.Rmd",
+  validacion = TRUE,
+  titulo = "Clima observado y proyectado en los municipios de Canarias"
+)
 clima_obs  <- clima$data   # observaciones mensuales por municipio, 1990-2022
 clima_proy <- clima$proy   # proyecciones por escenario, modelo y horizonte
 ```

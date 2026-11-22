@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-11-21" />
+<meta name="date" content="2026-11-22" />
 
 <title>Selección de datasets para el proyecto de AEDV</title>
 
@@ -1617,7 +1617,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Selección de datasets para el proyecto de
 AEDV</h1>
-<h4 class="date">2026-11-21</h4>
+<h4 class="date">2026-11-22</h4>
 
 </div>
 
@@ -2212,10 +2212,17 @@ junto a tu memoria. En esa carpeta tiene que estar también
 <code>source(&quot;utilidades.R&quot;)</code>.</li>
 <li><strong>Pega en la sección <em>Comprensión de los datos</em> de tu
 memoria el chunk que indica el documento</strong>, cambiando el nombre
-de la tabla por uno que describa el dataset. Por ejemplo:</li>
+de la tabla por uno que describa el dataset y el <strong>título</strong>
+(<code>titulo</code>) por uno que diga qué aporta el dataset a tu
+proyecto (el que se propone es el del catálogo de la fuente). Por
+ejemplo:</li>
 </ol>
 <pre><code>```{r, results=&#39;asis&#39;, cache=FALSE}
-ipc &lt;- aedv_incluir_dataset(&quot;76136_analisis.Rmd&quot;, validacion = TRUE)
+ipc &lt;- aedv_incluir_dataset(
+  &quot;76136_analisis.Rmd&quot;,
+  validacion = TRUE,
+  titulo = &quot;IPC por comunidad autónoma&quot;
+)
 ```</code></pre>
 <p>Al compilar la memoria, el análisis aparece en el lugar del chunk y
 los datos quedan en la tabla que elijas (aquí <code>ipc</code>, un
