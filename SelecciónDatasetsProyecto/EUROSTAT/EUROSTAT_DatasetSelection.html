@@ -11,7 +11,7 @@
 
 <meta name="author" content="Luis Alvarez" />
 
-<meta name="date" content="2026-11-21" />
+<meta name="date" content="2026-11-22" />
 
 <title>Análisis de datasets seleccionados de Eurostat</title>
 
@@ -365,7 +365,7 @@ display: none;
 <h1 class="title toc-ignore">Análisis de datasets seleccionados de
 Eurostat</h1>
 <h4 class="author">Luis Alvarez</h4>
-<h4 class="date">2026-11-21</h4>
+<h4 class="date">2026-11-22</h4>
 
 </div>
 
@@ -619,93 +619,6 @@ NUTS 3 region</td>
 </tr>
 </tbody>
 </table>
-</div>
-<p><strong>Descripción del topic al que pertenece el
-dataset</strong></p>
-<div class="caja-scroll">
-<p>Each year Eurostat collects demographic data at regional level from
-EU, EFTA and Candidate countries as part of the Population Statistics
-data collection. POPSTAT is Eurostat’s main annual demographic data
-collection and aims to gather information on demography and migration at
-national and regional levels by various breakdowns (for the full
-overview see the Eurostat dedicated section). More specifically, POPSTAT
-collects data at regional levels on: population stocks; vital events
-(live births and deaths). Each country must send the statistics for the
-reference year (T) to Eurostat by 31 December of the following calendar
-year (T+1). Eurostat then publishes the data in March of the calendar
-year after that (T+2). Demographic data at regional level include
-statistics on the population at the end of the calendar year and on live
-births and deaths during that year, according to the official
-classification for statistics at regional level (NUTS - nomenclature of
-territorial units for statistics) in force in the year. These data are
-broken down by NUTS 2 and 3 levels for EU countries. For more
-information on the NUTS classification and its versions please refer to
-the Eurostat dedicated pages. For EFTA and Candidate countries the data
-are collected according to the agreed statistical regions that have been
-coded in a way that resembles NUTS. The breakdown of demographic data
-collected at regional level varies depending on the NUTS/statistical
-region level. These breakdowns are summarised below, along with the link
-to the corresponding online table: NUTS 2 level Population by sex, age
-and region of residence — demo_r_d2jan Population on 1 January by age
-group, sex and region of residence — demo_r_pjangroup Live births by
-mother’s age, mother’s year of birth and mother’s region of residence —
-demo_r_fagec Deaths by sex, age, and region of residence — demo_r_magec
-NUTS 3 level Population on 1 January by sex, age group and region of
-residence — demo_r_pjangrp3 Population on 1 January by broad age group,
-sex and region of residence — demo_r_pjanaggr3 Live births (total) by
-region of residence — demo_r_births Live births by five-year age group
-of the mothers and region of residence — demo_r_fagec3 Deaths (total) by
-region of residence — demo_r_deaths Deaths by five-year age group, sex
-and region of residence — demo_r_magec3 This more detailed breakdown (by
-five-year age group) of the data collected at NUTS 3 level started with
-the reference year 2013 and is in accordance with the European laws on
-demographic statistics. In addition to the regional codes set out in the
-NUTS classification in force, these online tables include few additional
-codes that are meant to cover data on persons and events that cannot be
-allocated to any official NUTS region. These codes are denoted as
-CCX/CCXX/CCXXX (Not regionalised/Unknown level 1/2/3; CC stands for
-country code) and are available only for France, Hungary, North
-Macedonia and Albania, reflecting the raw data as transmitted to
-Eurostat. For the reference years from 1990 to 2012 all countries sent
-to Eurostat all the data on a voluntary basis, therefore the
-completeness of the tables and the length of time series reflect the
-level of data received from the responsible National Statistical
-Institutes’ (NSIs) data provider. As a general remark, a lower data
-breakdown is available at NUTS 3 level as detailed: population data are
-broken down by sex and broad age groups (0-14, 15-64 and 65 or more).
-The data have this disaggregation since the reference year 2007 for all
-countries, and even longer for some — demo_r_pjanaggr3 vital events
-(live births and deaths) data are available only as totals, without any
-further breakdown — demo_r_births and demo_r_deaths Demographic
-indicators are calculated by Eurostat based on the above raw data using
-a common methodology for all countries and regions. The regional
-demographic indicators computed by NUTS level and the corresponding
-online tables are summarised below: NUTS 2 level Population structure
-indicators by region of residence (shares of various population age
-groups, dependency ratios and median age) — demo_r_pjanind2 Fertility
-indicators by region of residence — demo_r_find2 Fertility rates by age
-and region of residence — demo_r_frate2 Life table by age, sex and
-region of residence — demo_r_mlife Life expectancy by age, sex and
-region of residence — demo_r_mlifexp Infant mortality rates by region of
-residence — demo_r_minfind NUTS 3 level Population change - Demographic
-balance and crude rates at regional level — demo_r_gind3 Population
-density by region — demo_r_d3dens Population structure indicators by
-region of residence (shares of various population age groups, dependency
-ratios and median age) — demo_r_pjanind3 Fertility indicators by region
-of residence (total fertility rate, mean age of woman at childbirth and
-median age of woman at childbirth) — demo_r_find3 Notes: 1) All the
-indicators are computed for all lower NUTS regions included in the
-tables (e.g. data included in a table at NUTS 3 level will include also
-the data for NUTS 2, 1 and country levels). 2) Demographic indicators
-computed by NUTS 2 and 3 levels are calculated using input data that
-have different age breakdown. Therefore, minor differences can be noted
-between the values corresponding to the same indicator of the same
-region classified as NUTS 2, 1 or country level. 3) Since the reference
-year 2015, Eurostat has stopped collecting data on area; therefore, the
-table ‘Area by NUTS 3 region (demo_r_d3area)’ includes data up to the
-year 2015 included. 4) Starting with the reference year 2016, the
-population density indicator is computed using the new data on area
-’Area by NUTS 3 region (reg_area3).</p>
 </div>
 <p><strong>tabla original</strong> (100 filas elegidas al azar)</p>
 <div class="tabla-scroll-xy">
@@ -1498,6 +1411,11 @@ posibles y el nº de observaciones.</p>
 [35,] 2024-01-01  26463   
 [36,] 2025-01-01  26757   </code></pre>
 </div>
+<!-- INICIO DE LA VALIDACIÓN AEDV -->
+</div>
+<div id="validación-de-requisitos-aedv" class="section level2" number="2.2">
+<h2><span class="header-section-number">2.2</span> Validación de
+requisitos AEDV</h2>
 <p><strong>Nº de observaciones en España/Canarias</strong></p>
 <pre><code>## # A tibble: 10 × 3
 ##    geo   full_name     N.Observ
@@ -1512,7 +1430,6 @@ posibles y el nº de observaciones.</p>
 ##  8 ES707 La Palma           360
 ##  9 ES708 Lanzarote          360
 ## 10 ES709 Tenerife           360</code></pre>
-<!-- INICIO DE LA VALIDACIÓN AEDV -->
 <p><strong>Combinaciones de atributos</strong>: cobertura por nivel NUTS
 y percentiles del tamaño de la serie temporal (nº de periodos por
 región).</p>
@@ -1762,10 +1679,8 @@ región).</p>
 </tbody>
 </table>
 </div>
-</div>
-<div id="validación-de-requisitos-aedv" class="section level2" number="2.2">
-<h2><span class="header-section-number">2.2</span> Validación de
-requisitos AEDV</h2>
+<p><strong>Cumplimiento de los criterios</strong> por combinación de
+atributos</p>
 <div class="tabla-scroll-xy">
 <table>
 <colgroup>

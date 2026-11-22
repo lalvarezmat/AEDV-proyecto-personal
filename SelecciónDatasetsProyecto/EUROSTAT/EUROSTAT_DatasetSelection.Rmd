@@ -195,21 +195,11 @@ metadatos <- openxlsx::read.xlsx(paste0(filename, "_metadatos.xlsx"))
 <div class="tabla-scroll">
 
 ```{r}
-# la descripción del dataset son varios miles de caracteres: dentro de una celda
-# de la tabla se sale de la página, así que se saca aparte, como párrafo
+# la descripción del topic son varios miles de caracteres: no se muestra aquí,
+# se consulta en el campo "Descripcion" del fichero _metadatos.xlsx
 metadatos |>
   filter(Campo != "Descripcion") |>
   knitr::kable()
-```
-
-</div>
-
-**Descripción del topic al que pertenece el  dataset**
-
-<div class="caja-scroll">
-
-```{r,results='asis'}
-cat(metadatos$Valor[metadatos$Campo == "Descripcion"])
 ```
 
 </div>
@@ -333,6 +323,9 @@ for(col in colnames(data)){
 }
 ```
 
+<!-- INICIO DE LA VALIDACIÓN AEDV -->
+
+## Validación de requisitos AEDV
 
 **Nº de observaciones en España/Canarias**
 
@@ -358,12 +351,6 @@ data.geo |>
   left_join(LocalRegions,by="geo") |>
   relocate(full_name,.after = geo)
 ```
-
-<!-- INICIO DE LA VALIDACIÓN AEDV -->
-
-
-
-
 
 ```{r}
 # --- FRECUENCIA DEL DATASET --------------------------------------------------
@@ -507,8 +494,7 @@ tb_val |>
 
 </div>
 
-
-## Validación de requisitos AEDV
+**Cumplimiento de los criterios** por combinación de atributos
 
 <div class="tabla-scroll-xy">
 
