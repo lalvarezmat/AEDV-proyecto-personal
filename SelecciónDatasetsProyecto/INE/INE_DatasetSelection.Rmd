@@ -141,6 +141,14 @@ cols_candidatas <- setdiff(colnames(data)[!sapply(data, is.numeric)],
 n_valores <- sapply(data[cols_candidatas], function(x) n_distinct(x, na.rm = TRUE))
 cols_constantes <- names(n_valores)[n_valores <= 1]
 
+# columnas eliminadas y su único valor; se guardan en los metadatos para
+# mostrarlas en el análisis. En el INE el valor ya es el nombre completo
+# ("Índice general", "Variación anual"), así que no hace falta traducirlo
+columnas_eliminadas <- tibble(
+  Columna = cols_constantes,
+  Valor   = map_chr(cols_constantes, function(col) as.character(unique(data[[col]])[1]))
+)
+
 if(length(cols_constantes) > 0){
   cat("Columnas con un solo valor (se eliminan):\n")
   for(col in cols_constantes)
@@ -218,7 +226,9 @@ metadatos <- tibble(
   bind_rows(tibble(Campo = "geo.col.name",
                    Valor = if(is.null(geo_col)) NA_character_ else geo_col))
 
-write.xlsx(metadatos, file = paste0(filename, "_metadatos.xlsx"), overwrite = TRUE)
+# segunda hoja: columnas eliminadas por tener un solo valor (vacía si no hay)
+write.xlsx(list(metadatos = metadatos, `Columnas eliminadas` = columnas_eliminadas),
+           file = paste0(filename, "_metadatos.xlsx"), overwrite = TRUE)
 ```
 
 Una vez guardados en disco los metadatos (fichero xlsx) y los datos (fichero RDS), iniciamos el proceso de análisis. A partir de aquí el documento se compila **solo** con los ficheros ya guardados en disco (el `rds` y el `xlsx` de metadatos); no se usa ningún objeto de las secciones anteriores. Es a propósito: es la parte que se incorpora a la memoria del proyecto personal (ver la última sección, *Incorporación del dataset a la memoria*), así que tiene que poder ejecutarse sola (lo único que se usa de lo definido anteriormente es el Dataset.Id)
@@ -257,7 +267,22 @@ metadatos |>
 data <- readRDS(paste0(filename, ".rds"))
 ```
 
-**tabla original** (100 filas elegidas al azar)
+```{r, results='asis'}
+# columnas eliminadas al descargar el dataset por tener un solo valor (hoja
+# "Columnas eliminadas" del xlsx de metadatos; no existe en los generados antes)
+fichero_metadatos <- paste0(filename, "_metadatos.xlsx")
+if("Columnas eliminadas" %in% openxlsx::getSheetNames(fichero_metadatos)){
+  columnas_eliminadas <- openxlsx::read.xlsx(fichero_metadatos, sheet = "Columnas eliminadas",
+                                             sep.names = " ")
+  if(nrow(columnas_eliminadas) > 0){
+    cat("**Columnas eliminadas de la tabla original** por tener un único valor en todas las filas:\n\n")
+    cat(knitr::kable(columnas_eliminadas), sep = "\n")
+    cat("\n")
+  }
+}
+```
+
+**tabla procesada** con eliminación de columnas con valores únicos si procede (100 filas elegidas al azar)
 
 <div class="tabla-scroll-xy">
 
@@ -314,8 +339,11 @@ for(col in colnames(data)){
 }
 ```
 
-## Nº de observaciones en Canarias
+<!-- INICIO DE LA VALIDACIÓN AEDV -->
 
+## Validación de requisitos AEDV
+
+**Nº de observaciones en Canarias**
 
 ```{r}
 # Detecta si un valor de la columna geográfica corresponde a Canarias. Se
@@ -346,11 +374,6 @@ if(is.null(geo_col)){
     print(as.data.frame(regiones_canarias), row.names = FALSE)
 }
 ```
-
-<!-- INICIO DE LA VALIDACIÓN AEDV -->
-
-## Validación de requisitos AEDV
-
 
 ```{r}
 # --- DETECCIÓN DE LA FRECUENCIA ----------------------------------------------

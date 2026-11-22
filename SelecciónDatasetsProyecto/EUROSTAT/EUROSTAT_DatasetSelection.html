@@ -439,8 +439,8 @@ una única frecuencia). Se excluyen de esta comprobación
 son las tres columnas estructurales del dataset (región, fecha y dato
 numérico), no dimensiones susceptibles de ser constantes sin más.</p>
 <pre><code>## Columnas con un solo valor (se eliminan):
-##   - freq       = A
-##   - unit       = NR</code></pre>
+##   - freq       = A (Time frequency: Annual)
+##   - unit       = NR (Unit of measure: Number)</code></pre>
 <p>Guardamos el dataset <strong>lo primero de todo</strong>, nada más
 limpiarlo, en formato <code>rds</code> (el formato nativo de
 <code>R</code>: conserva los tipos de las columnas y ocupa mucho menos
@@ -484,7 +484,9 @@ metadatos &lt;- tibble(
   Valor = as.character(t(fila_metadatos))
 )
 
-openxlsx::write.xlsx(metadatos, file = paste0(filename, &quot;_metadatos.xlsx&quot;), overwrite = TRUE)</code></pre>
+# segunda hoja: columnas eliminadas por tener un solo valor (vacía si no hay)
+openxlsx::write.xlsx(list(metadatos = metadatos, `Columnas eliminadas` = columnas_eliminadas),
+                     file = paste0(filename, &quot;_metadatos.xlsx&quot;), overwrite = TRUE)</code></pre>
 <p>Una vez guardados en disco los metadatos (fichero xlsx) y los datos
 (fichero RDS), iniciamos el proceso de análisis. A partir de aquí el
 documento se compila <strong>solo</strong> con los ficheros ya guardados
@@ -620,7 +622,34 @@ NUTS 3 region</td>
 </tbody>
 </table>
 </div>
-<p><strong>tabla original</strong> (100 filas elegidas al azar)</p>
+<p><strong>Columnas eliminadas de la tabla original</strong> por tener
+un único valor en todas las filas:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Columna</th>
+<th align="left">Significado</th>
+<th align="left">Valor</th>
+<th align="left">Significado del valor</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">freq</td>
+<td align="left">Time frequency</td>
+<td align="left">A</td>
+<td align="left">Annual</td>
+</tr>
+<tr class="even">
+<td align="left">unit</td>
+<td align="left">Unit of measure</td>
+<td align="left">NR</td>
+<td align="left">Number</td>
+</tr>
+</tbody>
+</table>
+<p><strong>tabla procesada</strong> con eliminación de columnas con
+valores únicos si procede (100 filas elegidas al azar)</p>
 <div class="tabla-scroll-xy">
 <table>
 <thead>

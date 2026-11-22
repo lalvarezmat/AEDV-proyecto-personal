@@ -11,7 +11,7 @@
 
 <meta name="author" content="Luis Alvarez" />
 
-<meta name="date" content="2026-11-21" />
+<meta name="date" content="2026-11-22" />
 
 <title>Análisis de datasets seleccionados del Banco Mundial</title>
 
@@ -365,7 +365,7 @@ display: none;
 <h1 class="title toc-ignore">Análisis de datasets seleccionados del
 Banco Mundial</h1>
 <h4 class="author">Luis Alvarez</h4>
-<h4 class="date">2026-11-21</h4>
+<h4 class="date">2026-11-22</h4>
 
 </div>
 
@@ -470,6 +470,18 @@ cols_candidatas &lt;- setdiff(colnames(data),
 n_valores &lt;- sapply(data[cols_candidatas], function(x) n_distinct(x, na.rm = TRUE))
 cols_constantes &lt;- names(n_valores)[n_valores &lt;= 1]
 
+# columnas eliminadas con su significado (campos accesorios de wbstats) y su
+# único valor, &quot;(vacía)&quot; si no tiene ninguno; se guardan en los metadatos para
+# mostrarlas en el análisis
+SIGNIFICADO_WB &lt;- c(unit = &quot;Unidad de medida&quot;, obs_status = &quot;Estado de la observación&quot;,
+                    footnote = &quot;Nota a pie de la observación&quot;)
+columnas_eliminadas &lt;- tibble(
+  Columna = cols_constantes,
+  Significado = unname(SIGNIFICADO_WB[cols_constantes]),
+  Valor = map_chr(cols_constantes, function(col)
+    coalesce(as.character(na.omit(unique(data[[col]]))[1]), &quot;(vacía)&quot;))
+)
+
 if(length(cols_constantes) &gt; 0){
   cat(&quot;Columnas con un solo valor (se eliminan):\n&quot;)
   for(col in cols_constantes)
@@ -527,7 +539,9 @@ metadatos &lt;- metadatos |&gt;
   mutate(ANOTHER.DIMENSIONS = map_chr(ANOTHER.DIMENSIONS, quitar_dims_constantes,
                                       quitar = c(&quot;iso2c&quot;, cols_constantes)))
 
-write.xlsx(metadatos, file = paste0(filename, &quot;_metadatos.xlsx&quot;), overwrite = TRUE)</code></pre>
+# segunda hoja: columnas eliminadas por tener un solo valor (vacía si no hay)
+write.xlsx(list(metadatos = metadatos, `Columnas eliminadas` = columnas_eliminadas),
+           file = paste0(filename, &quot;_metadatos.xlsx&quot;), overwrite = TRUE)</code></pre>
 <p>Una vez guardados en disco los metadatos (fichero xlsx) y los datos
 (fichero RDS), iniciamos el proceso de análisis. A partir de aquí el
 documento se compila <strong>solo</strong> con los ficheros ya guardados
@@ -640,7 +654,36 @@ for domestic uses include drinking water, municipal use or supply, and
 use for public services, commercial establishments, and homes. Data are
 for the most recent year available for 1987-2002.</p>
 </div>
-<p><strong>tabla original</strong> (100 filas elegidas al azar)</p>
+<p><strong>Columnas eliminadas de la tabla original</strong> por tener
+un único valor en todas las filas:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Columna</th>
+<th align="left">Significado</th>
+<th align="left">Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">unit</td>
+<td align="left">Unidad de medida</td>
+<td align="left">(vacía)</td>
+</tr>
+<tr class="even">
+<td align="left">obs_status</td>
+<td align="left">Estado de la observación</td>
+<td align="left">(vacía)</td>
+</tr>
+<tr class="odd">
+<td align="left">footnote</td>
+<td align="left">Nota a pie de la observación</td>
+<td align="left">(vacía)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>tabla procesada</strong> con eliminación de columnas con
+valores únicos si procede (100 filas elegidas al azar)</p>
 <div class="tabla-scroll-xy">
 <table>
 <colgroup>
@@ -1905,18 +1948,15 @@ posibles y el nº de observaciones.</p>
 [60,] 1963   2     
 [61,] 1964   2     </code></pre>
 </div>
+<!-- INICIO DE LA VALIDACIÓN AEDV -->
 </div>
-<div id="nº-de-observaciones-en-españa" class="section level2" number="2.2">
-<h2><span class="header-section-number">2.2</span> Nº de observaciones
-en España</h2>
+<div id="validación-de-requisitos-aedv" class="section level2" number="2.2">
+<h2><span class="header-section-number">2.2</span> Validación de
+requisitos AEDV</h2>
+<p><strong>Nº de observaciones en España</strong></p>
 <pre><code>##       indicator N.Observ n_periodos date_min date_max
 ##  ER.H2O.FWTL.K3       48         48     1975     2022
 ##  ER.H2O.FWTL.ZS       48         48     1975     2022</code></pre>
-<!-- INICIO DE LA VALIDACIÓN AEDV -->
-</div>
-<div id="validación-de-requisitos-aedv" class="section level2" number="2.3">
-<h2><span class="header-section-number">2.3</span> Validación de
-requisitos AEDV</h2>
 <p><strong>Indicadores</strong>: nº de países, rango de fechas y
 percentiles del tamaño de la serie temporal (años por país).</p>
 <div class="tabla-scroll-xy">

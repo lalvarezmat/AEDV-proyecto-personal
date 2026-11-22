@@ -252,7 +252,7 @@ metadatos |>
 data <- readRDS(paste0(filename, ".rds"))
 ```
 
-**tabla original** (100 filas elegidas al azar)
+**tabla procesada** con eliminación de columnas con valores únicos si procede (100 filas elegidas al azar)
 
 <div class="tabla-scroll-xy">
 

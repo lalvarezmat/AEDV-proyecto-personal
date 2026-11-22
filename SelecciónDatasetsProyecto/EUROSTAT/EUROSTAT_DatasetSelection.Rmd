@@ -115,10 +115,24 @@ cols_candidatas <- setdiff(colnames(data), c("geo", "TIME_PERIOD", "values"))
 n_valores <- sapply(data[cols_candidatas], function(x) n_distinct(x, na.rm = TRUE))
 cols_constantes <- names(n_valores)[n_valores <= 1]
 
+# significado de cada columna eliminada y de su único valor (diccionarios de
+# Eurostat); se guarda en los metadatos para mostrarlo en el análisis
+etiqueta_segura <- function(f) tryCatch(as.character(f())[1], error = function(e) NA_character_)
+columnas_eliminadas <- tibble(
+  Columna = cols_constantes,
+  Significado = map_chr(cols_constantes, function(col)
+    etiqueta_segura(function() label_eurostat_vars(col, id = dataset.name))),
+  Valor = map_chr(cols_constantes, function(col) as.character(unique(data[[col]])[1])),
+  `Significado del valor` = map_chr(cols_constantes, function(col)
+    etiqueta_segura(function() label_eurostat(as.character(unique(data[[col]])[1]), dic = col)))
+)
+
 if(length(cols_constantes) > 0){
   cat("Columnas con un solo valor (se eliminan):\n")
-  for(col in cols_constantes)
-    cat(sprintf("  - %-10s = %s\n", col, as.character(unique(data[[col]])[1])))
+  for(i in seq_len(nrow(columnas_eliminadas)))
+    cat(sprintf("  - %-10s = %s (%s: %s)\n", columnas_eliminadas$Columna[i],
+                columnas_eliminadas$Valor[i], columnas_eliminadas$Significado[i],
+                columnas_eliminadas$`Significado del valor`[i]))
   data <- data |> select(-all_of(cols_constantes))
 } else {
   cat("Ninguna columna tiene un solo valor: no se elimina ninguna.\n")
@@ -165,7 +179,9 @@ metadatos <- tibble(
   Valor = as.character(t(fila_metadatos))
 )
 
-openxlsx::write.xlsx(metadatos, file = paste0(filename, "_metadatos.xlsx"), overwrite = TRUE)
+# segunda hoja: columnas eliminadas por tener un solo valor (vacía si no hay)
+openxlsx::write.xlsx(list(metadatos = metadatos, `Columnas eliminadas` = columnas_eliminadas),
+                     file = paste0(filename, "_metadatos.xlsx"), overwrite = TRUE)
 ```
 
 
@@ -208,7 +224,22 @@ metadatos |>
 data <- readRDS(paste0(filename, ".rds"))
 ```
 
-**tabla original** (100 filas elegidas al azar)
+```{r, results='asis'}
+# columnas eliminadas al descargar el dataset por tener un solo valor (hoja
+# "Columnas eliminadas" del xlsx de metadatos; no existe en los generados antes)
+fichero_metadatos <- paste0(filename, "_metadatos.xlsx")
+if("Columnas eliminadas" %in% openxlsx::getSheetNames(fichero_metadatos)){
+  columnas_eliminadas <- openxlsx::read.xlsx(fichero_metadatos, sheet = "Columnas eliminadas",
+                                             sep.names = " ")
+  if(nrow(columnas_eliminadas) > 0){
+    cat("**Columnas eliminadas de la tabla original** por tener un único valor en todas las filas:\n\n")
+    cat(knitr::kable(columnas_eliminadas), sep = "\n")
+    cat("\n")
+  }
+}
+```
+
+**tabla procesada** con eliminación de columnas con valores únicos si procede (100 filas elegidas al azar)
 
 <div class="tabla-scroll-xy">
 

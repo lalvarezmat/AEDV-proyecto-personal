@@ -11,7 +11,7 @@
 
 <meta name="author" content="Luis Alvarez" />
 
-<meta name="date" content="2026-11-21" />
+<meta name="date" content="2026-11-22" />
 
 <title>Análisis de datasets seleccionados del INE</title>
 
@@ -365,7 +365,7 @@ display: none;
 <h1 class="title toc-ignore">Análisis de datasets seleccionados del
 INE</h1>
 <h4 class="author">Luis Alvarez</h4>
-<h4 class="date">2026-11-21</h4>
+<h4 class="date">2026-11-22</h4>
 
 </div>
 
@@ -471,6 +471,14 @@ cols_candidatas &lt;- setdiff(colnames(data)[!sapply(data, is.numeric)],
 n_valores &lt;- sapply(data[cols_candidatas], function(x) n_distinct(x, na.rm = TRUE))
 cols_constantes &lt;- names(n_valores)[n_valores &lt;= 1]
 
+# columnas eliminadas y su único valor; se guardan en los metadatos para
+# mostrarlas en el análisis. En el INE el valor ya es el nombre completo
+# (&quot;Índice general&quot;, &quot;Variación anual&quot;), así que no hace falta traducirlo
+columnas_eliminadas &lt;- tibble(
+  Columna = cols_constantes,
+  Valor   = map_chr(cols_constantes, function(col) as.character(unique(data[[col]])[1]))
+)
+
 if(length(cols_constantes) &gt; 0){
   cat(&quot;Columnas con un solo valor (se eliminan):\n&quot;)
   for(col in cols_constantes)
@@ -550,7 +558,9 @@ metadatos &lt;- tibble(
   bind_rows(tibble(Campo = &quot;geo.col.name&quot;,
                    Valor = if(is.null(geo_col)) NA_character_ else geo_col))
 
-write.xlsx(metadatos, file = paste0(filename, &quot;_metadatos.xlsx&quot;), overwrite = TRUE)</code></pre>
+# segunda hoja: columnas eliminadas por tener un solo valor (vacía si no hay)
+write.xlsx(list(metadatos = metadatos, `Columnas eliminadas` = columnas_eliminadas),
+           file = paste0(filename, &quot;_metadatos.xlsx&quot;), overwrite = TRUE)</code></pre>
 <p>Una vez guardados en disco los metadatos (fichero xlsx) y los datos
 (fichero RDS), iniciamos el proceso de análisis. A partir de aquí el
 documento se compila <strong>solo</strong> con los ficheros ya guardados
@@ -643,7 +653,8 @@ ECOICOP ver.2</td>
 </tbody>
 </table>
 </div>
-<p><strong>tabla original</strong> (100 filas elegidas al azar)</p>
+<p><strong>tabla procesada</strong> con eliminación de columnas con
+valores únicos si procede (100 filas elegidas al azar)</p>
 <div class="tabla-scroll-xy">
 <table style="width:100%;">
 <colgroup>
@@ -1754,17 +1765,14 @@ opciones)</strong></p>
 [19,] 18 Ceuta                         16688   
 [20,] 19 Melilla                       16688   </code></pre>
 </div>
-</div>
-<div id="nº-de-observaciones-en-canarias" class="section level2" number="2.2">
-<h2><span class="header-section-number">2.2</span> Nº de observaciones
-en Canarias</h2>
-<pre><code>##  Comunidades.y.Ciudades.Autónomas N.Observ
-##                       05 Canarias    16688</code></pre>
 <!-- INICIO DE LA VALIDACIÓN AEDV -->
 </div>
-<div id="validación-de-requisitos-aedv" class="section level2" number="2.3">
-<h2><span class="header-section-number">2.3</span> Validación de
+<div id="validación-de-requisitos-aedv" class="section level2" number="2.2">
+<h2><span class="header-section-number">2.2</span> Validación de
 requisitos AEDV</h2>
+<p><strong>Nº de observaciones en Canarias</strong></p>
+<pre><code>##  Comunidades.y.Ciudades.Autónomas N.Observ
+##                       05 Canarias    16688</code></pre>
 <p><strong>Combinaciones de atributos</strong>: nº de regiones y
 percentiles del tamaño de la serie temporal (nº de periodos por
 región).</p>

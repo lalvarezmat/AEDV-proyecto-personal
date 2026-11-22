@@ -11,7 +11,7 @@
 
 <meta name="author" content="Luis Alvarez" />
 
-<meta name="date" content="2026-11-21" />
+<meta name="date" content="2026-11-22" />
 
 <title>Análisis de un dataset de los recursos estadísticos del ISTAC</title>
 
@@ -365,7 +365,7 @@ display: none;
 <h1 class="title toc-ignore">Análisis de un dataset de los recursos
 estadísticos del ISTAC</h1>
 <h4 class="author">Luis Alvarez</h4>
-<h4 class="date">2026-11-21</h4>
+<h4 class="date">2026-11-22</h4>
 
 </div>
 
@@ -485,6 +485,27 @@ y el valor, que son las columnas estructurales del dataset).</p>
 <pre class="r"><code>n_valores &lt;- sapply(data[otras_dims], function(x) n_distinct(x, na.rm = TRUE))
 cols_constantes &lt;- names(n_valores)[n_valores &lt;= 1]
 
+# columnas eliminadas con su significado: el nombre en español de la dimensión
+# sale de los metadatos de la API (una petición más) y el del valor, de la
+# lista de códigos. Se guardan en los metadatos para mostrarlas en el análisis
+nombres_dims &lt;- tryCatch({
+  dd &lt;- jsonlite::fromJSON(paste0(&quot;https://datos.canarias.es/api/estadisticas/statistical-resources/v1.0/datasets/ISTAC/&quot;,
+                                  Dataset.Id, &quot;/~latest.json?fields=-data&quot;))$metadata$dimensions$dimension
+  setNames(sapply(dd$name$text, function(t) t$value[t$lang == &quot;es&quot;][1]), dd$id)
+}, error = function(e) character(0))
+
+columnas_eliminadas &lt;- tibble(
+  Columna = cols_constantes,
+  Significado = unname(nombres_dims[cols_constantes]),
+  `Significado del valor` = map_chr(cols_constantes, function(col) as.character(unique(data[[col]])[1]))
+) |&gt;
+  # código del valor: el de la lista de códigos con ese nombre (o el propio
+  # valor, si no estaba en la lista y se quedó con el código)
+  mutate(Valor = map2_chr(Columna, `Significado del valor`, function(col, nombre){
+    cl &lt;- recurso$codelists[[col]]
+    coalesce(cl$id[match(nombre, cl$value)], nombre)
+  }), .before = `Significado del valor`)
+
 if(length(cols_constantes) &gt; 0){
   cat(&quot;Columnas con un solo valor (se eliminan):\n&quot;)
   for(col in cols_constantes)
@@ -537,7 +558,9 @@ metadatos &lt;- tibble(
   Valor = as.character(t(fila_metadatos))
 )
 
-write.xlsx(metadatos, file = paste0(filename, &quot;_metadatos.xlsx&quot;), overwrite = TRUE)</code></pre>
+# segunda hoja: columnas eliminadas por tener un solo valor (vacía si no hay)
+write.xlsx(list(metadatos = metadatos, `Columnas eliminadas` = columnas_eliminadas),
+           file = paste0(filename, &quot;_metadatos.xlsx&quot;), overwrite = TRUE)</code></pre>
 <p>Una vez guardados en disco los metadatos (fichero xlsx) y los datos
 (fichero RDS), iniciamos el proceso de análisis. A partir de aquí el
 documento se compila <strong>solo</strong> con los ficheros ya guardados
@@ -629,7 +652,34 @@ periodos</td>
 </tbody>
 </table>
 </div>
-<p><strong>tabla original</strong> (100 filas elegidas al azar)</p>
+<p><strong>Columnas eliminadas de la tabla original</strong> por tener
+un único valor en todas las filas:</p>
+<table style="width:100%;">
+<colgroup>
+<col width="23%" />
+<col width="41%" />
+<col width="7%" />
+<col width="28%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Columna</th>
+<th align="left">Significado</th>
+<th align="left">Valor</th>
+<th align="left">Significado del valor</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">INTERVALOS_PLAZAS</td>
+<td align="left">Intervalos de plazas alojativas</td>
+<td align="left">_T</td>
+<td align="left">Total</td>
+</tr>
+</tbody>
+</table>
+<p><strong>tabla procesada</strong> con eliminación de columnas con
+valores únicos si procede (100 filas elegidas al azar)</p>
 <div class="tabla-scroll-xy">
 <table>
 <colgroup>
