@@ -262,32 +262,14 @@ metadatos <- read.xlsx(paste0(filename, "_metadatos.xlsx"))
 <div class="tabla-scroll-xy">
 
 ```{r}
-# la descripción de cada indicador son varios miles de caracteres: dentro de una
-# celda de la tabla se sale de la página, así que se saca aparte, más abajo
+# la descripción de cada indicador puede pasar de los 2.500 caracteres: no se
+# muestra aquí, se consulta en la columna Indicator_desc del _metadatos.xlsx
 metadatos |>
   select(-any_of("Indicator_desc")) |>
   knitr::kable()
 ```
 
 </div>
-
-**Descripción de cada indicador**
-
-```{r, results='asis'}
-# una caja con scroll por indicador: el texto del Banco Mundial puede pasar de
-# los 2.500 caracteres
-if("Indicator_desc" %in% colnames(metadatos)){
-  for(k in seq_len(nrow(metadatos))){
-    cat("\n**", metadatos$Id[k], " — ", metadatos$Indicator[k], "**\n\n", sep = "")
-    cat('<div class="caja-scroll">\n\n')
-    cat(ifelse(is.na(metadatos$Indicator_desc[k]), "(sin descripción)",
-               metadatos$Indicator_desc[k]))
-    cat("\n\n</div>\n\n")
-  }
-} else {
-  cat("El catálogo no incluye la columna Indicator_desc.\n")
-}
-```
 
 ```{r}
 data <- readRDS(paste0(filename, ".rds"))
