@@ -301,8 +301,6 @@ data |>
 # rds, así que no hace falta volver a detectarla a partir de los datos
 geo_col <- metadatos$Valor[metadatos$Campo == "geo.col.name"]
 if(is.na(geo_col)) geo_col <- NULL
-
-cat("Columna geográfica :", if(is.null(geo_col)) "NO ENCONTRADA" else geo_col, "\n")
 ```
 
 ## Información sobre las columnas de la tabla descargada
