@@ -722,16 +722,18 @@ Column
 
 - Ocupados por sexo, grupo de edad y sector económico, y población de 16 y más años por sexo y grupo de edad (INE) (datos trimestrales)
 
-#### Niveles territoriales
+#### Niveles territoriales (una columna en la tabla identifica el nivel)
 
 - **Comunidad**: las 17 comunidades autónomas, Ceuta, Melilla y España (el total nacional). Periodo: 2008Q1-2026Q3 (el incremento de la población, 2002Q1-2026Q3)
 - **Provincia**: las 52 provincias, con el sexo para el Total y el incremento de la población, y solo el total de edad. Periodo: 2002Q1-2026Q3
 
-#### Atributos
+#### Atributos (una columna en la tabla por cada dimensión)
 
 - **Sexo**: hombres, mujeres y ambos sexos (el total).
 - **Edad**: cuatro grupos de edad (de 16 a 19 años, de 20 a 24, de 25 a 54, de 55 y más) y el total.
-- **Indicador**: los cuatro sectores económicos (agricultura, industria, construcción y servicios; ver la tabla siguiente), su total (**Total_sectores**) y el **Incremento población (%)**: el crecimiento, en porcentaje, de la población de 16 y más años del mismo sexo y grupo de edad respecto a la primera fecha con dato de población (2002Q1).
+- **Indicador**:
+    - **Sectores económicos**: los cuatro sectores (agricultura, industria, construcción y servicios; ver la tabla siguiente) y su total (**Total_sectores**).
+    - **Incremento población (%)**: el crecimiento, en porcentaje, de la población de 16 y más años del mismo sexo y grupo de edad respecto a la primera fecha con dato de población (2002Q1).
 
 #### Sectores económicos (CNAE-2009)
 
@@ -745,7 +747,7 @@ Los cuatro sectores agrupan las secciones de la Clasificación Nacional de Activ
 | Servicios | Comercio y reparación de vehículos, transporte y almacenamiento, hostelería, información y comunicaciones, finanzas y seguros, actividades inmobiliarias, actividades profesionales, científicas y técnicas, actividades administrativas, administración pública y defensa, educación, sanidad y servicios sociales, actividades artísticas y recreativas, otros servicios y empleo doméstico en los hogares. |
 | Total_sectores | La suma de los cuatro sectores. |
 
-#### Medidas
+#### Medidas (una columna en la tabla identifica la medida)
 
 - `valor_absoluto`: ocupados en miles de personas.
 - `valor_relativo`: ocupados por cada 100 personas en edad de trabajar (16 y más años) del mismo sexo y grupo de edad. Con el indicador Total_sectores, es la tasa de empleo.
