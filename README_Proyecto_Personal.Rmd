@@ -639,7 +639,7 @@ El dashboard es el entregable técnico más exigente. Debe estar desplegado y ac
 Tu dashboard tiene que partir **obligatoriamente** de la plantilla de cuadro de mandos de la asignatura, **adaptada a tus datos**. Hay dos ejemplos de la misma plantilla, que solo se diferencian en lo marcado con ✎; parte del que más se parezca a tus datos:
 
 * [Dashboard_eurostat_gasto_publico.Rmd](https://ctim.es/AEDV/Dashboard_eurostat_gasto_publico.Rmd): el gasto público por sectores de Eurostat, con **un atributo** (el sector).
-* [Dashboard_epa_ocupados.Rmd](https://ctim.es/AEDV/Dashboard_epa_ocupados.Rmd): los ocupados de la EPA, con **tres atributos** (el sexo, el grupo de edad y el indicador: los sectores económicos y el incremento de la población), dos medidas (`valor_absoluto`, los ocupados, y `tasa`, los ocupados por cada 100 personas en edad de trabajar) y **dos niveles territoriales**, las comunidades autónomas y las provincias, cada uno con su mapa.
+* [Dashboard_epa_ocupados.Rmd](https://ctim.es/AEDV/Dashboard_epa_ocupados.Rmd): los ocupados de la EPA, con **tres atributos** (el sexo, el grupo de edad y el indicador: los sectores económicos y el incremento de la población), dos medidas (`valor_absoluto`, los ocupados, y `valor_relativo`, los ocupados por cada 100 personas en edad de trabajar) y **dos niveles territoriales**, las comunidades autónomas y las provincias, cada uno con su mapa.
 
 Para aplicar la plantilla a otro dataset solo hay que cambiar lo marcado con ✎, en cuatro sitios:
 
@@ -706,7 +706,7 @@ El **sexo, el grupo de edad** (y cualquier otra variable categórica, como el se
 
 `ESP` es el código ISO de tres letras, el mismo de la geometría de los países; la UE-27 no tiene polígono y sale en todas las páginas salvo en el mapa.
 
-**Ejemplo con tres atributos, datos trimestrales y dos niveles territoriales: los ocupados de la EPA** (`Dashboard_epa_ocupados.Rmd`). Los atributos son el **sexo**, el **grupo de edad** y el **indicador** (los sectores económicos, su total `Total_sectores` y el incremento de la población), cada uno en su columna y con su total; las medidas, `valor_absoluto` (ocupados en miles de personas, un dato por trimestre) y `tasa` (ocupados por cada 100 personas de 16 y más años del mismo sexo y edad; en el incremento de la población, el incremento en %, que solo tiene esta medida); y la columna `nivel` separa las comunidades de las provincias. Algunas filas:
+**Ejemplo con tres atributos, datos trimestrales y dos niveles territoriales: los ocupados de la EPA** (`Dashboard_epa_ocupados.Rmd`). Los atributos son el **sexo**, el **grupo de edad** y el **indicador** (los sectores económicos, su total `Total_sectores` y el incremento de la población), cada uno en su columna y con su total; las medidas, `valor_absoluto` (ocupados en miles de personas, un dato por trimestre) y `valor_relativo` (ocupados por cada 100 personas de 16 y más años del mismo sexo y edad; en el incremento de la población, el incremento en %, que solo tiene esta medida); y la columna `nivel` separa las comunidades de las provincias. Algunas filas:
 
 <div class="tabla-scroll">
 
@@ -718,8 +718,8 @@ El **sexo, el grupo de edad** (y cualquier otra variable categórica, como el se
 | 05 | Canarias | Comunidad | Ambos sexos | Total | Servicios | 2026 Q3 | valor_absoluto | 942.5 |
 | 05 | Canarias | Comunidad | Ambos sexos | De 25 a 54 años | Total_sectores | 2026 Q3 | valor_absoluto | 766.7 |
 | 05 | Canarias | Comunidad | Ambos sexos | Total | Total_sectores | 2026 Q3 | valor_absoluto | 1073.6 |
-| 05 | Canarias | Comunidad | Ambos sexos | Total | Total_sectores | 2026 Q3 | tasa | 53.8 |
-| 05 | Canarias | Comunidad | Ambos sexos | Total | Incremento población (%) | 2026 Q3 | tasa | 42.5 |
+| 05 | Canarias | Comunidad | Ambos sexos | Total | Total_sectores | 2026 Q3 | valor_relativo | 53.8 |
+| 05 | Canarias | Comunidad | Ambos sexos | Total | Incremento población (%) | 2026 Q3 | valor_relativo | 42.5 |
 | 35 | Las Palmas | Provincia | Ambos sexos | Total | Servicios | 2026 Q3 | valor_absoluto | 492.3 |
 | 35 | Las Palmas | Provincia | Ambos sexos | Total | Total_sectores | 2026 Q3 | valor_absoluto | 557.6 |
 | 38 | Santa Cruz de Tenerife | Provincia | Ambos sexos | Total | Total_sectores | 2026 Q3 | valor_absoluto | 516.0 |

@@ -270,7 +270,7 @@ RESALTAR <- c("Canarias", "España", "Las Palmas", "Santa Cruz de Tenerife")
 # categoría (o varias) por atributo, con el nombre de su columna. Si alguna no
 # existe en DATOS se usa la primera disponible, así que la plantilla no se
 # rompe al cambiar de datos y olvidarse de tocarlas.
-MEDIDA_INICIAL      <- "tasa"                                # ✎ en todas las páginas
+MEDIDA_INICIAL      <- "valor_relativo"                        # ✎ en todas las páginas
 AREA_INICIAL        <- "Canarias"                              # ✎ serie inicial de la predicción
 AREAS_INICIALES     <- c("Canarias", "España", "Andalucía", "Cataluña", "Madrid", "Baleares") # ✎ Series, al desmarcar la casilla
 ATRIBUTO_INICIAL    <- c(sexo = "Ambos sexos", edad = "Total", indicador = "Total_sectores")          # ✎ predicción, mapa y categorías fijas del PCA
@@ -748,9 +748,9 @@ Los cuatro sectores agrupan las secciones de la Clasificación Nacional de Activ
 #### Medidas
 
 - `valor_absoluto`: ocupados en miles de personas.
-- `tasa`: ocupados por cada 100 personas en edad de trabajar (16 y más años) del mismo sexo y grupo de edad. Con el indicador Total_sectores, es la tasa de empleo.
+- `valor_relativo`: ocupados por cada 100 personas en edad de trabajar (16 y más años) del mismo sexo y grupo de edad. Con el indicador Total_sectores, es la tasa de empleo.
 
-El indicador **Incremento población (%)** solo tiene la medida `tasa`.
+El indicador **Incremento población (%)** solo tiene la medida `valor_relativo`.
 
 #### Dato presentado
 
