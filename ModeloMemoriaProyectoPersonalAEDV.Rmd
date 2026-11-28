@@ -823,14 +823,20 @@ CONTENIDO ESPERADO:
      (aedv_prediccion_arima(), aedv_prediccion_stl_arima()).
 
    ANÁLISIS DE ATRIBUTOS (Entrega 3):
+   OBLIGATORIO: al menos un ejemplo completo con la matriz de correlación,
+   el biplot y el k-means hechos con las funciones aedv_ (criterio 15 de la
+   rúbrica). Elige al menos cuatro atributos de interés e independientes por
+   área geográfica y fija o filtra las demás variables.
    - Matriz de correlación (aedv_matriz_correlacion()): relaciones lineales
      entre los atributos.
    - Regresión lineal simple entre dos atributos (lm(), aedv_tabla_lm()) y
      transformación de Yeo-Johnson (aedv_yeo_johnson(), aedv_yeojohnson_lambda())
      cuando mejora el ajuste.
    - PCA (prcomp()): reduce la dimensión y muestra la variabilidad principal.
+     Biplot con aedv_pca_biplot(pca, dinamico = TRUE).
    - k-means sobre las componentes principales (aedv_kmeans()): agrupa las
-     áreas geográficas con un comportamiento parecido.
+     áreas geográficas con un comportamiento parecido. Gráfico con
+     aedv_kmeans_grafico(clusters, dinamico = TRUE).
 
 
 3. PRESENTACIÓN DE RESULTADOS DEL MODELO
@@ -884,9 +890,12 @@ CONTENIDO ESPERADO:
 2. ANÁLISIS DE ATRIBUTOS (Entrega 3)
    - Ajustes lineales: calidad del ajuste y análisis de su error
      (aedv_tabla_lm()). ¿La transformación de Yeo-Johnson mejora el ajuste?
-   - PCA: ¿qué porcentaje de la varianza explican las primeras componentes?
-     ¿Cuántas hacen falta (aedv_pca_n_componentes())? ¿Cómo se interpretan
-     a partir de sus loadings?
+   - PCA (OBLIGATORIO, criterio 15 de la rúbrica): incluye el gráfico de la
+     varianza explicada (aedv_pca_varianza_grafico(pca) |> ggplotly()) y
+     explica con él si el PCA ha conseguido reducir de forma efectiva la
+     dimensión de los datos: ¿qué porcentaje de la varianza explican las
+     primeras componentes? ¿Cuántas hacen falta (aedv_pca_n_componentes())?
+     ¿Cómo se interpretan a partir de sus loadings?
    - k-means: ¿los grupos obtenidos tienen sentido en el contexto del problema?
 
 3. DISCUSIÓN CRÍTICA DE RESULTADOS
