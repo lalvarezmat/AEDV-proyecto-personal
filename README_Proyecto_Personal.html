@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-11-26" />
+<meta name="date" content="2026-11-28" />
 
 <title>Proyecto Personal AEDV — Guía de trabajo</title>
 
@@ -1617,7 +1617,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Proyecto Personal AEDV — Guía de
 trabajo</h1>
-<h4 class="date">2026-11-26</h4>
+<h4 class="date">2026-11-28</h4>
 
 </div>
 
@@ -1839,9 +1839,14 @@ Metodología</strong>, adaptadas a tu proyecto.</li>
 gráficos estáticos de la Entrega 2 se pasarán a
 <strong>dinámicos</strong> (<code>plotly</code>).</li>
 <li><strong>3.6 Modelado</strong>: añadir al modelado el análisis de
-atributos: correlación, transformada Yeo-Johnson, PCA, k-means.</li>
+atributos: correlación, transformada Yeo-Johnson, PCA, k-means. Como
+mínimo, un ejemplo con la matriz de correlación, el biplot y el k-means
+hechos con las funciones <code>aedv_</code> (ver el criterio
+<em>Análisis de atributos en la memoria</em> de la rúbrica).</li>
 <li><strong>3.7 Evaluación</strong>: añadir la discusión de la calidad
-de los resultados obtenidos en el análisis de atributos.</li>
+de los resultados obtenidos en el análisis de atributos, con el gráfico
+de la varianza explicada del PCA para justificar si ha reducido de forma
+efectiva la dimensión de los datos.</li>
 <li><strong>3.8 Despliegue</strong>: descripción del cuadro de mandos a
 nivel de diseño.</li>
 <li><strong>4. Conclusiones y trabajo futuro</strong>, que debe incluir,
@@ -2802,7 +2807,9 @@ datos</em></strong></td>
 </tr>
 <tr class="odd">
 <td>15</td>
-<td>Elección correcta de atributos para PCA</td>
+<td>Análisis de atributos: elección correcta de atributos para PCA;
+matriz de correlación, biplot y k-means (<code>aedv_</code>) en Modelado
+y varianza explicada en Evaluación</td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center">✓</td>
@@ -3099,12 +3106,29 @@ leyendo este apartado.</p></li>
 proyecto trabaja con conceptos especializados (tasas de natalidad,
 índice de Gini, emisiones per cápita…), estos deben definirse la primera
 vez que aparecen. No se puede asumir que el lector los conoce.</p></li>
-<li><p><strong>Elección correcta de atributos para el PCA</strong>
-<em>(solo Entrega 3).</em> Para el análisis de componentes principales
-deben seleccionarse al menos cuatro atributos de interés e
-independientes por área geográfica. Las demás variables libres deben
-fijarse o filtrarse correctamente, de modo que el PCA se calcule sobre
-un conjunto bien definido y comparable entre áreas.</p></li>
+<li><p><strong>Análisis de atributos en la memoria</strong> <em>(solo
+Entrega 3).</em> La memoria debe incluir al menos un ejemplo completo de
+análisis de atributos:</p>
+<ul>
+<li><strong>Elección de los atributos.</strong> Para el análisis de
+componentes principales deben seleccionarse al menos cuatro atributos de
+interés e independientes por área geográfica. Las demás variables libres
+deben fijarse o filtrarse correctamente, de modo que el PCA se calcule
+sobre un conjunto bien definido y comparable entre áreas.</li>
+<li><strong>En Modelado</strong>, como mínimo, la <strong>matriz de
+correlación</strong> (<code>aedv_matriz_correlacion()</code>), el
+<strong>biplot</strong> del PCA (<code>aedv_pca_biplot()</code>) y el
+gráfico del <strong>k-means</strong> (<code>aedv_kmeans()</code> y
+<code>aedv_kmeans_grafico()</code>), hechos con las funciones
+<code>aedv_</code> de <code>utilidades.R</code> y en su versión dinámica
+(<code>dinamico = TRUE</code> en el biplot y en el k-means).</li>
+<li><strong>En Evaluación</strong>, el gráfico de la <strong>varianza
+explicada</strong> (<code>aedv_pca_varianza_grafico()</code>), con la
+explicación de si el PCA ha conseguido reducir de forma efectiva la
+dimensión de los datos: cuántas componentes hacen falta
+(<code>aedv_pca_n_componentes()</code>) y qué porcentaje de la varianza
+recogen.</li>
+</ul></li>
 </ul>
 <hr />
 </div>
@@ -3330,8 +3354,11 @@ estacionalidad si el dato es trimestral o mensual) se adaptan solos. El
 trimestre y el mes pueden ir como <code>yearquarter()</code> y
 <code>yearmonth()</code> de <code>tsibble</code>, o como texto con el
 formato del INE («2024T3», «2024M07»).</li>
-<li><code>medida</code>: el nombre de la medida. <strong>Todas las
-medidas van en esta misma columna</strong>, no una por columna.</li>
+<li><code>medida</code>: la medida no es un atributo, es la forma en que
+se mide el atributo que estamos considerando. Por ejemplo, esta columna
+se suele usar para distinguir, si procede, entre una variable expresada
+en valores absolutos o en valores relativos (por ejemplo
+per-capita).</li>
 <li><code>valor</code>: el valor numérico de la medida.</li>
 </ul>
 <p>El <strong>sexo, el grupo de edad</strong> (y cualquier otra variable

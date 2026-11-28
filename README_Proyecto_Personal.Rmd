@@ -118,8 +118,8 @@ Es la versión final de la memoria: se completan y revisan **todos** los apartad
 * **2. Aportaciones del trabajo**: 2.1 Principales aportaciones y 2.2 Alineamiento con los objetivos de desarrollo sostenible.
 * **3.1 Herramientas empleadas** y **3.2 Metodología**, adaptadas a tu proyecto.
 * **3.5 Preparación de los datos**, revisada: todos los gráficos estáticos de la Entrega 2 se pasarán a **dinámicos** (`plotly`).
-* **3.6 Modelado**: añadir al modelado el análisis de atributos: correlación, transformada Yeo-Johnson, PCA, k-means.
-* **3.7 Evaluación**: añadir la discusión de la calidad de los resultados obtenidos en el análisis de atributos.
+* **3.6 Modelado**: añadir al modelado el análisis de atributos: correlación, transformada Yeo-Johnson, PCA, k-means. Como mínimo, un ejemplo con la matriz de correlación, el biplot y el k-means hechos con las funciones `aedv_` (ver el criterio *Análisis de atributos en la memoria* de la rúbrica).
+* **3.7 Evaluación**: añadir la discusión de la calidad de los resultados obtenidos en el análisis de atributos, con el gráfico de la varianza explicada del PCA para justificar si ha reducido de forma efectiva la dimensión de los datos.
 * **3.8 Despliegue**: descripción del cuadro de mandos a nivel de diseño.
 * **4. Conclusiones y trabajo futuro**, que debe incluir, en particular, las respuestas a cada una de las preguntas de investigación.
 * **Bibliografía** y **Anexo I. Agentes de IA utilizados y organización del trabajo con la IA**.
@@ -495,7 +495,7 @@ La evaluación del proyecto personal se estructura en torno a 29 criterios agrup
 | 12 | Información, origen y fiabilidad de los datasets | ✓ | ✓ | ✓ |
 | 13 | Descripción detallada del procesado inicial de datos | | ✓ | ✓ |
 | 14 | Conceptos manejados claros desde el principio | ✓ | ✓ | ✓ |
-| 15 | Elección correcta de atributos para PCA | | | ✓ |
+| 15 | Análisis de atributos: elección correcta de atributos para PCA; matriz de correlación, biplot y k-means (`aedv_`) en Modelado y varianza explicada en Evaluación | | | ✓ |
 | | ***Visualizaciones en la memoria*** | | | |
 | 16 | Primeras gráficas ilustran los conceptos de forma general | | ✓ | ✓ |
 | 17 | Gráficas de calidad profesional, sin solapamientos y autocontenidas | | ✓ | ✓ |
@@ -574,7 +574,10 @@ El evaluador comprueba que el alumno entiende los datos que está usando, no sol
 
 - **Conceptos claros desde el principio.** Si el proyecto trabaja con conceptos especializados (tasas de natalidad, índice de Gini, emisiones per cápita...), estos deben definirse la primera vez que aparecen. No se puede asumir que el lector los conoce.
 
-- **Elección correcta de atributos para el PCA** *(solo Entrega 3).* Para el análisis de componentes principales deben seleccionarse al menos cuatro atributos de interés e independientes por área geográfica. Las demás variables libres deben fijarse o filtrarse correctamente, de modo que el PCA se calcule sobre un conjunto bien definido y comparable entre áreas.
+- **Análisis de atributos en la memoria** *(solo Entrega 3).* La memoria debe incluir al menos un ejemplo completo de análisis de atributos:
+    - **Elección de los atributos.** Para el análisis de componentes principales deben seleccionarse al menos cuatro atributos de interés e independientes por área geográfica. Las demás variables libres deben fijarse o filtrarse correctamente, de modo que el PCA se calcule sobre un conjunto bien definido y comparable entre áreas.
+    - **En Modelado**, como mínimo, la **matriz de correlación** (`aedv_matriz_correlacion()`), el **biplot** del PCA (`aedv_pca_biplot()`) y el gráfico del **k-means** (`aedv_kmeans()` y `aedv_kmeans_grafico()`), hechos con las funciones `aedv_` de `utilidades.R` y en su versión dinámica (`dinamico = TRUE` en el biplot y en el k-means).
+    - **En Evaluación**, el gráfico de la **varianza explicada** (`aedv_pca_varianza_grafico()`), con la explicación de si el PCA ha conseguido reducir de forma efectiva la dimensión de los datos: cuántas componentes hacen falta (`aedv_pca_n_componentes()`) y qué porcentaje de la varianza recogen.
 
 ---
 
@@ -682,7 +685,7 @@ GEOMETRIA <- leer_geojson("mi_geometria.geojson") |>
 * `nivel` (opcional): el nivel territorial del área, si tus datos **mezclan áreas de varios niveles** (comunidades, islas, municipios…). Ver más abajo.
 * **Una columna por atributo**, con el nombre que quieras. Un atributo es una **variable categórica que no es una medida**: el sector, el sexo, el grupo de edad… Sus categorías son los valores de su columna, y si tiene una categoría que es la suma de las demás (el total), va en la misma columna, como una categoría más.
 * `periodo`: el periodo de cada dato, **con la frecuencia de los datos originales**: el año (un número entero), el trimestre o el mes. **No hay que pasar los datos a años**: los rótulos, el incremento y la predicción (con estacionalidad si el dato es trimestral o mensual) se adaptan solos. El trimestre y el mes pueden ir como `yearquarter()` y `yearmonth()` de `tsibble`, o como texto con el formato del INE («2024T3», «2024M07»).
-* `medida`: el nombre de la medida. **Todas las medidas van en esta misma columna**, no una por columna. 
+* `medida`: la medida no es un atributo, es la forma en que se mide el atributo que estamos considerando. Por ejemplo, esta columna se suele usar para distinguir, si procede, entre una variable expresada en valores absolutos o en valores relativos (por ejemplo per-capita). 
 * `valor`: el valor numérico de la medida.
 
 El **sexo, el grupo de edad** (y cualquier otra variable categórica, como el sector económico) van cada uno en **su propia columna**, con una fila por cada combinación de sus categorías, **incluidas las de los totales** («Ambos sexos», «Total»…). No hay que juntarlos en una sola columna: el dashboard pone un desplegable por atributo y los combina él solo. Una combinación sin dato no lleva fila (no hace falta una fila con `NA`).
